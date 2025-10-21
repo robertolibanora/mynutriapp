@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from datetime import datetime
-from models import db, Appuntamento, Patient
+from app.models.models import db, Appuntamento, Patient
 
 
 # ========================
@@ -93,7 +93,7 @@ def nuovo_admin():
 @admin_required
 def cambia_stato_admin(id, nuovo_stato):
     """Cambia lo stato di un appuntamento (conferma, completa, annulla)"""
-    from models import SlotDisponibilita
+    from app.models.models import SlotDisponibilita
     
     app = Appuntamento.query.get_or_404(id)
     
@@ -138,7 +138,7 @@ def cambia_stato_admin(id, nuovo_stato):
 @appuntamenti_bp.route('/admin/elimina/<int:id>', methods=['POST'])
 @admin_required
 def elimina_admin(id):
-    from models import SlotDisponibilita
+    from app.models.models import SlotDisponibilita
     
     app = Appuntamento.query.get_or_404(id)
     data_appuntamento = app.data_appuntamento
@@ -180,7 +180,7 @@ def lista_user():
 @user_required
 def prenota_user():
     """Il paziente può prenotare scegliendo una data disponibile"""
-    from models import SlotDisponibilita
+    from app.models.models import SlotDisponibilita
     from datetime import datetime
     
     user_id = session.get('user_id')

@@ -5,7 +5,7 @@ E inviare messaggi WhatsApp automatici
 
 from datetime import date, timedelta
 import logging
-from models import db, Dieta, Allenamento, Patient
+from app.models.models import db, Dieta, Allenamento, Patient
 from .triggers import safe_trigger_scadenza_generica
 
 # Configurazione logging

@@ -8,7 +8,7 @@ import logging
 import os
 import json
 from datetime import datetime, timedelta
-from models import db, Patient, Dieta, Allenamento
+from app.models.models import db, Patient, Dieta, Allenamento
 from .sender import invia_whatsapp
 
 # Configurazione logging

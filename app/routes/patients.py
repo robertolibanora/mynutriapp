@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from werkzeug.security import generate_password_hash
-from models import db, Patient, Dieta, Allenamento, Progresso
+from app.models.models import db, Patient, Dieta, Allenamento, Progresso
 from datetime import date, timedelta
 
 # ========================
@@ -80,7 +80,7 @@ def lista_pazienti():
 @patients_bp.route('/<int:patient_id>')
 @admin_required
 def dettaglio_paziente(patient_id):
-    from models import Progresso, Documento
+    from app.models.models import Progresso, Documento
     
     paziente = Patient.query.get_or_404(patient_id)
     

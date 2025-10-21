@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, current_app
 from werkzeug.security import check_password_hash
-from models import db, Patient
+from app.models.models import db, Patient
 import os
 
 # ========================

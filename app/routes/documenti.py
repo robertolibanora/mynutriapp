@@ -1,8 +1,8 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, send_from_directory, abort
 from werkzeug.utils import secure_filename
 import os
-from models import db, Documento, Patient
-from config import get_upload_folder, get_allowed_extensions, get_full_path, Config
+from app.models.models import db, Documento, Patient
+from app.config.config import get_upload_folder, get_allowed_extensions, get_full_path, Config
 
 # ========================
 # BLUEPRINT

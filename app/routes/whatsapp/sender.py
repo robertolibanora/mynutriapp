@@ -5,7 +5,7 @@ Solo invio messaggi diretti, niente tracking o webhook
 
 import requests
 import logging
-from config import Config
+from app.config.config import Config
 
 # Configurazione logging
 logging.basicConfig(level=logging.INFO)

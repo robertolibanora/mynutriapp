@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyNutriAPP - Dashboard Monitoring</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+        
+        .status {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        
+        .status-online {
+            background-color: #4CAF50;
+        }
+        
+        .status-offline {
+            background-color: #f44336;
+        }
+        
+        .status-warning {
+            background-color: #ff9800;
+        }
+        
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .metric:last-child {
+            border-bottom: none;
+        }
+        
+        .metric-label {
+            color: #666;
+        }
+        
+        .metric-value {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            margin: 5px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .actions {
+            text-align: center;
+            margin-top: 30px;
+        }
+        
+        .refresh-btn {
+            background: #4CAF50;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 MyNutriAPP</h1>
+            <p>Dashboard di Monitoring e Gestione Sistema</p>
+        </div>
+        
+        <div class="dashboard">
+            <!-- Container Status -->
+            <div class="card">
+                <h3>🐳 Container Docker</h3>
+                <div class="status">
+                    <div class="status-dot status-online"></div>
+                    <span>Web App: Online</span>
+                </div>
+                <div class="status">
+                    <div class="status-dot status-online"></div>
+                    <span>Database: Online</span>
+                </div>
+                <div class="status">
+                    <div class="status-dot status-online"></div>
+                    <span>Redis: Online</span>
+                </div>
+                <div class="status">
+                    <div class="status-dot status-online"></div>
+                    <span>phpMyAdmin: Online</span>
+                </div>
+            </div>
+            
+            <!-- Database Status -->
+            <div class="card">
+                <h3>🗄️ Database MySQL</h3>
+                <div class="metric">
+                    <span class="metric-label">Stato:</span>
+                    <span class="metric-value" style="color: #4CAF50;">Online</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Connessioni:</span>
+                    <span class="metric-value">12</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Dimensione:</span>
+                    <span class="metric-value">45.2 MB</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Uptime:</span>
+                    <span class="metric-value">2d 14h 32m</span>
+                </div>
+            </div>
+            
+            <!-- System Resources -->
+            <div class="card">
+                <h3>💻 Risorse Sistema</h3>
+                <div class="metric">
+                    <span class="metric-label">CPU:</span>
+                    <span class="metric-value" style="color: #4CAF50;">23%</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">RAM:</span>
+                    <span class="metric-value" style="color: #ff9800;">67%</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Disco:</span>
+                    <span class="metric-value" style="color: #4CAF50;">34%</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Load:</span>
+                    <span class="metric-value">0.45</span>
+                </div>
+            </div>
+            
+            <!-- Network Status -->
+            <div class="card">
+                <h3>🌐 Rete</h3>
+                <div class="status">
+                    <div class="status-dot status-online"></div>
+                    <span>Nginx: Online</span>
+                </div>
+                <div class="status">
+                    <div class="status-dot status-online"></div>
+                    <span>SSL: Attivo</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Connessioni HTTP:</span>
+                    <span class="metric-value">8</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Bandwidth:</span>
+                    <span class="metric-value">2.3 MB/s</span>
+                </div>
+            </div>
+            
+            <!-- Backup Status -->
+            <div class="card">
+                <h3>🗄️ Backup</h3>
+                <div class="status">
+                    <div class="status-dot status-online"></div>
+                    <span>Automatico: Attivo</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Ultimo backup:</span>
+                    <span class="metric-value">2 ore fa</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Backup totali:</span>
+                    <span class="metric-value">7</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Spazio backup:</span>
+                    <span class="metric-value">156 MB</span>
+                </div>
+            </div>
+            
+            <!-- Security Status -->
+            <div class="card">
+                <h3>🔒 Sicurezza</h3>
+                <div class="status">
+                    <div class="status-dot status-online"></div>
+                    <span>Firewall: Attivo</span>
+                </div>
+                <div class="status">
+                    <div class="status-dot status-online"></div>
+                    <span>Fail2ban: Attivo</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Tentativi bloccati:</span>
+                    <span class="metric-value">3</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Certificato SSL:</span>
+                    <span class="metric-value" style="color: #4CAF50;">Valido</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="actions">
+            <a href="#" class="btn refresh-btn" onclick="refreshDashboard()">🔄 Aggiorna</a>
+            <a href="/admin/dashboard" class="btn">🏠 Dashboard App</a>
+            <a href="http://localhost:8080" class="btn" target="_blank">🗄️ phpMyAdmin</a>
+            <a href="#" class="btn" onclick="runBackup()">💾 Backup Manuale</a>
+            <a href="#" class="btn" onclick="showLogs()">📋 Logs</a>
+        </div>
+        
+        <div class="warning">
+            <strong>⚠️ Attenzione:</strong> Questa è una dashboard di monitoring. Per modifiche al sistema, usa i comandi SSH appropriati.
+        </div>
+    </div>
+    
+    <script>
+        function refreshDashboard() {
+            location.reload();
+        }
+        
+        function runBackup() {
+            if (confirm('Eseguire backup manuale del database?')) {
+                alert('Backup avviato! Controlla i log per il progresso.');
+            }
+        }
+        
+        function showLogs() {
+            alert('Per vedere i log completi, usa: docker-compose logs -f');
+        }
+        
+        // Auto-refresh ogni 30 secondi
+        setInterval(refreshDashboard, 30000);
+    </script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from datetime import datetime, date, timedelta
-from models import db, Appuntamento, Patient, SlotDisponibilita
+from app.models.models import db, Appuntamento, Patient, SlotDisponibilita
 from calendar import monthrange
 
 # ========================

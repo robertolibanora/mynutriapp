@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, session, redirect, url_for, flash
-from models import db, Patient, Dieta, Allenamento, Progresso, Appuntamento, SlotDisponibilita, Listino, Vendita
+from app.models.models import db, Patient, Dieta, Allenamento, Progresso, Appuntamento, SlotDisponibilita, Listino, Vendita
 from datetime import datetime, date, timedelta
 
 dashboard_bp = Blueprint('dashboard', __name__)

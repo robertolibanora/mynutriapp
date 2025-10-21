@@ -1,8 +1,8 @@
 from flask import Flask, redirect, url_for, session, render_template
-from models import db
-from config import Config, get_dynamic_limits, get_login_limit, get_rate_limit_config
+from app.models.models import db
+from app.config.config import Config, get_dynamic_limits, get_login_limit, get_rate_limit_config
 from dotenv import load_dotenv
-from config import ensure_upload_dirs
+from app.config.config import ensure_upload_dirs
 from flask_wtf.csrf import CSRFProtect, generate_csrf
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -39,9 +39,9 @@ ensure_upload_dirs()
 # ===========================================
 # 🔀 REGISTRAZIONE ROUTES (via funzione centralizzata)
 # ===========================================
-# La funzione register_routes(app) verrà definita in /routes/__init__.py
-from routes import register_routes
-register_routes(app)
+# La funzione register_blueprints(app) verrà definita in /app/routes/__init__.py
+from app.routes import register_blueprints
+register_blueprints(app)
 
 # Rende disponibile csrf_token() in tutte le template
 @app.context_processor

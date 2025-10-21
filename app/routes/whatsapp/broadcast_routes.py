@@ -17,7 +17,7 @@ from .triggers import (
     disable_trigger,
     print_trigger_status
 )
-from models import Patient
+from app.models.models import Patient
 
 # Blueprint per le routes broadcast
 broadcast_bp = Blueprint('broadcast', __name__, url_prefix='/admin/broadcast')

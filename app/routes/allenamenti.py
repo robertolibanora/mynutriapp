@@ -2,8 +2,8 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from werkzeug.utils import secure_filename
 import os
 from datetime import date
-from models import db, Allenamento, Patient
-from config import get_upload_folder, get_allowed_extensions, get_full_path
+from app.models.models import db, Allenamento, Patient
+from app.config.config import get_upload_folder, get_allowed_extensions, get_full_path
 
 # ========================
 # BLUEPRINT

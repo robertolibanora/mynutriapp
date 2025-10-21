@@ -1,0 +1,107 @@
+# ========================================
+# 🐳 DOCKER COMPOSE PER MYNUTRIAPP
+# Orchestrazione di tutti i servizi
+# ========================================
+
+version: '3.8'
+
+services:
+  # ========================================
+  # 🌐 APPLICAZIONE FLASK (Web Server)
+  # ========================================
+  web:
+    build: .
+    container_name: mynutriapp_web
+    ports:
+      - "8000:8000"
+    environment:
+      - FLASK_ENV=production
+      - DATABASE_URL=mysql+pymysql://mynutriapp:${MYSQL_PASSWORD}@db:3306/mynutriapp?charset=utf8mb4
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - RATELIMIT_STORAGE_URL=redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - ./static/uploads:/app/static/uploads
+      - ./logs:/app/logs
+    restart: unless-stopped
+    networks:
+      - mynutriapp_network
+
+  # ========================================
+  # 🗄️ DATABASE MYSQL
+  # ========================================
+  db:
+    image: mysql:8.0
+    container_name: mynutriapp_db
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=mynutriapp
+      - MYSQL_USER=mynutriapp
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "3306:3306"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      timeout: 20s
+      retries: 10
+    networks:
+      - mynutriapp_network
+
+  # ========================================
+  # ⚡ REDIS (Rate Limiting & Cache)
+  # ========================================
+  redis:
+    image: redis:7-alpine
+    container_name: mynutriapp_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    networks:
+      - mynutriapp_network
+
+  # ========================================
+  # 📊 PHPMYADMIN (Gestione Database - Opzionale)
+  # ========================================
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: mynutriapp_phpmyadmin
+    environment:
+      - PMA_HOST=db
+      - PMA_PORT=3306
+      - PMA_USER=root
+      - PMA_PASSWORD=${MYSQL_ROOT_PASSWORD}
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+    restart: unless-stopped
+    networks:
+      - mynutriapp_network
+
+# ========================================
+# 💾 VOLUMI PERSISTENTI
+# ========================================
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+
+# ========================================
+# 🌐 RETE PERSONALIZZATA
+# ========================================
+networks:
+  mynutriapp_network:
+    driver: bridge

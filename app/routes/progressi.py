@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
-from models import db, Progresso, Patient
+from app.models.models import db, Progresso, Patient
 from datetime import datetime
 import json
 
@@ -120,7 +120,7 @@ def check_nutrizionista_completo(patient_id):
             
             # Crea misure antropometriche solo se almeno un campo è compilato
             if any(misure_data.values()):
-                from models import MisureAntropometriche
+                from app.models.models import MisureAntropometriche
                 misure = MisureAntropometriche(
                     patient_id=patient_id,
                     progresso_id=nuovo_progresso.id,
@@ -157,7 +157,7 @@ def check_nutrizionista_completo(patient_id):
             
             # Crea composizione corporea solo se almeno un campo è compilato
             if any(composizione_data.values()):
-                from models import ComposizioneCorporea
+                from app.models.models import ComposizioneCorporea
                 composizione = ComposizioneCorporea(
                     patient_id=patient_id,
                     progresso_id=nuovo_progresso.id,
@@ -280,7 +280,7 @@ def modifica_check_nutrizionista(progresso_id):
             
             # Crea nuove misure se almeno un campo è compilato
             if any(misure_data.values()):
-                from models import MisureAntropometriche
+                from app.models.models import MisureAntropometriche
                 misure = MisureAntropometriche(
                     patient_id=paziente.id,
                     progresso_id=progresso.id,
@@ -322,7 +322,7 @@ def modifica_check_nutrizionista(progresso_id):
             
             # Crea nuova composizione se almeno un campo è compilato
             if any(composizione_data.values()):
-                from models import ComposizioneCorporea
+                from app.models.models import ComposizioneCorporea
                 composizione = ComposizioneCorporea(
                     patient_id=paziente.id,
                     progresso_id=progresso.id,

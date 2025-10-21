@@ -1,4 +1,4 @@
-# MyNutriApp 🥗
+# MyNutriAPP 🥗
 
 Un'applicazione web completa per la gestione di pazienti nutrizionisti, sviluppata con Flask e progettata con un approccio mobile-first.
 
