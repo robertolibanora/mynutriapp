@@ -1,0 +1,243 @@
+{% extends 'base_admin.html' %}
+{% block title %}Scadenze{% endblock %}
+{% block content %}
+
+<!-- HEADER -->
+<div class="header-section" style="background: linear-gradient(135deg, rgba(255, 117, 31, 0.1) 0%, rgba(13, 51, 28, 0.3) 100%); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; border: 1px solid rgba(255, 117, 31, 0.2);">
+  <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <h1 style="color: #ff751f; margin: 0; font-size: 2.2rem; font-weight: 700;">⏰ Scadenze</h1>
+      <p style="color: #b6b1a9; margin: 0.5rem 0 0 0; font-size: 1.1rem;">Monitora tutte le scadenze di diete, allenamenti e check</p>
+    </div>
+    <div style="text-align: right;">
+      <div style="color: #ffffff; font-size: 1.1rem; font-weight: 600;">{{ stats.totali }} scadenze</div>
+      <div style="color: #b6b1a9; font-size: 0.9rem;">{{ stats.urgenti }} urgenti</div>
+    </div>
+  </div>
+</div>
+
+<!-- STATISTICHE -->
+<div class="stats-section" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+  <div style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(244, 67, 54, 0.3); border-radius: 12px; padding: 1.5rem; text-align: center;">
+    <div style="color: #F44336; font-size: 2rem; font-weight: 700;">{{ stats.urgenti }}</div>
+    <div style="color: #F44336; font-size: 1rem; font-weight: 600; margin: 0.5rem 0;">🔥 Urgenti</div>
+    <div style="color: #b6b1a9; font-size: 0.8rem;">≤ 7 giorni</div>
+  </div>
+  
+  <div style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(255, 152, 0, 0.3); border-radius: 12px; padding: 1.5rem; text-align: center;">
+    <div style="color: #FF9800; font-size: 2rem; font-weight: 700;">{{ stats.diete }}</div>
+    <div style="color: #FF9800; font-size: 1rem; font-weight: 600; margin: 0.5rem 0;">🍽️ Diete</div>
+    <div style="color: #b6b1a9; font-size: 0.8rem;">In scadenza</div>
+  </div>
+  
+  <div style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(33, 150, 243, 0.3); border-radius: 12px; padding: 1.5rem; text-align: center;">
+    <div style="color: #2196F3; font-size: 2rem; font-weight: 700;">{{ stats.allenamenti }}</div>
+    <div style="color: #2196F3; font-size: 1rem; font-weight: 600; margin: 0.5rem 0;">🏋️ Allenamenti</div>
+    <div style="color: #b6b1a9; font-size: 0.8rem;">In scadenza</div>
+  </div>
+  
+  <div style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(156, 39, 176, 0.3); border-radius: 12px; padding: 1.5rem; text-align: center;">
+    <div style="color: #9C27B0; font-size: 2rem; font-weight: 700;">{{ stats.check }}</div>
+    <div style="color: #9C27B0; font-size: 1rem; font-weight: 600; margin: 0.5rem 0;">📈 Check</div>
+    <div style="color: #b6b1a9; font-size: 0.8rem;">Mancanti</div>
+  </div>
+</div>
+
+<!-- FILTRI -->
+<div class="filters-section" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem;">
+  <h3 style="color: #ff751f; margin: 0 0 1rem 0; display: flex; align-items: center; gap: 0.5rem;">
+    🔍 Filtri
+  </h3>
+  
+  <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+    <!-- FILTRO TIPO -->
+    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+      <label style="color: #b6b1a9; font-weight: 600; font-size: 0.9rem;">📋 Tipo:</label>
+      <select id="tipo-filter" class="input-text" style="width: auto; min-width: 150px;">
+        <option value="tutti" {% if tipo_filtro == 'tutti' %}selected{% endif %}>Tutti</option>
+        <option value="diete" {% if tipo_filtro == 'diete' %}selected{% endif %}>🍽️ Diete</option>
+        <option value="allenamenti" {% if tipo_filtro == 'allenamenti' %}selected{% endif %}>🏋️ Allenamenti</option>
+        <option value="check" {% if tipo_filtro == 'check' %}selected{% endif %}>📈 Check Mancanti</option>
+      </select>
+    </div>
+    
+    <!-- FILTRO GIORNI -->
+    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+      <label style="color: #b6b1a9; font-weight: 600; font-size: 0.9rem;">📅 Giorni:</label>
+      <select id="giorni-filter" class="input-text" style="width: auto; min-width: 120px;">
+        <option value="7" {% if giorni_filtro == 7 %}selected{% endif %}>7 giorni</option>
+        <option value="14" {% if giorni_filtro == 14 %}selected{% endif %}>14 giorni</option>
+        <option value="30" {% if giorni_filtro == 30 %}selected{% endif %}>30 giorni</option>
+        <option value="60" {% if giorni_filtro == 60 %}selected{% endif %}>60 giorni</option>
+        <option value="90" {% if giorni_filtro == 90 %}selected{% endif %}>90 giorni</option>
+      </select>
+    </div>
+    
+    <button onclick="applyFilters()" class="btn btn-primary" style="margin-top: 1.5rem;">
+      🔍 Applica Filtri
+    </button>
+  </div>
+</div>
+
+<!-- LISTA SCADENZE -->
+{% if scadenze %}
+<div class="scadenze-list" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px; padding: 1.5rem;">
+  <h3 style="color: #ff751f; margin: 0 0 1.5rem 0; display: flex; align-items: center; gap: 0.5rem;">
+    📋 Scadenze ({{ scadenze|length }})
+  </h3>
+  
+  <div style="display: flex; flex-direction: column; gap: 1rem;">
+    {% for scadenza in scadenze %}
+    <div class="scadenza-card scadenza-{{ scadenza.tipo }}" style="background: rgba(13, 51, 28, 0.6); border-radius: 12px; padding: 1.5rem; transition: all 0.3s ease;">
+      <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+        <div style="flex: 1; min-width: 300px;">
+          <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
+            <div style="font-size: 1.5rem;">{{ scadenza.titolo.split(' ', 1)[0] }}</div>
+            <h4 class="scadenza-titolo scadenza-titolo-{{ scadenza.tipo }}" style="margin: 0; font-size: 1.2rem; font-weight: 700;">
+              {{ scadenza.titolo }}
+            </h4>
+            {% if scadenza.urgenza == 'alta' %}
+            <span style="background: rgba(244, 67, 54, 0.2); color: #F44336; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">
+              🔥 Urgente
+            </span>
+            {% elif scadenza.urgenza == 'media' %}
+            <span style="background: rgba(255, 152, 0, 0.2); color: #FF9800; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">
+              ⚠️ Attenzione
+            </span>
+            {% endif %}
+          </div>
+          
+          <div style="color: #ffffff; font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem;">
+            👤 {{ scadenza.paziente }}
+          </div>
+          
+          <div style="color: #b6b1a9; font-size: 0.9rem; line-height: 1.4; margin-bottom: 0.5rem;">
+            {{ scadenza.descrizione }}
+          </div>
+          
+          {% if scadenza.data_scadenza %}
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span style="color: #b6b1a9; font-size: 0.85rem;">📅 Scadenza:</span>
+            <span style="color: #ffffff; font-size: 0.85rem; font-weight: 600;">{{ scadenza.data_scadenza.strftime('%d/%m/%Y') }}</span>
+            <span class="scadenza-giorni scadenza-giorni-{{ scadenza.tipo }}" style="font-size: 0.85rem; font-weight: 600;">
+              ({{ scadenza.giorni_rimanenti }} giorni)
+            </span>
+          </div>
+          {% else %}
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span style="color: #b6b1a9; font-size: 0.85rem;">⏱️ Giorni senza check:</span>
+            <span class="scadenza-giorni scadenza-giorni-{{ scadenza.tipo }}" style="font-size: 0.85rem; font-weight: 600;">
+              {{ scadenza.giorni_rimanenti if scadenza.giorni_rimanenti < 999 else '∞' }} giorni
+            </span>
+          </div>
+          {% endif %}
+        </div>
+        
+        <div style="display: flex; gap: 0.5rem;">
+          <a href="{{ scadenza.link }}" class="btn btn-primary btn-small">
+            👁️ Dettaglio
+          </a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% else %}
+<div class="empty-state" style="text-align: center; padding: 3rem; background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px;">
+  <div style="font-size: 4rem; margin-bottom: 1rem;">✅</div>
+  <h3 style="color: #4CAF50; margin: 0 0 1rem 0; font-size: 1.5rem;">Nessuna Scadenza</h3>
+  <p style="color: #b6b1a9; margin: 0; font-size: 1rem;">
+    Non ci sono scadenze nei prossimi {{ giorni_filtro }} giorni per il tipo selezionato.
+  </p>
+</div>
+{% endif %}
+
+<style>
+.scadenza-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+  border-color: rgba(255, 117, 31, 0.5);
+}
+
+.input-text {
+  background: rgba(13, 51, 28, 0.6);
+  border: 1px solid rgba(182, 177, 169, 0.3);
+  border-radius: 8px;
+  color: #ffffff;
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.input-text:focus {
+  outline: none;
+  border-color: #ff751f;
+  box-shadow: 0 0 0 2px rgba(255, 117, 31, 0.2);
+}
+
+@media (max-width: 768px) {
+  .stats-section {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .scadenza-card > div {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+</style>
+
+<script>
+function applyFilters() {
+  const tipo = document.getElementById('tipo-filter').value;
+  const giorni = document.getElementById('giorni-filter').value;
+  
+  const url = new URL(window.location);
+  url.searchParams.set('tipo', tipo);
+  url.searchParams.set('giorni', giorni);
+  
+  window.location.href = url.toString();
+}
+</script>
+
+<style>
+/* CSS per le classi dinamiche delle scadenze */
+.scadenza-dieta {
+    border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.scadenza-allenamento {
+    border: 1px solid rgba(33, 150, 243, 0.3);
+}
+
+.scadenza-check {
+    border: 1px solid rgba(255, 193, 7, 0.3);
+}
+
+.scadenza-titolo-dieta {
+    color: #4CAF50;
+}
+
+.scadenza-titolo-allenamento {
+    color: #2196F3;
+}
+
+.scadenza-titolo-check {
+    color: #FFC107;
+}
+
+.scadenza-giorni-dieta {
+    color: #4CAF50;
+}
+
+.scadenza-giorni-allenamento {
+    color: #2196F3;
+}
+
+.scadenza-giorni-check {
+    color: #FFC107;
+}
+</style>
+
+{% endblock %}

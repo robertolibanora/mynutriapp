@@ -1,0 +1,91 @@
+{% extends 'base_admin.html' %}
+{% block title %}Modifica Prodotto{% endblock %}
+{% block content %}
+
+<h2 class="page-title">✏️ MODIFICA PRODOTTO</h2>
+
+<form method="POST" class="form-container">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+  
+  <div class="form-grid">
+    <div class="form-group">
+      <label for="nome_prodotto">Nome Prodotto *</label>
+      <input 
+        type="text" 
+        id="nome_prodotto" 
+        name="nome_prodotto" 
+        class="input-text" 
+        value="{{ prodotto.nome_prodotto }}"
+        required
+      >
+    </div>
+    
+    <div class="form-group">
+      <label for="prezzo">Prezzo (€) *</label>
+      <input 
+        type="number" 
+        step="0.01" 
+        id="prezzo" 
+        name="prezzo" 
+        class="input-text" 
+        value="{{ prodotto.prezzo }}"
+        required
+      >
+    </div>
+    
+    <div class="form-group">
+    </div>
+    
+    <div class="form-group">
+      <label for="check_inclusi">Check Inclusi</label>
+      <input 
+        type="number" 
+        id="check_inclusi" 
+        name="check_inclusi" 
+        class="input-text" 
+        value="{{ prodotto.check_inclusi }}"
+      >
+    </div>
+    
+    <div class="form-group">
+      <label for="attivo" style="display: flex; align-items: center; gap: 0.5rem;">
+        <input 
+          type="checkbox" 
+          id="attivo" 
+          name="attivo" 
+          style="width: auto;"
+          {% if prodotto.attivo %}checked{% endif %}
+        >
+        <span>Prodotto Attivo (visibile agli utenti)</span>
+      </label>
+    </div>
+  </div>
+  
+  <div class="form-group">
+    <label for="note">Note (opzionale)</label>
+    <textarea 
+      id="note" 
+      name="note" 
+      class="input-text" 
+      rows="3"
+    >{{ prodotto.note or '' }}</textarea>
+  </div>
+  
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary">💾 Salva Modifiche</button>
+    <a href="{{ url_for('listino.lista_listino_admin') }}" class="btn btn-secondary">↩️ Annulla</a>
+  </div>
+
+</form>
+
+<div class="card" style="margin-top: 2rem; background: rgba(255, 117, 31, 0.1);">
+  <p style="margin-bottom: 0.5rem;"><strong>📋 Dettagli:</strong></p>
+  <p style="margin: 0; font-size: 0.9em;">
+    <strong>Categoria:</strong> {{ prodotto.categoria }}<br>
+    <strong>Durata:</strong> {{ prodotto.durata_mesi }} {% if prodotto.durata_mesi == 1 %}mese{% else %}mesi{% endif %}<br>
+    <strong>Creato il:</strong> {{ prodotto.created_at.strftime('%d/%m/%Y') }}
+  </p>
+</div>
+
+{% endblock %}
+

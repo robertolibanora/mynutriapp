@@ -1,0 +1,82 @@
+{% extends 'base_user.html' %}
+{% block title %}Prenota Appuntamento - NutriApp{% endblock %}
+{% block content %}
+
+<h1 class="page-title-user">📅 Prenota Appuntamento</h1>
+
+{% if slot_liberi %}
+<form method="POST" class="card-user">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <div class="card-body">
+        <div class="form-group mb-2">
+            <label for="data_appuntamento" class="card-label" style="display: block; margin-bottom: 0.5rem;">Scegli Data e Ora *</label>
+            <select id="data_appuntamento" name="data_appuntamento" class="btn-user" style="width: 100%; text-align: left;" required>
+                <option value="">Seleziona uno slot...</option>
+                {% for slot in slot_liberi %}
+                <option value="{{ slot.data }}">
+                    📅 {{ slot.label }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="form-group mb-2">
+            <label for="tipo" class="card-label" style="display: block; margin-bottom: 0.5rem;">Tipo Appuntamento *</label>
+            <select id="tipo" name="tipo" class="btn-user" style="width: 100%; text-align: left;" required>
+                <option value="">Seleziona tipo...</option>
+                <option value="allenamento_1to1">💪 Allenamento 1to1</option>
+                <option value="rinnovo_dieta">🍽️ Rinnovo Dieta</option>
+                <option value="rinnovo_allenamento">🏋️ Rinnovo Allenamento</option>
+                <option value="check">✅ Check</option>
+                <option value="altro">📌 Altro</option>
+            </select>
+        </div>
+        
+        <div class="form-group mb-2">
+            <label for="note" class="card-label" style="display: block; margin-bottom: 0.5rem;">Note (opzionale)</label>
+            <textarea 
+                id="note" 
+                name="note" 
+                class="btn-user" 
+                style="width: 100%; min-height: 80px; text-align: left; font-size: 0.9rem; padding: 0.75rem;"
+                placeholder="Es: Ho bisogno di aggiornare la dieta..."
+            ></textarea>
+        </div>
+    </div>
+    
+    <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+        <button type="submit" class="btn-user" style="flex: 1;">
+            ✅ Prenota Appuntamento
+        </button>
+        <a href="{{ url_for('appuntamenti.lista_user') }}" class="btn-user btn-user-secondary" style="flex: 1; text-align: center;">
+            ↩️ Annulla
+        </a>
+    </div>
+</form>
+
+{% else %}
+<div class="empty-state">
+    <div class="empty-icon">📅</div>
+    <p class="empty-text">
+        Al momento non ci sono slot disponibili.<br>
+        Contatta direttamente il tuo nutrizionista per fissare un appuntamento.
+    </p>
+</div>
+
+<div class="mt-2">
+    <a href="{{ url_for('appuntamenti.lista_user') }}" class="btn-user btn-user-secondary">
+        ↩️ Torna agli Appuntamenti
+    </a>
+</div>
+
+<!-- LINK PRESENTAZIONE ROBERTO -->
+<div style="text-align: center; margin: 1rem 0;">
+    <span style="color: #b6b1a9; font-size: 0.9rem;">
+        Powered by <a href="{{ url_for('presentazione_roberto') }}" style="color: #ff751f; text-decoration: none;">Roberto Libanora</a>
+    </span>
+</div>
+
+{% endif %}
+
+{% endblock %}
+

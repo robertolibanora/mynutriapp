@@ -1,0 +1,47 @@
+{% extends 'base_admin.html' %}
+{% block title %}Nuovo Slot{% endblock %}
+{% block content %}
+
+<h2 class="page-title">➕ Nuovo Slot Disponibile</h2>
+
+<form method="POST" class="form-container">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+  
+  <div class="form-grid">
+    <div class="form-group">
+      <label for="data_ora">📅 Data e Ora Slot *</label>
+      <input 
+        type="datetime-local" 
+        id="data_ora" 
+        name="data_ora" 
+        class="input-text" 
+        required
+        min="{{ now.strftime('%Y-%m-%dT%H:%M') }}"
+        value="{{ now.replace(minute=0, second=0).strftime('%Y-%m-%dT%H:%M') }}"
+      >
+    </div>
+    
+    <div class="form-group">
+      <label for="note">💬 Note (Opzionale)</label>
+      <input 
+        type="text" 
+        id="note" 
+        name="note" 
+        class="input-text" 
+        placeholder="Es: Solo prima visita, Solo controllo"
+      >
+    </div>
+  </div>
+  
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem;">
+      <span>💾</span>
+      <span>Crea Slot</span>
+    </button>
+    <a href="{{ url_for('agenda.agenda_unificata') }}" class="btn btn-secondary">↩️ Annulla</a>
+  </div>
+
+</form>
+
+{% endblock %}
+

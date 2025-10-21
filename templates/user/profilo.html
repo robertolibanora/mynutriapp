@@ -1,0 +1,141 @@
+{% extends 'base_user.html' %}
+{% block title %}Il Mio Profilo - NutriApp{% endblock %}
+{% block content %}
+
+<h1 class="page-title-user">👤 Il Mio Profilo</h1>
+
+<!-- DATI ANAGRAFICI -->
+<div class="card-user">
+    <div class="card-header">
+        <div style="display: flex; align-items: center;">
+            <span class="card-icon">📋</span>
+            <span class="card-title">Dati Anagrafici</span>
+        </div>
+    </div>
+    
+    <div class="card-body">
+        <div class="card-info-row">
+            <span class="card-label">Nome</span>
+            <span class="card-value">{{ paziente.nome }} {{ paziente.cognome }}</span>
+        </div>
+        
+        <div class="card-info-row">
+            <span class="card-label">Data di Nascita</span>
+            <span class="card-value">{{ paziente.data_nascita.strftime('%d/%m/%Y') if paziente.data_nascita else '—' }}</span>
+        </div>
+        
+        <div class="card-info-row">
+            <span class="card-label">Sesso</span>
+            <span class="card-value">{{ paziente.sesso }}</span>
+        </div>
+        
+        <div class="card-info-row">
+            <span class="card-label">Telefono</span>
+            <span class="card-value">{{ paziente.telefono }}</span>
+        </div>
+    </div>
+</div>
+
+<!-- DATI FISICI -->
+<div class="card-user">
+    <div class="card-header">
+        <div style="display: flex; align-items: center;">
+            <span class="card-icon">📏</span>
+            <span class="card-title">Dati Fisici</span>
+        </div>
+    </div>
+    
+    <div class="card-body">
+        <div class="card-info-row">
+            <span class="card-label">Altezza</span>
+            <span class="card-value">{{ paziente.altezza_cm }} cm</span>
+        </div>
+        
+        <div class="card-info-row">
+            <span class="card-label">Peso Iniziale</span>
+            <span class="card-value">{{ paziente.peso_iniziale }} kg</span>
+        </div>
+    </div>
+</div>
+
+<!-- INFORMAZIONI MEDICHE -->
+<div class="card-user">
+    <div class="card-header">
+        <div style="display: flex; align-items: center;">
+            <span class="card-icon">🩺</span>
+            <span class="card-title">Informazioni Mediche</span>
+        </div>
+    </div>
+    
+    <div class="card-body">
+        {% if paziente.intolleranze %}
+        <div class="card-info-row">
+            <span class="card-label">Intolleranze</span>
+            <span class="card-value">{{ paziente.intolleranze }}</span>
+        </div>
+        {% endif %}
+        
+        {% if paziente.cibi_da_ev %}
+        <div class="card-info-row">
+            <span class="card-label">Cibi da Evitare</span>
+            <span class="card-value">{{ paziente.cibi_da_ev }}</span>
+        </div>
+        {% endif %}
+        
+        {% if paziente.patologie %}
+        <div class="card-info-row">
+            <span class="card-label">Patologie</span>
+            <span class="card-value">{{ paziente.patologie }}</span>
+        </div>
+        {% endif %}
+        
+        {% if paziente.esami_biochimici %}
+        <div class="card-info-row">
+            <span class="card-label">Esami Biochimici</span>
+            <span class="card-value">{{ paziente.esami_biochimici }}</span>
+        </div>
+        {% endif %}
+        
+        {% if not paziente.intolleranze and not paziente.cibi_da_ev and not paziente.patologie and not paziente.esami_biochimici %}
+        <div class="empty-state">
+            <p class="empty-text text-muted">Nessuna informazione medica registrata</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ATTIVITÀ FISICA -->
+{% if paziente.allenamenti_descr %}
+<div class="card-user">
+    <div class="card-header">
+        <div style="display: flex; align-items: center;">
+            <span class="card-icon">🏃</span>
+            <span class="card-title">Attività Fisica</span>
+        </div>
+    </div>
+    
+    <div class="card-body">
+        <div class="card-info-row">
+            <span class="card-label">Descrizione</span>
+            <span class="card-value">{{ paziente.allenamenti_descr }}</span>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="divider"></div>
+
+<!-- LOGOUT BUTTON -->
+<a href="{{ url_for('auth.logout') }}" class="btn-user btn-user-secondary">
+    🚪 Esci
+</a>
+
+<!-- LINK PRESENTAZIONE ROBERTO -->
+<div style="text-align: center; margin: 1rem 0;">
+    <span style="color: #b6b1a9; font-size: 0.9rem;">
+        Powered by <a href="{{ url_for('presentazione_roberto') }}" style="color: #ff751f; text-decoration: none;">Roberto Libanora</a>
+    </span>
+</div>
+
+{% endblock %}
+

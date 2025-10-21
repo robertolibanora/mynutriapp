@@ -1,0 +1,312 @@
+{% extends 'base_admin.html' %}
+{% block title %}Gestione Pazienti{% endblock %}
+{% block content %}
+
+<!-- HEADER PRINCIPALE -->
+<div class="pazienti-header" style="background: linear-gradient(135deg, rgba(255, 117, 31, 0.1) 0%, rgba(13, 51, 28, 0.3) 100%); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; border: 1px solid rgba(255, 117, 31, 0.2);">
+  <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <h1 style="color: #ff751f; margin: 0; font-size: 2.5rem; font-weight: 700;">👥 Gestione Pazienti</h1>
+      <p style="color: #b6b1a9; margin: 0.5rem 0 0 0; font-size: 1.1rem;">Visualizza e gestisci tutti i tuoi pazienti</p>
+    </div>
+    <div style="text-align: right;">
+      <div style="color: #4CAF50; font-size: 1.1rem; font-weight: 700;">{{ pazienti|length }} Pazienti</div>
+      <div style="color: #4CAF50; font-size: 0.9rem; font-weight: 600;">Database completo</div>
+    </div>
+  </div>
+</div>
+
+<!-- STATISTICHE RAPIDE -->
+<div class="quick-stats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+  <div class="stat-card" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(76, 175, 80, 0.3); border-radius: 12px; padding: 1.5rem; text-align: center;">
+    <div style="font-size: 2rem; color: #4CAF50; margin-bottom: 0.5rem;">👥</div>
+    <div style="font-size: 1.5rem; font-weight: 700; color: #4CAF50; margin-bottom: 0.25rem;">{{ pazienti|length }}</div>
+    <div style="color: #b6b1a9; font-size: 0.9rem;">Pazienti Totali</div>
+  </div>
+  
+  <div class="stat-card" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(33, 150, 243, 0.3); border-radius: 12px; padding: 1.5rem; text-align: center;">
+    <div style="font-size: 2rem; color: #2196F3; margin-bottom: 0.5rem;">🥗</div>
+    <div style="font-size: 1.5rem; font-weight: 700; color: #2196F3; margin-bottom: 0.25rem;">
+      {{ pazienti|map(attribute='diete')|map('length')|sum }}
+    </div>
+    <div style="color: #b6b1a9; font-size: 0.9rem;">Diete Totali</div>
+  </div>
+  
+  <div class="stat-card" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(255, 193, 7, 0.3); border-radius: 12px; padding: 1.5rem; text-align: center;">
+    <div style="font-size: 2rem; color: #FFC107; margin-bottom: 0.5rem;">🏋️</div>
+    <div style="font-size: 1.5rem; font-weight: 700; color: #FFC107; margin-bottom: 0.25rem;">
+      {{ pazienti|map(attribute='allenamenti')|map('length')|sum }}
+    </div>
+    <div style="color: #b6b1a9; font-size: 0.9rem;">Allenamenti Totali</div>
+  </div>
+  
+  <div class="stat-card" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(156, 39, 176, 0.3); border-radius: 12px; padding: 1.5rem; text-align: center;">
+    <div style="font-size: 2rem; color: #9C27B0; margin-bottom: 0.5rem;">📈</div>
+    <div style="font-size: 1.5rem; font-weight: 700; color: #9C27B0; margin-bottom: 0.25rem;">
+      {{ pazienti|map(attribute='progressi')|map('length')|sum }}
+    </div>
+    <div style="color: #b6b1a9; font-size: 0.9rem;">Progressi Totali</div>
+  </div>
+</div>
+
+<!-- TOOLBAR PRINCIPALE -->
+<div class="main-toolbar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; padding: 1.5rem; background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 12px;">
+  <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+    <a href="{{ url_for('patients.nuovo_paziente') }}" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem;">
+      ➕ Nuovo Paziente
+    </a>
+    <a href="{{ url_for('patients.scadenze') }}" class="btn btn-white" style="display: flex; align-items: center; gap: 0.5rem;">
+      ⏰ Scadenze
+    </a>
+  </div>
+  
+  <div style="display: flex; gap: 1rem; align-items: center;">
+    <form method="get" style="display: flex; gap: 0.5rem; align-items: center;">
+      <label for="search" style="color: #b6b1a9; font-weight: 600; font-size: 0.9rem;">🔍</label>
+      <input type="text" name="search" id="search" placeholder="Cerca paziente..." class="input-text" style="width: 250px; font-size: 0.9rem;" value="{{ request.args.get('search', '') }}">
+      <button type="submit" class="btn btn-white btn-small">Cerca</button>
+      {% if request.args.get('search') %}
+      <a href="{{ url_for('patients.lista_pazienti') }}" class="btn btn-secondary btn-small">✖️</a>
+      {% endif %}
+    </form>
+  </div>
+</div>
+
+<!-- LISTA PAZIENTI -->
+{% if pazienti %}
+<div class="patients-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1.5rem;">
+    {% for p in pazienti %}
+  <div class="patient-card" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(76, 175, 80, 0.3); border-radius: 16px; padding: 1.5rem; position: relative; transition: all 0.3s ease; cursor: pointer;" data-href="{{ url_for('patients.dettaglio_paziente', patient_id=p.id) }}">
+    
+    <!-- AVATAR E INFO PRINCIPALE -->
+    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+      <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #4CAF50, #45a049); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: white; font-weight: 700; flex-shrink: 0;">
+        {{ p.nome[0] }}{{ p.cognome[0] }}
+      </div>
+      <div style="flex: 1; min-width: 0;">
+        <div style="font-size: 1.3rem; font-weight: 600; color: #ffffff; margin-bottom: 0.25rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+          {{ p.nome }} {{ p.cognome }}
+        </div>
+        <div style="color: #b6b1a9; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem;">
+          <span>📱</span>
+          <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ p.telefono }}</span>
+        </div>
+      </div>
+    </div>
+    
+    <!-- INFORMAZIONI AGGIUNTIVE -->
+    <div style="background: rgba(13, 51, 28, 0.6); border-radius: 12px; padding: 1rem; margin-bottom: 1rem;">
+      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem;">
+        {% if p.eta %}
+        <div>
+          <div style="color: #b6b1a9; font-size: 0.75rem; margin-bottom: 0.25rem;">🎂 Età</div>
+          <div style="color: #4CAF50; font-size: 0.85rem; font-weight: 600;">{{ p.eta }} anni</div>
+        </div>
+        {% endif %}
+        
+        {% if p.peso_iniziale %}
+        <div>
+          <div style="color: #b6b1a9; font-size: 0.75rem; margin-bottom: 0.25rem;">⚖️ Peso</div>
+          <div style="color: #ffffff; font-size: 0.85rem; font-weight: 600;">{{ p.peso_iniziale }} kg</div>
+        </div>
+        {% endif %}
+        
+
+        
+        {% if p.email %}
+        <div>
+          <div style="color: #b6b1a9; font-size: 0.75rem; margin-bottom: 0.25rem;">📧 Email</div>
+          <div style="color: #ffffff; font-size: 0.85rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ p.email }}</div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    
+    <!-- STATISTICHE PAZIENTE -->
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-bottom: 1rem;">
+      <div style="background: rgba(33, 150, 243, 0.2); border: 1px solid rgba(33, 150, 243, 0.3); border-radius: 8px; padding: 0.5rem; text-align: center;">
+        <div style="color: #2196F3; font-size: 1.1rem; font-weight: 700;">{{ p.diete|length }}</div>
+        <div style="color: #b6b1a9; font-size: 0.7rem;">🥗 Diete</div>
+      </div>
+      
+      <div style="background: rgba(255, 193, 7, 0.2); border: 1px solid rgba(255, 193, 7, 0.3); border-radius: 8px; padding: 0.5rem; text-align: center;">
+        <div style="color: #FFC107; font-size: 1.1rem; font-weight: 700;">{{ p.allenamenti|length }}</div>
+        <div style="color: #b6b1a9; font-size: 0.7rem;">🏋️ Allenamenti</div>
+      </div>
+      
+      <div style="background: rgba(156, 39, 176, 0.2); border: 1px solid rgba(156, 39, 176, 0.3); border-radius: 8px; padding: 0.5rem; text-align: center;">
+        <div style="color: #9C27B0; font-size: 1.1rem; font-weight: 700;">{{ p.progressi|length }}</div>
+        <div style="color: #b6b1a9; font-size: 0.7rem;">📈 Progressi</div>
+      </div>
+    </div>
+    
+    <!-- AZIONI -->
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;" onclick="event.stopPropagation();">
+      <a href="{{ url_for('patients.dettaglio_paziente', patient_id=p.id) }}" class="btn btn-primary btn-small" style="flex: 1; font-size: 0.85rem; text-align: center;" onclick="event.stopPropagation();">
+        👁️ Dettaglio
+      </a>
+      <a href="{{ url_for('patients.modifica_paziente', patient_id=p.id) }}" class="btn btn-secondary btn-small" style="flex: 1; font-size: 0.85rem; text-align: center;" onclick="event.stopPropagation();">
+        ✏️ Modifica
+      </a>
+      <form action="{{ url_for('patients.elimina_paziente', patient_id=p.id) }}" method="POST" style="flex: 1;" onclick="event.stopPropagation();">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <button type="submit" class="btn btn-danger btn-small" style="width: 100%; font-size: 0.85rem;" onclick="return confirm('Eliminare {{ p.nome }} {{ p.cognome }}?')">
+          🗑️ Elimina
+        </button>
+        </form>
+    </div>
+  </div>
+    {% endfor %}
+</div>
+
+{% else %}
+<!-- EMPTY STATE -->
+<div class="empty-state" style="text-align: center; padding: 4rem 2rem; background: rgba(13, 51, 28, 0.2); border: 2px dashed rgba(182, 177, 169, 0.3); border-radius: 16px;">
+  <div style="font-size: 5rem; margin-bottom: 1rem;">👥</div>
+  <h3 style="color: #4CAF50; margin-bottom: 1rem;">
+    {% if request.args.get('search') %}
+    Nessun paziente trovato
+    {% else %}
+    Nessun paziente registrato
+    {% endif %}
+  </h3>
+  <p style="color: #b6b1a9; margin-bottom: 2rem; font-size: 1.1rem;">
+    {% if request.args.get('search') %}
+    Prova a modificare i criteri di ricerca.
+    {% else %}
+    Inizia registrando il tuo primo paziente per gestire diete, allenamenti e progressi.
+    {% endif %}
+  </p>
+  {% if request.args.get('search') %}
+  <a href="{{ url_for('patients.lista_pazienti') }}" class="btn btn-secondary" style="font-size: 1.1rem; padding: 1rem 2rem; margin-right: 1rem;">
+    ✖️ Rimuovi Filtri
+  </a>
+  {% endif %}
+  <a href="{{ url_for('patients.nuovo_paziente') }}" class="btn btn-primary" style="font-size: 1.1rem; padding: 1rem 2rem;">
+    ➕ Registra Primo Paziente
+  </a>
+</div>
+{% endif %}
+
+<!-- CSS E JAVASCRIPT -->
+<style>
+.patient-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(76, 175, 80, 0.3);
+  border-color: rgba(76, 175, 80, 0.6);
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+}
+
+.btn-small {
+  font-size: 0.85rem;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn-primary.btn-small {
+  background: rgba(76, 175, 80, 0.2);
+  color: #4CAF50;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.btn-secondary.btn-small {
+  background: rgba(33, 150, 243, 0.2);
+  color: #2196F3;
+  border: 1px solid rgba(33, 150, 243, 0.3);
+}
+
+.btn-danger.btn-small {
+  background: rgba(244, 67, 54, 0.2);
+  color: #F44336;
+  border: 1px solid rgba(244, 67, 54, 0.3);
+}
+
+.btn-white.btn-small {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-small:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+@media (max-width: 768px) {
+  .quick-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .main-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .main-toolbar form {
+    width: 100%;
+  }
+  
+  .main-toolbar input[type="text"] {
+    width: 100% !important;
+  }
+  
+  .patients-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .pazienti-header {
+    text-align: center;
+  }
+  
+  .pazienti-header > div {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .quick-stats {
+    grid-template-columns: 1fr;
+  }
+  
+  .patient-card .btn-small {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.6rem;
+  }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Gestione click sulle card pazienti
+  document.querySelectorAll('.patient-card').forEach(function(card) {
+    card.addEventListener('click', function(e) {
+      // Se il click è su un pulsante o form, non fare nulla
+      if (e.target.closest('a, button, form')) {
+        return;
+      }
+      
+      // Altrimenti naviga al dettaglio paziente
+      const href = this.getAttribute('data-href');
+      if (href) {
+        window.location.href = href;
+      }
+    });
+  });
+});
+</script>
+
+{% endblock %}

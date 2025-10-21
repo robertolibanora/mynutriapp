@@ -1,0 +1,157 @@
+{% extends 'base_user.html' %}
+{% block title %}Dashboard - NutriApp{% endblock %}
+{% block content %}
+
+<h1 class="page-title-user">📊 La Tua Dashboard</h1>
+
+<!-- MOTTO -->
+<div style="text-align: center; margin-bottom: 2rem; padding: 1.5rem 1rem;">
+  <p style="color: #ff751f; margin: 0; font-size: 1.3rem; font-weight: 600; font-family: 'Adam Script', cursive; line-height: 1.6;">
+    Non Diamo Pillole, Non Diamo Consigli, Diamo Risultati
+  </p>
+</div>
+
+<!-- 🥗 ULTIMA DIETA -->
+<div class="summary-card">
+    <div class="summary-header">
+        <span class="summary-icon">🥗</span>
+        <span class="summary-title">Dieta Attuale</span>
+    </div>
+    <div class="summary-content">
+        {% if ultima_dieta %}
+        <div class="summary-row">
+            <span class="summary-label">Periodo:</span>
+            <span class="summary-value">{{ ultima_dieta.data_inizio.strftime('%d/%m/%Y') }} - {{ ultima_dieta.data_fine.strftime('%d/%m/%Y') }}</span>
+        </div>
+        <div class="summary-row">
+            <span class="summary-label">Calorie:</span>
+            <span class="summary-value">{{ ultima_dieta.kcal }} kcal/giorno</span>
+        </div>
+        {% if ultima_dieta.pdf_path %}
+        <a href="{{ url_for('diete.serve_file', dieta_id=ultima_dieta.id) }}" target="_blank" class="btn-user btn-user-small mt-2">
+            📄 Apri PDF Dieta
+        </a>
+        {% endif %}
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">🍽️</div>
+            <p class="empty-text">Nessuna dieta assegnata ancora</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- 🏋️ ULTIMO ALLENAMENTO -->
+<div class="summary-card">
+    <div class="summary-header">
+        <span class="summary-icon">🏋️</span>
+        <span class="summary-title">Allenamento Attuale</span>
+    </div>
+    <div class="summary-content">
+        {% if ultimo_allenamento %}
+        <div class="summary-row">
+            <span class="summary-label">Periodo:</span>
+            <span class="summary-value">{{ ultimo_allenamento.data_inizio.strftime('%d/%m/%Y') }} - {{ ultimo_allenamento.data_fine.strftime('%d/%m/%Y') }}</span>
+        </div>
+        {% if ultimo_allenamento.note %}
+        <div class="summary-row">
+            <span class="summary-label">Note:</span>
+            <span class="summary-value">{{ ultimo_allenamento.note }}</span>
+        </div>
+        {% endif %}
+        {% if ultimo_allenamento.pdf_path %}
+        <a href="{{ url_for('allenamenti.serve_file', allenamento_id=ultimo_allenamento.id) }}" target="_blank" class="btn-user btn-user-small mt-2">
+            📄 Apri PDF Allenamento
+        </a>
+        {% endif %}
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">💪</div>
+            <p class="empty-text">Nessun allenamento assegnato ancora</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- 📈 PESO PIÙ RECENTE -->
+<div class="summary-card">
+    <div class="summary-header">
+        <span class="summary-icon">⚖️</span>
+        <span class="summary-title">Peso Attuale</span>
+    </div>
+    <div class="summary-content">
+        {% if ultimo_progresso %}
+        <div class="summary-row">
+            <span class="summary-label">Data Check:</span>
+            <span class="summary-value">{{ ultimo_progresso.data_check.strftime('%d/%m/%Y') }}</span>
+        </div>
+        <div class="summary-row">
+            <span class="summary-label">Peso:</span>
+            <span class="summary-value">{{ ultimo_progresso.peso_settimanale }} kg</span>
+        </div>
+        {% if ultimo_progresso.aderenza %}
+        <div class="summary-row">
+            <span class="summary-label">Aderenza:</span>
+            <span class="summary-value">{{ ultimo_progresso.aderenza }}</span>
+        </div>
+        {% endif %}
+        <div class="summary-row">
+            <span class="summary-label">Peso Iniziale:</span>
+            <span class="summary-value">{{ paziente.peso_iniziale }} kg</span>
+        </div>
+        <div class="summary-row">
+            <span class="summary-label">Differenza:</span>
+            <span class="summary-value" style="color: {% if ultimo_progresso.peso_settimanale < paziente.peso_iniziale %}#4caf50{% else %}#ff751f{% endif %}">
+                {{ "%.1f"|format(ultimo_progresso.peso_settimanale - paziente.peso_iniziale) }} kg
+            </span>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">📊</div>
+            <p class="empty-text">Nessun progresso registrato ancora</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- 📅 PROSSIMO APPUNTAMENTO -->
+<div class="summary-card">
+    <div class="summary-header">
+        <span class="summary-icon">📅</span>
+        <span class="summary-title">Prossimo Appuntamento</span>
+    </div>
+    <div class="summary-content">
+        {% if prossimo_appuntamento %}
+        <div class="summary-row">
+            <span class="summary-label">Data:</span>
+            <span class="summary-value">{{ prossimo_appuntamento.data_appuntamento.strftime('%d/%m/%Y alle %H:%M') }}</span>
+        </div>
+        <div class="summary-row">
+            <span class="summary-label">Tipo:</span>
+            <span class="summary-value">{{ prossimo_appuntamento.tipo }}</span>
+        </div>
+        {% if prossimo_appuntamento.note %}
+        <div class="summary-row">
+            <span class="summary-label">Note:</span>
+            <span class="summary-value">{{ prossimo_appuntamento.note }}</span>
+        </div>
+        {% endif %}
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">🗓️</div>
+            <p class="empty-text">Nessun appuntamento in programma</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- LINK PRESENTAZIONE ROBERTO -->
+<div style="text-align: center; margin: 1rem 0;">
+    <span style="color: #b6b1a9; font-size: 0.9rem;">
+        Powered by <a href="{{ url_for('presentazione_roberto') }}" style="color: #ff751f; text-decoration: none;">Roberto Libanora</a>
+    </span>
+</div>
+
+
+{% endblock %}
+

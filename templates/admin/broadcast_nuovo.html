@@ -1,0 +1,109 @@
+{% extends 'base_admin.html' %}
+{% block title %}Invia Messaggio WhatsApp{% endblock %}
+{% block content %}
+
+<h2 class="page-title">📱 Invia Messaggio WhatsApp</h2>
+
+<form method="POST" class="form-container" id="broadcastForm">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+  <!-- MESSAGGIO -->
+  <div class="form-group">
+    <label for="messaggio">Messaggio</label>
+    <textarea id="messaggio" name="messaggio" class="input-text" rows="8" required 
+              placeholder="Ciao {nome}, il tuo messaggio personalizzato qui..."></textarea>
+    <div style="margin-top: 0.5rem;">
+      <button type="button" onclick="anteprimaMessaggio()" class="btn btn-secondary btn-small">
+        👁️ Anteprima
+      </button>
+      <span style="color: #b6b1a9; font-size: 0.85rem; margin-left: 1rem;">
+        Usa le variabili come {nome}, {cognome}, {eta}, etc.
+      </span>
+    </div>
+  </div>
+
+  <!-- ANTEPRIMA MESSAGGIO -->
+  <div id="anteprima" style="display: none; background: rgba(13, 51, 28, 0.6); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border-left: 3px solid #25D366;">
+    <div style="color: #b6b1a9; font-size: 0.85rem; margin-bottom: 0.5rem;">👁️ Anteprima per <span id="paziente_esempio"></span>:</div>
+    <div id="messaggio_anteprima" style="color: #ffffff; font-family: monospace; white-space: pre-wrap;"></div>
+  </div>
+
+  <!-- AZIONI -->
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary" onclick="return confermaInvio()">
+      📱 Invia a Tutti
+    </button>
+    <a href="{{ url_for('broadcast.dashboard') }}" class="btn btn-secondary">↩️ Annulla</a>
+  </div>
+
+</form>
+
+<!-- GUIDA RAPIDA -->
+<div style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 12px; padding: 1.5rem; margin-top: 2rem;">
+  <h3 style="color: #ff751f; margin-bottom: 1rem;">💡 Variabili Disponibili</h3>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+    <div>
+      <h4 style="color: #ffffff; margin-bottom: 0.5rem;">👤 Dati Personali</h4>
+      <ul style="color: #b6b1a9; font-size: 0.85rem; margin: 0; padding-left: 1rem;">
+        <li><code>{nome}</code> - Nome</li>
+        <li><code>{cognome}</code> - Cognome</li>
+        <li><code>{nome_completo}</code> - Nome completo</li>
+        <li><code>{eta}</code> - Età</li>
+      </ul>
+    </div>
+    <div>
+      <h4 style="color: #ffffff; margin-bottom: 0.5rem;">📏 Dati Fisici</h4>
+      <ul style="color: #b6b1a9; font-size: 0.85rem; margin: 0; padding-left: 1rem;">
+        <li><code>{altezza}</code> - Altezza</li>
+        <li><code>{peso_iniziale}</code> - Peso iniziale</li>
+        <li><code>{data_nascita}</code> - Data nascita</li>
+        <li><code>{data_creazione}</code> - Data iscrizione</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script>
+function anteprimaMessaggio() {
+  const messaggio = document.getElementById('messaggio').value;
+  if (!messaggio.trim()) {
+    alert('Inserisci un messaggio per vedere l\'anteprima');
+    return;
+  }
+  
+  fetch('{{ url_for("broadcast.anteprima_messaggio") }}', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+    },
+    body: 'messaggio=' + encodeURIComponent(messaggio)
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.successo) {
+      document.getElementById('messaggio_anteprima').textContent = data.messaggio;
+      document.getElementById('paziente_esempio').textContent = data.paziente_esempio;
+      document.getElementById('anteprima').style.display = 'block';
+    } else {
+      alert('Errore: ' + data.errore);
+    }
+  })
+  .catch(error => {
+    alert('Errore durante l\'anteprima: ' + error);
+  });
+}
+
+function confermaInvio() {
+  const messaggio = document.getElementById('messaggio').value;
+  
+  if (!messaggio.trim()) {
+    alert('Inserisci un messaggio');
+    return false;
+  }
+  
+  return confirm('Confermi l\'invio del messaggio a TUTTI i pazienti con telefono?');
+}
+</script>
+
+{% endblock %}

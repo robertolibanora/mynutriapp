@@ -1,0 +1,73 @@
+{% extends 'base_user.html' %}
+{% block title %}Carica Documento - NutriApp{% endblock %}
+{% block content %}
+
+<h1 class="page-title-user">📤 Carica Documento</h1>
+
+<form method="POST" enctype="multipart/form-data" class="card-user">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <div class="card-body">
+        <div class="form-group mb-2">
+            <label for="tipo" class="card-label" style="display: block; margin-bottom: 0.5rem;">Tipo Documento</label>
+            <select id="tipo" name="tipo" class="btn-user" style="width: 100%; text-align: left;" required>
+                <option value="">Seleziona tipo...</option>
+                <option value="analisi">🩸 Analisi del Sangue</option>
+                <option value="referto">📋 Referto Medico</option>
+                <option value="pdf_altro">📄 Altro Documento</option>
+            </select>
+        </div>
+        
+        <div class="form-group mb-2">
+            <label for="descrizione" class="card-label" style="display: block; margin-bottom: 0.5rem;">Descrizione (opzionale)</label>
+            <textarea 
+                id="descrizione" 
+                name="descrizione" 
+                class="btn-user" 
+                style="width: 100%; min-height: 80px; text-align: left; font-size: 0.9rem; padding: 0.75rem;"
+                placeholder="Es: Analisi del sangue gennaio 2025"
+            ></textarea>
+        </div>
+        
+        <div class="form-group mb-2">
+            <label for="file" class="card-label" style="display: block; margin-bottom: 0.5rem;">File (PDF, JPG, PNG)</label>
+            <input 
+                type="file" 
+                id="file" 
+                name="file" 
+                accept=".pdf,.jpg,.jpeg,.png"
+                class="btn-user" 
+                style="width: 100%; padding: 0.75rem; font-size: 0.85rem;"
+                required
+            >
+        </div>
+    </div>
+    
+    <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+        <button type="submit" class="btn-user" style="flex: 1;">
+            💾 Carica Documento
+        </button>
+        <a href="{{ url_for('documenti.lista_documenti_user') }}" class="btn-user btn-user-secondary" style="flex: 1; text-align: center;">
+            ↩️ Annulla
+        </a>
+    </div>
+</form>
+
+<div class="card-user" style="margin-top: 1rem; background: rgba(255, 117, 31, 0.1);">
+    <div class="card-body">
+        <p class="card-label" style="margin-bottom: 0.5rem;">💡 Suggerimento</p>
+        <p class="card-value" style="font-size: 0.85rem; line-height: 1.5;">
+            Carica qui i tuoi esami del sangue, certificati di intolleranze o altri documenti medici. 
+            Il tuo nutrizionista potrà visualizzarli e tenerli in considerazione per il tuo piano alimentare.
+        </p>
+    </div>
+</div>
+
+<!-- LINK PRESENTAZIONE ROBERTO -->
+<div style="text-align: center; margin: 1rem 0;">
+    <span style="color: #b6b1a9; font-size: 0.9rem;">
+        Powered by <a href="{{ url_for('presentazione_roberto') }}" style="color: #ff751f; text-decoration: none;">Roberto Libanora</a>
+    </span>
+</div>
+
+{% endblock %}
+

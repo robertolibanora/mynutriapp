@@ -1,0 +1,326 @@
+{% extends 'base_user.html' %}
+{% block title %}I Miei Appuntamenti - NutriApp{% endblock %}
+{% block content %}
+
+<h1 class="page-title-user">📅 I Miei Appuntamenti</h1>
+
+<div class="mb-2" style="text-align: center;">
+    <a href="{{ url_for('appuntamenti.prenota_user') }}" class="btn-nuovo-appuntamento">
+        ➕ Prenota Nuovo Appuntamento
+    </a>
+</div>
+
+{% if appuntamenti %}
+    {% set oggi = now.date() %}
+    {% set appuntamenti_futuri = [] %}
+    {% set appuntamenti_passati = [] %}
+    
+    {% for appuntamento in appuntamenti %}
+        {% if appuntamento.data_appuntamento.date() >= oggi %}
+            {% set _ = appuntamenti_futuri.append(appuntamento) %}
+        {% else %}
+            {% set _ = appuntamenti_passati.append(appuntamento) %}
+        {% endif %}
+    {% endfor %}
+
+    <!-- APPUNTAMENTI FUTURI -->
+    {% if appuntamenti_futuri %}
+    <div class="section-divider">
+        <div class="divider-line"></div>
+        <h2 class="section-title">🕐 Prossimi Appuntamenti</h2>
+        <div class="divider-line"></div>
+    </div>
+    
+    {% for appuntamento in appuntamenti_futuri %}
+    <div class="card-user">
+        <div class="card-header">
+            <div style="display: flex; align-items: center;">
+                <span class="card-icon">🗓️</span>
+                <span class="card-title">
+                    {% if appuntamento.tipo == 'allenamento_1to1' %}Allenamento 1to1
+                    {% elif appuntamento.tipo == 'rinnovo_dieta' %}Rinnovo Dieta
+                    {% elif appuntamento.tipo == 'rinnovo_allenamento' %}Rinnovo Allenamento
+                    {% elif appuntamento.tipo == 'check' %}Check
+                    {% elif appuntamento.tipo == 'altro' %}Altro
+                    {% else %}{{ appuntamento.tipo|title }}
+                    {% endif %}
+                </span>
+            </div>
+            
+            {% if appuntamento.stato == 'confermato' %}
+            <span class="status-badge status-confirmed">✅ Confermato</span>
+            {% elif appuntamento.stato == 'in_attesa' %}
+            <span class="status-badge status-pending">⏳ In Attesa</span>
+            {% elif appuntamento.stato == 'annullato' %}
+            <span class="status-badge status-cancelled">❌ Annullato</span>
+            {% endif %}
+        </div>
+        
+        <div class="card-body">
+            <div class="card-info-row">
+                <span class="card-label">📅 Data</span>
+                <span class="card-value">{{ appuntamento.data_appuntamento.strftime('%d/%m/%Y') }}</span>
+            </div>
+            
+            <div class="card-info-row">
+                <span class="card-label">🕐 Ora</span>
+                <span class="card-value">{{ appuntamento.data_appuntamento.strftime('%H:%M') }}</span>
+            </div>
+            
+            {% if appuntamento.note %}
+            <div class="card-info-row">
+                <span class="card-label">💬 Note</span>
+                <span class="card-value">{{ appuntamento.note }}</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <!-- APPUNTAMENTI COMPLETATI -->
+    {% set appuntamenti_completati = [] %}
+    {% set appuntamenti_altri_passati = [] %}
+    
+    {% for appuntamento in appuntamenti_passati %}
+        {% if appuntamento.stato == 'completato' %}
+            {% set _ = appuntamenti_completati.append(appuntamento) %}
+        {% else %}
+            {% set _ = appuntamenti_altri_passati.append(appuntamento) %}
+        {% endif %}
+    {% endfor %}
+    
+    {% if appuntamenti_completati %}
+    <div class="section-divider">
+        <div class="divider-line"></div>
+        <h2 class="section-title">✅ Appuntamenti Completati</h2>
+        <div class="divider-line"></div>
+    </div>
+    
+    {% for appuntamento in appuntamenti_completati %}
+    <div class="card-user card-completato">
+        <div class="card-header">
+            <div style="display: flex; align-items: center;">
+                <span class="card-icon">🗓️</span>
+                <span class="card-title">
+                    {% if appuntamento.tipo == 'allenamento_1to1' %}Allenamento 1to1
+                    {% elif appuntamento.tipo == 'rinnovo_dieta' %}Rinnovo Dieta
+                    {% elif appuntamento.tipo == 'rinnovo_allenamento' %}Rinnovo Allenamento
+                    {% elif appuntamento.tipo == 'check' %}Check
+                    {% elif appuntamento.tipo == 'altro' %}Altro
+                    {% else %}{{ appuntamento.tipo|title }}
+                    {% endif %}
+                </span>
+            </div>
+            
+            <span class="status-badge status-completed">✔️ Completato</span>
+        </div>
+        
+        <div class="card-body">
+            <div class="card-info-row">
+                <span class="card-label">📅 Data</span>
+                <span class="card-value">{{ appuntamento.data_appuntamento.strftime('%d/%m/%Y') }}</span>
+            </div>
+            
+            <div class="card-info-row">
+                <span class="card-label">🕐 Ora</span>
+                <span class="card-value">{{ appuntamento.data_appuntamento.strftime('%H:%M') }}</span>
+            </div>
+            
+            {% if appuntamento.note %}
+            <div class="card-info-row">
+                <span class="card-label">💬 Note</span>
+                <span class="card-value">{{ appuntamento.note }}</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <!-- ALTRI APPUNTAMENTI PASSATI -->
+    {% if appuntamenti_altri_passati %}
+    <div class="section-divider">
+        <div class="divider-line"></div>
+        <h2 class="section-title">📜 Altri Appuntamenti Passati</h2>
+        <div class="divider-line"></div>
+    </div>
+    
+    {% for appuntamento in appuntamenti_altri_passati %}
+    <div class="card-user card-passato">
+        <div class="card-header">
+            <div style="display: flex; align-items: center;">
+                <span class="card-icon">🗓️</span>
+                <span class="card-title">
+                    {% if appuntamento.tipo == 'allenamento_1to1' %}Allenamento 1to1
+                    {% elif appuntamento.tipo == 'rinnovo_dieta' %}Rinnovo Dieta
+                    {% elif appuntamento.tipo == 'rinnovo_allenamento' %}Rinnovo Allenamento
+                    {% elif appuntamento.tipo == 'check' %}Check
+                    {% elif appuntamento.tipo == 'altro' %}Altro
+                    {% else %}{{ appuntamento.tipo|title }}
+                    {% endif %}
+                </span>
+            </div>
+            
+            {% if appuntamento.stato == 'annullato' %}
+            <span class="status-badge status-cancelled">❌ Annullato</span>
+            {% else %}
+            <span class="status-badge status-past">📅 Passato</span>
+            {% endif %}
+        </div>
+        
+        <div class="card-body">
+            <div class="card-info-row">
+                <span class="card-label">📅 Data</span>
+                <span class="card-value">{{ appuntamento.data_appuntamento.strftime('%d/%m/%Y') }}</span>
+            </div>
+            
+            <div class="card-info-row">
+                <span class="card-label">🕐 Ora</span>
+                <span class="card-value">{{ appuntamento.data_appuntamento.strftime('%H:%M') }}</span>
+            </div>
+            
+            {% if appuntamento.note %}
+            <div class="card-info-row">
+                <span class="card-label">💬 Note</span>
+                <span class="card-value">{{ appuntamento.note }}</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+{% else %}
+<div class="empty-state">
+    <div class="empty-icon">🗓️</div>
+    <p class="empty-text">Non hai ancora nessun appuntamento.<br>Contatta il tuo nutrizionista per fissare una visita!</p>
+</div>
+{% endif %}
+
+<style>
+.btn-nuovo-appuntamento {
+  display: inline-block;
+  padding: 0.8rem 1.5rem;
+  background: rgba(255, 117, 31, 0.1);
+  border: 1px solid rgba(255, 117, 31, 0.3);
+  color: #ff751f;
+  text-decoration: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-nuovo-appuntamento:hover {
+  background: rgba(255, 117, 31, 0.2);
+  border-color: rgba(255, 117, 31, 0.5);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.section-divider {
+  display: flex;
+  align-items: center;
+  margin: 2rem 0 1.5rem 0;
+  gap: 1rem;
+}
+
+.divider-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(182, 177, 169, 0.3), transparent);
+}
+
+.section-title {
+  color: #ff751f;
+  font-size: 1.1rem;
+  font-weight: 600;
+  white-space: nowrap;
+  margin: 0;
+}
+
+.card-passato {
+  opacity: 0.7;
+  background: rgba(13, 51, 28, 0.4);
+}
+
+.card-passato:hover {
+  opacity: 0.9;
+}
+
+.card-completato {
+  background: rgba(76, 175, 80, 0.1);
+  border: 1px solid rgba(76, 175, 80, 0.2);
+  opacity: 0.8;
+}
+
+.card-completato:hover {
+  opacity: 1;
+  background: rgba(76, 175, 80, 0.15);
+  border-color: rgba(76, 175, 80, 0.3);
+}
+
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-confirmed {
+  background: rgba(76, 175, 80, 0.2);
+  color: #4CAF50;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.status-pending {
+  background: rgba(255, 193, 7, 0.2);
+  color: #FFC107;
+  border: 1px solid rgba(255, 193, 7, 0.3);
+}
+
+.status-completed {
+  background: rgba(76, 175, 80, 0.2);
+  color: #4CAF50;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.status-cancelled {
+  background: rgba(244, 67, 54, 0.2);
+  color: #F44336;
+  border: 1px solid rgba(244, 67, 54, 0.3);
+}
+
+.status-past {
+  background: rgba(182, 177, 169, 0.2);
+  color: #b6b1a9;
+  border: 1px solid rgba(182, 177, 169, 0.3);
+}
+
+@media (max-width: 768px) {
+  .section-divider {
+    margin: 1.5rem 0 1rem 0;
+    gap: 0.5rem;
+  }
+  
+  .section-title {
+    font-size: 1rem;
+  }
+  
+  .divider-line {
+    display: none;
+  }
+}
+</style>
+
+<!-- LINK PRESENTAZIONE ROBERTO -->
+<div style="text-align: center; margin: 1rem 0;">
+    <span style="color: #b6b1a9; font-size: 0.9rem;">
+        Powered by <a href="{{ url_for('presentazione_roberto') }}" style="color: #ff751f; text-decoration: none;">Roberto Libanora</a>
+    </span>
+</div>
+
+{% endblock %}
+

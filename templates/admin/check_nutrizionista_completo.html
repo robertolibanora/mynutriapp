@@ -1,0 +1,275 @@
+{% extends 'base_admin.html' %}
+{% block title %}Check Nutrizionista Completo - {{ paziente.nome }} {{ paziente.cognome }}{% endblock %}
+{% block content %}
+
+<h2 class="page-title">Check di {{ paziente.nome }} {{ paziente.cognome }}</h2>
+
+<form method="POST" enctype="multipart/form-data" class="form-container">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+  <!-- DATA CHECK -->
+  <div class="form-section" style="margin-bottom: 2rem;">
+    <h3 style="color: #ff751f; margin-bottom: 1rem; border-bottom: 1px solid rgba(182, 177, 169, 0.2); padding-bottom: 0.5rem;">
+      Data Check
+    </h3>
+    
+    <div class="form-group">
+      <label for="data_check">Data Check Nutrizionista *</label>
+      <input type="date" id="data_check" name="data_check" class="input-text" required>
+    </div>
+  </div>
+
+  <!-- DATI BASE DEL CHECK -->
+  <div class="form-section" style="margin-bottom: 2rem;">
+    <h3 style="color: #ff751f; margin-bottom: 1rem; border-bottom: 1px solid rgba(182, 177, 169, 0.2); padding-bottom: 0.5rem;">
+      Dati Base del Check
+    </h3>
+    
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="peso_settimanale">Peso Settimanale (kg)</label>
+        <input type="number" id="peso_settimanale" name="peso_settimanale" class="input-text" 
+               step="0.1" min="30" max="200" placeholder="es. 75.5">
+      </div>
+      
+      <div class="form-group">
+        <label for="aderenza">Aderenza (1-10)</label>
+        <input type="number" id="aderenza" name="aderenza" class="input-text" 
+               step="1" min="1" max="10" placeholder="es. 8">
+      </div>
+      
+      <div class="form-group">
+        <label for="frequenza_allenamenti">Frequenza Allenamenti</label>
+        <input type="text" id="frequenza_allenamenti" name="frequenza_allenamenti" class="input-text" 
+               placeholder="es. 3 allenamenti / settimana">
+      </div>
+      
+      <div class="form-group">
+        <label for="foto_progresso">Foto Progresso</label>
+        <input type="file" id="foto_progresso" name="foto_progresso" class="input-text" 
+               accept="image/*">
+      </div>
+    </div>
+    
+    <div class="form-group" style="margin-top: 1rem;">
+      <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+        <input type="checkbox" id="check_richiesta" name="check_richiesta" value="1">
+        <span>Check richiesto dal paziente</span>
+      </label>
+    </div>
+  </div>
+
+  <!-- MISURE ANTROPOMETRICHE -->
+  <div class="form-section" style="margin-bottom: 2rem;">
+    <h3 style="color: #ff751f; margin-bottom: 1rem; border-bottom: 1px solid rgba(182, 177, 169, 0.2); padding-bottom: 0.5rem;">
+      Misure Antropometriche
+    </h3>
+    
+    <div class="form-subsection">
+      <h4 style="color: #b6b1a9; font-size: 1rem; margin-bottom: 1rem;">Circonferenze (cm)</h4>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="circonferenza_braccio">Circonferenza Braccio</label>
+          <input type="number" id="circonferenza_braccio" name="circonferenza_braccio" class="input-text" 
+                 step="0.1" min="0" max="100" placeholder="es. 32.5">
+        </div>
+        
+        <div class="form-group">
+          <label for="circonferenza_spalle">Circonferenza Spalle</label>
+          <input type="number" id="circonferenza_spalle" name="circonferenza_spalle" class="input-text" 
+                 step="0.1" min="0" max="200" placeholder="es. 110.0">
+        </div>
+        
+        <div class="form-group">
+          <label for="circonferenza_torace">Circonferenza Torace</label>
+          <input type="number" id="circonferenza_torace" name="circonferenza_torace" class="input-text" 
+                 step="0.1" min="0" max="200" placeholder="es. 95.0">
+        </div>
+        
+        <div class="form-group">
+          <label for="circonferenza_vita">Circonferenza Vita</label>
+          <input type="number" id="circonferenza_vita" name="circonferenza_vita" class="input-text" 
+                 step="0.1" min="0" max="200" placeholder="es. 82.0">
+        </div>
+        
+        <div class="form-group">
+          <label for="circonferenza_fianchi">Circonferenza Fianchi</label>
+          <input type="number" id="circonferenza_fianchi" name="circonferenza_fianchi" class="input-text" 
+                 step="0.1" min="0" max="200" placeholder="es. 98.0">
+        </div>
+        
+        <div class="form-group">
+          <label for="circonferenza_coscia">Circonferenza Coscia</label>
+          <input type="number" id="circonferenza_coscia" name="circonferenza_coscia" class="input-text" 
+                 step="0.1" min="0" max="200" placeholder="es. 57.0">
+        </div>
+        
+        <div class="form-group">
+          <label for="circonferenza_polpaccio">Circonferenza Polpaccio</label>
+          <input type="number" id="circonferenza_polpaccio" name="circonferenza_polpaccio" class="input-text" 
+                 step="0.1" min="0" max="100" placeholder="es. 36.5">
+        </div>
+      </div>
+    </div>
+
+    <div class="form-subsection" style="margin-top: 2rem;">
+      <h4 style="color: #b6b1a9; font-size: 1rem; margin-bottom: 1rem;">Pliche Cutanee (mm)</h4>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="plica_addominale">Plica Addominale</label>
+          <input type="number" id="plica_addominale" name="plica_addominale" class="input-text" 
+                 step="0.1" min="0" max="100" placeholder="es. 15.2">
+        </div>
+        
+        <div class="form-group">
+          <label for="plica_tricipitale">Plica Tricipitale</label>
+          <input type="number" id="plica_tricipitale" name="plica_tricipitale" class="input-text" 
+                 step="0.1" min="0" max="100" placeholder="es. 12.8">
+        </div>
+        
+        <div class="form-group">
+          <label for="plica_soprailiaca">Plica Soprailiaca</label>
+          <input type="number" id="plica_soprailiaca" name="plica_soprailiaca" class="input-text" 
+                 step="0.1" min="0" max="100" placeholder="es. 18.5">
+        </div>
+        
+        <div class="form-group">
+          <label for="plica_sottoscapolare">Plica Sottoscapolare</label>
+          <input type="number" id="plica_sottoscapolare" name="plica_sottoscapolare" class="input-text" 
+                 step="0.1" min="0" max="100" placeholder="es. 14.3">
+        </div>
+        
+        <div class="form-group">
+          <label for="plica_cutanea_coscia">Plica Cutanea Coscia</label>
+          <input type="number" id="plica_cutanea_coscia" name="plica_cutanea_coscia" class="input-text" 
+                 step="0.1" min="0" max="100" placeholder="es. 20.1">
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-top: 1.5rem;">
+      <label for="note_misure">Note Misure Antropometriche</label>
+      <textarea id="note_misure" name="note_misure" class="input-text" rows="2" 
+                placeholder="Note specifiche per le misure antropometriche..."></textarea>
+    </div>
+  </div>
+
+  <!-- COMPOSIZIONE CORPOREA -->
+  <div class="form-section" style="margin-bottom: 2rem;">
+    <h3 style="color: #ff751f; margin-bottom: 1rem; border-bottom: 1px solid rgba(182, 177, 169, 0.2); padding-bottom: 0.5rem;">
+      Composizione Corporea
+    </h3>
+    
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="grasso_corporeo">Grasso Corporeo (%)</label>
+        <input type="number" id="grasso_corporeo" name="grasso_corporeo" class="input-text" 
+               step="0.1" min="0" max="50" placeholder="es. 15.2">
+      </div>
+      
+      <div class="form-group">
+        <label for="massa_muscolare">Massa Muscolare (kg)</label>
+        <input type="number" id="massa_muscolare" name="massa_muscolare" class="input-text" 
+               step="0.1" min="0" max="150" placeholder="es. 65.8">
+      </div>
+      
+      <div class="form-group">
+        <label for="grasso_viscerale">Grasso Viscerale (livello)</label>
+        <input type="number" id="grasso_viscerale" name="grasso_viscerale" class="input-text" 
+               step="1" min="1" max="59" placeholder="es. 8">
+      </div>
+      
+      <div class="form-group">
+        <label for="tbw">TBW - Total Body Water (%)</label>
+        <input type="number" id="tbw" name="tbw" class="input-text" 
+               step="0.1" min="0" max="100" placeholder="es. 58.5">
+      </div>
+      
+      <div class="form-group">
+        <label for="tasso_metabolico_basale">Tasso Metabolico Basale (kcal/giorno)</label>
+        <input type="number" id="tasso_metabolico_basale" name="tasso_metabolico_basale" class="input-text" 
+               step="1" min="800" max="3000" placeholder="es. 1650">
+      </div>
+      
+      <div class="form-group">
+        <label for="eta_metabolica">Età Metabolica (anni)</label>
+        <input type="number" id="eta_metabolica" name="eta_metabolica" class="input-text" 
+               step="1" min="15" max="80" placeholder="es. 28">
+      </div>
+      
+      <div class="form-group">
+        <label for="punteggio_postura">Punteggio Postura (0-100)</label>
+        <input type="number" id="punteggio_postura" name="punteggio_postura" class="input-text" 
+               step="1" min="0" max="100" placeholder="es. 85">
+      </div>
+      
+      <div class="form-group">
+        <label for="massa_ossea">Massa Ossea (kg)</label>
+        <input type="number" id="massa_ossea" name="massa_ossea" class="input-text" 
+               step="0.1" min="0" max="20" placeholder="es. 3.2">
+      </div>
+      
+      <div class="form-group">
+        <label for="bmi">BMI - Body Mass Index (kg/m²)</label>
+        <input type="number" id="bmi" name="bmi" class="input-text" 
+               step="0.1" min="10" max="60" placeholder="es. 24.5">
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-top: 1.5rem;">
+      <label for="note_composizione">Note Composizione Corporea</label>
+      <textarea id="note_composizione" name="note_composizione" class="input-text" rows="2" 
+                placeholder="Note specifiche per la composizione corporea..."></textarea>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem; font-size: 1.1rem; padding: 1rem 2rem;">
+      <span>🏥</span>
+      <span>Salva Check Nutrizionista</span>
+    </button>
+    <a href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id) }}" class="btn btn-secondary">Torna al Paziente</a>
+  </div>
+
+</form>
+
+<style>
+.form-section {
+  background: rgba(13, 51, 28, 0.2);
+  border: 1px solid rgba(182, 177, 169, 0.1);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.form-section h3 {
+  color: #ff751f;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.form-subsection {
+  background: rgba(13, 51, 28, 0.2);
+  border: 1px solid rgba(182, 177, 169, 0.1);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.form-subsection h4 {
+  color: #b6b1a9;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+</style>
+
+{% endblock %}

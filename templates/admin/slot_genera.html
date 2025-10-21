@@ -1,0 +1,207 @@
+{% extends 'base_admin.html' %}
+{% block title %}Genera Slot Multipli{% endblock %}
+{% block content %}
+
+<h2 class="page-title">⚡ Genera Slot Multipli</h2>
+
+<form method="POST" class="form-container">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+  
+  <!-- PERIODO -->
+  <div class="form-section" style="margin-bottom: 2rem;">
+    <h3 style="color: #ff751f; margin-bottom: 1rem; border-bottom: 1px solid rgba(182, 177, 169, 0.2); padding-bottom: 0.5rem;">
+      📅 Periodo
+    </h3>
+    
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="data_inizio">📆 Data Inizio *</label>
+        <input 
+          type="date" 
+          id="data_inizio" 
+          name="data_inizio" 
+          class="input-text" 
+          required
+          min="{{ now.strftime('%Y-%m-%d') }}"
+          value="{{ now.strftime('%Y-%m-%d') }}"
+        >
+      </div>
+      
+      <div class="form-group">
+        <label for="data_fine">📆 Data Fine *</label>
+        <input 
+          type="date" 
+          id="data_fine" 
+          name="data_fine" 
+          class="input-text" 
+          required
+          min="{{ now.strftime('%Y-%m-%d') }}"
+        >
+      </div>
+    </div>
+  </div>
+  
+  <!-- GIORNI SETTIMANA -->
+  <div class="form-section" style="margin-bottom: 2rem;">
+    <h3 style="color: #ff751f; margin-bottom: 1rem; border-bottom: 1px solid rgba(182, 177, 169, 0.2); padding-bottom: 0.5rem;">
+      📅 Giorni della Settimana *
+    </h3>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem;">
+      <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: rgba(13, 51, 28, 0.3); border-radius: 8px; cursor: pointer;">
+        <input type="checkbox" name="giorni" value="0" style="width: auto; transform: scale(1.2);">
+        <span>📅 Lunedì</span>
+      </label>
+      <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: rgba(13, 51, 28, 0.3); border-radius: 8px; cursor: pointer;">
+        <input type="checkbox" name="giorni" value="1" style="width: auto; transform: scale(1.2);">
+        <span>📅 Martedì</span>
+      </label>
+      <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: rgba(13, 51, 28, 0.3); border-radius: 8px; cursor: pointer;">
+        <input type="checkbox" name="giorni" value="2" style="width: auto; transform: scale(1.2);">
+        <span>📅 Mercoledì</span>
+      </label>
+      <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: rgba(13, 51, 28, 0.3); border-radius: 8px; cursor: pointer;">
+        <input type="checkbox" name="giorni" value="3" style="width: auto; transform: scale(1.2);">
+        <span>📅 Giovedì</span>
+      </label>
+      <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: rgba(13, 51, 28, 0.3); border-radius: 8px; cursor: pointer;">
+        <input type="checkbox" name="giorni" value="4" style="width: auto; transform: scale(1.2);">
+        <span>📅 Venerdì</span>
+      </label>
+      <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: rgba(13, 51, 28, 0.3); border-radius: 8px; cursor: pointer;">
+        <input type="checkbox" name="giorni" value="5" style="width: auto; transform: scale(1.2);">
+        <span>📅 Sabato</span>
+      </label>
+      <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: rgba(13, 51, 28, 0.3); border-radius: 8px; cursor: pointer;">
+        <input type="checkbox" name="giorni" value="6" style="width: auto; transform: scale(1.2);">
+        <span>📅 Domenica</span>
+      </label>
+    </div>
+  </div>
+  
+  <!-- ORARI -->
+  <div class="form-section" style="margin-bottom: 2rem;">
+    <h3 style="color: #ff751f; margin-bottom: 1rem; border-bottom: 1px solid rgba(182, 177, 169, 0.2); padding-bottom: 0.5rem;">
+      🕐 Orari *
+    </h3>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 0.75rem;">
+      <!-- MATTINA -->
+      <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: rgba(13, 51, 28, 0.3); border-radius: 8px; cursor: pointer;">
+        <input type="checkbox" name="orari" value="08:00" style="width: auto; transform: scale(1.2);">
+        <span>🕗 08:00</span>
+      </label>
+      <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: rgba(13, 51, 28, 0.3); border-radius: 8px; cursor: pointer;">
+        <input type="checkbox" name="orari" value="08:30" style="width: auto; transform: scale(1.2);">
+        <span>🕗 08:30</span>
+      </label>
+      <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: rgba(13, 51, 28, 0.3); border-radius: 8px; cursor: pointer;">
+        <input type="checkbox" name="orari" value="09:00" style="width: auto; transform: scale(1.2);">
+        <span>🕘 09:00</span>
+      </label>
+      <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: rgba(13, 51, 28, 0.3); border-radius: 8px; cursor: pointer;">
+        <input type="checkbox" name="orari" value="09:30" style="width: auto; transform: scale(1.2);">
+        <span>🕘 09:30</span>
+      </label>
+      <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: rgba(13, 51, 28, 0.3); border-radius: 8px; cursor: pointer;">
+        <input type="checkbox" name="orari" value="10:00" style="width: auto; transform: scale(1.2);">
+        <span>🕙 10:00</span>
+      </label>
+      <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: rgba(13, 51, 28, 0.3); border-radius: 8px; cursor: pointer;">
+        <input type="checkbox" name="orari" value="10:30" style="width: auto; transform: scale(1.2);">
+        <span>🕙 10:30</span>
+      </label>
+      <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: rgba(13, 51, 28, 0.3); border-radius: 8px; cursor: pointer;">
+        <input type="checkbox" name="orari" value="11:00" style="width: auto; transform: scale(1.2);">
+        <span>🕚 11:00</span>
+      </label>
+      <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: rgba(13, 51, 28, 0.3); border-radius: 8px; cursor: pointer;">
+        <input type="checkbox" name="orari" value="11:30" style="width: auto; transform: scale(1.2);">
+        <span>🕚 11:30</span>
+      </label>
+      <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: rgba(13, 51, 28, 0.3); border-radius: 8px; cursor: pointer;">
+        <input type="checkbox" name="orari" value="12:00" style="width: auto; transform: scale(1.2);">
+        <span>🕛 12:00</span>
+      </label>
+      <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: rgba(13, 51, 28, 0.3); border-radius: 8px; cursor: pointer;">
+        <input type="checkbox" name="orari" value="12:30" style="width: auto; transform: scale(1.2);">
+        <span>🕛 12:30</span>
+      </label>
+      
+      <!-- POMERIGGIO -->
+      <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: rgba(13, 51, 28, 0.3); border-radius: 8px; cursor: pointer;">
+        <input type="checkbox" name="orari" value="14:00" style="width: auto; transform: scale(1.2);">
+        <span>🕐 14:00</span>
+      </label>
+      <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: rgba(13, 51, 28, 0.3); border-radius: 8px; cursor: pointer;">
+        <input type="checkbox" name="orari" value="14:30" style="width: auto; transform: scale(1.2);">
+        <span>🕐 14:30</span>
+      </label>
+      <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: rgba(13, 51, 28, 0.3); border-radius: 8px; cursor: pointer;">
+        <input type="checkbox" name="orari" value="15:00" style="width: auto; transform: scale(1.2);">
+        <span>🕑 15:00</span>
+      </label>
+      <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: rgba(13, 51, 28, 0.3); border-radius: 8px; cursor: pointer;">
+        <input type="checkbox" name="orari" value="15:30" style="width: auto; transform: scale(1.2);">
+        <span>🕑 15:30</span>
+      </label>
+      <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: rgba(13, 51, 28, 0.3); border-radius: 8px; cursor: pointer;">
+        <input type="checkbox" name="orari" value="16:00" style="width: auto; transform: scale(1.2);">
+        <span>🕒 16:00</span>
+      </label>
+      <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: rgba(13, 51, 28, 0.3); border-radius: 8px; cursor: pointer;">
+        <input type="checkbox" name="orari" value="16:30" style="width: auto; transform: scale(1.2);">
+        <span>🕒 16:30</span>
+      </label>
+      <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: rgba(13, 51, 28, 0.3); border-radius: 8px; cursor: pointer;">
+        <input type="checkbox" name="orari" value="17:00" style="width: auto; transform: scale(1.2);">
+        <span>🕓 17:00</span>
+      </label>
+      <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: rgba(13, 51, 28, 0.3); border-radius: 8px; cursor: pointer;">
+        <input type="checkbox" name="orari" value="17:30" style="width: auto; transform: scale(1.2);">
+        <span>🕓 17:30</span>
+      </label>
+      <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: rgba(13, 51, 28, 0.3); border-radius: 8px; cursor: pointer;">
+        <input type="checkbox" name="orari" value="18:00" style="width: auto; transform: scale(1.2);">
+        <span>🕔 18:00</span>
+      </label>
+      <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: rgba(13, 51, 28, 0.3); border-radius: 8px; cursor: pointer;">
+        <input type="checkbox" name="orari" value="18:30" style="width: auto; transform: scale(1.2);">
+        <span>🕔 18:30</span>
+      </label>
+      <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: rgba(13, 51, 28, 0.3); border-radius: 8px; cursor: pointer;">
+        <input type="checkbox" name="orari" value="19:00" style="width: auto; transform: scale(1.2);">
+        <span>🕖 19:00</span>
+      </label>
+      <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: rgba(13, 51, 28, 0.3); border-radius: 8px; cursor: pointer;">
+        <input type="checkbox" name="orari" value="19:30" style="width: auto; transform: scale(1.2);">
+        <span>🕖 19:30</span>
+      </label>
+    </div>
+  </div>
+  
+  <!-- NOTE -->
+  <div class="form-group">
+    <label for="note">💬 Note (Opzionale)</label>
+    <input 
+      type="text" 
+      id="note" 
+      name="note" 
+      class="input-text" 
+      placeholder="Es: Solo prima visita, Solo controlli"
+    >
+    <small style="color: #b6b1a9; font-size: 0.85rem;">Note che verranno aggiunte a tutti gli slot creati</small>
+  </div>
+  
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem; font-size: 1.1rem; padding: 1rem 2rem;">
+      <span>⚡</span>
+      <span>Genera Slot</span>
+    </button>
+    <a href="{{ url_for('agenda.agenda_unificata') }}" class="btn btn-secondary">↩️ Annulla</a>
+  </div>
+
+</form>
+
+{% endblock %}
+

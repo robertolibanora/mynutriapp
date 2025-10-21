@@ -1,0 +1,48 @@
+{% extends 'base_admin.html' %}
+{% block title %}Vendite{% endblock %}
+{% block content %}
+
+<h2 class="page-title">💰 Vendite Registrate</h2>
+
+<div class="toolbar">
+  <a href="{{ url_for('vendite.nuova_vendita') }}" class="btn btn-primary">➕ Nuova Vendita</a>
+</div>
+
+<p><strong>Totale incassato:</strong> {{ "%.2f"|format(totale) }} €</p>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th>Paziente</th>
+      <th>Prodotto</th>
+      <th>Data Inizio</th>
+      <th>Importo (€)</th>
+      <th>Metodo</th>
+      <th>Stato</th>
+      <th>Azioni</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for v in vendite %}
+    <tr>
+      <td>{{ v.patient.nome }} {{ v.patient.cognome }}</td>
+      <td>{{ v.listino.nome_prodotto }}</td>
+      <td>{{ v.data_inizio.strftime('%d/%m/%Y') }}</td>
+      <td>{{ "%.2f"|format(v.importo_finale) }}</td>
+      <td>{{ v.metodo_pagamento }}</td>
+      <td>{{ v.stato }}</td>
+      <td>
+        <div class="action-buttons">
+          <a href="{{ url_for('vendite.dettaglio_vendita', id=v.id) }}" class="btn btn-white btn-small">🔍 Dettaglio</a>
+          <form method="POST" action="{{ url_for('vendite.elimina_vendita', id=v.id) }}" style="display:inline;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <button type="submit" class="btn btn-danger btn-small" onclick="return confirm('Eliminare questa vendita?')">🗑️ Elimina</button>
+          </form>
+        </div>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}

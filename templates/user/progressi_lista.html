@@ -1,0 +1,199 @@
+{% extends 'base_user.html' %}
+{% block title %}I Miei Progressi - NutriApp{% endblock %}
+{% block content %}
+
+<h1 class="page-title-user">📈 I Miei Progressi</h1>
+
+<div class="mb-2" style="text-align: center;">
+    <a href="{{ url_for('progressi.nuovo_progresso_user') }}" class="btn-nuovo-check">
+        ➕ Inserisci Nuovo Check
+    </a>
+</div>
+
+{% if progressi %}
+    {% set check_paziente = [] %}
+    {% set check_nutrizionista = [] %}
+    
+    {% for progresso in progressi %}
+        {% if progresso.tipo_check == 'nutrizionista' %}
+            {% set _ = check_nutrizionista.append(progresso) %}
+        {% else %}
+            {% set _ = check_paziente.append(progresso) %}
+        {% endif %}
+    {% endfor %}
+
+    <!-- CHECK DEL NUTRIZIONISTA -->
+    {% if check_nutrizionista %}
+    <div class="section-divider">
+        <div class="divider-line"></div>
+        <h2 class="section-title">🏥 Check del Dottor MyNutriApp</h2>
+        <div class="divider-line"></div>
+    </div>
+    
+    {% for progresso in check_nutrizionista %}
+    <div class="card-user card-nutrizionista">
+        <div class="card-header">
+            <div style="display: flex; align-items: center;">
+                <span class="card-icon">🏥</span>
+                <span class="card-title">Check Nutrizionista {{ progresso.data_check.strftime('%d/%m/%Y') }}</span>
+            </div>
+        </div>
+        
+        <div class="card-body">
+            <div style="text-align: center; padding: 0.5rem 0;">
+                <a href="{{ url_for('progressi.dettaglio_check_user', progresso_id=progresso.id) }}" class="btn-dettaglio">
+                    Visualizza Dettagli
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <!-- I MIEI CHECK -->
+    {% if check_paziente %}
+    <div class="section-divider">
+        <div class="divider-line"></div>
+        <h2 class="section-title">👤 I Miei Check</h2>
+        <div class="divider-line"></div>
+    </div>
+    
+    {% for progresso in check_paziente %}
+    <div class="card-user">
+        <div class="card-header">
+            <div style="display: flex; align-items: center;">
+                <span class="card-icon">⚖️</span>
+                <span class="card-title">Il Mio Check {{ progresso.data_check.strftime('%d/%m/%Y') }}</span>
+            </div>
+        </div>
+        
+        <div class="card-body">
+            <div style="text-align: center; padding: 0.5rem 0;">
+                <a href="{{ url_for('progressi.dettaglio_check_user', progresso_id=progresso.id) }}" class="btn-dettaglio">
+                    Visualizza Dettagli
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+{% else %}
+<div class="empty-state">
+    <div class="empty-icon">📊</div>
+    <p class="empty-text">Non hai ancora nessun progresso registrato.<br>Il tuo nutrizionista registrerà i tuoi progressi durante le visite!</p>
+</div>
+
+<!-- LINK PRESENTAZIONE ROBERTO -->
+<div style="text-align: center; margin: 1rem 0;">
+  <span style="color: #b6b1a9; font-size: 0.9rem;">
+      Powered by <a href="{{ url_for('presentazione_roberto') }}" style="color: #ff751f; text-decoration: none;">Roberto Libanora</a>
+  </span>
+</div>
+
+<!-- LINK PRESENTAZIONE ROBERTO -->
+<div style="text-align: center; margin: 1rem 0;">
+  <span style="color: #b6b1a9; font-size: 0.9rem;">
+      Powered by <a href="{{ url_for('presentazione_roberto') }}" style="color: #ff751f; text-decoration: none;">Roberto Libanora</a>
+  </span>
+</div>
+
+{% endif %}
+
+<style>
+.btn-dettaglio {
+  display: inline-block;
+  padding: 0.6rem 1.2rem;
+  background: rgba(182, 177, 169, 0.1);
+  border: 1px solid rgba(182, 177, 169, 0.3);
+  color: #b6b1a9;
+  text-decoration: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-dettaglio:hover {
+  background: rgba(182, 177, 169, 0.2);
+  border-color: rgba(182, 177, 169, 0.5);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.btn-nuovo-check {
+  display: inline-block;
+  padding: 0.8rem 1.5rem;
+  background: rgba(255, 117, 31, 0.1);
+  border: 1px solid rgba(255, 117, 31, 0.3);
+  color: #ff751f;
+  text-decoration: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-nuovo-check:hover {
+  background: rgba(255, 117, 31, 0.2);
+  border-color: rgba(255, 117, 31, 0.5);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.section-divider {
+  display: flex;
+  align-items: center;
+  margin: 2rem 0 1.5rem 0;
+  gap: 1rem;
+}
+
+.divider-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(182, 177, 169, 0.3), transparent);
+}
+
+.section-title {
+  color: #ff751f;
+  font-size: 1.1rem;
+  font-weight: 600;
+  white-space: nowrap;
+  margin: 0;
+}
+
+.card-nutrizionista {
+  background: rgba(33, 150, 243, 0.1);
+  border: 1px solid rgba(33, 150, 243, 0.2);
+}
+
+.card-nutrizionista:hover {
+  background: rgba(33, 150, 243, 0.15);
+  border-color: rgba(33, 150, 243, 0.3);
+}
+
+@media (max-width: 768px) {
+  .section-divider {
+    margin: 1.5rem 0 1rem 0;
+    gap: 0.5rem;
+  }
+  
+  .section-title {
+    font-size: 1rem;
+  }
+  
+  .divider-line {
+    display: none;
+  }
+}
+</style>
+
+<!-- LINK PRESENTAZIONE ROBERTO -->
+<div style="text-align: center; margin: 1rem 0;">
+    <span style="color: #b6b1a9; font-size: 0.9rem;">
+        Powered by <a href="{{ url_for('presentazione_roberto') }}" style="color: #ff751f; text-decoration: none;">Roberto Libanora</a>
+    </span>
+</div>
+
+{% endblock %}
+

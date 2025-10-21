@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Il Mio Studio Dashboard{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&family=Adam+Script&display=swap" rel="stylesheet">
+    <link href="https://fonts.cdnfonts.com/css/agrandir" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+</head>
+
+<body style="display: flex; flex-direction: column; min-height: 100vh;">
+    <!-- 🔝 NAVBAR ALTA -->
+    <nav class="navbar">
+        <div class="nav-left">
+            <h1 class="logo" style="font-family: 'Agrandir', sans-serif;">
+                <span style="font-family: 'Adam Script', cursive; color: #ff751f;">MyNutri</span>APP
+            </h1>
+        </div>
+            <div class="nav-right">
+                <a href="{{ url_for('dashboard.admin_dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard.admin_dashboard' %}active{% endif %}">Dashboard</a>
+                <a href="{{ url_for('patients.lista_pazienti') }}" class="nav-link {% if 'patients' in request.endpoint or 'progressi' in request.endpoint or 'diete' in request.endpoint or 'allenamenti' in request.endpoint or 'documenti' in request.endpoint %}active{% endif %}">Pazienti</a>
+                <a href="{{ url_for('agenda.agenda_unificata') }}" class="nav-link {% if 'agenda' in request.endpoint %}active{% endif %}">Agenda</a>
+                <a href="{{ url_for('vendite.dashboard_economia') }}" class="nav-link {% if 'vendite' in request.endpoint %}active{% endif %}">Economia</a>
+                <a href="{{ url_for('broadcast.dashboard') }}" class="nav-link {% if 'broadcast' in request.endpoint %}active{% endif %}">Messaggi</a>
+                <a href="{{ url_for('auth.logout') }}" class="nav-link logout">Logout</a>
+            </div>
+    </nav>
+
+    <!-- 📦 CONTENUTO VARIABILE -->
+    <main class="content" style="flex: 1;">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div style="margin: 0 0 16px 0; display: grid; gap: 8px;">
+                {% for category, message in messages %}
+                    <div style="padding: 12px 14px; border-radius: 8px; font-weight: 600; border: 1px solid rgba(255,255,255,0.15); background: rgba(13,51,28,0.6); color: #ffffff;">
+                        {% if category == 'success' %}
+                            <span style="color:#25D366; margin-right:8px;">✅</span>
+                        {% elif category == 'danger' %}
+                            <span style="color:#e74c3c; margin-right:8px;">❌</span>
+                        {% elif category == 'warning' %}
+                            <span style="color:#ffc107; margin-right:8px;">⚠️</span>
+                        {% else %}
+                            <span style="color:#ff751f; margin-right:8px;">ℹ️</span>
+                        {% endif %}
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- 🔽 FOOTER CON DIRITTI D'AUTORE -->
+    <footer style="background: rgba(13, 51, 28, 0.6); border-top: 1px solid rgba(255, 117, 31, 0.2); padding: 1rem 2rem; text-align: center; margin-top: auto;">
+        <div style="color: #b6b1a9; font-size: 0.9rem;">
+            © 2025 MyNutriAPP - Tutti i diritti riservati | 
+            <span style="color: #ff751f;">Powered by <a href="{{ url_for('presentazione_roberto') }}" style="color: #ff751f; text-decoration: none;">Roberto Libanora</a></span>
+        </div>
+    </footer>
+</body>
+</html>

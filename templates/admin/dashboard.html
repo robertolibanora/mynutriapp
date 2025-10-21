@@ -1,0 +1,139 @@
+{% extends 'base_admin.html' %}
+{% block title %}Dashboard Enrico{% endblock %}
+{% block content %}
+
+<!-- HEADER DASHBOARD -->
+<div class="dashboard-header" style="background: linear-gradient(135deg, rgba(255, 117, 31, 0.1) 0%, rgba(13, 51, 28, 0.3) 100%); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; border: 1px solid rgba(255, 117, 31, 0.2);">
+  <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <h1 style="color: #ff751f; margin: 0; font-size: 2.5rem; font-weight: 700;">👋 Benvenuto, Enrico!</h1>
+      <p style="color: #b6b1a9; margin: 0.5rem 0 0 0; font-size: 1.1rem;">Dashboard di controllo del tuo studio nutrizionale</p>
+      <p style="color: #ff751f; margin: 1rem 0 0 0; font-size: 1.4rem; font-weight: 600; font-family: 'Adam Script', cursive;">
+        Non Diamo Pillole, Non Diamo Consigli, Diamo Risultati
+      </p>
+    </div>
+    <div style="text-align: right;">
+      <div style="color: #4CAF50; font-size: 1.2rem; font-weight: 700;">{{ oggi.strftime('%A, %d %B %Y') }}</div>
+      <div style="color: #4CAF50; font-size: 0.9rem; font-weight: 600;">{{ oggi.strftime('%H:%M') }}</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- STATISTICHE PRINCIPALI -->
+<div class="stats-section" style="margin-bottom: 2rem;">
+  <h2 style="color: #4CAF50; margin-bottom: 1rem;">📊 Panoramica Oggi</h2>
+  <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+    
+    <div class="stat-card" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(76, 175, 80, 0.3); border-radius: 16px; padding: 1.5rem; position: relative; overflow: hidden;">
+      <div style="position: absolute; top: -10px; right: -10px; font-size: 4rem; opacity: 0.1;">👥</div>
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <div>
+          <div style="font-size: 2.5rem; font-weight: 700; color: #4CAF50; margin-bottom: 0.5rem;">{{ n_pazienti }}</div>
+          <div style="color: #b6b1a9; font-size: 0.9rem;">Pazienti Totali</div>
+        </div>
+        <div style="font-size: 2rem; color: #4CAF50;">👥</div>
+      </div>
+      <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(182, 177, 169, 0.2);">
+        <a href="{{ url_for('patients.lista_pazienti') }}" style="color: #4CAF50; text-decoration: none; font-size: 0.9rem;">👁️ Visualizza tutti</a>
+      </div>
+    </div>
+
+    <div class="stat-card" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(33, 150, 243, 0.3); border-radius: 16px; padding: 1.5rem; position: relative; overflow: hidden;">
+      <div style="position: absolute; top: -10px; right: -10px; font-size: 4rem; opacity: 0.1;">📅</div>
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <div>
+          <div style="font-size: 2.5rem; font-weight: 700; color: #2196F3; margin-bottom: 0.5rem;">{{ n_appuntamenti_oggi }}</div>
+          <div style="color: #b6b1a9; font-size: 0.9rem;">Appuntamenti Oggi</div>
+        </div>
+        <div style="font-size: 2rem; color: #2196F3;">📅</div>
+      </div>
+      <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(182, 177, 169, 0.2);">
+        <div style="color: #b6b1a9; font-size: 0.85rem;">📊 {{ n_appuntamenti_settimana }} questa settimana</div>
+      </div>
+    </div>
+
+
+    <div class="stat-card" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(156, 39, 176, 0.3); border-radius: 16px; padding: 1.5rem; position: relative; overflow: hidden;">
+      <div style="position: absolute; top: -10px; right: -10px; font-size: 4rem; opacity: 0.1;">💰</div>
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <div>
+          <div style="font-size: 2.5rem; font-weight: 700; color: #9C27B0; margin-bottom: 0.5rem;">{{ totale_mese }}€</div>
+          <div style="color: #b6b1a9; font-size: 0.9rem;">Entrate Mese</div>
+        </div>
+        <div style="font-size: 2rem; color: #9C27B0;">💰</div>
+      </div>
+      <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(182, 177, 169, 0.2);">
+        <a href="{{ url_for('vendite.dashboard_economia') }}" style="color: #9C27B0; text-decoration: none; font-size: 0.9rem;">📊 Dettagli vendite</a>
+      </div>
+    </div>
+
+    <div class="stat-card" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(255, 193, 7, 0.3); border-radius: 16px; padding: 1.5rem; position: relative; overflow: hidden;">
+      <div style="position: absolute; top: -10px; right: -10px; font-size: 4rem; opacity: 0.1;">⏰</div>
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <div>
+          <div style="font-size: 2.5rem; font-weight: 700; color: #FFC107; margin-bottom: 0.5rem;">{{ n_slot_futuri }}</div>
+          <div style="color: #b6b1a9; font-size: 0.9rem;">Slot Disponibili</div>
+        </div>
+        <div style="font-size: 2rem; color: #FFC107;">⏰</div>
+      </div>
+      <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(182, 177, 169, 0.2);">
+        <a href="{{ url_for('agenda.agenda_unificata') }}" style="color: #FFC107; text-decoration: none; font-size: 0.9rem;">⚡ Gestisci slot</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- PRODOTTI TOP -->
+{% if prodotti_top %}
+<div class="top-products-section" style="margin-bottom: 2rem;">
+  <h2 style="color: #4CAF50; margin-bottom: 1rem;">🏆 Prodotti Più Venduti Questo Mese</h2>
+  <div class="products-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+    {% for prodotto in prodotti_top %}
+    <div class="product-card" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(255, 117, 31, 0.3); border-radius: 12px; padding: 1.5rem;">
+      <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+        <h4 style="color: #ffffff; margin: 0; font-size: 1.1rem;">{{ prodotto.nome_prodotto }}</h4>
+        <span class="badge badge-success" style="font-size: 0.75rem;">#{{ loop.index }}</span>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div>
+          <div style="color: #b6b1a9; font-size: 0.85rem;">Vendite</div>
+          <div style="color: #4CAF50; font-size: 1.5rem; font-weight: 600;">{{ prodotto.vendite_count }}</div>
+        </div>
+        <div style="text-align: right;">
+          <div style="color: #b6b1a9; font-size: 0.85rem;">Ricavi</div>
+          <div style="color: #ff751f; font-size: 1.5rem; font-weight: 600;">{{ "%.0f"|format(prodotto.totale_importo) }}€</div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<style>
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+}
+
+.product-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+}
+
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+</style>
+
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends 'base_user.html' %}
+{% block title %}I Miei Allenamenti - NutriApp{% endblock %}
+{% block content %}
+
+<h1 class="page-title-user">🏋️ I Miei Allenamenti</h1>
+
+{% if allenamenti %}
+    {% for allenamento in allenamenti %}
+    <div class="card-user">
+        <div class="card-header">
+            <div style="display: flex; align-items: center;">
+                <span class="card-icon">💪</span>
+                <span class="card-title">Allenamento {{ loop.index }}</span>
+            </div>
+            {% if allenamento.data_fine >= now %}
+            <span class="status-badge status-active">Attivo</span>
+            {% else %}
+            <span class="status-badge status-expired">Scaduto</span>
+            {% endif %}
+        </div>
+        
+        <div class="card-body">
+            <div class="card-info-row">
+                <span class="card-label">Data Inizio</span>
+                <span class="card-value">{{ allenamento.data_inizio.strftime('%d/%m/%Y') }}</span>
+            </div>
+            
+            <div class="card-info-row">
+                <span class="card-label">Data Fine</span>
+                <span class="card-value">{{ allenamento.data_fine.strftime('%d/%m/%Y') }}</span>
+            </div>
+            
+            {% if allenamento.note %}
+            <div class="card-info-row">
+                <span class="card-label">Note</span>
+                <span class="card-value">{{ allenamento.note }}</span>
+            </div>
+            {% endif %}
+        </div>
+        
+        {% if allenamento.pdf_path %}
+        <a href="{{ url_for('allenamenti.serve_file', allenamento_id=allenamento.id) }}" target="_blank" class="btn-user mt-2">
+            📄 Apri PDF Allenamento
+        </a>
+        {% endif %}
+    </div>
+    {% endfor %}
+{% else %}
+<div class="empty-state">
+    <div class="empty-icon">💪</div>
+    <p class="empty-text">Non hai ancora nessun allenamento assegnato.<br>Il tuo nutrizionista ti assegnerà presto un piano di allenamento personalizzato!</p>
+</div>
+
+<!-- LINK PRESENTAZIONE ROBERTO -->
+<div style="text-align: center; margin: 1rem 0;">
+    <span style="color: #b6b1a9; font-size: 0.9rem;">
+        Powered by <a href="{{ url_for('presentazione_roberto') }}" style="color: #ff751f; text-decoration: none;">Roberto Libanora</a>
+    </span>
+</div>
+
+
+{% endif %}
+
+<!-- LINK PRESENTAZIONE ROBERTO -->
+<div style="text-align: center; margin: 1rem 0;">
+    <span style="color: #b6b1a9; font-size: 0.9rem;">
+        Powered by <a href="{{ url_for('presentazione_roberto') }}" style="color: #ff751f; text-decoration: none;">Roberto Libanora</a>
+    </span>
+</div>
+
+{% endblock %}
+

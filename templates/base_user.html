@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <!-- 📱 PWA METATAGS -->
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#ff751f">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="NutriApp">
+    <meta name="application-name" content="NutriApp">
+    <meta name="msapplication-TileColor" content="#ff751f">
+    <meta name="msapplication-tap-highlight" content="no">
+    
+    <!-- 🔧 PWA FORCE INSTALL -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="format-detection" content="telephone=no">
+    
+    <!-- 🎨 FAVICONS -->
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
+    <link rel="apple-touch-icon" sizes="192x192" href="{{ url_for('static', filename='icons/icon-192.png') }}">
+    <link rel="apple-touch-icon" sizes="512x512" href="{{ url_for('static', filename='icons/icon-512.png') }}">
+    
+    <title>{% block title %}NutriApp{% endblock %}</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- User CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style_user.css') }}">
+</head>
+
+<body>
+    <!-- 🔝 TOP HEADER -->
+    <header class="user-header">
+        <div class="user-header-content">
+            <div class="user-greeting">
+                <span class="user-greeting-text">Ciao,</span>
+                <span class="user-name">{{ session.name }}</span>
+            </div>
+            <a href="{{ url_for('patients.profilo_user') }}" class="user-avatar">
+                {{ session.name[0].upper() if session.name else '?' }}
+            </a>
+        </div>
+    </header>
+
+    <!-- 📦 MAIN CONTENT WRAPPER -->
+    <div class="content-wrapper">
+        <main class="user-content content-main">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <!-- 🔻 BOTTOM NAVIGATION -->
+    <nav class="bottom-nav">
+        <a href="{{ url_for('dashboard.user_dashboard') }}" class="nav-item {% if request.endpoint == 'dashboard.user_dashboard' %}active{% endif %}">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-label">Home</span>
+        </a>
+        
+        <a href="{{ url_for('progressi.lista_progressi_user') }}" class="nav-item {% if 'progressi' in request.endpoint %}active{% endif %}">
+            <span class="nav-icon">📈</span>
+            <span class="nav-label">Progressi</span>
+        </a>
+        
+        <a href="{{ url_for('appuntamenti.lista_user') }}" class="nav-item {% if 'appuntamenti' in request.endpoint %}active{% endif %}">
+            <span class="nav-icon">📅</span>
+            <span class="nav-label">Prenota</span>
+        </a>
+        
+        <a href="{{ url_for('patients.profilo_user') }}" class="nav-item {% if 'profilo' in request.endpoint %}active{% endif %}">
+            <span class="nav-icon">👤</span>
+            <span class="nav-label">Profilo</span>
+        </a>
+    </nav>
+    
+    <!-- 📱 PWA SERVICE WORKER -->
+    <script>
+        let deferredPrompt;
+        
+        // Registra Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/static/js/service-worker.js')
+                .then(() => console.log("✅ Service Worker attivo"))
+                .catch(err => console.error("❌ Errore SW:", err));
+        }
+        
+        // Gestisci installazione PWA
+        window.addEventListener('beforeinstallprompt', (e) => {
+            console.log('📱 PWA: Install prompt disponibile');
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // Mostra prompt personalizzato se necessario
+            showInstallPrompt();
+        });
+        
+        function showInstallPrompt() {
+            if (deferredPrompt) {
+                // Crea un banner di installazione personalizzato
+                const installBanner = document.createElement('div');
+                installBanner.innerHTML = `
+                    <div style="position: fixed; bottom: 80px; left: 10px; right: 10px; background: #ff751f; color: white; padding: 15px; border-radius: 10px; z-index: 1000; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <div>
+                                <strong>📱 Installa NutriApp</strong><br>
+                                <small>Aggiungi alla schermata home per un accesso rapido</small>
+                            </div>
+                            <button onclick="installApp()" style="background: white; color: #ff751f; border: none; padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: pointer;">
+                                Installa
+                            </button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(installBanner);
+                
+                // Auto-rimuovi dopo 10 secondi
+                setTimeout(() => {
+                    if (installBanner.parentNode) {
+                        installBanner.parentNode.removeChild(installBanner);
+                    }
+                }, 10000);
+            }
+        }
+        
+        function installApp() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('✅ PWA installata');
+                    }
+                    deferredPrompt = null;
+                });
+            }
+        }
+        
+        // Nascondi banner se già installata
+        window.addEventListener('appinstalled', () => {
+            console.log('🎉 PWA installata con successo');
+            const banner = document.querySelector('[style*="position: fixed"]');
+            if (banner) banner.remove();
+        });
+        
+        // 📱 FIX NAVBAR MOBILE
+        let lastScrollTop = 0;
+        const navbar = document.querySelector('.bottom-nav');
+        
+        window.addEventListener('scroll', () => {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            
+            // Previeni movimento navbar
+            if (navbar) {
+                navbar.style.transform = 'translateZ(0)';
+                navbar.style.position = 'sticky';
+                navbar.style.bottom = '0';
+            }
+            
+            lastScrollTop = scrollTop;
+        });
+        
+        // Fix per iOS Safari
+        window.addEventListener('resize', () => {
+            if (navbar) {
+                navbar.style.transform = 'translateZ(0)';
+            }
+        });
+    </script>
+</body>
+</html>
+

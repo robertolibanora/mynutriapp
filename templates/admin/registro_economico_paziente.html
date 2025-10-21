@@ -1,0 +1,389 @@
+{% extends 'base_admin.html' %}
+{% block title %}Registro Economico - {{ paziente.nome }} {{ paziente.cognome }}{% endblock %}
+{% block content %}
+
+<!-- HEADER PRINCIPALE -->
+<div class="registro-header" style="background: linear-gradient(135deg, rgba(255, 117, 31, 0.1) 0%, rgba(13, 51, 28, 0.3) 100%); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; border: 1px solid rgba(255, 117, 31, 0.2);">
+  <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <h1 style="color: #ff751f; margin: 0; font-size: 2.5rem; font-weight: 700;">💰 Registro Economico</h1>
+      <p style="color: #b6b1a9; margin: 0.5rem 0 0 0; font-size: 1.1rem;">
+        {{ paziente.nome }} {{ paziente.cognome }} • {{ paziente.telefono }}
+      </p>
+    </div>
+    <div style="text-align: right;">
+      <div style="color: #ffffff; font-size: 1.8rem; font-weight: 700;">{{ "%.2f"|format(totale_speso) }}€</div>
+      <div style="color: #b6b1a9; font-size: 0.9rem;">Totale Speso</div>
+    </div>
+  </div>
+</div>
+
+<!-- NAVIGATION -->
+<div class="navigation" style="margin-bottom: 2rem;">
+  <a href="{{ url_for('vendite.dashboard_economia') }}" class="btn btn-secondary">
+    ← Torna alle Vendite
+  </a>
+  <a href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id) }}" class="btn btn-primary" style="margin-left: 0.5rem;">
+    👁️ Dettaglio Paziente
+  </a>
+</div>
+
+<!-- STATISTICHE RIEPILOGO -->
+<div class="stats-overview" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+  <div class="stat-card" style="background: rgba(76, 175, 80, 0.1); border: 1px solid rgba(76, 175, 80, 0.3); border-radius: 12px; padding: 1.5rem; text-align: center;">
+    <div style="color: #4CAF50; font-size: 2.5rem; margin-bottom: 0.5rem;">💰</div>
+    <div style="color: #4CAF50; font-size: 1.8rem; font-weight: 700; margin-bottom: 0.25rem;">{{ "%.2f"|format(totale_speso) }}€</div>
+    <div style="color: #b6b1a9; font-size: 0.9rem; font-weight: 600;">Totale Speso</div>
+  </div>
+  
+  <div class="stat-card" style="background: rgba(33, 150, 243, 0.1); border: 1px solid rgba(33, 150, 243, 0.3); border-radius: 12px; padding: 1.5rem; text-align: center;">
+    <div style="color: #2196F3; font-size: 2.5rem; margin-bottom: 0.5rem;">📦</div>
+    <div style="color: #2196F3; font-size: 1.8rem; font-weight: 700; margin-bottom: 0.25rem;">{{ totale_vendite }}</div>
+    <div style="color: #b6b1a9; font-size: 0.9rem; font-weight: 600;">Pacchetti Acquistati</div>
+  </div>
+  
+  <div class="stat-card" style="background: rgba(255, 193, 7, 0.1); border: 1px solid rgba(255, 193, 7, 0.3); border-radius: 12px; padding: 1.5rem; text-align: center;">
+    <div style="color: #FFC107; font-size: 2.5rem; margin-bottom: 0.5rem;">✅</div>
+    <div style="color: #FFC107; font-size: 1.8rem; font-weight: 700; margin-bottom: 0.25rem;">{{ vendite_pagate }}</div>
+    <div style="color: #b6b1a9; font-size: 0.9rem; font-weight: 600;">Pagamenti Completati</div>
+  </div>
+  
+  <div class="stat-card" style="background: rgba(156, 39, 176, 0.1); border: 1px solid rgba(156, 39, 176, 0.3); border-radius: 12px; padding: 1.5rem; text-align: center;">
+    <div style="color: #9C27B0; font-size: 2.5rem; margin-bottom: 0.5rem;">📊</div>
+    <div style="color: #9C27B0; font-size: 1.8rem; font-weight: 700; margin-bottom: 0.25rem;">{{ "%.2f"|format(totale_speso / totale_vendite if totale_vendite > 0 else 0) }}€</div>
+    <div style="color: #b6b1a9; font-size: 0.9rem; font-weight: 600;">Spesa Media per Pacchetto</div>
+  </div>
+</div>
+
+<!-- BREAKDOWN IVA -->
+
+<!-- GRAFICO SPESE PER MESE -->
+{% if date_labels and (importi_nutrizione|sum + importi_allenamento|sum + importi_completo|sum + importi_1to1|sum > 0) %}
+<div class="chart-section" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+    <h3 style="color: #ff751f; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+      📊 Spese Ultimi 12 Mesi
+    </h3>
+    <div style="color: #ff751f; font-size: 1.2rem; font-weight: 600;">
+      Totale: {{ "%.2f"|format(importi_nutrizione|sum + importi_allenamento|sum + importi_completo|sum + importi_1to1|sum) }}€
+    </div>
+  </div>
+  
+  <!-- CANVAS GRAFICO -->
+  <div style="position: relative; height: 350px; background: rgba(13, 51, 28, 0.6); border-radius: 12px; padding: 1rem;">
+    <canvas id="spendingChart"></canvas>
+  </div>
+</div>
+{% endif %}
+
+<!-- LISTA DETTAGLIATA PACCHETTI -->
+<div class="packages-section" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px; padding: 1.5rem;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <h3 style="color: #ff751f; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+      📦 Pacchetti Acquistati
+    </h3>
+    <span style="color: #b6b1a9; font-size: 0.9rem;">{{ vendite_paziente|length }} pacchetti totali</span>
+  </div>
+
+  {% if vendite_paziente %}
+  <div class="packages-grid" style="display: grid; gap: 1rem;">
+    {% for v in vendite_paziente %}
+    <div class="package-card package-{{ v.stato }}" style="background: rgba(13, 51, 28, 0.6); border-radius: 12px; padding: 1.5rem; transition: all 0.3s ease; border: 1px solid rgba(182, 177, 169, 0.1);">
+      
+      <div style="display: grid; grid-template-columns: auto 1fr auto; gap: 1.5rem; align-items: center;">
+        
+        <!-- ICONA E DATA -->
+        <div style="text-align: center;">
+          <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #9C27B0, #7B1FA2); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;">
+            <div style="font-size: 1.5rem; font-weight: 700;">{{ v.data_inizio.strftime('%d') }}</div>
+            <div style="font-size: 0.75rem; text-transform: uppercase;">{{ v.data_inizio.strftime('%b') }}</div>
+          </div>
+          <div style="color: #b6b1a9; font-size: 0.85rem; margin-top: 0.5rem;">{{ v.data_acquisto.strftime('%H:%M') if v.data_acquisto else '—' }}</div>
+        </div>
+        
+        <!-- INFORMAZIONI PACCHETTO -->
+        <div>
+          <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
+            <div style="font-size: 1.3rem; font-weight: 600; color: #ffffff;">
+              {{ v.listino.nome_prodotto }}
+            </div>
+            <span class="status-badge status-{{ v.stato }}" style="padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">
+              {{ v.stato|upper }}
+            </span>
+          </div>
+          
+          <div style="display: flex; gap: 1.5rem; flex-wrap: wrap; margin-top: 0.75rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; color: #b6b1a9; font-size: 0.9rem;">
+              <span>📅</span>
+              <span>Inizio: {{ v.data_inizio.strftime('%d/%m/%Y') }}</span>
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 0.5rem; color: #b6b1a9; font-size: 0.9rem;">
+              <span>💳</span>
+              <span>{{ v.metodo_pagamento|capitalize }}</span>
+            </div>
+            
+            {% if v.sconto > 0 %}
+            <div style="display: flex; align-items: center; gap: 0.5rem; color: #FFC107; font-size: 0.9rem;">
+              <span>🎯</span>
+              <span>Sconto: {{ "%.2f"|format(v.sconto) }}€</span>
+            </div>
+            {% endif %}
+          </div>
+          
+            <div style="display: flex; align-items: center; gap: 1rem; margin-top: 1rem;">
+              <div style="display: flex; align-items: center; gap: 0.5rem; color: #9C27B0; font-size: 1.2rem; font-weight: 600;">
+                <span>💰</span>
+                <span>{{ "%.2f"|format(v.importo_finale) }}€</span>
+              </div>
+              
+              
+              {% if v.sconto > 0 %}
+              <div style="display: flex; align-items: center; gap: 0.5rem; color: #b6b1a9; font-size: 0.9rem;">
+                <span>Prezzo originale: {{ "%.2f"|format(v.listino.prezzo) }}€</span>
+              </div>
+              {% endif %}
+            </div>
+          
+          {% if v.note %}
+          <div style="margin-top: 1rem; padding: 0.75rem; background: rgba(13, 51, 28, 0.8); border-radius: 8px;">
+            <div style="color: #b6b1a9; font-size: 0.9rem;">💬 {{ v.note }}</div>
+          </div>
+          {% endif %}
+        </div>
+        
+        <!-- AZIONI -->
+        <div style="display: flex; gap: 0.5rem; flex-direction: column;">
+          <a href="{{ url_for('vendite.dettaglio_vendita', id=v.id) }}" class="btn btn-white btn-small" style="font-size: 0.85rem;">
+            🔍 Dettaglio
+          </a>
+          <a href="{{ url_for('vendite.modifica_vendita', id=v.id) }}" class="btn btn-secondary btn-small" style="font-size: 0.85rem;">
+            ✏️ Modifica
+          </a>
+        </div>
+        
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <!-- EMPTY STATE -->
+  <div class="empty-state" style="text-align: center; padding: 4rem 2rem; background: rgba(13, 51, 28, 0.2); border: 2px dashed rgba(182, 177, 169, 0.3); border-radius: 12px;">
+    <div style="font-size: 5rem; margin-bottom: 1rem;">📦</div>
+    <h3 style="color: #ff751f; margin-bottom: 2rem;">Nessun pacchetto acquistato</h3>
+    <a href="{{ url_for('vendite.nuova_vendita') }}" class="btn btn-primary" style="font-size: 1.1rem; padding: 1rem 2rem;">
+      ➕ Registra Prima Vendita
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+<style>
+.package-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+}
+
+@media (max-width: 768px) {
+  .package-card > div {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+    text-align: center;
+  }
+  
+  .package-card > div > div:last-child {
+    flex-direction: row;
+    justify-content: center;
+  }
+  
+  .stats-overview {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-overview {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* CSS per le classi dinamiche */
+.package-card-pagato {
+    border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.package-card-in_attesa {
+    border: 1px solid rgba(255, 193, 7, 0.3);
+}
+
+.package-card-annullato {
+    border: 1px solid rgba(244, 67, 54, 0.3);
+}
+
+.status-pagato {
+    background: rgba(76, 175, 80, 0.2);
+    color: #4CAF50;
+}
+
+.status-in_attesa {
+    background: rgba(255, 193, 7, 0.2);
+    color: #FFC107;
+}
+
+.status-annullato {
+    background: rgba(244, 67, 54, 0.2);
+    color: #F44336;
+}
+</style>
+
+<!-- CHART.JS -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+{% if date_labels and (importi_nutrizione|sum + importi_allenamento|sum + importi_completo|sum + importi_1to1|sum > 0) %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('spendingChart');
+    
+    // Dati dal backend
+    const dates = JSON.parse('{{ date_labels|tojson|safe }}');
+    const spending_nutrizione = JSON.parse('{{ importi_nutrizione|tojson|safe }}');
+    const spending_allenamento = JSON.parse('{{ importi_allenamento|tojson|safe }}');
+    const spending_completo = JSON.parse('{{ importi_completo|tojson|safe }}');
+    const spending_1to1 = JSON.parse('{{ importi_1to1|tojson|safe }}');
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: dates,
+            datasets: [{
+                label: '🍽️ Dieta',
+                data: spending_nutrizione,
+                borderColor: '#4CAF50',
+                backgroundColor: 'rgba(76, 175, 80, 0.15)',
+                borderWidth: 3,
+                tension: 0.4,
+                fill: true,
+                pointRadius: 6,
+                pointHoverRadius: 8,
+                pointBackgroundColor: '#4CAF50',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointHoverBorderWidth: 3
+            }, {
+                label: '🏋️ Allenamento',
+                data: spending_allenamento,
+                borderColor: '#2196F3',
+                backgroundColor: 'rgba(33, 150, 243, 0.15)',
+                borderWidth: 3,
+                tension: 0.4,
+                fill: true,
+                pointRadius: 6,
+                pointHoverRadius: 8,
+                pointBackgroundColor: '#2196F3',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointHoverBorderWidth: 3
+            }, {
+                label: '🎯 Completo',
+                data: spending_completo,
+                borderColor: '#FFC107',
+                backgroundColor: 'rgba(255, 193, 7, 0.15)',
+                borderWidth: 3,
+                tension: 0.4,
+                fill: true,
+                pointRadius: 6,
+                pointHoverRadius: 8,
+                pointBackgroundColor: '#FFC107',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointHoverBorderWidth: 3
+            }, {
+                label: '👤 Allenamento 1-to-1',
+                data: spending_1to1,
+                borderColor: '#9C27B0',
+                backgroundColor: 'rgba(156, 39, 176, 0.15)',
+                borderWidth: 3,
+                tension: 0.4,
+                fill: true,
+                pointRadius: 6,
+                pointHoverRadius: 8,
+                pointBackgroundColor: '#9C27B0',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointHoverBorderWidth: 3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    labels: {
+                        color: '#b6b1a9',
+                        font: {
+                            size: 14,
+                            weight: '600'
+                        }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(255, 117, 31, 0.95)',
+                    titleColor: '#ffffff',
+                    bodyColor: '#ffffff',
+                    borderColor: '#ff751f',
+                    borderWidth: 2,
+                    padding: 12,
+                    displayColors: true,
+                    callbacks: {
+                        label: function(context) {
+                            return 'Spesa: ' + context.parsed.y.toFixed(2) + ' €';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(255, 117, 31, 0.1)'
+                    },
+                    ticks: {
+                        color: '#ff751f',
+                        font: {
+                            size: 12,
+                            weight: '600'
+                        },
+                        callback: function(value) {
+                            return value + ' €';
+                        }
+                    }
+                },
+                x: {
+                    grid: {
+                        color: 'rgba(255, 117, 31, 0.1)'
+                    },
+                    ticks: {
+                        color: '#ff751f',
+                        font: {
+                            size: 10,
+                            weight: '600'
+                        },
+                        maxRotation: 45,
+                        minRotation: 45
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endif %}
+
+{% endblock %}

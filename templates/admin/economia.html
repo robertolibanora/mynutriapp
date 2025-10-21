@@ -1,0 +1,502 @@
+{% extends 'base_admin.html' %}
+{% block title %}Dashboard Economia{% endblock %}
+{% block content %}
+
+<!-- HEADER PRINCIPALE -->
+<div class="economia-header" style="background: linear-gradient(135deg, rgba(255, 117, 31, 0.1) 0%, rgba(13, 51, 28, 0.3) 100%); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; border: 1px solid rgba(255, 117, 31, 0.2);">
+  <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <h1 style="color: #ff751f; margin: 0; font-size: 2.5rem; font-weight: 700;">💰 Dashboard Economia</h1>
+      <p style="color: #b6b1a9; margin: 0.5rem 0 0 0; font-size: 1.1rem;">Gestisci vendite, entrate e listino prezzi</p>
+            <div style="color: #b6b1a9; margin: 0.5rem 0 0 0; font-size: 1rem;">
+              <span>{{ "%.2f"|format(totale_incassato) }}€</span>
+            </div>
+    </div>
+    <div style="text-align: right;">
+      <div style="color: #4CAF50; font-size: 1.1rem; font-weight: 700;">{{ "%.0f"|format(totale_incassato) }}€</div>
+      <div style="color: #4CAF50; font-size: 0.9rem; font-weight: 600;">Totale Incassato</div>
+    </div>
+  </div>
+</div>
+    <!-- QUICK STATS LISTINO -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
+    <div style="background: rgba(13, 51, 28, 0.6); border: 1px solid rgba(76, 175, 80, 0.3); border-radius: 8px; padding: 1rem; text-align: center;">
+      <div style="color: #4CAF50; font-size: 1.2rem; font-weight: 600;">🥗</div>
+      <div style="color: #4CAF50; font-size: 1.1rem; font-weight: 600; margin: 0.25rem 0;">Nutrizione</div>
+      <div style="color: #b6b1a9; font-size: 0.8rem;">Piani alimentari</div>
+    </div>
+    
+    <div style="background: rgba(13, 51, 28, 0.6); border: 1px solid rgba(33, 150, 243, 0.3); border-radius: 8px; padding: 1rem; text-align: center;">
+      <div style="color: #2196F3; font-size: 1.2rem; font-weight: 600;">🏋️</div>
+      <div style="color: #2196F3; font-size: 1.1rem; font-weight: 600; margin: 0.25rem 0;">Allenamento</div>
+      <div style="color: #b6b1a9; font-size: 0.8rem;">Piani fitness</div>
+    </div>
+    
+    <div style="background: rgba(13, 51, 28, 0.6); border: 1px solid rgba(255, 193, 7, 0.3); border-radius: 8px; padding: 1rem; text-align: center;">
+      <div style="color: #FFC107; font-size: 1.2rem; font-weight: 600;">🎯</div>
+      <div style="color: #FFC107; font-size: 1.1rem; font-weight: 600; margin: 0.25rem 0;">Completo</div>
+      <div style="color: #b6b1a9; font-size: 0.8rem;">Pacchetti totali</div>
+    </div>
+    
+    <div style="background: rgba(13, 51, 28, 0.6); border: 1px solid rgba(156, 39, 176, 0.3); border-radius: 8px; padding: 1rem; text-align: center;">
+      <div style="color: #9C27B0; font-size: 1.2rem; font-weight: 600;">👤</div>
+      <div style="color: #9C27B0; font-size: 1.1rem; font-weight: 600; margin: 0.25rem 0;">1-to-1</div>
+      <div style="color: #b6b1a9; font-size: 0.8rem;">Sessioni private</div>
+    </div>
+  </div>
+</div>
+
+<div> 
+  <p>  </p>
+</div>
+
+<!-- GRAFICO ENTRATE -->
+{% if date_labels and (importi_nutrizione|sum + importi_allenamento|sum + importi_completo|sum + importi_1to1|sum > 0) %}
+<div class="revenue-chart-section" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+    <h3 style="color: #ff751f; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+      📊 Entrate Ultimi {{ periodo }} Giorni
+    </h3>
+    
+    <!-- FILTRI PERIODO GRAFICO -->
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+      <a href="?periodo=30{% if request.args.get('cliente') %}&cliente={{ request.args.get('cliente') }}{% endif %}{% if request.args.get('stato') %}&stato={{ request.args.get('stato') }}{% endif %}" class="btn btn-small {% if request.args.get('periodo', '30') == '30' %}btn-primary{% else %}btn-secondary{% endif %}" style="font-size: 0.85rem; padding: 0.5rem 1rem;">
+        30 giorni
+      </a>
+      <a href="?periodo=90{% if request.args.get('cliente') %}&cliente={{ request.args.get('cliente') }}{% endif %}{% if request.args.get('stato') %}&stato={{ request.args.get('stato') }}{% endif %}" class="btn btn-small {% if request.args.get('periodo') == '90' %}btn-primary{% else %}btn-secondary{% endif %}" style="font-size: 0.85rem; padding: 0.5rem 1rem;">
+        90 giorni
+      </a>
+      <a href="?periodo=180{% if request.args.get('cliente') %}&cliente={{ request.args.get('cliente') }}{% endif %}{% if request.args.get('stato') %}&stato={{ request.args.get('stato') }}{% endif %}" class="btn btn-small {% if request.args.get('periodo') == '180' %}btn-primary{% else %}btn-secondary{% endif %}" style="font-size: 0.85rem; padding: 0.5rem 1rem;">
+        180 giorni
+      </a>
+      <a href="?periodo=365{% if request.args.get('cliente') %}&cliente={{ request.args.get('cliente') }}{% endif %}{% if request.args.get('stato') %}&stato={{ request.args.get('stato') }}{% endif %}" class="btn btn-small {% if request.args.get('periodo') == '365' %}btn-primary{% else %}btn-secondary{% endif %}" style="font-size: 0.85rem; padding: 0.5rem 1rem;">
+        365 giorni
+      </a>
+    </div>
+    
+    <div style="color: #ff751f; font-size: 1.2rem; font-weight: 600;">
+      Totale: {{ "%.0f"|format(importi_nutrizione|sum + importi_allenamento|sum + importi_completo|sum + importi_1to1|sum) }}€
+    </div>
+  </div>
+  
+  <!-- CANVAS GRAFICO -->
+  <div style="position: relative; height: 300px; background: rgba(13, 51, 28, 0.6); border-radius: 12px; padding: 1rem;">
+    <canvas id="revenueChart"></canvas>
+  </div>
+</div>
+{% endif %}
+
+<!-- TOOLBAR CON FILTRI -->
+<div class="toolbar" style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; align-items: center;">
+  <form method="get" style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; flex: 1;">
+    <div style="display: flex; align-items: center; gap: 0.5rem;">
+      <label for="cliente" style="color: #b6b1a9; font-weight: 600;">👤</label>
+      <input type="text" name="cliente" id="cliente" placeholder="Cerca paziente..." class="input-text" value="{{ request.args.get('cliente', '') }}" style="width: 200px;">
+    </div>
+    
+    <div style="display: flex; align-items: center; gap: 0.5rem;">
+      <label for="stato" style="color: #b6b1a9; font-weight: 600;">📊</label>
+      <select name="stato" id="stato" class="input-select" style="width: 150px;">
+            <option value="">Tutti gli stati</option>
+        <option value="pagato" {% if request.args.get('stato') == 'pagato' %}selected{% endif %}>✅ Pagato</option>
+        <option value="in_attesa" {% if request.args.get('stato') == 'in_attesa' %}selected{% endif %}>⏳ In attesa</option>
+        <option value="rimborsato" {% if request.args.get('stato') == 'rimborsato' %}selected{% endif %}>↩️ Rimborsato</option>
+        </select>
+    </div>
+    
+    <button type="submit" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem;">
+      <span>🔍</span>
+      <span>Filtra</span>
+    </button>
+    
+    {% if request.args.get('cliente') or request.args.get('stato') %}
+    <a href="{{ url_for('vendite.dashboard_economia') }}" class="btn btn-secondary" style="font-size: 0.9rem;">
+      ✖️ Rimuovi Filtri
+    </a>
+    {% endif %}
+    </form>
+
+  <a href="{{ url_for('vendite.nuova_vendita') }}" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem;">
+    <span>➕</span>
+    <span>Nuova Vendita</span>
+    </a>
+</div>
+
+<!-- LISTA VENDITE -->
+    {% if vendite %}
+<div class="sales-grid" style="display: grid; gap: 1rem;">
+            {% for v in vendite %}
+  <div class="sale-card sale-card-{{ v.stato }}" style="background: rgba(13, 51, 28, 0.4); border-radius: 12px; padding: 1.5rem; transition: all 0.3s ease;">
+    
+    <div style="display: grid; grid-template-columns: auto 1fr auto; gap: 1.5rem; align-items: center;">
+      
+      <!-- ICONA E DATA -->
+      <div style="text-align: center;">
+        <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #9C27B0, #7B1FA2); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;">
+          <div style="font-size: 1.5rem; font-weight: 700;">{{ v.data_inizio.strftime('%d') }}</div>
+          <div style="font-size: 0.75rem; text-transform: uppercase;">{{ v.data_inizio.strftime('%b') }}</div>
+        </div>
+        <div style="color: #b6b1a9; font-size: 0.85rem; margin-top: 0.5rem;">{{ v.data_acquisto.strftime('%H:%M') if v.data_acquisto else '—' }}</div>
+      </div>
+      
+      <!-- INFORMAZIONI -->
+      <div>
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
+          <div style="font-size: 1.2rem; font-weight: 600; color: #ffffff;">
+            {{ v.patient.nome }} {{ v.patient.cognome }}
+          </div>
+          <span class="status-badge status-{{ v.stato }}" style="padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">
+            {{ v.stato|upper }}
+                    </span>
+        </div>
+        
+        <div style="display: flex; gap: 1.5rem; flex-wrap: wrap; margin-top: 0.75rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; color: #b6b1a9; font-size: 0.9rem;">
+            <span>📦</span>
+            <span>{{ v.listino.nome_prodotto }}</span>
+          </div>
+          
+          <div style="display: flex; align-items: center; gap: 0.5rem; color: #b6b1a9; font-size: 0.9rem;">
+            <span>💳</span>
+            <span>{{ v.metodo_pagamento|capitalize }}</span>
+          </div>
+          
+          <div style="display: flex; align-items: center; gap: 0.5rem; color: #9C27B0; font-size: 1rem; font-weight: 600;">
+            <span>💰</span>
+            <span>{{ "%.2f"|format(v.importo_finale) }}€</span>
+          </div>
+        </div>
+        
+        {% if v.note %}
+        <div style="margin-top: 0.5rem; padding: 0.5rem; background: rgba(13, 51, 28, 0.6); border-radius: 6px;">
+          <div style="color: #b6b1a9; font-size: 0.85rem;">💬 {{ v.note }}</div>
+        </div>
+        {% endif %}
+      </div>
+      
+      <!-- AZIONI -->
+      <div style="display: flex; gap: 0.5rem; flex-direction: column;">
+        <a href="{{ url_for('patients.dettaglio_paziente', patient_id=v.patient.id) }}" class="btn btn-white btn-small" style="font-size: 0.85rem;">
+          👁️ Paziente
+        </a>
+        <a href="{{ url_for('vendite.registro_economico_paziente', patient_id=v.patient.id) }}" class="btn btn-primary btn-small" style="font-size: 0.85rem;">
+          💰 Registro Economico
+        </a>
+        <a href="{{ url_for('vendite.modifica_vendita', id=v.id) }}" class="btn btn-secondary btn-small" style="font-size: 0.85rem;">
+          ✏️ Modifica
+        </a>
+        <form method="POST" action="{{ url_for('vendite.elimina_vendita', id=v.id) }}" style="display: inline;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <button type="submit" class="btn btn-danger btn-small" style="width: 100%; font-size: 0.85rem;" onclick="return confirm('Eliminare vendita a {{ v.patient.nome }} {{ v.patient.cognome }}?')">
+            🗑️ Elimina
+          </button>
+        </form>
+      </div>
+      
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div> 
+<p>  </p>
+</div>
+
+<!-- SEZIONE LISTINO PREZZI -->
+<div class="listino-section" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <div>
+      <h3 style="color: #ff751f; margin: 0; font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
+        💰 Listino Prezzi
+      </h3>
+      <p style="color: #b6b1a9; margin: 0.5rem 0 0 0; font-size: 0.9rem;">Gestisci i prezzi dei tuoi servizi e prodotti</p>
+    </div>
+    <div style="display: flex; gap: 0.5rem;">
+      <a href="{{ url_for('listino.lista_listino_admin') }}" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem;">
+        📋 Gestisci Listino
+      </a>
+      <a href="{{ url_for('listino.nuovo_listino') }}" class="btn btn-white" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem;">
+        ➕ Nuovo Prodotto
+      </a>
+    </div>
+  </div>
+  
+  <!-- QUICK STATS LISTINO -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
+    <div style="background: rgba(13, 51, 28, 0.6); border: 1px solid rgba(76, 175, 80, 0.3); border-radius: 8px; padding: 1rem; text-align: center;">
+      <div style="color: #4CAF50; font-size: 1.2rem; font-weight: 600;">🥗</div>
+      <div style="color: #4CAF50; font-size: 1.1rem; font-weight: 600; margin: 0.25rem 0;">Nutrizione</div>
+      <div style="color: #b6b1a9; font-size: 0.8rem;">Piani alimentari</div>
+    </div>
+    
+    <div style="background: rgba(13, 51, 28, 0.6); border: 1px solid rgba(33, 150, 243, 0.3); border-radius: 8px; padding: 1rem; text-align: center;">
+      <div style="color: #2196F3; font-size: 1.2rem; font-weight: 600;">🏋️</div>
+      <div style="color: #2196F3; font-size: 1.1rem; font-weight: 600; margin: 0.25rem 0;">Allenamento</div>
+      <div style="color: #b6b1a9; font-size: 0.8rem;">Piani fitness</div>
+    </div>
+    
+    <div style="background: rgba(13, 51, 28, 0.6); border: 1px solid rgba(255, 193, 7, 0.3); border-radius: 8px; padding: 1rem; text-align: center;">
+      <div style="color: #FFC107; font-size: 1.2rem; font-weight: 600;">🎯</div>
+      <div style="color: #FFC107; font-size: 1.1rem; font-weight: 600; margin: 0.25rem 0;">Completo</div>
+      <div style="color: #b6b1a9; font-size: 0.8rem;">Pacchetti totali</div>
+    </div>
+    
+    <div style="background: rgba(13, 51, 28, 0.6); border: 1px solid rgba(156, 39, 176, 0.3); border-radius: 8px; padding: 1rem; text-align: center;">
+      <div style="color: #9C27B0; font-size: 1.2rem; font-weight: 600;">👤</div>
+      <div style="color: #9C27B0; font-size: 1.1rem; font-weight: 600; margin: 0.25rem 0;">1-to-1</div>
+      <div style="color: #b6b1a9; font-size: 0.8rem;">Sessioni private</div>
+    </div>
+  </div>
+</div>
+
+{% else %}
+<!-- EMPTY STATE -->
+<div class="empty-state" style="text-align: center; padding: 4rem 2rem; background: rgba(13, 51, 28, 0.2); border: 2px dashed rgba(182, 177, 169, 0.3); border-radius: 12px;">
+  <div style="font-size: 5rem; margin-bottom: 1rem;">💰</div>
+  <h3 style="color: #ff751f; margin-bottom: 2rem;">
+    {% if request.args.get('cliente') or request.args.get('stato') %}
+    Nessuna vendita trovata
+    {% else %}
+    Nessuna vendita registrata
+    {% endif %}
+  </h3>
+  {% if request.args.get('cliente') or request.args.get('stato') %}
+  <a href="{{ url_for('vendite.dashboard_economia') }}" class="btn btn-secondary" style="font-size: 1.1rem; padding: 1rem 2rem; margin-right: 1rem;">
+    ✖️ Rimuovi Filtri
+  </a>
+  {% endif %}
+  <a href="{{ url_for('vendite.nuova_vendita') }}" class="btn btn-primary" style="font-size: 1.1rem; padding: 1rem 2rem;">
+    ➕ Nuova Vendita
+  </a>
+</div>
+{% endif %}
+
+<style>
+.sale-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+}
+
+@media (max-width: 768px) {
+  .sale-card > div {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+    text-align: center;
+  }
+  
+  .sale-card > div > div:last-child {
+    flex-direction: row;
+    justify-content: center;
+  }
+  
+  .stats-overview {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .toolbar form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .toolbar form > div {
+    width: 100% !important;
+  }
+  
+  .toolbar form input,
+  .toolbar form select {
+    width: 100% !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-overview {
+    grid-template-columns: 1fr !important;
+  }
+}
+</style>
+
+<!-- CHART.JS -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+{% if date_labels and (importi_nutrizione|sum + importi_allenamento|sum + importi_completo|sum + importi_1to1|sum > 0) %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('revenueChart');
+    
+    // Dati dal backend
+    const dates = JSON.parse('{{ date_labels|tojson|safe }}');
+    const revenues_nutrizione = JSON.parse('{{ importi_nutrizione|tojson|safe }}');
+    const revenues_allenamento = JSON.parse('{{ importi_allenamento|tojson|safe }}');
+    const revenues_completo = JSON.parse('{{ importi_completo|tojson|safe }}');
+    const revenues_1to1 = JSON.parse('{{ importi_1to1|tojson|safe }}');
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: dates,
+            datasets: [{
+                label: '🍽️ Dieta',
+                data: revenues_nutrizione,
+                borderColor: '#4CAF50',
+                backgroundColor: 'rgba(76, 175, 80, 0.15)',
+                borderWidth: 3,
+                tension: 0.4,
+                fill: true,
+                pointRadius: 6,
+                pointHoverRadius: 8,
+                pointBackgroundColor: '#4CAF50',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointHoverBorderWidth: 3
+            }, {
+                label: '🏋️ Allenamento',
+                data: revenues_allenamento,
+                borderColor: '#2196F3',
+                backgroundColor: 'rgba(33, 150, 243, 0.15)',
+                borderWidth: 3,
+                tension: 0.4,
+                fill: true,
+                pointRadius: 6,
+                pointHoverRadius: 8,
+                pointBackgroundColor: '#2196F3',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointHoverBorderWidth: 3
+            }, {
+                label: '🎯 Completo',
+                data: revenues_completo,
+                borderColor: '#FFC107',
+                backgroundColor: 'rgba(255, 193, 7, 0.15)',
+                borderWidth: 3,
+                tension: 0.4,
+                fill: true,
+                pointRadius: 6,
+                pointHoverRadius: 8,
+                pointBackgroundColor: '#FFC107',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointHoverBorderWidth: 3
+            }, {
+                label: '👤 Allenamento 1-to-1',
+                data: revenues_1to1,
+                borderColor: '#9C27B0',
+                backgroundColor: 'rgba(156, 39, 176, 0.15)',
+                borderWidth: 3,
+                tension: 0.4,
+                fill: true,
+                pointRadius: 6,
+                pointHoverRadius: 8,
+                pointBackgroundColor: '#9C27B0',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointHoverBorderWidth: 3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    labels: {
+                        color: '#b6b1a9',
+                        font: {
+                            size: 14,
+                            weight: '600'
+                        }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(255, 117, 31, 0.95)',
+                    titleColor: '#ffffff',
+                    bodyColor: '#ffffff',
+                    borderColor: '#ff751f',
+                    borderWidth: 2,
+                    padding: 12,
+                    displayColors: true,
+                    callbacks: {
+                        label: function(context) {
+                            return 'Entrate: ' + context.parsed.y.toFixed(2) + ' €';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(255, 117, 31, 0.1)'
+                    },
+                    ticks: {
+                        color: '#ff751f',
+                        font: {
+                            size: 12,
+                            weight: '600'
+                        },
+                        callback: function(value) {
+                            return value + ' €';
+                        }
+                    }
+                },
+                x: {
+                    grid: {
+                        color: 'rgba(255, 117, 31, 0.1)'
+                    },
+                    ticks: {
+                        color: '#ff751f',
+                        font: {
+                            size: 10,
+                            weight: '600'
+                        },
+                        maxRotation: 45,
+                        minRotation: 45
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endif %}
+
+<style>
+/* CSS per le classi dinamiche */
+.sale-card-pagato {
+    border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.sale-card-in_attesa {
+    border: 1px solid rgba(255, 193, 7, 0.3);
+}
+
+.sale-card-annullato {
+    border: 1px solid rgba(244, 67, 54, 0.3);
+}
+
+.status-pagato {
+    background: rgba(76, 175, 80, 0.2);
+    color: #4CAF50;
+}
+
+.status-in_attesa {
+    background: rgba(255, 193, 7, 0.2);
+    color: #FFC107;
+}
+
+.status-annullato {
+    background: rgba(244, 67, 54, 0.2);
+    color: #F44336;
+}
+</style>
+
+{% endblock %}

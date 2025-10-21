@@ -1,0 +1,188 @@
+{% extends 'base_admin.html' %}
+{% block title %}Allenamenti Paziente{% endblock %}
+{% block content %}
+
+<!-- HEADER PAZIENTE -->
+<div class="patient-header" style="background: linear-gradient(135deg, rgba(255, 117, 31, 0.1) 0%, rgba(13, 51, 28, 0.3) 100%); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; border: 1px solid rgba(255, 117, 31, 0.2);">
+  <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <h1 style="color: #ff751f; margin: 0; font-size: 2.2rem; font-weight: 700;">🏋️ Allenamenti di {{ paziente.nome }} {{ paziente.cognome }}</h1>
+      <p style="color: #b6b1a9; margin: 0.5rem 0 0 0; font-size: 1.1rem;">Piani di allenamento personalizzati per il paziente</p>
+    </div>
+    <div style="text-align: right;">
+      <div style="color: #ffffff; font-size: 1.1rem; font-weight: 600;">{{ paziente.telefono or 'N/A' }}</div>
+      <div style="color: #b6b1a9; font-size: 0.9rem;">{{ paziente.email or 'N/A' }}</div>
+    </div>
+  </div>
+</div>
+
+<!-- TOOLBAR -->
+<div class="toolbar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+  <div>
+    <a href="{{ url_for('allenamenti.nuovo_allenamento', patient_id=paziente.id) }}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+      ➕ Nuovo Allenamento
+    </a>
+    <a href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id) }}" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 0.5rem; margin-left: 0.5rem;">
+      👤 Dettaglio Paziente
+    </a>
+  </div>
+  <div style="color: #b6b1a9; font-size: 0.9rem;">
+    🏋️ {{ allenamenti|length }} allenamenti totali
+  </div>
+</div>
+
+{% if allenamenti %}
+<!-- TABELLA ALLENAMENTI -->
+<div class="allenamenti-table-container" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem;">
+  <div style="overflow-x: auto;">
+    <table class="allenamenti-table" style="width: 100%; border-collapse: collapse;">
+      <thead>
+        <tr style="border-bottom: 2px solid rgba(255, 117, 31, 0.3);">
+          <th style="padding: 1rem; text-align: left; color: #ff751f; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">📅 Data Inizio</th>
+          <th style="padding: 1rem; text-align: left; color: #ff751f; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">📅 Data Fine</th>
+          <th style="padding: 1rem; text-align: left; color: #ff751f; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">⏱️ Durata</th>
+          <th style="padding: 1rem; text-align: left; color: #ff751f; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">📝 Note</th>
+          <th style="padding: 1rem; text-align: left; color: #ff751f; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">📄 PDF</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in allenamenti %}
+        <tr style="border-bottom: 1px solid rgba(182, 177, 169, 0.1); transition: background-color 0.2s ease;">
+          <td style="padding: 1rem; color: #ffffff; font-weight: 500;">
+            {{ a.data_inizio.strftime('%d/%m/%Y') }}
+          </td>
+          <td style="padding: 1rem; color: #ffffff; font-weight: 500;">
+            {{ a.data_fine.strftime('%d/%m/%Y') }}
+          </td>
+          <td style="padding: 1rem; color: #4CAF50; font-weight: 600;">
+            {% set durata_giorni = (a.data_fine - a.data_inizio).days + 1 %}
+            {{ durata_giorni }} {{ 'giorno' if durata_giorni == 1 else 'giorni' }}
+          </td>
+          <td style="padding: 1rem; color: #b6b1a9; max-width: 200px;">
+            {% if a.note %}
+              <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ a.note }}">
+                {{ a.note }}
+              </div>
+            {% else %}
+              <span style="color: #666;">—</span>
+            {% endif %}
+          </td>
+          <td style="padding: 1rem;">
+            {% if a.pdf_path %}
+              <a href="{{ url_for('allenamenti.serve_file', allenamento_id=a.id) }}" target="_blank" class="btn btn-primary btn-small" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">
+                📄 Visualizza
+              </a>
+            {% else %}
+              <span style="color: #b6b1a9; font-size: 0.85rem;">Nessun PDF</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- STATISTICHE RAPIDE -->
+<div class="quick-stats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+  {% set allenamento_attivo = allenamenti|selectattr('data_inizio', 'le', today)|selectattr('data_fine', 'ge', today)|first %}
+  {% set durata_totale = allenamenti|length %}
+  {% set pdf_totali = allenamenti|selectattr('pdf_path')|list|length %}
+  
+  <div class="stat-card" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(33, 150, 243, 0.3); border-radius: 12px; padding: 1.5rem; text-align: center;">
+    <div style="font-size: 2rem; color: #2196F3; margin-bottom: 0.5rem;">🏃</div>
+    <div style="font-size: 1.5rem; font-weight: 700; color: #2196F3; margin-bottom: 0.25rem;">{{ allenamenti|length }}</div>
+    <div style="color: #b6b1a9; font-size: 0.9rem;">Allenamenti Totali</div>
+  </div>
+  
+  <div class="stat-card" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(76, 175, 80, 0.3); border-radius: 12px; padding: 1.5rem; text-align: center;">
+    <div style="font-size: 2rem; color: #4CAF50; margin-bottom: 0.5rem;">📊</div>
+    <div style="font-size: 1.5rem; font-weight: 700; color: #4CAF50; margin-bottom: 0.25rem;">{{ pdf_totali }}</div>
+    <div style="color: #b6b1a9; font-size: 0.9rem;">PDF Disponibili</div>
+  </div>
+  
+  <div class="stat-card" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(255, 193, 7, 0.3); border-radius: 12px; padding: 1.5rem; text-align: center;">
+    <div style="font-size: 2rem; color: #FFC107; margin-bottom: 0.5rem;">⏱️</div>
+    <div style="font-size: 1.5rem; font-weight: 700; color: #FFC107; margin-bottom: 0.25rem;">
+      {% if allenamento_attivo %}
+        Attivo
+      {% else %}
+        Nessuno
+      {% endif %}
+    </div>
+    <div style="color: #b6b1a9; font-size: 0.9rem;">Allenamento Attivo</div>
+  </div>
+  
+  <div class="stat-card" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(156, 39, 176, 0.3); border-radius: 12px; padding: 1.5rem; text-align: center;">
+    <div style="font-size: 2rem; color: #9C27B0; margin-bottom: 0.5rem;">📅</div>
+    <div style="font-size: 1.5rem; font-weight: 700; color: #9C27B0; margin-bottom: 0.25rem;">
+      {% if allenamenti %}
+        {{ allenamenti[0].data_inizio.strftime('%m/%Y') }}
+      {% else %}
+        —
+      {% endif %}
+    </div>
+    <div style="color: #b6b1a9; font-size: 0.9rem;">Ultimo Allenamento</div>
+  </div>
+</div>
+
+{% else %}
+<!-- NESSUN ALLENAMENTO -->
+<div class="no-allenamenti" style="text-align: center; padding: 4rem 2rem; background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px;">
+  <div style="font-size: 4rem; color: #b6b1a9; margin-bottom: 1rem;">🏋️</div>
+  <h3 style="color: #2196F3; margin-bottom: 1rem;">Nessun Allenamento Registrato</h3>
+  <p style="color: #b6b1a9; margin-bottom: 2rem; font-size: 1.1rem;">
+    {{ paziente.nome }} non ha ancora ricevuto alcun piano di allenamento.
+  </p>
+  <a href="{{ url_for('allenamenti.nuovo_allenamento', patient_id=paziente.id) }}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+    ➕ Crea Primo Allenamento
+  </a>
+</div>
+{% endif %}
+
+<!-- CSS AGGIUNTIVO -->
+<style>
+.allenamenti-table tbody tr:hover {
+  background: rgba(33, 150, 243, 0.05);
+}
+
+.btn-small {
+  font-size: 0.8rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: all 0.2s ease;
+}
+
+.btn-primary.btn-small {
+  background: rgba(33, 150, 243, 0.2);
+  color: #2196F3;
+  border: 1px solid rgba(33, 150, 243, 0.3);
+}
+
+.btn-primary.btn-small:hover {
+  background: rgba(33, 150, 243, 0.3);
+  color: #ffffff;
+}
+
+@media (max-width: 768px) {
+  .allenamenti-table-container {
+    padding: 1rem;
+  }
+  
+  .allenamenti-table th,
+  .allenamenti-table td {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.85rem;
+  }
+  
+  .quick-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+</style>
+
+{% endblock %}

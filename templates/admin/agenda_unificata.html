@@ -1,0 +1,520 @@
+{% extends 'base_admin.html' %}
+{% block title %}Agenda Unificata{% endblock %}
+{% block content %}
+
+<!-- HEADER PRINCIPALE -->
+<div class="agenda-header" style="background: linear-gradient(135deg, rgba(255, 117, 31, 0.1) 0%, rgba(13, 51, 28, 0.3) 100%); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; border: 1px solid rgba(255, 117, 31, 0.2);">
+  <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <h1 style="color: #ff751f; margin: 0; font-size: 2.5rem; font-weight: 700;">📅 Agenda</h1>
+      <p style="color: #b6b1a9; margin: 0.5rem 0 0 0; font-size: 1.1rem;">Gestisci slot, appuntamenti e calendario in un'unica vista</p>
+    </div>
+    <div style="text-align: right;">
+      <div style="color: #4CAF50; font-size: 1.1rem; font-weight: 700;">{{ oggi.strftime('%A, %d %B %Y') }}</div>
+      <div style="color: #4CAF50; font-size: 0.9rem; font-weight: 600;">{{ oggi.strftime('%H:%M') }}</div>
+    </div>
+  </div>
+</div>
+
+<!-- STATISTICHE RAPIDE -->
+<div class="quick-stats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+  <div class="stat-card" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(76, 175, 80, 0.3); border-radius: 12px; padding: 1.5rem; text-align: center;">
+    <div style="font-size: 2rem; color: #4CAF50; margin-bottom: 0.5rem;">📅</div>
+    <div style="font-size: 1.5rem; font-weight: 700; color: #4CAF50; margin-bottom: 0.25rem;">{{ slot_futuri|length }}</div>
+    <div style="color: #b6b1a9; font-size: 0.9rem;">Slot Disponibili</div>
+  </div>
+  
+  <div class="stat-card" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(33, 150, 243, 0.3); border-radius: 12px; padding: 1.5rem; text-align: center;">
+    <div style="font-size: 2rem; color: #2196F3; margin-bottom: 0.5rem;">📋</div>
+    <div style="font-size: 1.5rem; font-weight: 700; color: #2196F3; margin-bottom: 0.25rem;">{{ appuntamenti_oggi|length }}</div>
+    <div style="color: #b6b1a9; font-size: 0.9rem;">Appuntamenti Oggi</div>
+  </div>
+  
+  <div class="stat-card" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(255, 193, 7, 0.3); border-radius: 12px; padding: 1.5rem; text-align: center;">
+    <div style="font-size: 2rem; color: #FFC107; margin-bottom: 0.5rem;">⏳</div>
+    <div style="font-size: 1.5rem; font-weight: 700; color: #FFC107; margin-bottom: 0.25rem;">{{ appuntamenti_in_attesa|length }}</div>
+    <div style="color: #b6b1a9; font-size: 0.9rem;">In Attesa</div>
+  </div>
+  
+  <div class="stat-card" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(156, 39, 176, 0.3); border-radius: 12px; padding: 1.5rem; text-align: center;">
+    <div style="font-size: 2rem; color: #9C27B0; margin-bottom: 0.5rem;">✅</div>
+    <div style="font-size: 1.5rem; font-weight: 700; color: #9C27B0; margin-bottom: 0.25rem;">{{ appuntamenti_confermati|length }}</div>
+    <div style="color: #b6b1a9; font-size: 0.9rem;">Confermati</div>
+  </div>
+</div>
+
+<!-- TOOLBAR PRINCIPALE -->
+<div class="main-toolbar" style="display: flex; justify-content: center; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; padding: 1.5rem; background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 12px;">
+  <div style="display: flex; gap: 2.5rem; flex-wrap: wrap; justify-content: center;">
+    <a href="{{ url_for('slot.nuovo_slot') }}" class="btn btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; background: rgba(255, 117, 31, 0.2); color: #ff751f; border: 1px solid rgba(255, 117, 31, 0.3); min-width: 200px; padding: 0.75rem 1.5rem;">
+      ➕ Nuovo Slot
+    </a>
+    <a href="{{ url_for('slot.genera_slot') }}" class="btn btn-secondary" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; background: rgba(255, 117, 31, 0.2); color: #ff751f; border: 1px solid rgba(255, 117, 31, 0.3); min-width: 200px; padding: 0.75rem 1.5rem;">
+      ⚡ Genera Multipli
+    </a>
+    <a href="{{ url_for('appuntamenti.nuovo_admin') }}" class="btn btn-white" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; background: rgba(255, 117, 31, 0.2); color: #ff751f; border: 1px solid rgba(255, 117, 31, 0.3); min-width: 200px; padding: 0.75rem 1.5rem;">
+      📋 Nuovo Appuntamento
+    </a>
+  </div>
+  
+</div>
+
+<!-- TABS NAVIGATION -->
+<div class="tabs-container" style="margin-bottom: 2rem;">
+  <div class="tabs" style="display: flex; gap: 0.5rem; border-bottom: 2px solid rgba(182, 177, 169, 0.2);">
+    <button class="tab-btn active" onclick="showTab('calendario', this)" style="padding: 1rem 1.5rem; background: rgba(255, 117, 31, 0.2); color: #ff751f; border: none; border-radius: 8px 8px 0 0; font-weight: 600; cursor: pointer; transition: all 0.2s ease;">
+      📅 Calendario
+    </button>
+    <button class="tab-btn" onclick="showTab('slot', this)" style="padding: 1rem 1.5rem; background: transparent; color: #b6b1a9; border: none; border-radius: 8px 8px 0 0; font-weight: 600; cursor: pointer; transition: all 0.2s ease;">
+      🕐 Slot Disponibili
+    </button>
+    <button class="tab-btn" onclick="showTab('appuntamenti', this)" style="padding: 1rem 1.5rem; background: transparent; color: #b6b1a9; border: none; border-radius: 8px 8px 0 0; font-weight: 600; cursor: pointer; transition: all 0.2s ease;">
+      📋 Appuntamenti
+    </button>
+  </div>
+</div>
+
+<!-- TAB CONTENT -->
+<div class="tab-content">
+  
+  <!-- CALENDARIO TAB -->
+  <div id="calendario-tab" class="tab-panel active">
+    <div class="calendar-section">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <h3 style="margin: 0; color: #4CAF50; font-size: 1.5rem;">📅 Calendario</h3>
+        <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+          <!-- Navigazione Mese per Mese -->
+          <div style="display: flex; gap: 0.5rem; align-items: center; background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 12px; padding: 0.5rem;">
+            <a href="{{ url_for('agenda.agenda_unificata', mese=mese_precedente) }}" 
+               class="nav-month-btn" style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: rgba(76, 175, 80, 0.2); color: #4CAF50; border: 1px solid rgba(76, 175, 80, 0.3); border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.2s ease;" 
+               title="Mese precedente">
+              ←
+            </a>
+            <span style="color: #b6b1a9; font-size: 0.9rem; font-weight: 500; min-width: 120px; text-align: center;">
+              {{ mese_corrente_display }}
+            </span>
+            <a href="{{ url_for('agenda.agenda_unificata', mese=mese_successivo) }}" 
+               class="nav-month-btn" style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: rgba(76, 175, 80, 0.2); color: #4CAF50; border: 1px solid rgba(76, 175, 80, 0.3); border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.2s ease;" 
+               title="Mese successivo">
+              →
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <div class="calendar-container" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px; padding: 1.5rem;">
+      
+      <!-- HEADER GIORNI SETTIMANA -->
+      <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.5rem; margin-bottom: 1rem;">
+        <div style="text-align: center; color: #ff751f; font-weight: 600; padding: 0.75rem; background: rgba(255, 117, 31, 0.1); border-radius: 8px;">Lun</div>
+        <div style="text-align: center; color: #ff751f; font-weight: 600; padding: 0.75rem; background: rgba(255, 117, 31, 0.1); border-radius: 8px;">Mar</div>
+        <div style="text-align: center; color: #ff751f; font-weight: 600; padding: 0.75rem; background: rgba(255, 117, 31, 0.1); border-radius: 8px;">Mer</div>
+        <div style="text-align: center; color: #ff751f; font-weight: 600; padding: 0.75rem; background: rgba(255, 117, 31, 0.1); border-radius: 8px;">Gio</div>
+        <div style="text-align: center; color: #ff751f; font-weight: 600; padding: 0.75rem; background: rgba(255, 117, 31, 0.1); border-radius: 8px;">Ven</div>
+        <div style="text-align: center; color: #ff751f; font-weight: 600; padding: 0.75rem; background: rgba(255, 117, 31, 0.1); border-radius: 8px;">Sab</div>
+        <div style="text-align: center; color: #ff751f; font-weight: 600; padding: 0.75rem; background: rgba(255, 117, 31, 0.1); border-radius: 8px;">Dom</div>
+      </div>
+      
+      <!-- GRIGLIA CALENDARIO -->
+      <div class="calendar-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.5rem;">
+        {% for giorno in giorni_calendario %}
+        <div class="calendar-day {% if giorno.data == oggi.date() %}calendar-day-today{% else %}calendar-day-normal{% endif %}" style="min-height: 120px; padding: 0.75rem; border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 8px; position: relative;">
+          
+          <!-- NUMERO GIORNO -->
+          <div class="{% if giorno.data == oggi.date() %}calendar-day-number-today{% else %}calendar-day-number-normal{% endif %}" style="font-weight: 600; margin-bottom: 0.5rem;">
+            {{ giorno.data.day }}
+          </div>
+          
+          <!-- APPUNTAMENTI DEL GIORNO -->
+          <div class="appointments-list" style="font-size: 0.8rem;">
+            {% for app in giorno.appuntamenti %}
+            <div class="{% if app.stato == 'confermato' %}appointment-confermato{% elif app.stato == 'in_attesa' %}appointment-in-attesa{% else %}appointment-altro{% endif %}" style="padding: 0.25rem 0.5rem; border-radius: 4px; margin-bottom: 0.25rem;">
+              <div style="font-weight: 600;">{{ app.data_appuntamento.strftime('%H:%M') }}</div>
+              <div style="font-size: 0.7rem; opacity: 0.8;">{{ app.patient.nome }} {{ app.patient.cognome }}</div>
+              <div style="font-size: 0.6rem; opacity: 0.7; text-transform: uppercase; font-weight: 600;">
+                {% if app.stato == 'confermato' %}✅ Confermato{% elif app.stato == 'in_attesa' %}⏳ In Attesa{% else %}📋 {{ app.stato|title }}{% endif %}
+              </div>
+            </div>
+            {% endfor %}
+            
+            <!-- SLOT DISPONIBILI -->
+            {% for slot in giorno.slot %}
+            <div style="background: rgba(76, 175, 80, 0.3); color: #4CAF50; padding: 0.25rem 0.5rem; border-radius: 4px; margin-bottom: 0.25rem; border-left: 3px solid #4CAF50;">
+              <div style="font-weight: 600;">{{ slot.data_ora.strftime('%H:%M') }}</div>
+              <div style="font-size: 0.7rem; opacity: 0.8;">Slot Libero</div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- SLOT TAB -->
+  <div id="slot-tab" class="tab-panel">
+    <div class="slots-section">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <h3 style="margin: 0; color: #4CAF50; font-size: 1.5rem;">🕐 Slot Disponibili</h3>
+        <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+          <span class="badge" style="background: rgba(76, 175, 80, 0.2); color: #4CAF50; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem;">{{ slot_futuri|length }} slot</span>
+        </div>
+      </div>
+      
+      {% if slot_futuri %}
+      <div class="slots-container" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px; padding: 1.5rem;">
+        <div class="slots-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
+        {% for slot in slot_futuri %}
+        <div class="slot-card {% if slot.attivo %}slot-active{% else %}slot-inactive{% endif %}" style="background: rgba(13, 51, 28, 0.6); border-radius: 12px; padding: 1.5rem; position: relative; border: 1px solid rgba(182, 177, 169, 0.1);">
+          
+          <!-- STATUS INDICATOR -->
+          <div style="position: absolute; top: 1rem; right: 1rem;">
+            {% if slot.attivo %}
+            <span style="background: rgba(255, 117, 31, 0.2); color: #ff751f; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem; font-weight: 600;">✅ Attivo</span>
+            {% else %}
+            <span style="background: rgba(244, 67, 54, 0.2); color: #F44336; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem; font-weight: 600;">⏸️ Disattivato</span>
+            {% endif %}
+          </div>
+          
+          <!-- SLOT INFO -->
+          <div style="margin-bottom: 1rem;">
+            <div style="font-size: 1.2rem; font-weight: 600; margin-bottom: 0.5rem; color: #ffffff;">
+              {{ slot.data_ora.strftime('%d/%m/%Y') }}
+            </div>
+            <div style="color: #b6b1a9; margin-bottom: 0.5rem;">
+              <span style="font-size: 1.1rem;">🕐 {{ slot.data_ora.strftime('%H:%M') }}</span>
+              <span style="margin-left: 1rem; font-size: 0.9rem;">📅 {{ slot.data_ora.strftime('%A') }}</span>
+            </div>
+            {% if slot.note %}
+            <div style="color: #ff751f; font-size: 0.9rem; font-style: italic;">
+              💬 {{ slot.note }}
+            </div>
+            {% endif %}
+          </div>
+          
+          <!-- ACTIONS -->
+          <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+            <form method="POST" action="{{ url_for('slot.toggle_slot', slot_id=slot.id) }}" style="flex: 1;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <button type="submit" class="btn {% if slot.attivo %}btn-warning{% else %}btn-success{% endif %} btn-small" style="width: 100%; font-size: 0.85rem;">
+                {% if slot.attivo %}⏸️ Disattiva{% else %}▶️ Attiva{% endif %}
+              </button>
+            </form>
+            <form method="POST" action="{{ url_for('slot.elimina_slot', slot_id=slot.id) }}" style="flex: 1;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <button type="submit" class="btn btn-danger btn-small" style="width: 100%; font-size: 0.85rem;" onclick="return confirm('Eliminare lo slot?')">
+                🗑️ Elimina
+              </button>
+            </form>
+          </div>
+        </div>
+        {% endfor %}
+        </div>
+      </div>
+      {% else %}
+      <div class="empty-state" style="text-align: center; padding: 3rem 2rem; background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px;">
+        <div style="font-size: 4rem; margin-bottom: 1rem;">🕐</div>
+        <h3 style="color: #4CAF50; margin-bottom: 1rem;">Nessuno slot disponibile</h3>
+        <p style="color: #b6b1a9; margin-bottom: 2rem;">Crea nuovi slot per permettere ai pazienti di prenotare appuntamenti.</p>
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+          <a href="{{ url_for('slot.nuovo_slot') }}" class="btn btn-primary">➕ Crea Slot</a>
+          <a href="{{ url_for('slot.genera_slot') }}" class="btn btn-secondary">⚡ Genera Multipli</a>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  
+  <!-- APPUNTAMENTI TAB -->
+  <div id="appuntamenti-tab" class="tab-panel">
+    <div class="appuntamenti-section">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <h3 style="margin: 0; color: #4CAF50; font-size: 1.5rem;">📋 Appuntamenti</h3>
+        <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+          <!-- Navigazione Giorno per Giorno -->
+          <div style="display: flex; gap: 0.5rem; align-items: center; background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 12px; padding: 0.5rem;">
+            <a href="{{ url_for('agenda.agenda_unificata', filtro_giorno=giorno_precedente) }}" 
+               class="nav-day-btn" style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: rgba(76, 175, 80, 0.2); color: #4CAF50; border: 1px solid rgba(76, 175, 80, 0.3); border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.2s ease;" 
+               title="Giorno precedente">
+              ←
+            </a>
+            <span style="color: #b6b1a9; font-size: 0.9rem; font-weight: 500; min-width: 120px; text-align: center;">
+              {% if filtro_giorno_display %}{{ filtro_giorno_display }}{% else %}Oggi{% endif %}
+            </span>
+            <a href="{{ url_for('agenda.agenda_unificata', filtro_giorno=giorno_successivo) }}" 
+               class="nav-day-btn" style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: rgba(76, 175, 80, 0.2); color: #4CAF50; border: 1px solid rgba(76, 175, 80, 0.3); border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.2s ease;" 
+               title="Giorno successivo">
+              →
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      {% if appuntamenti %}
+      <div class="appuntamenti-container" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px; padding: 1.5rem;">
+        <div class="appuntamenti-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1.5rem;">
+        {% for a in appuntamenti %}
+        <div class="appuntamento-card" style="background: rgba(13, 51, 28, 0.6); border-radius: 12px; padding: 1.5rem; position: relative; border: 1px solid rgba(182, 177, 169, 0.1);">
+          
+          <!-- STATUS INDICATOR -->
+          <div style="position: absolute; top: 1rem; right: 1rem;">
+            {% if a.stato == 'confermato' %}
+            <span style="background: rgba(76, 175, 80, 0.2); color: #4CAF50; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem; font-weight: 600;">✅ Confermato</span>
+            {% elif a.stato == 'in_attesa' %}
+            <span style="background: rgba(255, 117, 31, 0.2); color: #ff751f; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem; font-weight: 600;">⏳ In Attesa</span>
+            {% elif a.stato == 'completato' %}
+            <span style="background: rgba(255, 117, 31, 0.2); color: #ff751f; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem; font-weight: 600;">✔️ Completato</span>
+            {% elif a.stato == 'annullato' %}
+            <span style="background: rgba(244, 67, 54, 0.2); color: #F44336; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem; font-weight: 600;">❌ Annullato</span>
+            {% endif %}
+          </div>
+          
+          <!-- APPUNTAMENTO INFO -->
+          <div style="margin-bottom: 1rem;">
+            <div style="font-size: 1.2rem; font-weight: 600; margin-bottom: 0.5rem; color: #ffffff;">
+              {{ a.data_appuntamento.strftime('%d/%m/%Y') }}
+            </div>
+            <div style="color: #b6b1a9; margin-bottom: 0.5rem;">
+              <span style="font-size: 1.1rem;">🕐 {{ a.data_appuntamento.strftime('%H:%M') }}</span>
+              <span style="margin-left: 1rem; font-size: 0.9rem;">👤 {{ a.patient.nome }} {{ a.patient.cognome }}</span>
+            </div>
+            <div style="color: #ff751f; font-size: 0.9rem; font-weight: 600; margin-bottom: 0.5rem;">
+              📋 {{ a.tipo.replace('_', ' ').title() }}
+            </div>
+            {% if a.note %}
+            <div style="color: #b6b1a9; font-size: 0.9rem; font-style: italic; padding: 0.5rem; background: rgba(13, 51, 28, 0.3); border-radius: 6px; border-left: 3px solid #ff751f;">
+              💬 {{ a.note }}
+            </div>
+            {% endif %}
+          </div>
+          
+          <!-- ACTIONS -->
+          <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+            {% if a.stato == 'in_attesa' %}
+            <form method="POST" action="{{ url_for('appuntamenti.cambia_stato_admin', id=a.id, nuovo_stato='confermato') }}" style="flex: 1;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <button type="submit" class="btn btn-success btn-small" style="width: 100%; font-size: 0.85rem;">✅ Conferma</button>
+            </form>
+            {% elif a.stato == 'confermato' %}
+            <form method="POST" action="{{ url_for('appuntamenti.cambia_stato_admin', id=a.id, nuovo_stato='completato') }}" style="flex: 1;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <button type="submit" class="btn btn-primary btn-small" style="width: 100%; font-size: 0.85rem;">✔️ Completa</button>
+            </form>
+            {% endif %}
+            {% if a.stato not in ['completato', 'annullato'] %}
+            <form method="POST" action="{{ url_for('appuntamenti.cambia_stato_admin', id=a.id, nuovo_stato='annullato') }}" style="flex: 1;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <button type="submit" class="btn btn-danger btn-small" style="width: 100%; font-size: 0.85rem;" onclick="return confirm('Annullare appuntamento?')">❌ Annulla</button>
+            </form>
+            {% endif %}
+            <form method="POST" action="{{ url_for('appuntamenti.elimina_admin', id=a.id) }}" style="flex: 1;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <button type="submit" class="btn btn-secondary btn-small" style="width: 100%; font-size: 0.85rem;" onclick="return confirm('Eliminare appuntamento?')">🗑️ Elimina</button>
+            </form>
+          </div>
+        </div>
+        {% endfor %}
+        </div>
+      </div>
+      {% else %}
+      <div class="empty-state" style="text-align: center; padding: 3rem 2rem; background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px;">
+        <div style="font-size: 4rem; margin-bottom: 1rem;">📋</div>
+        <h3 style="color: #4CAF50; margin-bottom: 1rem;">Nessun appuntamento</h3>
+        <p style="color: #b6b1a9; margin-bottom: 2rem;">Non ci sono appuntamenti per il periodo selezionato.</p>
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+          <a href="{{ url_for('appuntamenti.nuovo_admin') }}" class="btn btn-primary">➕ Nuovo Appuntamento</a>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- CSS E JAVASCRIPT -->
+<style>
+.tab-panel {
+  display: none;
+}
+
+.tab-panel.active {
+  display: block;
+}
+
+.calendar-day-today {
+  background: rgba(255, 117, 31, 0.2) !important;
+}
+
+.calendar-day-normal {
+  background: rgba(13, 51, 28, 0.6) !important;
+}
+
+.calendar-day-number-today {
+  color: #ff751f !important;
+}
+
+.calendar-day-number-normal {
+  color: #ffffff !important;
+}
+
+.appointment-confermato {
+  background: rgba(255, 117, 31, 0.3) !important;
+  color: #ff751f !important;
+  border-left: 3px solid #ff751f !important;
+}
+
+.appointment-in-attesa {
+  background: rgba(255, 117, 31, 0.3) !important;
+  color: #ff751f !important;
+  border-left: 3px solid #ff751f !important;
+}
+
+.appointment-altro {
+  background: rgba(255, 117, 31, 0.3) !important;
+  color: #ff751f !important;
+  border-left: 3px solid #ff751f !important;
+}
+
+.slot-active {
+  border: 1px solid rgba(255, 117, 31, 0.3) !important;
+}
+
+.slot-inactive {
+  border: 1px solid rgba(244, 67, 54, 0.3) !important;
+}
+
+.tab-btn.active {
+  background: rgba(255, 117, 31, 0.2) !important;
+  color: #ff751f !important;
+}
+
+.tab-btn:hover {
+  background: rgba(255, 117, 31, 0.1) !important;
+  color: #ff751f !important;
+}
+
+.appuntamento-card:hover {
+  background: rgba(13, 51, 28, 0.8) !important;
+  border-color: rgba(255, 117, 31, 0.3) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.btn-small {
+  font-size: 0.8rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-success.btn-small {
+  background: rgba(76, 175, 80, 0.2);
+  color: #4CAF50;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.btn-primary.btn-small {
+  background: rgba(33, 150, 243, 0.2);
+  color: #2196F3;
+  border: 1px solid rgba(33, 150, 243, 0.3);
+}
+
+.btn-danger.btn-small {
+  background: rgba(244, 67, 54, 0.2);
+  color: #F44336;
+  border: 1px solid rgba(244, 67, 54, 0.3);
+}
+
+.btn-secondary.btn-small {
+  background: rgba(182, 177, 169, 0.2);
+  color: #9bf154;
+  border: 1px solid rgba(182, 177, 169, 0.3);
+}
+
+.btn-small:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.nav-month-btn:hover {
+  background: rgba(76, 175, 80, 0.3) !important;
+  border-color: rgba(76, 175, 80, 0.5) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.nav-day-btn:hover {
+  background: rgba(76, 175, 80, 0.3) !important;
+  border-color: rgba(76, 175, 80, 0.5) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+@media (max-width: 768px) {
+  .quick-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .main-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .tabs {
+    flex-wrap: wrap;
+  }
+  
+  .calendar-grid {
+    gap: 0.25rem;
+  }
+  
+  .calendar-day {
+    min-height: 80px;
+    padding: 0.5rem;
+  }
+}
+</style>
+
+<script>
+function showTab(tabName, clickedButton) {
+  // Nascondi tutti i tab panels
+  const panels = document.querySelectorAll('.tab-panel');
+  panels.forEach(panel => panel.classList.remove('active'));
+  
+  // Rimuovi active da tutti i tab buttons
+  const buttons = document.querySelectorAll('.tab-btn');
+  buttons.forEach(button => {
+    button.classList.remove('active');
+    button.style.background = 'transparent';
+    button.style.color = '#b6b1a9';
+  });
+  
+  // Mostra il tab selezionato
+  document.getElementById(tabName + '-tab').classList.add('active');
+  
+  // Attiva il button corrispondente
+  clickedButton.classList.add('active');
+  clickedButton.style.background = 'rgba(255, 117, 31, 0.2)';
+  clickedButton.style.color = '#ff751f';
+}
+
+// Auto-attiva il tab appuntamenti quando si naviga con i parametri
+document.addEventListener('DOMContentLoaded', function() {
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('filtro_giorno') || urlParams.get('tutti_giorni')) {
+    // Attiva il tab appuntamenti
+    const appuntamentiButton = document.querySelector('button[onclick*="appuntamenti"]');
+    if (appuntamentiButton) {
+      showTab('appuntamenti', appuntamentiButton);
+    }
+  }
+});
+</script>
+
+{% endblock %}

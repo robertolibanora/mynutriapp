@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Troppi Tentativi - Nutriapp</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body {
+            background: linear-gradient(135deg, #0d331c 0%, #000000 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .error-container {
+            background: rgba(13, 51, 28, 0.6);
+            border: 2px solid rgba(255, 117, 31, 0.3);
+            border-radius: 20px;
+            padding: 3rem 2rem;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        
+        .error-icon {
+            font-size: 5rem;
+            margin-bottom: 1rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        h1 {
+            color: #ff751f;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+        
+        p {
+            color: #b6b1a9;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+        
+        .countdown {
+            background: rgba(255, 117, 31, 0.1);
+            border: 1px solid rgba(255, 117, 31, 0.3);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .countdown-text {
+            color: #ff751f;
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .countdown-timer {
+            color: #ffffff;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        
+        .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #ff751f 0%, #ff5722 100%);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 117, 31, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="error-icon">🚦</div>
+        <h1>Troppi Tentativi</h1>
+        <p>
+            Hai effettuato troppi tentativi di accesso in poco tempo.<br>
+            Per la sicurezza del tuo account, attendi prima di riprovare.
+        </p>
+        
+        <div class="countdown">
+            <div class="countdown-text">Riprova tra:</div>
+            <div class="countdown-timer" id="countdown">15:00</div>
+        </div>
+        
+        <a href="{{ url_for('auth.login') }}" class="btn">
+            ↩️ Torna al Login
+        </a>
+        
+        <p style="margin-top: 2rem; font-size: 0.9rem; color: #666;">
+            Se hai dimenticato la password, contatta l'amministratore.
+        </p>
+    </div>
+    
+    <script>
+        // Countdown timer (15 minuti)
+        let seconds = 15 * 60; // 15 minuti
+        
+        function updateCountdown() {
+            const minutes = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            document.getElementById('countdown').textContent = 
+                `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            
+            if (seconds > 0) {
+                seconds--;
+            } else {
+                // Ricarica la pagina quando il countdown finisce
+                window.location.href = "{{ url_for('auth.login') }}";
+            }
+        }
+        
+        // Aggiorna ogni secondo
+        setInterval(updateCountdown, 1000);
+        updateCountdown(); // Prima visualizzazione
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,528 @@
+{% extends 'base_user.html' %}
+{% block title %}Dettaglio Check - NutriApp{% endblock %}
+{% block content %}
+
+<!-- HEADER -->
+<div class="check-header" style="background: linear-gradient(135deg, rgba(255, 117, 31, 0.1) 0%, rgba(13, 51, 28, 0.3) 100%); border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid rgba(255, 117, 31, 0.2);">
+  <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <h1 style="color: #ff751f; margin: 0; font-size: 1.8rem; font-weight: 700;">
+        {% if progresso.tipo_check == 'nutrizionista' %}
+          Check Nutrizionista
+        {% else %}
+          Il Mio Check
+        {% endif %}
+      </h1>
+      <p style="color: #b6b1a9; margin: 0.5rem 0 0 0; font-size: 1rem;">
+        {{ progresso.data_check.strftime('%d/%m/%Y') }}
+      </p>
+    </div>
+    <div style="text-align: right;">
+      <div style="color: #ffffff; font-size: 1rem; font-weight: 600;">{{ progresso.created_at.strftime('%H:%M') }}</div>
+      <div style="color: #b6b1a9; font-size: 0.8rem;">Ora creazione</div>
+    </div>
+  </div>
+</div>
+
+<!-- NAVIGATION -->
+<div class="navigation" style="margin-bottom: 1.5rem;">
+  <a href="{{ url_for('progressi.lista_progressi_user') }}" class="btn-user">
+    ← Torna ai Progressi
+  </a>
+</div>
+
+<!-- CONTENT -->
+<div class="check-content">
+  {% if progresso.tipo_check == 'paziente' %}
+    <!-- CHECK PAZIENTE -->
+    <div class="check-section">
+      <h2 class="section-title">I Tuoi Dati</h2>
+      
+      <div class="data-grid">
+        {% if progresso.peso_settimanale %}
+        <div class="data-card">
+          <div class="data-icon">⚖️</div>
+          <div class="data-content">
+            <div class="data-label">Peso</div>
+            <div class="data-value">{{ progresso.peso_settimanale }} kg</div>
+          </div>
+        </div>
+        {% endif %}
+        
+        {% if progresso.aderenza %}
+        <div class="data-card">
+          <div class="data-icon">📊</div>
+          <div class="data-content">
+            <div class="data-label">Aderenza</div>
+            <div class="data-value">{{ progresso.aderenza }}/10</div>
+          </div>
+        </div>
+        {% endif %}
+        
+        {% if progresso.frequenza_allenamenti %}
+        <div class="data-card">
+          <div class="data-icon">🏋️</div>
+          <div class="data-content">
+            <div class="data-label">Allenamenti</div>
+            <div class="data-value">{{ progresso.frequenza_allenamenti }}</div>
+          </div>
+        </div>
+        {% endif %}
+        
+        {% if progresso.foto_path %}
+        <div class="data-card">
+          <div class="data-icon">📸</div>
+          <div class="data-content">
+            <div class="data-label">Foto Progresso</div>
+            <div class="data-value">
+              <a href="{{ url_for('static', filename=progresso.foto_path) }}" target="_blank" class="btn-user btn-user-small">
+                Visualizza Foto
+              </a>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+        
+        {% if progresso.check_richiesta %}
+        <div class="data-card">
+          <div class="data-icon">📋</div>
+          <div class="data-content">
+            <div class="data-label">Richiesta Check</div>
+            <div class="data-value">Sì</div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    
+  {% else %}
+    <!-- CHECK NUTRIZIONISTA -->
+    <div class="check-section">
+      <h2 class="section-title">Dati Base del Check</h2>
+      
+      <div class="data-grid">
+        {% if progresso.peso_settimanale %}
+        <div class="data-card">
+          <div class="data-icon">⚖️</div>
+          <div class="data-content">
+            <div class="data-label">Peso</div>
+            <div class="data-value">{{ progresso.peso_settimanale }} kg</div>
+          </div>
+        </div>
+        {% endif %}
+        
+        {% if progresso.aderenza %}
+        <div class="data-card">
+          <div class="data-icon">📊</div>
+          <div class="data-content">
+            <div class="data-label">Aderenza</div>
+            <div class="data-value">{{ progresso.aderenza }}/10</div>
+          </div>
+        </div>
+        {% endif %}
+        
+        {% if progresso.frequenza_allenamenti %}
+        <div class="data-card">
+          <div class="data-icon">🏋️</div>
+          <div class="data-content">
+            <div class="data-label">Allenamenti</div>
+            <div class="data-value">{{ progresso.frequenza_allenamenti }}</div>
+          </div>
+        </div>
+        {% endif %}
+        
+        {% if progresso.foto_path %}
+        <div class="data-card">
+          <div class="data-icon">📸</div>
+          <div class="data-content">
+            <div class="data-label">Foto Progresso</div>
+            <div class="data-value">
+              <a href="{{ url_for('static', filename=progresso.foto_path) }}" target="_blank" class="btn-user btn-user-small">
+                Visualizza Foto
+              </a>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- MISURE ANTROPOMETRICHE -->
+    {% if misure_antropometriche %}
+    <div class="check-section">
+      <h2 class="section-title">Misure Antropometriche</h2>
+      
+      <div class="data-grid">
+        {% if misure_antropometriche.circonferenza_braccio %}
+        <div class="data-card">
+          <div class="data-icon">💪</div>
+          <div class="data-content">
+            <div class="data-label">Circonferenza Braccio</div>
+            <div class="data-value">{{ misure_antropometriche.circonferenza_braccio }} cm</div>
+          </div>
+        </div>
+        {% endif %}
+        
+        {% if misure_antropometriche.circonferenza_spalle %}
+        <div class="data-card">
+          <div class="data-icon">🦾</div>
+          <div class="data-content">
+            <div class="data-label">Circonferenza Spalle</div>
+            <div class="data-value">{{ misure_antropometriche.circonferenza_spalle }} cm</div>
+          </div>
+        </div>
+        {% endif %}
+        
+        {% if misure_antropometriche.circonferenza_torace %}
+        <div class="data-card">
+          <div class="data-icon">🫁</div>
+          <div class="data-content">
+            <div class="data-label">Circonferenza Torace</div>
+            <div class="data-value">{{ misure_antropometriche.circonferenza_torace }} cm</div>
+          </div>
+        </div>
+        {% endif %}
+        
+        {% if misure_antropometriche.circonferenza_vita %}
+        <div class="data-card">
+          <div class="data-icon">🩲</div>
+          <div class="data-content">
+            <div class="data-label">Circonferenza Vita</div>
+            <div class="data-value">{{ misure_antropometriche.circonferenza_vita }} cm</div>
+          </div>
+        </div>
+        {% endif %}
+        
+        {% if misure_antropometriche.circonferenza_fianchi %}
+        <div class="data-card">
+          <div class="data-icon">🦵</div>
+          <div class="data-content">
+            <div class="data-label">Circonferenza Fianchi</div>
+            <div class="data-value">{{ misure_antropometriche.circonferenza_fianchi }} cm</div>
+          </div>
+        </div>
+        {% endif %}
+        
+        {% if misure_antropometriche.circonferenza_coscia %}
+        <div class="data-card">
+          <div class="data-icon">🦵</div>
+          <div class="data-content">
+            <div class="data-label">Circonferenza Coscia</div>
+            <div class="data-value">{{ misure_antropometriche.circonferenza_coscia }} cm</div>
+          </div>
+        </div>
+        {% endif %}
+        
+        {% if misure_antropometriche.circonferenza_polpaccio %}
+        <div class="data-card">
+          <div class="data-icon">🦵</div>
+          <div class="data-content">
+            <div class="data-label">Circonferenza Polpaccio</div>
+            <div class="data-value">{{ misure_antropometriche.circonferenza_polpaccio }} cm</div>
+          </div>
+        </div>
+        {% endif %}
+        
+        {% if misure_antropometriche.plica_addominale %}
+        <div class="data-card">
+          <div class="data-icon">📏</div>
+          <div class="data-content">
+            <div class="data-label">Plica Addominale</div>
+            <div class="data-value">{{ misure_antropometriche.plica_addominale }} mm</div>
+          </div>
+        </div>
+        {% endif %}
+        
+        {% if misure_antropometriche.plica_tricipitale %}
+        <div class="data-card">
+          <div class="data-icon">📏</div>
+          <div class="data-content">
+            <div class="data-label">Plica Tricipitale</div>
+            <div class="data-value">{{ misure_antropometriche.plica_tricipitale }} mm</div>
+          </div>
+        </div>
+        {% endif %}
+        
+        {% if misure_antropometriche.plica_soprailiaca %}
+        <div class="data-card">
+          <div class="data-icon">📏</div>
+          <div class="data-content">
+            <div class="data-label">Plica Soprailiaca</div>
+            <div class="data-value">{{ misure_antropometriche.plica_soprailiaca }} mm</div>
+          </div>
+        </div>
+        {% endif %}
+        
+        {% if misure_antropometriche.plica_sottoscapolare %}
+        <div class="data-card">
+          <div class="data-icon">📏</div>
+          <div class="data-content">
+            <div class="data-label">Plica Sottoscapolare</div>
+            <div class="data-value">{{ misure_antropometriche.plica_sottoscapolare }} mm</div>
+          </div>
+        </div>
+        {% endif %}
+        
+        {% if misure_antropometriche.plica_cutanea_coscia %}
+        <div class="data-card">
+          <div class="data-icon">📏</div>
+          <div class="data-content">
+            <div class="data-label">Plica Cutanea Coscia</div>
+            <div class="data-value">{{ misure_antropometriche.plica_cutanea_coscia }} mm</div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+      
+      {% if misure_antropometriche.note %}
+      <div class="note-section">
+        <h3 class="note-title">Note Misure Antropometriche</h3>
+        <p class="note-text">{{ misure_antropometriche.note }}</p>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- COMPOSIZIONE CORPOREA -->
+    {% if composizione_corporea %}
+    <div class="check-section">
+      <h2 class="section-title">Composizione Corporea</h2>
+      
+      <div class="data-grid">
+        {% if composizione_corporea.grasso_corporeo %}
+        <div class="data-card">
+          <div class="data-icon">🩸</div>
+          <div class="data-content">
+            <div class="data-label">Grasso Corporeo</div>
+            <div class="data-value">{{ composizione_corporea.grasso_corporeo }}%</div>
+          </div>
+        </div>
+        {% endif %}
+        
+        {% if composizione_corporea.massa_muscolare %}
+        <div class="data-card">
+          <div class="data-icon">💪</div>
+          <div class="data-content">
+            <div class="data-label">Massa Muscolare</div>
+            <div class="data-value">{{ composizione_corporea.massa_muscolare }} kg</div>
+          </div>
+        </div>
+        {% endif %}
+        
+        {% if composizione_corporea.grasso_viscerale %}
+        <div class="data-card">
+          <div class="data-icon">🫀</div>
+          <div class="data-content">
+            <div class="data-label">Grasso Viscerale</div>
+            <div class="data-value">Livello {{ composizione_corporea.grasso_viscerale }}</div>
+          </div>
+        </div>
+        {% endif %}
+        
+        {% if composizione_corporea.tbw %}
+        <div class="data-card">
+          <div class="data-icon">💧</div>
+          <div class="data-content">
+            <div class="data-label">TBW (Total Body Water)</div>
+            <div class="data-value">{{ composizione_corporea.tbw }}%</div>
+          </div>
+        </div>
+        {% endif %}
+        
+        {% if composizione_corporea.tasso_metabolico_basale %}
+        <div class="data-card">
+          <div class="data-icon">🔥</div>
+          <div class="data-content">
+            <div class="data-label">Tasso Metabolico Basale</div>
+            <div class="data-value">{{ composizione_corporea.tasso_metabolico_basale }} kcal/giorno</div>
+          </div>
+        </div>
+        {% endif %}
+        
+        {% if composizione_corporea.eta_metabolica %}
+        <div class="data-card">
+          <div class="data-icon">⏰</div>
+          <div class="data-content">
+            <div class="data-label">Età Metabolica</div>
+            <div class="data-value">{{ composizione_corporea.eta_metabolica }} anni</div>
+          </div>
+        </div>
+        {% endif %}
+        
+        {% if composizione_corporea.punteggio_postura %}
+        <div class="data-card">
+          <div class="data-icon">🧍</div>
+          <div class="data-content">
+            <div class="data-label">Punteggio Postura</div>
+            <div class="data-value">{{ composizione_corporea.punteggio_postura }}/100</div>
+          </div>
+        </div>
+        {% endif %}
+        
+        {% if composizione_corporea.massa_ossea %}
+        <div class="data-card">
+          <div class="data-icon">🦴</div>
+          <div class="data-content">
+            <div class="data-label">Massa Ossea</div>
+            <div class="data-value">{{ composizione_corporea.massa_ossea }} kg</div>
+          </div>
+        </div>
+        {% endif %}
+        
+        {% if composizione_corporea.bmi %}
+        <div class="data-card">
+          <div class="data-icon">📊</div>
+          <div class="data-content">
+            <div class="data-label">BMI</div>
+            <div class="data-value">{{ composizione_corporea.bmi }} kg/m²</div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+      
+      {% if composizione_corporea.note %}
+      <div class="note-section">
+        <h3 class="note-title">Note Composizione Corporea</h3>
+        <p class="note-text">{{ composizione_corporea.note }}</p>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+  {% endif %}
+</div>
+
+<style>
+.check-header {
+  background: linear-gradient(135deg, rgba(255, 117, 31, 0.1) 0%, rgba(13, 51, 28, 0.3) 100%);
+  border: 1px solid rgba(255, 117, 31, 0.2);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.check-section {
+  background: rgba(13, 51, 28, 0.6);
+  border: 1px solid rgba(182, 177, 169, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.section-title {
+  color: #ff751f;
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 117, 31, 0.2);
+  padding-bottom: 0.5rem;
+}
+
+.data-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.data-card {
+  background: rgba(13, 51, 28, 0.8);
+  border: 1px solid rgba(182, 177, 169, 0.1);
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: all 0.3s ease;
+}
+
+.data-card:hover {
+  background: rgba(13, 51, 28, 0.9);
+  border-color: rgba(255, 117, 31, 0.3);
+  transform: translateY(-2px);
+}
+
+.data-icon {
+  font-size: 1.5rem;
+  min-width: 2rem;
+  text-align: center;
+}
+
+.data-content {
+  flex: 1;
+}
+
+.data-label {
+  color: #b6b1a9;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.data-value {
+  color: #ffffff;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.note-section {
+  background: rgba(13, 51, 28, 0.3);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1rem;
+  border-left: 3px solid #ff751f;
+}
+
+.note-title {
+  color: #ff751f;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.note-text {
+  color: #b6b1a9;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.btn-user-small {
+  font-size: 0.8rem;
+  padding: 0.4rem 0.8rem;
+  background: rgba(255, 117, 31, 0.2);
+  border: 1px solid rgba(255, 117, 31, 0.3);
+  color: #ff751f;
+  text-decoration: none;
+  border-radius: 6px;
+  display: inline-block;
+  transition: all 0.3s ease;
+}
+
+.btn-user-small:hover {
+  background: rgba(255, 117, 31, 0.3);
+  border-color: rgba(255, 117, 31, 0.5);
+  color: #ffffff;
+}
+
+@media (max-width: 768px) {
+  .data-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .check-header h1 {
+    font-size: 1.5rem;
+  }
+  
+  .section-title {
+    font-size: 1.1rem;
+  }
+}
+</style>
+
+<!-- LINK PRESENTAZIONE ROBERTO -->
+<div style="text-align: center; margin: 1rem 0;">
+    <span style="color: #b6b1a9; font-size: 0.9rem;">
+        Powered by <a href="{{ url_for('presentazione_roberto') }}" style="color: #ff751f; text-decoration: none;">Roberto Libanora</a>
+    </span>
+</div>
+
+{% endblock %}

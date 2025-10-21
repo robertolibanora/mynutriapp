@@ -1,0 +1,6 @@
+{
+  "appuntamenti": "Ciao {nome}, il tuo appuntamento è stato {stato_appuntamento} per il {data_appuntamento} alle {ora_appuntamento}. Tipo: {tipo_appuntamento}.",
+  "diete": "Ciao {nome}, è stata caricata una nuova dieta per te. Controlla l'app!",
+  "allenamenti": "Ciao {nome}, è disponibile un nuovo allenamento nell'app. Forza! 💪",
+  "scadenze": "Ciao {nome}, promemoria: la tua {tipo_scadenza} scade il {data_scadenza}."
+}

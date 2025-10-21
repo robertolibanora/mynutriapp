@@ -1,0 +1,116 @@
+{% extends 'base_admin.html' %}
+{% block title %}Nuova Dieta - {{ paziente.nome }} {{ paziente.cognome }}{% endblock %}
+{% block content %}
+
+<h2 class="page-title">Dieta di {{ paziente.nome }} {{ paziente.cognome }}</h2>
+
+<form method="POST" enctype="multipart/form-data" class="form-container">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+  <!-- Campo nascosto per il paziente -->
+  <input type="hidden" name="patient_id" value="{{ paziente.id }}">
+
+  <!-- PERIODO DIETA -->
+  <div class="form-section" style="margin-bottom: 2rem;">
+    <h3 style="color: #ff751f; margin-bottom: 1rem; border-bottom: 1px solid rgba(182, 177, 169, 0.2); padding-bottom: 0.5rem;">
+      Periodo Dieta
+    </h3>
+    
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="data_inizio">Data Inizio</label>
+        <input type="date" id="data_inizio" name="data_inizio" class="input-text" required>
+      </div>
+
+      <div class="form-group">
+        <label for="data_fine">Data Fine</label>
+        <input type="date" id="data_fine" name="data_fine" class="input-text" required>
+      </div>
+    </div>
+  </div>
+
+  <!-- FILE DIETA -->
+  <div class="form-section" style="margin-bottom: 2rem;">
+    <h3 style="color: #ff751f; margin-bottom: 1rem; border-bottom: 1px solid rgba(182, 177, 169, 0.2); padding-bottom: 0.5rem;">
+      File Dieta
+    </h3>
+    
+    <div class="form-group">
+      <label for="pdf">File Dieta (PDF)</label>
+      <input type="file" id="pdf" name="pdf" accept=".pdf" class="input-text" required>
+    </div>
+  </div>
+
+  <!-- COMPOSIZIONE NUTRIZIONALE -->
+  <div class="form-section" style="margin-bottom: 2rem;">
+    <h3 style="color: #ff751f; margin-bottom: 1rem; border-bottom: 1px solid rgba(182, 177, 169, 0.2); padding-bottom: 0.5rem;">
+      Composizione Nutrizionale
+    </h3>
+    
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="kcal">Kcal Totali</label>
+        <input type="number" id="kcal" name="kcal" class="input-text" required>
+      </div>
+
+      <div class="form-group">
+        <label for="carbo">Carboidrati (%)</label>
+        <input type="number" id="carbo" name="carbo" step="0.1" class="input-text">
+      </div>
+
+      <div class="form-group">
+        <label for="proteine">Proteine (%)</label>
+        <input type="number" id="proteine" name="proteine" step="0.1" class="input-text">
+      </div>
+
+      <div class="form-group">
+        <label for="grassi">Grassi (%)</label>
+        <input type="number" id="grassi" name="grassi" step="0.1" class="input-text">
+      </div>
+    </div>
+  </div>
+
+  <!-- NOTE -->
+  <div class="form-section" style="margin-bottom: 2rem;">
+    <h3 style="color: #ff751f; margin-bottom: 1rem; border-bottom: 1px solid rgba(182, 177, 169, 0.2); padding-bottom: 0.5rem;">
+      Note
+    </h3>
+    
+    <div class="form-group">
+      <label for="note">Note</label>
+      <textarea id="note" name="note" class="input-text" rows="3"></textarea>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary">Salva Dieta</button>
+    <a href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id) }}" class="btn btn-secondary">Torna al Paziente</a>
+  </div>
+
+</form>
+
+<style>
+.form-section {
+  background: rgba(13, 51, 28, 0.2);
+  border: 1px solid rgba(182, 177, 169, 0.1);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.form-section h3 {
+  color: #ff751f;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+</style>
+
+{% endblock %}

@@ -1,0 +1,157 @@
+{% extends 'base_admin.html' %}
+{% block title %}Gestione Slot{% endblock %}
+{% block content %}
+
+<!-- HEADER CON STATISTICHE -->
+<div class="stats-overview" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+  <div class="stat-card" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); padding: 1.5rem; border-radius: 12px; text-align: center;">
+    <div style="font-size: 2rem; margin-bottom: 0.5rem;">📅</div>
+    <div style="font-size: 1.8rem; font-weight: 700; color: #ff751f;">{{ slot_futuri|length }}</div>
+    <div style="color: #b6b1a9; font-size: 0.9rem;">Slot Futuri</div>
+  </div>
+  
+  <div class="stat-card" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); padding: 1.5rem; border-radius: 12px; text-align: center;">
+    <div style="font-size: 2rem; margin-bottom: 0.5rem;">✅</div>
+    <div style="font-size: 1.8rem; font-weight: 700; color: #4CAF50;">{{ slot_futuri|selectattr('attivo', 'equalto', true)|list|length }}</div>
+    <div style="color: #b6b1a9; font-size: 0.9rem;">Slot Attivi</div>
+  </div>
+  
+  <div class="stat-card" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); padding: 1.5rem; border-radius: 12px; text-align: center;">
+    <div style="font-size: 2rem; margin-bottom: 0.5rem;">📂</div>
+    <div style="font-size: 1.8rem; font-weight: 700; color: #b6b1a9;">{{ slot_passati|length }}</div>
+    <div style="color: #b6b1a9; font-size: 0.9rem;">Slot Passati</div>
+  </div>
+</div>
+
+<h2 class="page-title">🗓️ Gestione Slot Disponibili</h2>
+
+<!-- TOOLBAR MIGLIORATA -->
+<div class="toolbar" style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap;">
+  <a href="{{ url_for('slot.nuovo_slot') }}" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem;">
+    <span>➕</span>
+    <span>Nuovo Slot Singolo</span>
+  </a>
+  <a href="{{ url_for('slot.genera_slot') }}" class="btn btn-white" style="display: flex; align-items: center; gap: 0.5rem;">
+    <span>⚡</span>
+    <span>Genera Slot Multipli</span>
+  </a>
+</div>
+
+<!-- SLOT FUTURI -->
+<div class="section">
+  <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+    <h3 style="margin: 0; color: #ff751f;">📅 Slot Futuri</h3>
+    <span class="badge badge-info">{{ slot_futuri|length }} disponibili</span>
+  </div>
+  
+  {% if slot_futuri %}
+  <div class="slots-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
+    {% for slot in slot_futuri %}
+    <div class="slot-card" style="background: rgba(13, 51, 28, 0.4); border: 1px solid {% if slot.attivo %}rgba(76, 175, 80, 0.3){% else %}rgba(244, 67, 54, 0.3){% endif %}; border-radius: 12px; padding: 1.5rem; position: relative;">
+      
+      <!-- STATUS INDICATOR -->
+      <div style="position: absolute; top: 1rem; right: 1rem;">
+        {% if slot.attivo %}
+        <span class="badge badge-success" style="font-size: 0.8rem;">✅ Attivo</span>
+        {% else %}
+        <span class="badge badge-danger" style="font-size: 0.8rem;">⏸️ Disattivato</span>
+        {% endif %}
+      </div>
+      
+      <!-- SLOT INFO -->
+      <div style="margin-bottom: 1rem;">
+        <div style="font-size: 1.2rem; font-weight: 600; margin-bottom: 0.5rem; color: #ffffff;">
+          {{ slot.data_ora.strftime('%d/%m/%Y') }}
+        </div>
+        <div style="color: #b6b1a9; margin-bottom: 0.5rem;">
+          <span style="font-size: 1.1rem;">🕐 {{ slot.data_ora.strftime('%H:%M') }}</span>
+          <span style="margin-left: 1rem; font-size: 0.9rem;">📅 {{ slot.data_ora.strftime('%A') }}</span>
+        </div>
+        {% if slot.note %}
+        <div style="color: #ff751f; font-size: 0.9rem; font-style: italic;">
+          💬 {{ slot.note }}
+        </div>
+        {% endif %}
+      </div>
+      
+      <!-- ACTIONS -->
+      <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+        <form method="POST" action="{{ url_for('slot.toggle_slot', slot_id=slot.id) }}" style="flex: 1;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <button type="submit" class="btn {% if slot.attivo %}btn-warning{% else %}btn-success{% endif %} btn-small" style="width: 100%; font-size: 0.85rem;">
+            {% if slot.attivo %}⏸️ Disattiva{% else %}▶️ Attiva{% endif %}
+          </button>
+        </form>
+        <form method="POST" action="{{ url_for('slot.elimina_slot', slot_id=slot.id) }}" style="flex: 1;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <button type="submit" class="btn btn-danger btn-small" style="width: 100%; font-size: 0.85rem;" onclick="return confirm('Eliminare lo slot del {{ slot.data_ora.strftime('%d/%m/%Y %H:%M') }}?')">
+            🗑️ Elimina
+          </button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <!-- EMPTY STATE MIGLIORATO -->
+  <div class="empty-state" style="text-align: center; padding: 3rem 2rem; background: rgba(13, 51, 28, 0.2); border: 2px dashed rgba(182, 177, 169, 0.3); border-radius: 12px;">
+    <div style="font-size: 4rem; margin-bottom: 1rem;">📅</div>
+    <h3 style="color: #ff751f; margin-bottom: 1rem;">Nessuno slot futuro disponibile</h3>
+    <p style="color: #b6b1a9; margin-bottom: 2rem; max-width: 500px; margin-left: auto; margin-right: auto;">
+      Crea nuovi slot per permettere ai pazienti di prenotare i loro appuntamenti. Puoi creare slot singoli o generare slot multipli per un periodo.
+    </p>
+    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+      <a href="{{ url_for('slot.nuovo_slot') }}" class="btn btn-primary">
+        ➕ Crea Primo Slot
+      </a>
+      <a href="{{ url_for('slot.genera_slot') }}" class="btn btn-white">
+        ⚡ Genera Multipli
+      </a>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+{% if slot_passati|length > 0 %}
+<div class="divider" style="margin: 3rem 0;"></div>
+
+<!-- SLOT PASSATI (COLLASSABILE) -->
+<div class="section">
+  <details style="cursor: pointer;">
+    <summary style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; font-size: 1.1rem; color: #b6b1a9;">
+      <span>📂 Slot Passati ({{ slot_passati|length }})</span>
+      <span style="font-size: 0.9rem; opacity: 0.7;">Clicca per espandere</span>
+    </summary>
+    
+    <div style="max-height: 400px; overflow-y: auto; border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 8px; background: rgba(13, 51, 28, 0.2);">
+      <table class="table" style="margin: 0; background: transparent;">
+        <thead style="position: sticky; top: 0; background: rgba(13, 51, 28, 0.8);">
+          <tr>
+            <th style="padding: 1rem;">Data e Ora</th>
+            <th style="padding: 1rem;">Stato</th>
+            <th style="padding: 1rem;">Note</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for slot in slot_passati %}
+          <tr style="opacity: 0.7; border-bottom: 1px solid rgba(182, 177, 169, 0.1);">
+            <td style="padding: 0.75rem 1rem;">{{ slot.data_ora.strftime('%d/%m/%Y %H:%M') }}</td>
+            <td style="padding: 0.75rem 1rem;">
+              {% if slot.attivo %}
+              <span class="badge badge-success" style="font-size: 0.75rem;">Attivo</span>
+              {% else %}
+              <span class="badge badge-danger" style="font-size: 0.75rem;">Disattivato</span>
+              {% endif %}
+            </td>
+            <td style="padding: 0.75rem 1rem; color: #b6b1a9;">{{ slot.note or '—' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </details>
+</div>
+{% endif %}
+
+{% endblock %}
+

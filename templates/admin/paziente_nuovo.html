@@ -1,0 +1,83 @@
+{% extends 'base_admin.html' %}
+{% block title %}Nuovo Paziente{% endblock %}
+{% block content %}
+
+<h2 class="page-title">➕ Registra Nuovo Paziente</h2>
+
+<form method="POST" class="form-container">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+  <!-- DATI PERSONALI -->
+  <div class="form-section" style="margin-bottom: 2rem;">
+    <h3 style="color: #ff751f; margin-bottom: 1rem; border-bottom: 1px solid rgba(182, 177, 169, 0.2); padding-bottom: 0.5rem;">
+      👤 Dati Personali
+    </h3>
+    
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="nome">📝 Nome *</label>
+        <input type="text" id="nome" name="nome" class="input-text" required placeholder="Es: Mario">
+      </div>
+
+      <div class="form-group">
+        <label for="cognome">📝 Cognome *</label>
+        <input type="text" id="cognome" name="cognome" class="input-text" required placeholder="Es: Rossi">
+      </div>
+
+      <div class="form-group">
+        <label for="telefono">📱 Telefono *</label>
+        <input type="tel" id="telefono" name="telefono" class="input-text" required placeholder="Es: 3331234567">
+      </div>
+
+      <div class="form-group">
+        <label for="password">🔐 Password *</label>
+        <input type="password" id="password" name="password" class="input-text" required placeholder="Minimo 6 caratteri">
+      </div>
+
+      <div class="form-group">
+        <label for="data_nascita">📅 Data di Nascita *</label>
+        <input type="date" id="data_nascita" name="data_nascita" class="input-text" required>
+      </div>
+
+      <div class="form-group">
+        <label for="sesso">👤 Sesso *</label>
+        <select id="sesso" name="sesso" class="input-select" required>
+          <option value="">Seleziona sesso</option>
+          <option value="M">👨 Maschio</option>
+          <option value="F">👩 Femmina</option>
+          <option value="Altro">🤝 Altro</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- DATI FISICI -->
+  <div class="form-section" style="margin-bottom: 2rem;">
+    <h3 style="color: #ff751f; margin-bottom: 1rem; border-bottom: 1px solid rgba(182, 177, 169, 0.2); padding-bottom: 0.5rem;">
+      ⚖️ Dati Fisici
+    </h3>
+    
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="altezza_cm">📏 Altezza (cm) *</label>
+        <input type="number" id="altezza_cm" name="altezza_cm" class="input-text" required min="100" max="250" placeholder="Es: 175">
+      </div>
+
+      <div class="form-group">
+        <label for="peso_iniziale">⚖️ Peso Iniziale (kg) *</label>
+        <input type="number" step="0.1" id="peso_iniziale" name="peso_iniziale" class="input-text" required min="30" max="300" placeholder="Es: 75.5">
+      </div>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem; font-size: 1.1rem; padding: 1rem 2rem;">
+      <span>💾</span>
+      <span>Registra Paziente</span>
+    </button>
+    <a href="{{ url_for('patients.lista_pazienti') }}" class="btn btn-secondary">↩️ Annulla</a>
+  </div>
+
+</form>
+
+{% endblock %}

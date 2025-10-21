@@ -1,0 +1,77 @@
+{% extends 'base_user.html' %}
+{% block title %}I Miei Documenti - NutriApp{% endblock %}
+{% block content %}
+
+<h1 class="page-title-user">📄 I Miei Documenti</h1>
+
+<div class="mb-2">
+    <a href="{{ url_for('documenti.nuovo_documento_user') }}" class="btn-user">
+        ➕ Carica Nuovo Documento
+    </a>
+</div>
+
+{% if documenti %}
+    {% for doc in documenti %}
+    <div class="card-user">
+        <div class="card-header">
+            <div style="display: flex; align-items: center;">
+                {% if doc.tipo == 'analisi' %}
+                <span class="card-icon">🩸</span>
+                {% elif doc.tipo == 'referto' %}
+                <span class="card-icon">📋</span>
+                {% else %}
+                <span class="card-icon">📄</span>
+                {% endif %}
+                <span class="card-title">
+                    {% if doc.tipo == 'analisi' %}Analisi
+                    {% elif doc.tipo == 'referto' %}Referto
+                    {% elif doc.tipo == 'excel' %}Excel
+                    {% else %}Documento{% endif %}
+                </span>
+            </div>
+            <span class="card-badge">{{ doc.data_upload.strftime('%d/%m/%Y') }}</span>
+        </div>
+        
+        <div class="card-body">
+            {% if doc.descrizione %}
+            <div class="card-info-row">
+                <span class="card-label">Descrizione</span>
+                <span class="card-value">{{ doc.descrizione }}</span>
+            </div>
+            {% endif %}
+            
+            <div class="card-info-row">
+                <span class="card-label">Caricato il</span>
+                <span class="card-value">{{ doc.data_upload.strftime('%d/%m/%Y alle %H:%M') }}</span>
+            </div>
+        </div>
+        
+        <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+            <a href="{{ url_for('documenti.serve_file', documento_id=doc.id) }}" target="_blank" class="btn-user btn-user-small" style="flex: 1;">
+                👁️ Visualizza
+            </a>
+            <form action="{{ url_for('documenti.elimina_documento_user', documento_id=doc.id) }}" method="POST" style="flex: 1;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button type="submit" class="btn-user btn-user-secondary btn-user-small" style="width: 100%;" onclick="return confirm('Eliminare questo documento?')">
+                    🗑️ Elimina
+                </button>
+            </form>
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+<div class="empty-state">
+    <div class="empty-icon">📁</div>
+    <p class="empty-text">Non hai ancora caricato nessun documento.<br>Carica esami del sangue, referti o certificati di intolleranze!</p>
+</div>
+{% endif %}
+
+<!-- LINK PRESENTAZIONE ROBERTO -->
+<div style="text-align: center; margin: 1rem 0;">
+    <span style="color: #b6b1a9; font-size: 0.9rem;">
+        Powered by <a href="{{ url_for('presentazione_roberto') }}" style="color: #ff751f; text-decoration: none;">Roberto Libanora</a>
+    </span>
+</div>
+
+{% endblock %}
+

@@ -1,0 +1,122 @@
+{% extends 'base_admin.html' %}
+{% block title %}Nuova Vendita{% endblock %}
+{% block content %}
+
+<h2 class="page-title">➕ Nuova Vendita</h2>
+
+<form method="POST" class="form-container">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+  <div class="form-group">
+    <label for="patient_id">Paziente</label>
+    <select id="patient_id" name="patient_id" class="input-select" required>
+      {% for p in pazienti %}
+      <option value="{{ p.id }}">{{ p.nome }} {{ p.cognome }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label for="listino_id">Piano (Listino)</label>
+    <select id="listino_id" name="listino_id" class="input-select" required>
+      {% for l in piani %}
+      <option value="{{ l.id }}">{{ l.nome_prodotto }} - {{ "%.2f"|format(l.prezzo) }}€</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label for="data_inizio">Data Inizio</label>
+    <input type="date" id="data_inizio" name="data_inizio" class="input-text" required>
+  </div>
+
+  <div class="form-group">
+    <label for="metodo_pagamento">Metodo di Pagamento</label>
+    <select id="metodo_pagamento" name="metodo_pagamento" class="input-select" required>
+      <option value="contanti">Contanti</option>
+      <option value="bonifico">Bonifico</option>
+      <option value="carta">Carta</option>
+      <option value="altro">Altro</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label for="sconto">Sconto (€)</label>
+    <input type="number" id="sconto" name="sconto" class="input-text" value="0" step="0.01">
+  </div>
+
+  <!-- CALCOLI IVA -->
+        <div class="price-calculations" style="background: rgba(255, 117, 31, 0.1); border: 1px solid rgba(255, 117, 31, 0.3); border-radius: 8px; padding: 1rem; margin: 1rem 0;">
+          <h4 style="color: #ff751f; margin: 0 0 1rem 0; display: flex; align-items: center; gap: 0.5rem;">
+            💰 Calcoli Prezzo
+          </h4>
+          
+          <div class="price-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            <div class="price-item">
+              <div style="color: #b6b1a9; font-size: 0.9rem; margin-bottom: 0.25rem;">Prezzo Listino</div>
+              <div id="prezzo-listino" style="color: #ffffff; font-size: 1.1rem; font-weight: 600;">— €</div>
+            </div>
+            
+            <div class="price-item">
+              <div style="color: #b6b1a9; font-size: 0.9rem; margin-bottom: 0.25rem;">Sconto</div>
+              <div id="sconto-amount" style="color: #FFC107; font-size: 1.1rem; font-weight: 600;">0.00 €</div>
+            </div>
+            
+            <div class="price-item">
+              <div style="color: #ff751f; font-size: 0.9rem; margin-bottom: 0.25rem; font-weight: 600;">TOTALE FINALE</div>
+              <div id="totale-finale" style="color: #ff751f; font-size: 1.3rem; font-weight: 700;">— €</div>
+            </div>
+          </div>
+        </div>
+
+  <div class="form-group">
+    <label for="note">Note</label>
+    <textarea id="note" name="note" class="input-text" rows="3"></textarea>
+  </div>
+
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary">💾 Salva Vendita</button>
+    <a href="{{ url_for('vendite.lista_vendite') }}" class="btn btn-secondary">↩️ Annulla</a>
+  </div>
+
+</form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const listinoSelect = document.getElementById('listino_id');
+    const scontoInput = document.getElementById('sconto');
+    
+    // Dati dei piani dal backend
+    const pianiData = {{ piani_dict|tojson|safe }};
+    
+        function calcolaPrezzo() {
+            const listinoId = listinoSelect.value;
+            const sconto = parseFloat(scontoInput.value) || 0;
+            
+            if (listinoId && pianiData[listinoId]) {
+                const piano = pianiData[listinoId];
+                const prezzoListino = piano.prezzo;
+                const totaleFinale = prezzoListino - sconto;
+                
+                // Aggiorna i valori visualizzati
+                document.getElementById('prezzo-listino').textContent = prezzoListino.toFixed(2) + ' €';
+                document.getElementById('sconto-amount').textContent = sconto.toFixed(2) + ' €';
+                document.getElementById('totale-finale').textContent = totaleFinale.toFixed(2) + ' €';
+            } else {
+                // Reset valori
+                document.getElementById('prezzo-listino').textContent = '— €';
+                document.getElementById('sconto-amount').textContent = '0.00 €';
+                document.getElementById('totale-finale').textContent = '— €';
+            }
+        }
+    
+    // Event listeners
+    listinoSelect.addEventListener('change', calcolaPrezzo);
+    scontoInput.addEventListener('input', calcolaPrezzo);
+    
+    // Calcola all'avvio se c'è già una selezione
+    calcolaPrezzo();
+});
+</script>
+
+{% endblock %}

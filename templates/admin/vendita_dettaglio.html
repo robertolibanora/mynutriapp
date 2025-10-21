@@ -1,0 +1,161 @@
+{% extends 'base_admin.html' %}
+{% block title %}Dettaglio Vendita{% endblock %}
+{% block content %}
+
+<h2 class="page-title">🔍 Dettaglio Vendita #{{ vendita.id }}</h2>
+
+<div class="form-container">
+  
+  <!-- INFORMAZIONI PAZIENTE -->
+  <div class="form-group">
+    <label>Paziente</label>
+    <div class="info-display">
+      <strong>{{ vendita.patient.nome }} {{ vendita.patient.cognome }}</strong>
+      <br>
+      <small style="color: #b6b1a9;">📞 {{ vendita.patient.telefono }}</small>
+    </div>
+  </div>
+
+  <!-- INFORMAZIONI PRODOTTO -->
+  <div class="form-group">
+    <label>Piano Acquistato</label>
+    <div class="info-display">
+      <strong>{{ vendita.listino.nome_prodotto }}</strong>
+      <br>
+      <small style="color: #b6b1a9;">📋 {{ vendita.listino.categoria|title }} - {{ "%.2f"|format(vendita.listino.prezzo) }}€</small>
+    </div>
+  </div>
+
+  <!-- DATI TRANSAZIONE -->
+  <div class="form-row">
+    <div class="form-group">
+      <label>Data Acquisto</label>
+      <div class="info-display">
+        <strong>{{ vendita.data_acquisto.strftime('%d/%m/%Y alle %H:%M') }}</strong>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Data Inizio</label>
+      <div class="info-display">
+        <strong>{{ vendita.data_inizio.strftime('%d/%m/%Y') }}</strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label>Metodo di Pagamento</label>
+      <div class="info-display">
+        <strong>
+          {% if vendita.metodo_pagamento == 'contanti' %}💵 Contanti
+          {% elif vendita.metodo_pagamento == 'bonifico' %}🏦 Bonifico
+          {% elif vendita.metodo_pagamento == 'carta' %}💳 Carta
+          {% else %}❓ {{ vendita.metodo_pagamento|title }}
+          {% endif %}
+        </strong>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Stato</label>
+      <div class="info-display">
+        <strong style="color: 
+          {% if vendita.stato == 'pagato' %}#4CAF50
+          {% elif vendita.stato == 'in_attesa' %}#FF9800
+          {% elif vendita.stato == 'rimborsato' %}#F44336
+          {% else %}#b6b1a9
+          {% endif %};">
+          {% if vendita.stato == 'pagato' %}✅ Pagato
+          {% elif vendita.stato == 'in_attesa' %}⏳ In Attesa
+          {% elif vendita.stato == 'rimborsato' %}🔄 Rimborsato
+          {% else %}{{ vendita.stato|title }}
+          {% endif %}
+        </strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- INFORMAZIONI ECONOMICHE -->
+  <div class="form-row">
+    <div class="form-group">
+      <label>Prezzo Originale</label>
+      <div class="info-display">
+        <strong>{{ "%.2f"|format(vendita.listino.prezzo) }}€</strong>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Sconto Applicato</label>
+      <div class="info-display">
+        <strong style="color: #4CAF50;">-{{ "%.2f"|format(vendita.sconto) }}€</strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label>Importo Finale</label>
+    <div class="info-display" style="background: rgba(76, 175, 80, 0.1); padding: 1rem; border-radius: 8px; border-left: 4px solid #4CAF50;">
+      <strong style="font-size: 1.2rem; color: #4CAF50;">{{ "%.2f"|format(vendita.importo_finale) }}€</strong>
+    </div>
+  </div>
+
+  <!-- NOTE -->
+  {% if vendita.note %}
+  <div class="form-group">
+    <label>Note</label>
+    <div class="info-display">
+      <em>{{ vendita.note }}</em>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- TIMESTAMP -->
+  <div class="form-group">
+    <label>Registrato il</label>
+    <div class="info-display">
+      <small style="color: #b6b1a9;">{{ vendita.created_at.strftime('%d/%m/%Y alle %H:%M') }}</small>
+    </div>
+  </div>
+
+</div>
+
+<!-- PULSANTI AZIONE -->
+<div style="display: flex; gap: 1rem; margin-top: 2rem; justify-content: center;">
+  <a href="{{ url_for('vendite.modifica_vendita', id=vendita.id) }}" class="btn btn-primary">
+    ✏️ Modifica
+  </a>
+  
+  <a href="{{ url_for('vendite.registro_economico_paziente', patient_id=vendita.patient_id) }}" class="btn btn-white">
+    👤 Registro Paziente
+  </a>
+  
+  <a href="{{ url_for('vendite.lista_vendite') }}" class="btn btn-secondary">
+    📋 Lista Vendite
+  </a>
+</div>
+
+<style>
+.info-display {
+  background: rgba(182, 177, 169, 0.05);
+  padding: 0.75rem;
+  border-radius: 6px;
+  border: 1px solid rgba(182, 177, 169, 0.2);
+  margin-top: 0.5rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+
+{% endblock %}
+
