@@ -70,6 +70,11 @@ def nuovo_admin():
 
             db.session.add(nuovo)
             db.session.commit()
+            
+            # 🔔 INVIO WHATSAPP AUTOMATICO per nuovo appuntamento
+            from routes.whatsapp.triggers import safe_trigger_appuntamento_stato
+            safe_trigger_appuntamento_stato(nuovo, 'confermato')
+            
             flash("Appuntamento aggiunto ✅", "success")
             return redirect(url_for('agenda.agenda_unificata'))
 
