@@ -126,7 +126,7 @@ def nuovo_allenamento(patient_id):
             db.session.commit()
             
             # 🔔 INVIO WHATSAPP AUTOMATICO
-            from routes.whatsapp.triggers import safe_trigger_nuovo_allenamento
+            from app.routes.whatsapp.triggers import safe_trigger_nuovo_allenamento
             safe_trigger_nuovo_allenamento(paziente, nuovo)
             
             flash("Nuovo piano di allenamento caricato ✅", "success")

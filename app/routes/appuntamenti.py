@@ -72,7 +72,7 @@ def nuovo_admin():
             db.session.commit()
             
             # 🔔 INVIO WHATSAPP AUTOMATICO per nuovo appuntamento
-            from routes.whatsapp.triggers import safe_trigger_appuntamento_stato
+            from app.routes.whatsapp.triggers import safe_trigger_appuntamento_stato
             safe_trigger_appuntamento_stato(nuovo, 'confermato')
             
             flash("Appuntamento aggiunto ✅", "success")
@@ -115,7 +115,7 @@ def cambia_stato_admin(id, nuovo_stato):
         db.session.commit()
         
         # 🔔 INVIO WHATSAPP AUTOMATICO
-        from routes.whatsapp.triggers import safe_trigger_appuntamento_stato
+        from app.routes.whatsapp.triggers import safe_trigger_appuntamento_stato
         safe_trigger_appuntamento_stato(app, nuovo_stato)
         
         messaggi = {

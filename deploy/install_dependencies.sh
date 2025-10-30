@@ -25,7 +25,7 @@ sudo apt install -y \
     redis-server \
     mysql-server \
     mysql-client \
-    sqlite3 \
+    mysql-server-8.0 \
     git \
     curl \
     wget \

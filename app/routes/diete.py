@@ -135,7 +135,7 @@ def nuova_dieta(patient_id):
             db.session.commit()
 
             # 🔔 INVIO WHATSAPP AUTOMATICO
-            from routes.whatsapp.triggers import safe_trigger_nuova_dieta
+            from app.routes.whatsapp.triggers import safe_trigger_nuova_dieta
             safe_trigger_nuova_dieta(paziente, nuova)
 
             flash("Nuova dieta caricata con successo ✅", "success")

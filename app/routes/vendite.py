@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from app.models.models import db, Vendita, Patient, Listino
+from app.utils.helpers import admin_required, safe_float
 from datetime import datetime
 
 # ========================
@@ -56,7 +57,7 @@ def nuova_vendita():
     piani = Listino.query.filter_by(attivo=True).order_by(Listino.nome_prodotto.asc()).all()
     
     # Crea dizionario per JavaScript (sempre disponibile)
-    piani_dict = {piano.id: {'prezzo': float(piano.prezzo)} for piano in piani}
+    piani_dict = {piano.id: {'prezzo': safe_float(piano.prezzo)} for piano in piani}
 
     if request.method == 'POST':
         try:
@@ -64,11 +65,11 @@ def nuova_vendita():
             listino_id = request.form['listino_id']
             data_inizio = request.form['data_inizio']
             metodo_pagamento = request.form['metodo_pagamento']
-            sconto = float(request.form.get('sconto', 0))
+            sconto = safe_float(request.form.get('sconto'), 0)
             note = request.form.get('note')
 
             piano = Listino.query.get_or_404(listino_id)
-            importo_finale = float(piano.prezzo) - sconto
+            importo_finale = safe_float(piano.prezzo) - sconto
 
             nuova = Vendita(
                 patient_id=patient_id,
@@ -108,14 +109,14 @@ def modifica_vendita(id):
             vendita.listino_id = request.form['listino_id']
             vendita.data_inizio = request.form['data_inizio']
             vendita.metodo_pagamento = request.form['metodo_pagamento']
-            vendita.sconto = float(request.form.get('sconto', 0))
+            vendita.sconto = safe_float(request.form.get('sconto'), 0)
             vendita.stato = request.form['stato']
             vendita.note = request.form.get('note')
             
             # Ricalcola importo finale (prezzo - sconto)
             listino = Listino.query.get(vendita.listino_id)
             if listino:
-                vendita.importo_finale = float(listino.prezzo) - vendita.sconto
+                vendita.importo_finale = safe_float(listino.prezzo) - vendita.sconto
             
             db.session.commit()
             flash("Vendita aggiornata ✅", "success")
@@ -196,7 +197,7 @@ def dashboard_economia():
             if data >= giorni_fa:
                 categoria = v.listino.categoria
                 if categoria in vendite_per_data_categoria:
-                    vendite_per_data_categoria[categoria][data] += float(v.importo_finale)
+                    vendite_per_data_categoria[categoria][data] += safe_float(v.importo_finale)
     
     # Crea array per il grafico (tutti i giorni del periodo selezionato)
     date_labels = []
@@ -242,7 +243,7 @@ def registro_economico_paziente(patient_id):
     vendite_paziente = Vendita.query.filter_by(patient_id=patient_id).order_by(Vendita.data_acquisto.desc()).all()
     
     # Calcola statistiche
-    totale_speso = sum(float(v.importo_finale) for v in vendite_paziente if v.stato == 'pagato')
+    totale_speso = sum(safe_float(v.importo_finale) for v in vendite_paziente if v.stato == 'pagato')
     totale_vendite = len(vendite_paziente)
     vendite_pagate = len([v for v in vendite_paziente if v.stato == 'pagato'])
     
@@ -269,7 +270,7 @@ def registro_economico_paziente(patient_id):
                 categoria = v.listino.categoria
                 mese_key = data.strftime('%Y-%m')
                 if categoria in vendite_per_mese_categoria:
-                    vendite_per_mese_categoria[categoria][mese_key] += float(v.importo_finale)
+                    vendite_per_mese_categoria[categoria][mese_key] += safe_float(v.importo_finale)
     
     # Crea array per il grafico (ultimi 12 mesi)
     date_labels = []

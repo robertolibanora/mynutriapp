@@ -53,3 +53,23 @@ def is_past(date_obj):
     if isinstance(date_obj, str):
         date_obj = datetime.strptime(date_obj, '%Y-%m-%d').date()
     return date_obj < date.today()
+
+def safe_float(value, default=0.0):
+    """
+    Converte un valore in float in modo sicuro.
+    Gestisce stringhe vuote, None e valori non numerici.
+    
+    Args:
+        value: Il valore da convertire
+        default: Valore di default se la conversione fallisce
+    
+    Returns:
+        float: Il valore convertito o il default
+    """
+    if value is None or value == '':
+        return default
+    
+    try:
+        return float(value)
+    except (ValueError, TypeError):
+        return default

@@ -11,7 +11,7 @@ import os
 project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(project_root)
 
-from routes.whatsapp.triggers import (
+from app.routes.whatsapp.triggers import (
     enable_trigger, 
     disable_trigger, 
     print_trigger_status,
@@ -59,13 +59,13 @@ def main():
         disable_trigger(tipo)
         
     elif comando == "enable-all":
-        from routes.whatsapp.triggers import TRIGGERS_ENABLED
+        from app.routes.whatsapp.triggers import TRIGGERS_ENABLED
         for trigger in TRIGGERS_ENABLED.keys():
             enable_trigger(trigger)
         print("✅ Tutti i trigger abilitati")
         
     elif comando == "disable-all":
-        from routes.whatsapp.triggers import TRIGGERS_ENABLED
+        from app.routes.whatsapp.triggers import TRIGGERS_ENABLED
         for trigger in TRIGGERS_ENABLED.keys():
             disable_trigger(trigger)
         print("❌ Tutti i trigger disabilitati")

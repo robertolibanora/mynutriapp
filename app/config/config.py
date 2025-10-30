@@ -103,7 +103,8 @@ class Config:
     # ========================================
     
     # Directory base per upload (può essere sovrascritta da env vars)
-    BASE_DIR = Path(__file__).parent
+    # Directory base del progetto (root), non la cartella config
+    BASE_DIR = Path(__file__).resolve().parents[2]
     UPLOAD_ROOT = os.environ.get('UPLOAD_ROOT', str(BASE_DIR / 'static' / 'uploads'))
     
     # Directory specifiche per tipo di file
@@ -149,9 +150,46 @@ def get_relative_path(full_path):
 
 def get_full_path(relative_path):
     """Converte un percorso relativo in assoluto"""
+    # 1) Se è relativo, rende assoluto rispetto alla root progetto
     if not os.path.isabs(relative_path):
-        return os.path.join(Config.BASE_DIR, relative_path)
-    return relative_path
+        abs_path = os.path.join(Config.BASE_DIR, relative_path)
+        if os.path.exists(abs_path):
+            return abs_path
+    else:
+        # 2) Se è assoluto e già esiste, restituiscilo
+        if os.path.exists(relative_path):
+            return relative_path
+
+    # 3) Compatibilità retroattiva: corregge vecchi percorsi salvati con BASE_DIR errata
+    try:
+        # Caso: vecchio prefisso 'app/config/static/uploads/...'
+        legacy_prefix = os.path.join('app', 'config', 'static', 'uploads')
+        if legacy_prefix in relative_path:
+            # Prende la parte dopo '.../static/uploads/' e la ricompone sotto la root corretta
+            after = relative_path.split(legacy_prefix, 1)[-1].lstrip(os.sep)
+            candidate = os.path.join(str(Config.BASE_DIR), 'static', 'uploads', after)
+            if os.path.exists(candidate):
+                return candidate
+
+        # Caso: percorso contiene 'static/uploads' ma con prefisso non corretto
+        uploads_marker = os.path.join('static', 'uploads')
+        if uploads_marker in relative_path:
+            after = relative_path.split(uploads_marker, 1)[-1].lstrip(os.sep)
+            candidate = os.path.join(str(Config.BASE_DIR), 'static', 'uploads', after)
+            if os.path.exists(candidate):
+                return candidate
+
+        # 4) Ultimo tentativo: cerca per basename nelle cartelle note
+        basename = os.path.basename(relative_path)
+        for folder in Config.UPLOAD_FOLDERS.values():
+            candidate = os.path.join(folder, basename)
+            if os.path.exists(candidate):
+                return candidate
+    except Exception:
+        pass
+
+    # Fallback: ritorna percorso risolto rispetto alla root, anche se non esiste
+    return os.path.join(Config.BASE_DIR, relative_path) if not os.path.isabs(relative_path) else relative_path
 
 
 # ========================================

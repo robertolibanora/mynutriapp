@@ -14,7 +14,7 @@ sys.path.append(project_root)
 
 # Importa Flask app per inizializzare il database
 from app import app
-from routes.whatsapp.scadenze import controlla_scadenze, controlla_scadenze_multiple
+from app.routes.whatsapp.scadenze import controlla_scadenze, controlla_scadenze_multiple
 
 def main():
     """Esegue il controllo scadenze"""
