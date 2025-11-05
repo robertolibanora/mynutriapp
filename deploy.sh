@@ -52,23 +52,20 @@ if ! command -v docker-compose &> /dev/null; then
     print_success "Docker Compose installato!"
 fi
 
-# Controlla se Nginx è installato
-if ! command -v nginx &> /dev/null; then
-    print_error "Nginx non è installato!"
-    print_status "Installazione Nginx..."
-    sudo apt update
-    sudo apt install nginx -y
-    sudo systemctl enable nginx
-    sudo systemctl start nginx
-    print_success "Nginx installato!"
-fi
-
-# Controlla se Certbot è installato
+# Nginx è ora containerizzato, non serve installarlo lato host
+# (manteniamo Certbot per SSL, ma opzionale)
 if ! command -v certbot &> /dev/null; then
-    print_error "Certbot non è installato!"
-    print_status "Installazione Certbot..."
-    sudo apt install certbot python3-certbot-nginx -y
-    print_success "Certbot installato!"
+    print_warning "Certbot non è installato (opzionale per SSL)"
+    echo "Vuoi installare Certbot per configurare SSL? (y/n)"
+    read -p "Risposta: " certbot_choice
+    if [ "$certbot_choice" = "y" ] || [ "$certbot_choice" = "Y" ]; then
+        print_status "Installazione Certbot..."
+        sudo apt update
+        sudo apt install certbot python3-certbot-nginx -y
+        print_success "Certbot installato!"
+    else
+        print_warning "Certbot non installato. SSL può essere configurato manualmente dopo."
+    fi
 fi
 
 # Controlla se il file .env esiste
@@ -88,6 +85,7 @@ fi
 print_status "Creazione directory necessarie..."
 mkdir -p static/uploads
 mkdir -p logs
+mkdir -p logs/nginx  # Per i log di Nginx containerizzato
 print_success "Directory create!"
 
 # Ferma i container esistenti
@@ -122,33 +120,18 @@ print_status "Test connessione Redis..."
 docker-compose exec -T redis redis-cli ping || print_warning "Redis non ancora pronto"
 
 # ========================================
-# 🌐 CONFIGURAZIONE NGINX
+# 🌐 NGINX (Containerizzato)
 # ========================================
-print_status "Configurazione Nginx..."
-
-# Copia configurazione Nginx
-sudo cp nginx.conf /etc/nginx/sites-available/mynutriapp
-
-# Abilita il sito
-sudo ln -sf /etc/nginx/sites-available/mynutriapp /etc/nginx/sites-enabled/
-sudo rm -f /etc/nginx/sites-enabled/default
-
-# Testa configurazione Nginx
-sudo nginx -t
-if [ $? -eq 0 ]; then
-    sudo systemctl reload nginx
-    print_success "Nginx configurato!"
-else
-    print_error "Errore nella configurazione Nginx!"
-    exit 1
-fi
+print_status "Nginx sarà gestito come container Docker..."
+# Nginx è ora completamente containerizzato, la configurazione è in nginx.conf
+# e viene montata automaticamente nel container
 
 # ========================================
-# 🔒 CONFIGURAZIONE SSL (Opzionale)
+# 🔒 CONFIGURAZIONE SSL (Opzionale - Containerizzato)
 # ========================================
 echo ""
 print_status "Configurazione SSL..."
-echo "Per configurare SSL, hai bisogno di un dominio."
+echo "Per configurare SSL con Nginx containerizzato, hai bisogno di un dominio."
 echo "Vuoi configurare SSL ora? (y/n)"
 read -p "Risposta: " ssl_choice
 
@@ -159,27 +142,26 @@ if [ "$ssl_choice" = "y" ] || [ "$ssl_choice" = "Y" ]; then
     if [ ! -z "$domain_name" ]; then
         print_status "Configurazione SSL per $domain_name..."
         
-        # Aggiorna configurazione Nginx con il dominio
-        sudo sed -i "s/server_name _;/server_name $domain_name www.$domain_name;/" /etc/nginx/sites-available/mynutriapp
+        # Aggiorna nginx.conf con il dominio
+        sed -i "s/server_name _;/server_name $domain_name www.$domain_name;/" nginx.conf
         
-        # Testa e ricarica Nginx
-        sudo nginx -t && sudo systemctl reload nginx
+        # Riavvia il container Nginx per applicare la nuova configurazione
+        docker-compose restart nginx
         
-        # Ottieni certificato SSL
-        sudo certbot --nginx -d $domain_name -d www.$domain_name --non-interactive --agree-tos --email admin@$domain_name
-        
-        if [ $? -eq 0 ]; then
-            print_success "SSL configurato per $domain_name!"
-        else
-            print_warning "Errore nella configurazione SSL. Configura manualmente con:"
-            print_warning "sudo certbot --nginx -d $domain_name"
-        fi
+        # Per SSL con Nginx containerizzato, usa certbot in modalità standalone
+        # o monta i certificati nel container
+        print_warning "Per SSL con Nginx containerizzato, hai due opzioni:"
+        print_warning "1. Usa certbot standalone e monta i certificati nel container"
+        print_warning "2. Usa un servizio certbot-container (raccomandato)"
+        print_warning ""
+        print_warning "Per ora, configura manualmente SSL dopo il deploy."
+        print_warning "Istruzioni: https://hub.docker.com/r/certbot/certbot"
     else
         print_warning "Dominio non inserito. Salto configurazione SSL."
     fi
 else
-    print_warning "SSL non configurato. Puoi configurarlo dopo con:"
-    print_warning "sudo certbot --nginx -d your-domain.com"
+    print_warning "SSL non configurato. Puoi configurarlo dopo."
+    print_warning "Consulta la documentazione per SSL con Nginx containerizzato."
 fi
 
 # ========================================
@@ -195,18 +177,25 @@ print_success "Firewall configurato!"
 print_success "Deployment completato!"
 echo ""
 echo "🌐 Servizi disponibili:"
-echo "   - App Flask: http://localhost:8000"
+echo "   - App Web (Nginx): http://localhost (porta 80)"
+echo "   - App Flask (interno): http://localhost:8000 (solo container)"
 echo "   - phpMyAdmin: http://localhost:8080"
 echo "   - MySQL: localhost:3306"
 echo "   - Redis: localhost:6379"
-echo "   - Nginx: http://$(curl -s ifconfig.me) (se hai un IP pubblico)"
+if command -v curl &> /dev/null; then
+    PUBLIC_IP=$(curl -s ifconfig.me 2>/dev/null || echo "N/A")
+    echo "   - Nginx pubblico: http://${PUBLIC_IP} (se hai un IP pubblico)"
+fi
 echo ""
 echo "📋 Comandi utili:"
 echo "   - Vedi i log: docker-compose logs -f"
+echo "   - Logs Nginx: docker-compose logs -f nginx"
+echo "   - Logs Web: docker-compose logs -f web"
 echo "   - Ferma tutto: docker-compose down"
 echo "   - Riavvia: docker-compose restart"
-echo "   - Entra nel container: docker-compose exec web bash"
-echo "   - Logs Nginx: sudo tail -f /var/log/nginx/access.log"
+echo "   - Riavvia solo Nginx: docker-compose restart nginx"
+echo "   - Entra nel container web: docker-compose exec web bash"
+echo "   - Entra nel container Nginx: docker-compose exec nginx sh"
 echo ""
 # ========================================
 # 🗄️ CONFIGURAZIONE BACKUP AUTOMATICO
