@@ -14,7 +14,7 @@
 :80 {
     # Reverse proxy a Flask app (localhost:8000 perché Caddy è sul sistema host)
     reverse_proxy localhost:8000 {
-        # Headers (Caddy passa automaticamente gli header, manteniamo solo quelli necessari)
+        # Headers (Caddy passa automaticamente gli header standard)
         header_up Host {host}
         header_up X-Real-IP {remote}
         
