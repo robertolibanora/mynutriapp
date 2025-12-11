@@ -31,8 +31,7 @@ mynutriapp.cloud {
     }
     
     # Static files (serviti direttamente da Caddy - DEVE essere prima del reverse_proxy)
-    # handle_path rimuove automaticamente il prefisso /static dal path
-    handle_path /static/* {
+    handle /static/* {
         root * /var/www/mynutriapp
         file_server
         header Cache-Control "public, max-age=31536000, immutable"
