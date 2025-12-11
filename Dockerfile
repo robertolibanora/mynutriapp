@@ -36,4 +36,5 @@ USER app
 EXPOSE 8000
 
 # Comando di avvio con Gunicorn (4 workers per performance)
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "4", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "app:app"]
+# Usa app.py:app per evitare conflitto con directory app/
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "4", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "app.py:app"]
