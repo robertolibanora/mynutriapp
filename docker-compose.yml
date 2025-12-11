@@ -3,8 +3,6 @@
 # Orchestrazione di tutti i servizi
 # ========================================
 
-version: '3.8'
-
 services:
   # ========================================
   # 🌐 APPLICAZIONE FLASK (Web Server)
