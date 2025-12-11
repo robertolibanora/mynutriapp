@@ -17,15 +17,33 @@ def test_redis_connection(redis_url):
         import redis
         # Estrai parametri dall'URL
         if redis_url.startswith("redis://"):
-            # Parse dell'URL: redis://[password@]host:port/db
-            url_parts = redis_url.replace("redis://", "").split("/")
-            host_port = url_parts[0].split("@")[-1]  # Rimuovi eventuale password
+            # Parse dell'URL: redis://[:password@]host:port/db
+            url_without_protocol = redis_url.replace("redis://", "")
+            url_parts = url_without_protocol.split("/")
+            
+            # Estrai host:port e password
+            auth_and_host = url_parts[0]
+            if "@" in auth_and_host:
+                # Formato: :password@host:port
+                password_part, host_port = auth_and_host.split("@", 1)
+                password = password_part.lstrip(":") if password_part.startswith(":") else None
+            else:
+                # Nessuna password
+                password = None
+                host_port = auth_and_host
+            
             host = host_port.split(":")[0]
             port = int(host_port.split(":")[1]) if ":" in host_port else 6379
             db = int(url_parts[1]) if len(url_parts) > 1 else 0
             
-            # Tenta connessione
-            r = redis.Redis(host=host, port=port, db=db, socket_connect_timeout=1)
+            # Tenta connessione con password se presente
+            r = redis.Redis(
+                host=host, 
+                port=port, 
+                db=db, 
+                password=password,
+                socket_connect_timeout=1
+            )
             r.ping()
             return True
     except Exception as e:
