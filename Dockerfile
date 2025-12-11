@@ -8,7 +8,7 @@ FROM python:3.13-slim
 # Imposta variabili d'ambiente per ottimizzazione
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
-ENV FLASK_APP=app.py
+ENV FLASK_APP=wsgi.py
 ENV FLASK_ENV=production
 
 # Installa dipendenze di sistema necessarie per MySQL
@@ -36,5 +36,5 @@ USER app
 EXPOSE 8000
 
 # Comando di avvio con Gunicorn (4 workers per performance)
-# Usa app.py:app per evitare conflitto con directory app/
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "4", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "app.py:app"]
+# Usa wsgi.py:app per evitare conflitto con directory app/
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "4", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "wsgi:app"]
