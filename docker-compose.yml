@@ -17,7 +17,7 @@ services:
       - "8000"
     environment:
       - FLASK_ENV=production
-      - DATABASE_URL=mysql+pymysql://mynutriapp:${MYSQL_PASSWORD:-N0ir@2026!}@db:3306/mynutriapp?charset=utf8mb4
+      - DATABASE_URL=mysql+pymysql://mynutriapp:${MYSQL_PASSWORD:-N0ira2026!}@db:3306/mynutriapp?charset=utf8mb4
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_PASSWORD=${REDIS_PASSWORD:-I0E6TjyZ4wMBqkXNsUsQXBHCZQWf8rfpeyM-X2KQ7lA}
@@ -63,10 +63,10 @@ services:
     image: mysql:8.0
     container_name: mynutriapp_db
     environment:
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-N0ir@2026!}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-N0ira2026!}
       - MYSQL_DATABASE=mynutriapp
       - MYSQL_USER=mynutriapp
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-N0ir@2026!}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-N0ira2026!}
       # Ottimizzazioni MySQL per produzione
       - MYSQL_INNODB_BUFFER_POOL_SIZE=${MYSQL_INNODB_BUFFER_POOL_SIZE:-1G}
       - MYSQL_MAX_CONNECTIONS=${MYSQL_MAX_CONNECTIONS:-200}
