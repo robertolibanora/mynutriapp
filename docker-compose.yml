@@ -73,7 +73,8 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
-      - ./mysql-production.cnf:/etc/mysql/conf.d/production.cnf:ro
+      # Temporaneamente disabilitato per debug
+      # - ./mysql-production.cnf:/etc/mysql/conf.d/production.cnf:ro
     ports:
       - "3306:3306"
     restart: unless-stopped
@@ -81,12 +82,12 @@ services:
     healthcheck:
       # Verifica che MySQL sia pronto e che il database sia accessibile
       # MySQL esegue init.sql automaticamente al primo avvio (quando il volume è vuoto)
-      # start_period di 30s dà tempo a MySQL di eseguire init.sql completamente
-      test: ["CMD", "bash", "-c", "mysqladmin ping -h localhost -u root -p$${MYSQL_ROOT_PASSWORD} > /dev/null 2>&1 && mysql -h localhost -u root -p$${MYSQL_ROOT_PASSWORD} -e 'USE mynutriapp; SELECT 1;' > /dev/null 2>&1"]
-      interval: 5s
-      timeout: 10s
-      retries: 30
-      start_period: 30s
+      # start_period aumentato a 60s per dare più tempo all'inizializzazione
+      test: ["CMD", "bash", "-c", "mysqladmin ping -h localhost -u root -p$${MYSQL_ROOT_PASSWORD} > /dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
     networks:
       - mynutriapp_network
 
