@@ -38,7 +38,8 @@ print_status "Configurazione backup automatico MyNutriAPP..."
 
 # Directory per i backup
 BACKUP_DIR="/var/backups/mynutriapp"
-SCRIPT_DIR="$(pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 # Crea directory backup
 print_status "Creazione directory backup..."
@@ -48,6 +49,7 @@ print_success "Directory backup creata: $BACKUP_DIR"
 
 # Copia script backup
 print_status "Configurazione script backup..."
+SCRIPT_DIR="$(dirname "$0")"
 sudo cp "$SCRIPT_DIR/backup.sh" /usr/local/bin/mynutriapp-backup
 sudo chmod +x /usr/local/bin/mynutriapp-backup
 print_success "Script backup installato"
@@ -59,7 +61,7 @@ print_success "Script backup installato"
 print_status "Configurazione backup automatico..."
 
 # Crea job cron per backup giornaliero alle 2:00
-CRON_JOB="0 2 * * * cd $SCRIPT_DIR && /usr/local/bin/mynutriapp-backup >> /var/log/mynutriapp-backup.log 2>&1"
+CRON_JOB="0 2 * * * cd $PROJECT_ROOT && /usr/local/bin/mynutriapp-backup >> /var/log/mynutriapp-backup.log 2>&1"
 
 # Aggiungi al crontab
 (crontab -l 2>/dev/null; echo "$CRON_JOB") | crontab -

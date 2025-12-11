@@ -33,6 +33,10 @@ print_error() {
 # Directory backup
 BACKUP_DIR="/var/backups/mynutriapp"
 
+# Vai alla root del progetto
+PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$PROJECT_ROOT"
+
 # ========================================
 # 📋 MENU PRINCIPALE
 # ========================================
@@ -100,6 +104,12 @@ restore_backup() {
         
         if [ "$confirm" = "y" ] || [ "$confirm" = "Y" ]; then
             print_status "Ripristino backup: $BACKUP_FILE"
+            # Carica variabili d'ambiente se disponibili
+            if [ -f "$PROJECT_ROOT/.env" ]; then
+                set -a
+                source "$PROJECT_ROOT/.env"
+                set +a
+            fi
             if docker-compose exec -T db mysql -u root -p${MYSQL_ROOT_PASSWORD:-root_password_super_sicura_123!} mynutriapp < "$BACKUP_FILE"; then
                 print_success "Backup ripristinato con successo!"
             else
@@ -154,8 +164,9 @@ test_backup() {
 
 setup_auto_backup() {
     print_status "Configurazione backup automatico..."
-    if [ -f "setup-backup.sh" ]; then
-        ./setup-backup.sh
+    SCRIPT_DIR="$(dirname "$0")"
+    if [ -f "$SCRIPT_DIR/setup-backup.sh" ]; then
+        "$SCRIPT_DIR/setup-backup.sh"
     else
         print_error "Script setup-backup.sh non trovato!"
     fi

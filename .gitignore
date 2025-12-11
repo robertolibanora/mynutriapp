@@ -271,3 +271,11 @@ temp/
 *.njsproj
 *.sln
 *.sw?
+
+# SSL Certificates (Let's Encrypt / Certbot)
+certbot/conf/
+certbot/www/
+*.pem
+*.key
+*.crt
+*.cert

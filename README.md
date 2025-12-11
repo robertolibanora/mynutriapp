@@ -1,122 +1,152 @@
-# MyNutriAPP 🥗
+# 🥗 MyNutriApp
 
-Un'applicazione web completa per la gestione di pazienti nutrizionisti, sviluppata con Flask e progettata con un approccio mobile-first.
+Applicazione web completa per la gestione di pazienti nutrizionisti, sviluppata con Flask e progettata con approccio mobile-first.
 
-## 🚀 Caratteristiche Principali
-
-- **Gestione Pazienti**: Sistema completo per la gestione dei pazienti con profili dettagliati
-- **Agenda Unificata**: Sistema di appuntamenti e slot temporali
-- **Piani Nutrizionali**: Creazione e gestione di diete personalizzate
-- **Allenamenti**: Schede di allenamento per i pazienti
-- **Documenti**: Gestione documenti e progressi
-- **Sistema Economico**: Tracking delle vendite e fatturazione
-- **Integrazione WhatsApp**: Notifiche automatiche e broadcast
-- **Design Mobile-First**: Interfaccia ottimizzata per dispositivi mobili
-
-## 🛠️ Tecnologie Utilizzate
-
-- **Backend**: Python 3.13, Flask
-- **Database**: SQLite (sviluppo), PostgreSQL (produzione)
-- **Frontend**: HTML5, CSS3, JavaScript
-- **Integrazioni**: WhatsApp Business API
-- **Deployment**: Configurazione per produzione
-
-## 📱 Design System
-
-L'applicazione segue un design system coerente con:
-- **Colori**: Background #000000, grigio base #1a1a1a, testo bianco #ffffff, accento fluo #ff0040
-- **Approccio**: Mobile-first con UI/UX ottimizzata per dispositivi mobili
-- **Componenti**: Sistema di componenti riutilizzabili per navbar, card, bottoni e icone
-- **Animazioni**: Animazioni minimali (hover/click) per una migliore UX
-
-## 🚀 Installazione
+## 🚀 Quick Start - Deploy su VPS
 
 ### Prerequisiti
-- Python 3.13
-- pip (gestore pacchetti Python)
+- VPS Hostinger con Ubuntu/Debian
+- Accesso SSH
+- Dominio (opzionale per SSL)
 
-### Setup Locale
-
-1. **Clona il repository**
-   ```bash
-   git clone https://github.com/robertolibanora/mynutriapp.git
-   cd mynutriapp
-   ```
-
-2. **Crea un ambiente virtuale**
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate  # Su Windows: venv\Scripts\activate
-   ```
-
-3. **Installa le dipendenze**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Configura le variabili d'ambiente**
-   ```bash
-   cp .env.example .env
-   # Modifica il file .env con le tue configurazioni
-   ```
-
-5. **Inizializza il database**
-   ```bash
-   flask init-db
-   ```
-
-6. **Avvia l'applicazione**
-   ```bash
-   python app.py
-   ```
-
-L'applicazione sarà disponibile su `http://localhost:5000`
-
-## 📁 Struttura del Progetto
-
-```
-nutriapp/
-├── app.py                 # File principale dell'applicazione
-├── config.py             # Configurazioni
-├── models.py             # Modelli del database
-├── requirements.txt      # Dipendenze Python
-├── routes/               # Route dell'applicazione
-│   ├── auth.py          # Autenticazione
-│   ├── patients.py      # Gestione pazienti
-│   ├── agenda.py        # Sistema agenda
-│   ├── diete.py         # Gestione diete
-│   ├── allenamenti.py   # Gestione allenamenti
-│   └── whatsapp/        # Integrazione WhatsApp
-├── static/              # File statici (CSS, JS, immagini)
-├── templates/           # Template HTML
-│   ├── admin/          # Template per admin
-│   ├── user/           # Template per utenti
-│   └── public/         # Template pubblici
-└── venv/               # Ambiente virtuale
-```
-
-## 🔧 Configurazione
-
-### Variabili d'Ambiente
-
-Crea un file `.env` nella root del progetto con le seguenti variabili:
-
-```env
-FLASK_APP=app.py
-FLASK_ENV=development
-SECRET_KEY=your-secret-key-here
-DATABASE_URL=sqlite:///nutriapp.db
-WHATSAPP_TOKEN=your-whatsapp-token
-WHATSAPP_PHONE_NUMBER_ID=your-phone-number-id
-```
-
-### Database
-
-L'applicazione supporta sia SQLite (sviluppo) che PostgreSQL (produzione). Per inizializzare il database:
+### Deploy in 3 Passi
 
 ```bash
-flask init-db
+# 1. Clona e configura
+git clone https://github.com/robertolibanora/mynutriapp.git
+cd mynutriapp
+nano .env  # Configura SECRET_KEY, MYSQL_ROOT_PASSWORD, MYSQL_PASSWORD, etc.
+
+# 2. Deploy automatico
+chmod +x deploy.sh
+./deploy.sh
+
+# 3. Verifica
+docker-compose ps
 ```
+
+**🎉 Fatto! L'app è online su `http://your-vps-ip`**
+
+---
+
+## 📋 Configurazione .env
+
+Crea il file `.env` nella root con:
+
+```env
+# OBBLIGATORIO
+SECRET_KEY=your-secret-key-minimo-64-caratteri
+MYSQL_ROOT_PASSWORD=your-secure-root-password
+MYSQL_PASSWORD=your-secure-app-password
+ADMIN_PHONE=+39XXXXXXXXXX
+ADMIN_PASSWORD=your-admin-password
+
+# OPZIONALE - MySQL ottimizzazioni
+MYSQL_INNODB_BUFFER_POOL_SIZE=1G
+MYSQL_MAX_CONNECTIONS=200
+
+# OPZIONALE - Altri servizi
+WHATSAPP_ACCESS_TOKEN=your-token
+WHATSAPP_PHONE_NUMBER_ID=your-phone-id
+```
+
+**Genera SECRET_KEY:**
+```bash
+python3 -c "import secrets; print(secrets.token_hex(32))"
+```
+
+---
+
+## 🛠️ Script Disponibili
+
+Tutti gli script sono nella cartella `scripts/`:
+
+| Script | Comando | Descrizione |
+|--------|---------|-------------|
+| **Deploy** | `./deploy.sh` | Deploy completo automatico |
+| **Backup** | `./scripts/backup.sh` | Backup database manuale |
+| **Gestione** | `./scripts/manage.sh` | Menu interattivo completo |
+| **Monitoring** | `./scripts/monitoring.sh` | Verifica stato sistema |
+| **Sicurezza** | `./scripts/security.sh` | Hardening sicurezza |
+| **Aggiornamenti** | `./scripts/update.sh app` | Aggiorna applicazione |
+| **Backup Management** | `./scripts/manage-backup.sh` | Gestione backup interattiva |
+
+### Comandi Rapidi
+
+```bash
+# Deploy
+./deploy.sh
+
+# Gestione (menu interattivo)
+./scripts/manage.sh
+
+# Backup manuale
+./scripts/backup.sh
+
+# Monitoring
+./scripts/monitoring.sh
+
+# Aggiorna app
+./scripts/update.sh app
+```
+
+---
+
+## 🐳 Docker Commands
+
+```bash
+# Stato container
+docker-compose ps
+
+# Log in tempo reale
+docker-compose logs -f
+
+# Riavvia tutto
+docker-compose restart
+
+# Ferma tutto
+docker-compose down
+
+# Avvia tutto
+docker-compose up -d
+
+# Rebuild e avvia
+docker-compose up -d --build
+```
+
+---
+
+## 📚 Documentazione
+
+- **[deploy.md](deploy.md)** - ⭐ **Guida completa deploy VPS** - Tutto quello che serve per deploy su Hostinger
+  - Deploy passo-passo
+  - Configurazione completa
+  - Tutti gli script spiegati
+  - Troubleshooting completo
+  - MySQL produzione
+  - SSL e sicurezza
+
+---
+
+## 🏗️ Architettura
+
+### Stack Tecnologico
+
+- **Backend**: Python 3.13, Flask, Gunicorn
+- **Database**: MySQL 8.0 (produzione)
+- **Cache/Rate Limiting**: Redis 7
+- **Web Server**: Nginx (reverse proxy)
+- **Containerizzazione**: Docker & Docker Compose
+
+### Servizi Containerizzati
+
+- `mynutriapp_web` - Applicazione Flask (Gunicorn)
+- `mynutriapp_nginx` - Nginx reverse proxy
+- `mynutriapp_db` - MySQL 8.0
+- `mynutriapp_redis` - Redis
+- `mynutriapp_phpmyadmin` - phpMyAdmin (opzionale)
+
+---
 
 ## 📱 Funzionalità
 
@@ -125,7 +155,7 @@ flask init-db
 - Gestione pazienti e appuntamenti
 - Creazione diete e allenamenti
 - Sistema economico e fatturazione
-- Configurazione WhatsApp e broadcast
+- Integrazione WhatsApp e broadcast
 
 ### Per Utenti/Pazienti
 - Dashboard personale
@@ -134,45 +164,143 @@ flask init-db
 - Upload documenti e progressi
 - Accesso al listino prezzi
 
-## 🔗 Integrazione WhatsApp
+---
 
-L'applicazione include un sistema completo di integrazione WhatsApp per:
-- Notifiche automatiche
-- Broadcast personalizzati
-- Gestione scadenze
-- Invio documenti
+## 🔒 Sicurezza
 
-## 🚀 Deployment
+- ✅ Tutto containerizzato (isolamento)
+- ✅ Rate limiting (Redis)
+- ✅ CSRF protection
+- ✅ Password hashing
+- ✅ Firewall configurato
+- ✅ Backup automatico giornaliero
 
-### Produzione
+---
 
-1. **Configura le variabili d'ambiente per la produzione**
-2. **Installa le dipendenze di produzione**
-3. **Configura il database PostgreSQL**
-4. **Avvia l'applicazione con un server WSGI**
+## 🗄️ Database
 
-## 🤝 Contribuire
+### MySQL 8.0 in Produzione
 
-1. Fork del progetto
-2. Crea un branch per la tua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit delle modifiche (`git commit -m 'Add some AmazingFeature'`)
-4. Push al branch (`git push origin feature/AmazingFeature`)
-5. Apri una Pull Request
+- ✅ Configurazione ottimizzata (`mysql-production.cnf`)
+- ✅ UTF8MB4 per Unicode completo
+- ✅ Binary logging per backup incrementali
+- ✅ Slow query log per ottimizzazione
+- ✅ Performance tuning applicato
 
-## 📄 Licenza
+**Vedi [docs/MYSQL.md](docs/MYSQL.md) per dettagli.**
 
-Questo progetto è sotto licenza MIT. Vedi il file `LICENSE` per maggiori dettagli.
+---
+
+## 🔄 Backup
+
+### Backup Automatico
+
+- ✅ Eseguito ogni giorno alle 2:00
+- ✅ Salvato in `/var/backups/mynutriapp/`
+- ✅ Compresso (.gz)
+- ✅ Mantiene ultimi 7 giorni
+
+### Backup Manuale
+
+```bash
+./scripts/backup.sh
+# oppure
+/usr/local/bin/mynutriapp-backup
+```
+
+### Gestione Backup
+
+```bash
+./scripts/manage-backup.sh
+```
+
+---
+
+## 🆘 Troubleshooting
+
+### Container non si avvia
+```bash
+docker-compose logs [nome-container]
+docker-compose ps
+```
+
+### Database non accessibile
+```bash
+docker-compose exec db mysql -u root -p
+docker-compose logs db
+```
+
+### Problemi con .env
+```bash
+# Verifica che .env esista
+ls -la .env
+
+# Verifica variabili essenziali
+grep -E "SECRET_KEY|MYSQL_ROOT_PASSWORD|MYSQL_PASSWORD" .env
+```
+
+---
+
+## 📁 Struttura Progetto
+
+```
+mynutriapp/
+├── app/                    # Applicazione Flask
+│   ├── models/            # Modelli database
+│   ├── routes/            # Route applicazione
+│   ├── config/            # Configurazioni
+│   └── services/          # Servizi (WhatsApp, etc.)
+├── scripts/               # Script di gestione
+│   ├── backup.sh         # Backup database
+│   ├── manage.sh         # Menu interattivo
+│   ├── monitoring.sh      # Monitoring sistema
+│   ├── security.sh       # Hardening sicurezza
+│   ├── update.sh         # Aggiornamenti
+│   └── ...               # Altri script
+├── docs/                  # Documentazione completa
+│   ├── DEPLOY.md         # Guida deploy
+│   ├── MYSQL.md          # Config MySQL
+│   ├── SCRIPTS.md        # Documentazione script
+│   └── FLUSSO.md         # Dettagli tecnici
+├── templates/             # Template HTML
+├── static/                # File statici (CSS, JS, immagini)
+├── deploy.sh              # Script deploy principale (root)
+├── docker-compose.yml     # Configurazione Docker
+├── Dockerfile             # Immagine Docker Flask
+├── init.sql               # Inizializzazione database
+├── mysql-production.cnf   # Config MySQL produzione
+├── nginx.conf             # Config Nginx
+├── nginx-rate-limit.conf  # Rate limiting Nginx
+└── README.md              # Questo file
+```
+
+---
+
+## ✅ Checklist Deploy
+
+- [ ] VPS accessibile via SSH
+- [ ] Repository clonato
+- [ ] File `.env` configurato
+- [ ] `deploy.sh` eseguito con successo
+- [ ] Tutti i container sono "Up" e MySQL è "(healthy)"
+- [ ] Applicazione accessibile su `http://your-vps-ip`
+- [ ] Backup automatico configurato
+
+---
+
+## 📞 Supporto
+
+Per problemi:
+1. Controlla i log: `docker-compose logs`
+2. Verifica stato: `docker-compose ps`
+3. Consulta documentazione in `docs/`
+
+---
 
 ## 👨‍💻 Autore
 
 **Roberto Libanora**
 - GitHub: [@robertolibanora](https://github.com/robertolibanora)
-
-## 📞 Supporto
-
-Per supporto o domande, contatta:
-- Email: [inserire email]
-- WhatsApp: [inserire numero]
 
 ---
 

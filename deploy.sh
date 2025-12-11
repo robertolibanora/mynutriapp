@@ -81,11 +81,23 @@ if [ ! -f ".env" ]; then
     exit 1
 fi
 
+# Carica variabili d'ambiente da .env per uso nello script
+if [ -f ".env" ]; then
+    set -a
+    source .env
+    set +a
+fi
+
 # Crea directory necessarie
 print_status "Creazione directory necessarie..."
 mkdir -p static/uploads
 mkdir -p logs
 mkdir -p logs/nginx  # Per i log di Nginx containerizzato
+# Directory per Certbot (SSL containerizzato)
+mkdir -p certbot/conf
+mkdir -p certbot/www
+mkdir -p certbot/logs
+chmod -R 755 certbot
 print_success "Directory create!"
 
 # Ferma i container esistenti
@@ -110,14 +122,34 @@ sleep 10
 print_status "Controllo stato container..."
 docker-compose ps
 
-# Testa la connessione al database
-print_status "Test connessione database..."
-sleep 5
-docker-compose exec -T db mysqladmin ping -h localhost -u root -p${MYSQL_ROOT_PASSWORD:-root_password_super_sicura_123!} || print_warning "Database non ancora pronto"
+# Attendi che MySQL sia completamente pronto (healthcheck passa)
+print_status "Attesa MySQL completamente pronto..."
+MAX_WAIT=60
+WAITED=0
+while [ $WAITED -lt $MAX_WAIT ]; do
+    if docker-compose exec -T db mysqladmin ping -h localhost -u root -p${MYSQL_ROOT_PASSWORD} >/dev/null 2>&1; then
+        if docker-compose exec -T db mysql -h localhost -u root -p${MYSQL_ROOT_PASSWORD} -e "USE mynutriapp; SELECT 1;" >/dev/null 2>&1; then
+            print_success "MySQL pronto e database accessibile!"
+            break
+        fi
+    fi
+    sleep 2
+    WAITED=$((WAITED + 2))
+    echo -n "."
+done
+echo ""
+
+if [ $WAITED -ge $MAX_WAIT ]; then
+    print_warning "MySQL potrebbe non essere ancora pronto, ma continuo..."
+fi
 
 # Testa Redis
 print_status "Test connessione Redis..."
-docker-compose exec -T redis redis-cli ping || print_warning "Redis non ancora pronto"
+if docker-compose exec -T redis redis-cli ping >/dev/null 2>&1; then
+    print_success "Redis pronto!"
+else
+    print_warning "Redis non ancora pronto (continuerà in background)"
+fi
 
 # ========================================
 # 🌐 NGINX (Containerizzato)
@@ -208,7 +240,7 @@ sudo mkdir -p /var/backups/mynutriapp
 sudo chown -R $USER:$USER /var/backups/mynutriapp
 
 # Copia script backup
-sudo cp backup.sh /usr/local/bin/mynutriapp-backup
+sudo cp scripts/backup.sh /usr/local/bin/mynutriapp-backup
 sudo chmod +x /usr/local/bin/mynutriapp-backup
 
 # Configura cron per backup giornaliero alle 2:00

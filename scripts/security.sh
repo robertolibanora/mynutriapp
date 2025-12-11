@@ -34,6 +34,10 @@ print_error() {
 # 🔐 HARDENING SISTEMA
 # ========================================
 
+# Vai alla root del progetto
+PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$PROJECT_ROOT"
+
 update_system() {
     print_status "Aggiornamento sistema per sicurezza..."
     sudo apt update && sudo apt upgrade -y
@@ -104,37 +108,20 @@ EOF
 }
 
 configure_ssl_hardening() {
-    print_status "Configurazione SSL avanzata..."
+    print_status "Configurazione SSL avanzata per Nginx containerizzato..."
     
-    # Backup configurazione Nginx
-    sudo cp /etc/nginx/sites-available/mynutriapp /etc/nginx/sites-available/mynutriapp.backup
+    print_warning "Nginx è containerizzato, la configurazione SSL deve essere aggiunta a nginx.conf"
+    print_status "I security headers sono già configurati in nginx.conf"
+    print_status "Per SSL completo, configura i certificati e aggiungi blocco server per porta 443"
     
-    # Aggiorna configurazione SSL
-    sudo tee -a /etc/nginx/sites-available/mynutriapp > /dev/null << 'EOF'
-
-    # SSL Security Headers
-    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
-    add_header X-Frame-Options DENY always;
-    add_header X-Content-Type-Options nosniff always;
-    add_header X-XSS-Protection "1; mode=block" always;
-    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
-    add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self';" always;
+    # Verifica configurazione attuale
+    if docker-compose exec -T nginx nginx -t >/dev/null 2>&1; then
+        print_success "Configurazione Nginx containerizzato: OK"
+    else
+        print_error "Configurazione Nginx containerizzato: ERRORE!"
+    fi
     
-    # SSL Configuration
-    ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_ciphers ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA384;
-    ssl_prefer_server_ciphers off;
-    ssl_session_cache shared:SSL:10m;
-    ssl_session_timeout 10m;
-    ssl_session_tickets off;
-    ssl_stapling on;
-    ssl_stapling_verify on;
-EOF
-
-    # Test e ricarica Nginx
-    sudo nginx -t && sudo systemctl reload nginx
-    
-    print_success "SSL hardening configurato"
+    print_status "Per SSL completo, consulta la documentazione su SSL con Nginx containerizzato"
 }
 
 configure_docker_security() {

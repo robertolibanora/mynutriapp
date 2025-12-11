@@ -44,6 +44,14 @@ FULL_BACKUP_PATH="${BACKUP_DIR}/${BACKUP_FILE}"
 # Configurazione database
 DB_NAME="mynutriapp"
 DB_USER="root"
+
+# Carica variabili d'ambiente se disponibili
+if [ -f "$PROJECT_ROOT/.env" ]; then
+    set -a
+    source "$PROJECT_ROOT/.env"
+    set +a
+fi
+
 DB_PASSWORD="${MYSQL_ROOT_PASSWORD:-root_password_super_sicura_123!}"
 
 # ========================================
@@ -56,6 +64,10 @@ print_status "Avvio backup database MyNutriAPP..."
 mkdir -p "$BACKUP_DIR"
 
 # Controlla se i container sono attivi
+# Usa la directory del progetto (parent di scripts/)
+PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$PROJECT_ROOT"
+
 if ! docker-compose ps | grep -q "mynutriapp_db.*Up"; then
     print_error "Container database non attivo!"
     print_status "Tentativo di avvio container..."

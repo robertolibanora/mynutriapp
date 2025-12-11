@@ -143,6 +143,10 @@ notify_ssl_expiring() {
 # 🔍 MONITORING E NOTIFICHE
 # ========================================
 
+# Vai alla root del progetto
+PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$PROJECT_ROOT"
+
 check_system_health() {
     print_status "Controllo salute sistema..."
     

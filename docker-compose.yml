@@ -47,6 +47,9 @@ services:
       - ./nginx-rate-limit.conf:/etc/nginx/conf.d/rate-limit.conf:ro
       - ./static:/usr/share/nginx/html/static:ro
       - ./logs/nginx:/var/log/nginx
+      # Monta certificati SSL (solo lettura)
+      - ./certbot/conf:/etc/letsencrypt:ro
+      - ./certbot/www:/var/www/certbot:ro
     depends_on:
       - web
     restart: unless-stopped
@@ -64,16 +67,26 @@ services:
       - MYSQL_DATABASE=mynutriapp
       - MYSQL_USER=mynutriapp
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      # Ottimizzazioni MySQL per produzione
+      - MYSQL_INNODB_BUFFER_POOL_SIZE=${MYSQL_INNODB_BUFFER_POOL_SIZE:-1G}
+      - MYSQL_MAX_CONNECTIONS=${MYSQL_MAX_CONNECTIONS:-200}
     volumes:
       - mysql_data:/var/lib/mysql
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./mysql-production.cnf:/etc/mysql/conf.d/production.cnf:ro
     ports:
       - "3306:3306"
     restart: unless-stopped
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
-      timeout: 20s
-      retries: 10
+      # Verifica che MySQL sia pronto e che il database sia accessibile
+      # MySQL esegue init.sql automaticamente al primo avvio (quando il volume è vuoto)
+      # start_period di 30s dà tempo a MySQL di eseguire init.sql completamente
+      test: ["CMD", "bash", "-c", "mysqladmin ping -h localhost -u root -p$${MYSQL_ROOT_PASSWORD} > /dev/null 2>&1 && mysql -h localhost -u root -p$${MYSQL_ROOT_PASSWORD} -e 'USE mynutriapp; SELECT 1;' > /dev/null 2>&1"]
+      interval: 5s
+      timeout: 10s
+      retries: 30
+      start_period: 30s
     networks:
       - mynutriapp_network
 
@@ -110,6 +123,22 @@ services:
     restart: unless-stopped
     networks:
       - mynutriapp_network
+
+  # ========================================
+  # 🔐 CERTBOT (SSL Certificates - Containerizzato)
+  # ========================================
+  certbot:
+    image: certbot/certbot:latest
+    container_name: mynutriapp_certbot
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+      - ./certbot/logs:/var/log/letsencrypt
+    networks:
+      - mynutriapp_network
+    # Entrypoint per rinnovo automatico (esegue ogni 12 ore)
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --webroot --webroot-path=/var/www/certbot --quiet; sleep 12h & wait $${!}; done;'"
+    restart: unless-stopped
 
 # ========================================
 # 💾 VOLUMI PERSISTENTI

@@ -124,6 +124,32 @@ def ratelimit_handler(e):
 
 
 # ===========================================
+# 🗄️ COMANDO CLI: init-db
+# Crea tutte le tabelle del database (backup se init.sql non funziona)
+# ===========================================
+@app.cli.command('init-db')
+def init_db_command():
+    """Crea tutte le tabelle del database."""
+    try:
+        # Importa tutti i modelli per assicurarsi che siano registrati
+        from app.models.models import (
+            Patient, Dieta, Allenamento, Progresso, 
+            MisureAntropometriche, ComposizioneCorporea,
+            Documento, Appuntamento, Listino, Vendita, SlotDisponibilita
+        )
+        
+        # Crea tutte le tabelle
+        db.create_all()
+        print("✅ Database inizializzato con successo!")
+        print("📋 Tabelle create:")
+        for table in db.metadata.tables.keys():
+            print(f"   - {table}")
+    except Exception as e:
+        print(f"❌ Errore durante l'inizializzazione del database: {e}")
+        raise
+
+
+# ===========================================
 # 🚀 AVVIO DELL'APPLICAZIONE
 # ===========================================
 if __name__ == "__main__":

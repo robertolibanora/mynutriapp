@@ -88,6 +88,10 @@ show_menu() {
 # 🐳 FUNZIONI DOCKER
 # ========================================
 
+# Vai alla root del progetto
+PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$PROJECT_ROOT"
+
 start_services() {
     print_status "Avvio servizi MyNutriAPP..."
     docker-compose up -d
@@ -121,7 +125,7 @@ show_logs() {
 # ========================================
 
 manage_backup() {
-    ./manage-backup.sh
+    "$(dirname "$0")/manage-backup.sh"
 }
 
 manual_backup() {
@@ -131,7 +135,7 @@ manual_backup() {
 
 restore_backup() {
     print_status "Ripristino backup..."
-    ./manage-backup.sh
+    "$(dirname "$0")/manage-backup.sh"
 }
 
 access_database() {
@@ -156,17 +160,17 @@ show_dashboard() {
 
 check_security() {
     print_status "Controllo sicurezza..."
-    ./security.sh
+    "$(dirname "$0")/security.sh"
 }
 
 test_notifications() {
     print_status "Test notifiche..."
-    ./notifications.sh test
+    "$(dirname "$0")/notifications.sh" test
 }
 
 show_system_stats() {
     print_status "Statistiche sistema..."
-    ./monitoring.sh
+    "$(dirname "$0")/monitoring.sh"
 }
 
 # ========================================
@@ -175,17 +179,17 @@ show_system_stats() {
 
 update_app() {
     print_status "Aggiornamento applicazione..."
-    ./update.sh app
+    "$(dirname "$0")/update.sh" app
 }
 
 update_system() {
     print_status "Aggiornamento sistema..."
-    ./update.sh system
+    "$(dirname "$0")/update.sh" system
 }
 
 cleanup_system() {
     print_status "Pulizia sistema..."
-    ./update.sh cleanup
+    "$(dirname "$0")/update.sh" cleanup
 }
 
 # ========================================
@@ -193,22 +197,25 @@ cleanup_system() {
 # ========================================
 
 restart_nginx() {
-    print_status "Riavvio Nginx..."
-    sudo systemctl restart nginx
+    print_status "Riavvio Nginx (container)..."
+    docker-compose restart nginx
     print_success "Nginx riavviato!"
 }
 
 test_nginx() {
-    print_status "Test configurazione Nginx..."
-    sudo nginx -t
-    print_success "Configurazione Nginx OK!"
+    print_status "Test configurazione Nginx (container)..."
+    if docker-compose exec -T nginx nginx -t; then
+        print_success "Configurazione Nginx OK!"
+    else
+        print_error "Configurazione Nginx con errori!"
+    fi
 }
 
 renew_ssl() {
     print_status "Rinnovo certificato SSL..."
-    sudo certbot renew
-    sudo systemctl reload nginx
-    print_success "Certificato SSL rinnovato!"
+    print_warning "Per SSL con Nginx containerizzato, usa certbot-container o monta i certificati"
+    print_status "Consulta: https://hub.docker.com/r/certbot/certbot"
+    print_warning "SSL renewal non automatizzato con Nginx containerizzato"
 }
 
 # ========================================
@@ -216,17 +223,19 @@ renew_ssl() {
 # ========================================
 
 show_all_logs() {
-    print_status "Tutti i log del sistema:"
+    print_status "Tutti i log del sistema (containerizzati):"
     echo ""
-    echo "=== DOCKER LOGS ==="
+    echo "=== DOCKER LOGS (Ultimi 50) ==="
     docker-compose logs --tail=50
     echo ""
-    echo "=== NGINX LOGS ==="
-    sudo tail -20 /var/log/nginx/access.log
-    sudo tail -20 /var/log/nginx/error.log
+    echo "=== NGINX LOGS (Container) ==="
+    docker-compose logs --tail=20 nginx
     echo ""
-    echo "=== SYSTEM LOGS ==="
-    sudo journalctl --no-pager -n 20
+    echo "=== WEB LOGS (Container) ==="
+    docker-compose logs --tail=20 web
+    echo ""
+    echo "=== DATABASE LOGS (Container) ==="
+    docker-compose logs --tail=20 db
 }
 
 show_disk_space() {
@@ -238,8 +247,11 @@ show_disk_space() {
 }
 
 show_processes() {
-    print_status "Processi attivi:"
-    ps aux | grep -E "(docker|nginx|mysql|redis)" | grep -v grep
+    print_status "Container Docker attivi:"
+    docker-compose ps
+    echo ""
+    print_status "Processi Docker sul sistema:"
+    docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 }
 
 configure_notifications() {

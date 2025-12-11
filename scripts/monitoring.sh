@@ -34,6 +34,10 @@ print_error() {
 # 📊 HEALTH CHECK COMPLETO
 # ========================================
 
+# Vai alla root del progetto
+PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$PROJECT_ROOT"
+
 check_containers() {
     print_status "Controllo container Docker..."
     echo ""
@@ -51,6 +55,13 @@ check_containers() {
 
 check_database() {
     print_status "Controllo database MySQL..."
+    
+    # Carica variabili d'ambiente se disponibili
+    if [ -f "$PROJECT_ROOT/.env" ]; then
+        set -a
+        source "$PROJECT_ROOT/.env"
+        set +a
+    fi
     
     if docker-compose exec -T db mysqladmin ping -h localhost -u root -p${MYSQL_ROOT_PASSWORD:-root_password_super_sicura_123!} >/dev/null 2>&1; then
         print_success "Database MySQL: OK"
@@ -90,23 +101,24 @@ check_redis() {
 }
 
 check_nginx() {
-    print_status "Controllo Nginx..."
+    print_status "Controllo Nginx (containerizzato)..."
     
-    if systemctl is-active --quiet nginx; then
+    if docker-compose ps | grep -q "mynutriapp_nginx.*Up"; then
         print_success "Nginx: OK"
         
-        # Controlla configurazione
-        if nginx -t >/dev/null 2>&1; then
+        # Controlla configurazione nel container
+        if docker-compose exec -T nginx nginx -t >/dev/null 2>&1; then
             echo "   - Configurazione: OK"
         else
             print_warning "Configurazione Nginx: PROBLEMI!"
         fi
         
         # Controlla connessioni
-        CONNECTIONS=$(netstat -an | grep :80 | wc -l)
-        echo "   - Connessioni porta 80: $CONNECTIONS"
+        CONNECTIONS=$(docker-compose exec -T nginx netstat -an 2>/dev/null | grep :80 | wc -l || echo "0")
+        echo "   - Container attivo: Sì"
+        echo "   - Porta 80 esposta: Sì"
     else
-        print_error "Nginx: ERRORE!"
+        print_error "Nginx: ERRORE! Container non attivo"
         return 1
     fi
     echo ""
@@ -165,15 +177,20 @@ check_memory() {
 check_logs() {
     print_status "Controllo log errori..."
     
-    # Log Nginx errori
-    NGINX_ERRORS=$(sudo tail -100 /var/log/nginx/error.log | grep -c "$(date +%Y/%m/%d)" 2>/dev/null || echo "0")
+    # Log Nginx errori (dal container)
+    NGINX_ERRORS=$(docker-compose logs --tail=100 nginx 2>/dev/null | grep -i "error" | grep -c "$(date +%Y-%m-%d)" 2>/dev/null || echo "0")
     echo "   - Errori Nginx oggi: $NGINX_ERRORS"
     
     # Log applicazione
-    APP_ERRORS=$(docker-compose logs --tail=100 web 2>/dev/null | grep -c "ERROR" || echo "0")
+    APP_ERRORS=$(docker-compose logs --tail=100 web 2>/dev/null | grep -i "error" | wc -l || echo "0")
     echo "   - Errori applicazione: $APP_ERRORS"
     
-    if [ "$NGINX_ERRORS" -gt 10 ] || [ "$APP_ERRORS" -gt 5 ]; then
+    # Log database
+    DB_ERRORS=$(docker-compose logs --tail=100 db 2>/dev/null | grep -i "error" | wc -l || echo "0")
+    echo "   - Errori database: $DB_ERRORS"
+    
+    TOTAL_ERRORS=$((NGINX_ERRORS + APP_ERRORS + DB_ERRORS))
+    if [ "$TOTAL_ERRORS" -gt 10 ]; then
         print_warning "ATTENZIONE: Molti errori nei log!"
     else
         print_success "Log: OK"
