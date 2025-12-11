@@ -14,11 +14,9 @@
 :80 {
     # Reverse proxy a Flask app (localhost:8000 perché Caddy è sul sistema host)
     reverse_proxy localhost:8000 {
-        # Headers
+        # Headers (Caddy passa automaticamente gli header, manteniamo solo quelli necessari)
         header_up Host {host}
         header_up X-Real-IP {remote}
-        header_up X-Forwarded-For {remote_host}
-        header_up X-Forwarded-Proto {scheme}
         
         # Timeouts
         transport http {
@@ -36,7 +34,9 @@
     }
     
     # File upload size
-    request_body_max_size 10MB
+    request_body {
+        max_size 10MB
+    }
     
     # Security headers
     header {
