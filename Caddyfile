@@ -12,8 +12,8 @@
 # Per sviluppo/test senza dominio (solo HTTP)
 # Sostituisci {DOMAIN} con :80 per HTTP o con il tuo dominio per HTTPS automatico
 :80 {
-    # Reverse proxy a Flask app
-    reverse_proxy web:8000 {
+    # Reverse proxy a Flask app (localhost:8000 perché Caddy è sul sistema host)
+    reverse_proxy localhost:8000 {
         # Headers
         header_up Host {host}
         header_up X-Real-IP {remote}
@@ -28,8 +28,9 @@
     }
     
     # Static files (serviti direttamente da Caddy)
+    # Modifica il path con il percorso assoluto della directory static sul VPS
     handle /static/* {
-        root * /usr/share/caddy/static
+        root * /var/www/mynutriapp/static
         file_server
         header Cache-Control "public, max-age=31536000, immutable"
     }

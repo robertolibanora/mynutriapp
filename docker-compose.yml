@@ -10,9 +10,9 @@ services:
   web:
     build: .
     container_name: mynutriapp_web
-    # Porta NON esposta direttamente, solo tramite Caddy
-    expose:
-      - "8000"
+    # Porta esposta per Caddy del sistema host
+    ports:
+      - "127.0.0.1:8000:8000"
     environment:
       - FLASK_ENV=production
       - DATABASE_URL=mysql+pymysql://mynutriapp:${MYSQL_PASSWORD:-N0ira2026!}@db:3306/mynutriapp?charset=utf8mb4
@@ -35,24 +35,9 @@ services:
   # ========================================
   # 🌐 CADDY (Reverse Proxy & SSL Automatico)
   # ========================================
-  caddy:
-    image: caddy:2-alpine
-    container_name: mynutriapp_caddy
-    ports:
-      - "80:80"
-      - "443:443"
-      - "443:443/udp"  # Per HTTP/3
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - ./static:/usr/share/caddy/static:ro
-      - caddy_data:/data
-      - caddy_config:/config
-      - ./logs/caddy:/var/log/caddy
-    depends_on:
-      - web
-    restart: unless-stopped
-    networks:
-      - mynutriapp_network
+  # NOTA: Caddy è installato sul sistema host, non come container
+  # Il Caddyfile del sistema deve essere configurato per fare reverse proxy a web:8000
+  # Vedi Caddyfile per configurazione esempio
 
   # ========================================
   # 🗄️ DATABASE MYSQL
@@ -131,10 +116,6 @@ volumes:
   mysql_data:
     driver: local
   redis_data:
-    driver: local
-  caddy_data:
-    driver: local
-  caddy_config:
     driver: local
 
 # ========================================
