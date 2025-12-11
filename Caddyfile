@@ -11,7 +11,7 @@
 
 # Per sviluppo/test senza dominio (solo HTTP)
 # Sostituisci {DOMAIN} con :80 per HTTP o con il tuo dominio per HTTPS automatico
-MyNutriAPP.cloud {
+mynutriapp.cloud {
     # Reverse proxy a Flask app (localhost:8000 perché Caddy è sul sistema host)
     reverse_proxy localhost:8000 {
         # Headers (Caddy passa automaticamente gli header standard)
