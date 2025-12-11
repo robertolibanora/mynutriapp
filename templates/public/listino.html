@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Listino Prezzi - MyNutriApp</title>
+  
+  <!-- 📱 PWA META TAGS -->
+  <meta name="description" content="Listino prezzi MyNutriApp - Piani nutrizionali e di allenamento personalizzati">
+  <meta name="theme-color" content="#ff751f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+  
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style_user.css') }}">
+  
+  <style>
+    body {
+      background: linear-gradient(135deg, #0d331c 0%, #1a5c2e 50%, #0d331c 100%);
+      background-size: 200% 200%;
+      animation: gradientShift 15s ease infinite;
+      color: #ffffff;
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    header {
+      background: rgba(13, 51, 28, 0.9);
+      border-bottom: 1px solid rgba(255, 117, 31, 0.2);
+      padding: 1rem;
+      backdrop-filter: blur(10px);
+    }
+
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #ff751f;
+      text-decoration: none;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+
+    h1 {
+      color: #ff751f;
+      font-size: 2rem;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    .section-title {
+      color: #ff751f;
+      font-size: 1.5rem;
+      margin: 2rem 0 1rem 0;
+      font-weight: 600;
+    }
+
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 117, 31, 0.3), transparent);
+      margin: 2rem 0;
+    }
+
+    .card-user {
+      background: rgba(13, 51, 28, 0.6);
+      border: 1px solid rgba(182, 177, 169, 0.2);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .card-user:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+      border-color: rgba(255, 117, 31, 0.4);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .card-icon {
+      font-size: 1.5rem;
+      margin-right: 0.5rem;
+    }
+
+    .card-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    .card-badge {
+      padding: 0.25rem 0.75rem;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .card-info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid rgba(182, 177, 169, 0.1);
+    }
+
+    .card-label {
+      color: #b6b1a9;
+      font-size: 0.9rem;
+    }
+
+    .card-value {
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 1.5rem;
+      }
+      
+      .section-title {
+        font-size: 1.2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <a href="/" class="logo">MyNutriApp</a>
+      <a href="{{ url_for('presentazione_roberto') }}" style="color: #b6b1a9; text-decoration: none; font-size: 0.9rem;">Chi Sono</a>
+    </div>
+  </header>
+
+  <div class="container">
+    <h1>💰 Listino Prezzi</h1>
+
+    <!-- PIANO NUTRIZIONALE -->
+    {% if nutrizione %}
+    <h2 class="section-title">🥗 Piano Nutrizionale</h2>
+    {% for p in nutrizione %}
+    <div class="card-user">
+      <div class="card-header">
+        <div style="display: flex; align-items: center;">
+          <span class="card-icon">🥗</span>
+          <span class="card-title">{{ p.nome_prodotto }}</span>
+        </div>
+        {% if 'PIÙ SCELTO' in p.nome_prodotto.upper() or 'IL PIU' in p.nome_prodotto.upper() %}
+        <span class="card-badge" style="background: #ff751f; color: white;">⭐ PIÙ SCELTO</span>
+        {% endif %}
+      </div>
+      
+      <div class="card-body">
+        <div class="card-info-row">
+          <span class="card-label">Durata</span>
+          <span class="card-value">{{ p.durata_mesi }} {% if p.durata_mesi == 1 %}mese{% else %}mesi{% endif %}</span>
+        </div>
+        
+        {% if p.check_inclusi > 0 %}
+        <div class="card-info-row">
+          <span class="card-label">Check Inclusi</span>
+          <span class="card-value">{{ p.check_inclusi }} check</span>
+        </div>
+        {% endif %}
+        
+        {% if p.note %}
+        <div class="card-info-row">
+          <span class="card-label">Dettagli</span>
+          <span class="card-value">{{ p.note }}</span>
+        </div>
+        {% endif %}
+        
+        <div style="text-align: center; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(182, 177, 169, 0.2);">
+          <span style="font-size: 2rem; font-weight: 700; color: #ff751f;">{{ "%.0f"|format(p.prezzo) }}€</span>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <!-- PIANO DI ALLENAMENTO -->
+    {% if allenamento %}
+    <div class="divider"></div>
+    <h2 class="section-title">🏋️ Piano di Allenamento</h2>
+    {% for p in allenamento %}
+    <div class="card-user">
+      <div class="card-header">
+        <div style="display: flex; align-items: center;">
+          <span class="card-icon">💪</span>
+          <span class="card-title">{{ p.nome_prodotto }}</span>
+        </div>
+        {% if 'PIÙ SCELTO' in p.nome_prodotto.upper() or 'IL PIU' in p.nome_prodotto.upper() %}
+        <span class="card-badge" style="background: #ff751f; color: white;">⭐ PIÙ SCELTO</span>
+        {% endif %}
+      </div>
+      
+      <div class="card-body">
+        <div class="card-info-row">
+          <span class="card-label">Durata</span>
+          <span class="card-value">{{ p.durata_mesi }} {% if p.durata_mesi == 1 %}mese{% else %}mesi{% endif %}</span>
+        </div>
+        
+        {% if p.check_inclusi > 0 %}
+        <div class="card-info-row">
+          <span class="card-label">Check Inclusi</span>
+          <span class="card-value">{{ p.check_inclusi }} check</span>
+        </div>
+        {% endif %}
+        
+        {% if p.note %}
+        <div class="card-info-row">
+          <span class="card-label">Dettagli</span>
+          <span class="card-value">{{ p.note }}</span>
+        </div>
+        {% endif %}
+        
+        <div style="text-align: center; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(182, 177, 169, 0.2);">
+          <span style="font-size: 2rem; font-weight: 700; color: #ff751f;">{{ "%.0f"|format(p.prezzo) }}€</span>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <!-- PIANO COMPLETO -->
+    {% if completo %}
+    <div class="divider"></div>
+    <h2 class="section-title">🌟 Piano Completo</h2>
+    {% for p in completo %}
+    <div class="card-user" style="border: 2px solid #ff751f;">
+      <div class="card-header">
+        <div style="display: flex; align-items: center;">
+          <span class="card-icon">🌟</span>
+          <span class="card-title">{{ p.nome_prodotto }}</span>
+        </div>
+        {% if 'PIÙ SCELTO' in p.nome_prodotto.upper() or 'IL PIU' in p.nome_prodotto.upper() %}
+        <span class="card-badge" style="background: #ff751f; color: white;">⭐ PIÙ SCELTO</span>
+        {% endif %}
+      </div>
+      
+      <div class="card-body">
+        <div class="card-info-row">
+          <span class="card-label">Durata</span>
+          <span class="card-value">{{ p.durata_mesi }} {% if p.durata_mesi == 1 %}mese{% else %}mesi{% endif %}</span>
+        </div>
+        
+        {% if p.check_inclusi > 0 %}
+        <div class="card-info-row">
+          <span class="card-label">Check Inclusi</span>
+          <span class="card-value">{{ p.check_inclusi }} check</span>
+        </div>
+        {% endif %}
+        
+        {% if p.note %}
+        <div class="card-info-row">
+          <span class="card-label">Dettagli</span>
+          <span class="card-value">{{ p.note }}</span>
+        </div>
+        {% endif %}
+        
+        <div style="text-align: center; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(182, 177, 169, 0.2);">
+          <span style="font-size: 2rem; font-weight: 700; color: #ff751f;">{{ "%.0f"|format(p.prezzo) }}€</span>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <!-- ALLENAMENTO 1 TO 1 -->
+    {% if uno_a_uno %}
+    <div class="divider"></div>
+    <h2 class="section-title">💪 Allenamento 1 to 1</h2>
+    {% for p in uno_a_uno %}
+    <div class="card-user">
+      <div class="card-header">
+        <div style="display: flex; align-items: center;">
+          <span class="card-icon">💪</span>
+          <span class="card-title">{{ p.nome_prodotto }}</span>
+        </div>
+        {% if 'PIÙ SCELTO' in p.nome_prodotto.upper() or 'IL PIU' in p.nome_prodotto.upper() %}
+        <span class="card-badge" style="background: #ff751f; color: white;">⭐ PIÙ SCELTO</span>
+        {% endif %}
+      </div>
+      
+      <div class="card-body">
+        <div class="card-info-row">
+          <span class="card-label">Numero Allenamenti</span>
+          <span class="card-value">{{ p.durata_mesi }} {% if p.durata_mesi == 1 %}allenamento{% else %}allenamenti{% endif %}</span>
+        </div>
+        
+        {% if p.note %}
+        <div class="card-info-row">
+          <span class="card-label">Dettagli</span>
+          <span class="card-value">{{ p.note }}</span>
+        </div>
+        {% endif %}
+        
+        <div style="text-align: center; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(182, 177, 169, 0.2);">
+          <span style="font-size: 2rem; font-weight: 700; color: #ff751f;">{{ "%.0f"|format(p.prezzo) }}€</span>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <!-- SERVIZI INCLUSI -->
+    <div class="card-user" style="margin-top: 2rem; background: rgba(255, 117, 31, 0.1);">
+      <div class="card-body">
+        <p class="card-label" style="margin-bottom: 0.75rem; font-size: 1rem; color: #ff751f;">✨ Tutti i piani includono:</p>
+        <div style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.9rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span>💬</span>
+            <span>Follow up via WhatsApp</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span>🎯</span>
+            <span>Supporto e motivazione continua</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span>📹</span>
+            <span>Possibilità di video-call di aggiornamento</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top: 2rem; text-align: center;">
+      <p style="color: #b6b1a9; font-size: 0.9rem;">
+        Per maggiori informazioni o per scegliere il piano più adatto a te,<br>
+        contatta il tuo nutrizionista!
+      </p>
+    </div>
+
+    <!-- LINK PRESENTAZIONE ROBERTO -->
+    <div style="text-align: center; margin: 2rem 0;">
+      <span style="color: #b6b1a9; font-size: 0.9rem;">
+        Powered by <a href="{{ url_for('presentazione_roberto') }}" style="color: #ff751f; text-decoration: none;">Roberto Libanora</a>
+      </span>
+    </div>
+  </div>
+</body>
+</html>
