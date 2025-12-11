@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chi Sono - Roberto Libanora</title>
+  
+  <!-- 📱 PWA META TAGS -->
+  <meta name="description" content="Roberto Libanora - Nutrizionista & Personal Trainer. Programmi personalizzati per raggiungere i tuoi obiettivi di salute e forma fisica.">
+  <meta name="theme-color" content="#ff751f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="MyNutriApp">
+  <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+  
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: linear-gradient(135deg, #0d331c 0%, #1a5c2e 50%, #0d331c 100%);
+      background-size: 200% 200%;
+      animation: gradientShift 15s ease infinite;
+      color: #ffffff;
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 0;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    header {
+      background: rgba(13, 51, 28, 0.9);
+      border-bottom: 1px solid rgba(255, 117, 31, 0.2);
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      backdrop-filter: blur(10px);
+    }
+
+    .logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem;
+      color: #ffffff;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .logo span {
+      color: #ff751f;
+      font-weight: 600;
+    }
+
+    .btn-back {
+      background: linear-gradient(135deg, rgba(255, 117, 31, 0.15) 0%, rgba(255, 149, 0, 0.15) 100%);
+      color: #ff751f;
+      padding: 0.8rem 1.4rem;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      border: 1px solid rgba(255, 117, 31, 0.3);
+      font-size: 0.9rem;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    .btn-back:hover {
+      background: linear-gradient(135deg, rgba(255, 117, 31, 0.25) 0%, rgba(255, 149, 0, 0.25) 100%);
+      border-color: rgba(255, 117, 31, 0.5);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(255, 117, 31, 0.2);
+    }
+
+    main {
+      padding: 1rem;
+      display: flex;
+      justify-content: center;
+    }
+
+    .bio-container {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 117, 31, 0.2);
+      border-radius: 16px;
+      padding: 1.5rem;
+      max-width: 750px;
+      width: 100%;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4), 0 0 30px rgba(255, 117, 31, 0.1);
+    }
+
+    .bio-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .bio-photo {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid rgba(255, 117, 31, 0.3);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    }
+
+    .bio-title {
+      flex: 1;
+    }
+
+    .bio-title h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      background: linear-gradient(45deg, #ff751f, #ff9500, #ff751f);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shimmer 3s linear infinite;
+      margin: 0;
+    }
+
+    @keyframes shimmer {
+      0% { background-position: 0% center; }
+      100% { background-position: 200% center; }
+    }
+
+    .bio-title h2 {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 0.9rem;
+      margin: 0.3rem 0 0 0;
+      font-weight: 500;
+    }
+
+    .bio-text p {
+      font-size: 0.95rem;
+      color: #ffffff;
+      margin-bottom: 1rem;
+      line-height: 1.7;
+    }
+
+    .bio-text p strong {
+      color: #ff751f;
+      font-weight: 600;
+    }
+
+    ul {
+      list-style: none;
+      padding-left: 0;
+      color: rgba(255, 255, 255, 0.85);
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    ul li {
+      margin-bottom: 0.6rem;
+      padding-left: 0.5rem;
+      position: relative;
+    }
+
+    ul li::before {
+      content: '•';
+      color: #ff751f;
+      font-weight: bold;
+      position: absolute;
+      left: 0;
+    }
+
+    .cta-line {
+      text-align: center;
+      margin-top: 2rem;
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+
+    .cta-line a {
+      color: #ff751f;
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.3s ease;
+    }
+
+    .cta-line a:hover {
+      color: #ff9500;
+    }
+
+    footer {
+      text-align: center;
+      border-top: 1px solid rgba(255, 117, 31, 0.2);
+      padding: 1rem;
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.7);
+      background: rgba(13, 51, 28, 0.5);
+    }
+
+    footer span {
+      color: #ff751f;
+      font-weight: 600;
+    }
+
+    @media (min-width: 480px) {
+      .bio-photo {
+        width: 140px;
+        height: 140px;
+      }
+
+      .bio-title h1 {
+        font-size: 1.6rem;
+      }
+
+      .bio-text p {
+        font-size: 1rem;
+      }
+    }
+
+    @media (min-width: 768px) {
+      main {
+        padding: 2rem;
+      }
+
+      .bio-container {
+        padding: 2rem;
+      }
+
+      .bio-header {
+        flex-direction: row;
+        text-align: left;
+        gap: 1.5rem;
+      }
+
+      .bio-photo {
+        width: 160px;
+        height: 160px;
+      }
+
+      .bio-title h1 {
+        font-size: 1.8rem;
+      }
+
+      .bio-title h2 {
+        font-size: 1rem;
+      }
+
+      .bio-text p {
+        font-size: 1rem;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .bio-photo {
+        width: 200px;
+        height: 200px;
+      }
+
+      .bio-title h1 {
+        font-size: 2rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <a href="{{ url_for('presentazione_roberto') }}" class="logo">
+      My<span>Nutri</span>App
+    </a>
+    <div style="display: flex; gap: 1rem; align-items: center;">
+      <a href="{{ url_for('listino.lista_listino_public') }}" class="btn-back" style="font-size: 0.9rem; padding: 0.6rem 1.2rem;">💰 Listino Prezzi</a>
+      <a href="{{ url_for('auth.login') if not session.get('user_id') else (url_for('dashboard.user_dashboard') if session.get('role') == 'user' else url_for('dashboard.admin_dashboard')) }}" class="btn-back">Torna all'App</a>
+    </div>
+  </header>
+
+  <main>
+    <div class="bio-container">
+      <div class="bio-header">
+        <img src="{{ url_for('static', filename='images/foto.png') }}?v=1" alt="Roberto Libanora" class="bio-photo" onerror="this.style.display='none'; console.error('Immagine foto.png non trovata');">
+        <div class="bio-title">
+          <h1>Roberto Libanora</h1>
+          <h2>Nutrizionista & Personal Trainer</h2>
+        </div>
+      </div>
+
+      <div class="bio-text">
+        <p>
+          Mi occupo di progettare e sviluppare <strong>soluzioni digitali su misura</strong> per professionisti e piccole imprese.
+          Il mio obiettivo è creare strumenti chiari, automatizzati e intuitivi che semplifichino la gestione quotidiana del lavoro.
+        </p>
+
+        <p>
+          Unisco competenze in <strong>management e data science</strong> con l'esperienza pratica nello sviluppo web,
+          realizzando applicazioni e dashboard che organizzano informazioni e migliorano i processi.
+        </p>
+
+        <p>
+          Posso realizzare:
+        </p>
+
+        <ul>
+          <li>Web app per gestire clienti, appuntamenti e documenti</li>
+          <li>Sistemi gestionali su misura per attività locali</li>
+          <li>Automazioni per ridurre tempi e passaggi manuali</li>
+          <li>Interfacce responsive ottimizzate per smartphone</li>
+        </ul>
+
+        <p>
+          Credo nella tecnologia come <strong>strumento pratico e umano</strong>: utile solo quando semplifica davvero.
+          Ogni progetto nasce con un'idea chiara — portare ordine e valore attraverso soluzioni digitali concrete.
+        </p>
+      </div>
+      <div class="cta-line">
+        Vuoi semplificare la gestione del tuo lavoro?<br>
+        <br>
+        <a href="mailto:roberto.libanora@sartosrl.com">Scrivimi una mail per parlarne.</a>
+        <br>
+        <a href="https://www.linkedin.com/in/roberto-libanora-71a3a02b8">Scrivimi su LinkedIn per parlarne.</a>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    © 2025 MyNutriApp – Sviluppato da <span>Roberto Libanora</span>
+  </footer>
+</body>
+</html>
