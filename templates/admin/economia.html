@@ -12,14 +12,9 @@
               <span>{{ "%.2f"|format(totale_incassato) }}€</span>
             </div>
     </div>
-    <div style="text-align: right; display: flex; flex-direction: column; gap: 1rem; align-items: flex-end;">
-      <div>
-        <div style="color: #4CAF50; font-size: 1.1rem; font-weight: 700;">{{ "%.0f"|format(totale_incassato) }}€</div>
-        <div style="color: #4CAF50; font-size: 0.9rem; font-weight: 600;">Totale Incassato</div>
-      </div>
-      <a href="{{ url_for('listino.lista_listino_admin') }}" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; padding: 0.6rem 1.2rem;">
-        📋 Gestisci Listino
-      </a>
+    <div style="text-align: right;">
+      <div style="color: #4CAF50; font-size: 1.1rem; font-weight: 700;">{{ "%.0f"|format(totale_incassato) }}€</div>
+      <div style="color: #4CAF50; font-size: 0.9rem; font-weight: 600;">Totale Incassato</div>
     </div>
   </div>
 </div>
@@ -225,9 +220,6 @@
     <div style="display: flex; gap: 0.5rem;">
       <a href="{{ url_for('listino.lista_listino_public') }}" target="_blank" class="btn btn-secondary" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem;">
         👁️ Vedi Listino Pubblico
-      </a>
-      <a href="{{ url_for('listino.lista_listino_admin') }}" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem;">
-        📋 Gestisci Listino
       </a>
       <a href="{{ url_for('listino.nuovo_listino') }}" class="btn btn-white" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem;">
         ➕ Nuovo Prodotto

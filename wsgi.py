@@ -7,6 +7,8 @@ from flask_wtf.csrf import CSRFProtect, generate_csrf
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import os
+import pytz
+from datetime import datetime
 
 # ===========================================
 # ⚙️ CONFIGURAZIONE BASE FLASK + DATABASE
@@ -15,6 +17,9 @@ load_dotenv()
 
 app = Flask(__name__)
 app.config.from_object(Config)
+
+# Configura timezone per l'applicazione
+app.config['TIMEZONE'] = pytz.timezone('Europe/Rome')
 
 # Inizializza SQLAlchemy
 db.init_app(app)
@@ -47,6 +52,25 @@ register_blueprints(app)
 @app.context_processor
 def inject_csrf_token():
     return dict(csrf_token=generate_csrf)
+
+# Rende disponibile timezone-aware datetime in tutte le template
+@app.template_filter('localize')
+def localize_datetime(dt):
+    """Converte un datetime UTC al timezone locale (Europe/Rome)"""
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        # Assume UTC se non specificato
+        dt = pytz.UTC.localize(dt)
+    return dt.astimezone(pytz.timezone('Europe/Rome'))
+
+@app.context_processor
+def inject_timezone():
+    """Inietta funzioni timezone nelle template"""
+    def get_local_time():
+        """Ritorna l'ora locale corrente"""
+        return datetime.now(pytz.timezone('Europe/Rome'))
+    return dict(get_local_time=get_local_time, timezone=pytz.timezone('Europe/Rome'))
 
 # 🚦 Applica rate limiting specifico al login con configurazione dinamica
 # Decora la view function del login dopo la registrazione delle routes
