@@ -1,0 +1,79 @@
+# ========================================
+# 🌐 CONFIGURAZIONE CADDY PER MYNUTRIAPP
+# ========================================
+# Caddy gestisce SSL automaticamente con Let's Encrypt
+# Sostituisci {DOMAIN} con il tuo dominio o usa :80 per HTTP
+
+# Per produzione con dominio (SSL automatico)
+# {DOMAIN} {
+#     reverse_proxy web:8000
+# }
+
+# Per sviluppo/test senza dominio (solo HTTP)
+# Sostituisci {DOMAIN} con :80 per HTTP o con il tuo dominio per HTTPS automatico
+:80 {
+    # Reverse proxy a Flask app
+    reverse_proxy web:8000 {
+        # Headers
+        header_up Host {host}
+        header_up X-Real-IP {remote}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+        
+        # Timeouts
+        transport http {
+            dial_timeout 60s
+            response_header_timeout 60s
+        }
+    }
+    
+    # Static files (serviti direttamente da Caddy)
+    handle /static/* {
+        root * /usr/share/caddy/static
+        file_server
+        header Cache-Control "public, max-age=31536000, immutable"
+    }
+    
+    # File upload size
+    request_body_max_size 10MB
+    
+    # Security headers
+    header {
+        X-Frame-Options "DENY"
+        X-Content-Type-Options "nosniff"
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy "no-referrer-when-downgrade"
+    }
+    
+    # Health check endpoint
+    handle /health {
+        respond "healthy" 200
+    }
+    
+    # Rate limiting per login (opzionale, richiede plugin)
+    # handle /login {
+    #     rate_limit {
+    #         zone login {
+    #             key {remote_host}
+    #             events 5
+    #             window 1m
+    #         }
+    #     }
+    #     reverse_proxy web:8000
+    # }
+}
+
+# ========================================
+# 📝 NOTE:
+# ========================================
+# Per abilitare HTTPS automatico con dominio:
+# 1. Sostituisci :80 con il tuo dominio (es: example.com)
+# 2. Assicurati che il DNS punti al tuo VPS
+# 3. Caddy otterrà automaticamente il certificato SSL
+#
+# Esempio con dominio:
+# example.com {
+#     reverse_proxy web:8000
+#     ...
+# }
+# ========================================

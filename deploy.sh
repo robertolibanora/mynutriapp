@@ -52,21 +52,8 @@ if ! command -v docker-compose &> /dev/null; then
     print_success "Docker Compose installato!"
 fi
 
-# Nginx è ora containerizzato, non serve installarlo lato host
-# (manteniamo Certbot per SSL, ma opzionale)
-if ! command -v certbot &> /dev/null; then
-    print_warning "Certbot non è installato (opzionale per SSL)"
-    echo "Vuoi installare Certbot per configurare SSL? (y/n)"
-    read -p "Risposta: " certbot_choice
-    if [ "$certbot_choice" = "y" ] || [ "$certbot_choice" = "Y" ]; then
-        print_status "Installazione Certbot..."
-        sudo apt update
-        sudo apt install certbot python3-certbot-nginx -y
-        print_success "Certbot installato!"
-    else
-        print_warning "Certbot non installato. SSL può essere configurato manualmente dopo."
-    fi
-fi
+# Caddy è containerizzato, gestisce SSL automaticamente
+# Non serve installare nulla sul sistema host
 
 # Controlla se il file .env esiste
 if [ ! -f ".env" ]; then
@@ -92,12 +79,7 @@ fi
 print_status "Creazione directory necessarie..."
 mkdir -p static/uploads
 mkdir -p logs
-mkdir -p logs/nginx  # Per i log di Nginx containerizzato
-# Directory per Certbot (SSL containerizzato)
-mkdir -p certbot/conf
-mkdir -p certbot/www
-mkdir -p certbot/logs
-chmod -R 755 certbot
+mkdir -p logs/caddy  # Per i log di Caddy containerizzato
 print_success "Directory create!"
 
 # Ferma i container esistenti
@@ -152,19 +134,14 @@ else
 fi
 
 # ========================================
-# 🌐 NGINX (Containerizzato)
+# 🌐 CADDY (Containerizzato con SSL Automatico)
 # ========================================
-print_status "Nginx sarà gestito come container Docker..."
-# Nginx è ora completamente containerizzato, la configurazione è in nginx.conf
-# e viene montata automaticamente nel container
+print_status "Caddy sarà gestito come container Docker..."
+print_status "Caddy gestisce SSL automaticamente con Let's Encrypt!"
 
-# ========================================
-# 🔒 CONFIGURAZIONE SSL (Opzionale - Containerizzato)
-# ========================================
 echo ""
-print_status "Configurazione SSL..."
-echo "Per configurare SSL con Nginx containerizzato, hai bisogno di un dominio."
-echo "Vuoi configurare SSL ora? (y/n)"
+print_status "Configurazione dominio per SSL automatico..."
+echo "Vuoi configurare un dominio per HTTPS automatico? (y/n)"
 read -p "Risposta: " ssl_choice
 
 if [ "$ssl_choice" = "y" ] || [ "$ssl_choice" = "Y" ]; then
@@ -172,28 +149,27 @@ if [ "$ssl_choice" = "y" ] || [ "$ssl_choice" = "Y" ]; then
     read -p "Dominio: " domain_name
     
     if [ ! -z "$domain_name" ]; then
-        print_status "Configurazione SSL per $domain_name..."
+        print_status "Configurazione Caddy per $domain_name..."
         
-        # Aggiorna nginx.conf con il dominio
-        sed -i "s/server_name _;/server_name $domain_name www.$domain_name;/" nginx.conf
-        
-        # Riavvia il container Nginx per applicare la nuova configurazione
-        docker-compose restart nginx
-        
-        # Per SSL con Nginx containerizzato, usa certbot in modalità standalone
-        # o monta i certificati nel container
-        print_warning "Per SSL con Nginx containerizzato, hai due opzioni:"
-        print_warning "1. Usa certbot standalone e monta i certificati nel container"
-        print_warning "2. Usa un servizio certbot-container (raccomandato)"
-        print_warning ""
-        print_warning "Per ora, configura manualmente SSL dopo il deploy."
-        print_warning "Istruzioni: https://hub.docker.com/r/certbot/certbot"
+        # Aggiorna Caddyfile con il dominio
+        if [ -f "Caddyfile" ]; then
+            # Sostituisci :80 con il dominio nel Caddyfile
+            sed -i "s/:80/$domain_name/g" Caddyfile
+            # Aggiungi www se non presente
+            if ! grep -q "www.$domain_name" Caddyfile; then
+                sed -i "s/$domain_name {/$domain_name www.$domain_name {/g" Caddyfile
+            fi
+            print_success "Caddyfile aggiornato con dominio $domain_name"
+            print_warning "Assicurati che il DNS punti al tuo VPS!"
+        else
+            print_error "Caddyfile non trovato!"
+        fi
     else
-        print_warning "Dominio non inserito. Salto configurazione SSL."
+        print_warning "Dominio non inserito. Caddy userà HTTP sulla porta 80."
     fi
 else
-    print_warning "SSL non configurato. Puoi configurarlo dopo."
-    print_warning "Consulta la documentazione per SSL con Nginx containerizzato."
+    print_warning "Caddy userà HTTP sulla porta 80."
+    print_warning "Puoi configurare il dominio dopo modificando Caddyfile e riavviando Caddy."
 fi
 
 # ========================================
@@ -209,25 +185,28 @@ print_success "Firewall configurato!"
 print_success "Deployment completato!"
 echo ""
 echo "🌐 Servizi disponibili:"
-echo "   - App Web (Nginx): http://localhost (porta 80)"
+echo "   - App Web (Caddy): http://localhost (porta 80)"
+if [ ! -z "$domain_name" ]; then
+    echo "   - App Web HTTPS: https://${domain_name} (porta 443, SSL automatico)"
+fi
 echo "   - App Flask (interno): http://localhost:8000 (solo container)"
 echo "   - phpMyAdmin: http://localhost:8080"
 echo "   - MySQL: localhost:3306"
 echo "   - Redis: localhost:6379"
 if command -v curl &> /dev/null; then
     PUBLIC_IP=$(curl -s ifconfig.me 2>/dev/null || echo "N/A")
-    echo "   - Nginx pubblico: http://${PUBLIC_IP} (se hai un IP pubblico)"
+    echo "   - Caddy pubblico: http://${PUBLIC_IP} (se hai un IP pubblico)"
 fi
 echo ""
 echo "📋 Comandi utili:"
 echo "   - Vedi i log: docker-compose logs -f"
-echo "   - Logs Nginx: docker-compose logs -f nginx"
+echo "   - Logs Caddy: docker-compose logs -f caddy"
 echo "   - Logs Web: docker-compose logs -f web"
 echo "   - Ferma tutto: docker-compose down"
 echo "   - Riavvia: docker-compose restart"
-echo "   - Riavvia solo Nginx: docker-compose restart nginx"
+echo "   - Riavvia solo Caddy: docker-compose restart caddy"
 echo "   - Entra nel container web: docker-compose exec web bash"
-echo "   - Entra nel container Nginx: docker-compose exec nginx sh"
+echo "   - Entra nel container Caddy: docker-compose exec caddy sh"
 echo ""
 # ========================================
 # 🗄️ CONFIGURAZIONE BACKUP AUTOMATICO
