@@ -72,11 +72,18 @@ echo ""
 
 # 3. Verifica database
 print_status "Verifica database MySQL..."
-if docker compose exec -T db mysqladmin ping -h localhost -u root -p"${MYSQL_ROOT_PASSWORD:-N0ira2026!}" 2>/dev/null | grep -q "alive"; then
+# Carica variabili d'ambiente
+if [ -f "$PROJECT_ROOT/.env" ]; then
+    set -a
+    source "$PROJECT_ROOT/.env"
+    set +a
+fi
+MYSQL_PASS="${MYSQL_ROOT_PASSWORD:-N0ira2026!}"
+if docker compose exec -T db mysqladmin ping -h localhost -u root -p"$MYSQL_PASS" 2>/dev/null | grep -q "alive"; then
     print_success "Database MySQL attivo"
     
     # Verifica connessioni
-    CONNECTIONS=$(docker compose exec -T db mysql -u root -p"${MYSQL_ROOT_PASSWORD:-N0ira2026!}" -e "SHOW STATUS LIKE 'Threads_connected';" 2>/dev/null | tail -1 | awk '{print $2}')
+    CONNECTIONS=$(docker compose exec -T db mysql -u root -p"$MYSQL_PASS" -e "SHOW STATUS LIKE 'Threads_connected';" 2>/dev/null | tail -1 | awk '{print $2}')
     if [ "$CONNECTIONS" -lt 50 ]; then
         print_success "Connessioni database: $CONNECTIONS"
     else
@@ -91,7 +98,8 @@ echo ""
 
 # 4. Verifica Redis
 print_status "Verifica Redis..."
-if docker compose exec -T redis redis-cli -a "${REDIS_PASSWORD:-I0E6TjyZ4wMBqkXNsUsQXBHCZQWf8rfpeyM-X2KQ7lA}" ping 2>/dev/null | grep -q "PONG"; then
+REDIS_PASS="${REDIS_PASSWORD:-I0E6TjyZ4wMBqkXNsUsQXBHCZQWf8rfpeyM-X2KQ7lA}"
+if docker compose exec -T redis redis-cli -a "$REDIS_PASS" ping 2>/dev/null | grep -q "PONG"; then
     print_success "Redis attivo"
 else
     print_error "Redis non risponde!"
