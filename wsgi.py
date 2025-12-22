@@ -8,7 +8,12 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import os
 import pytz
+import logging
 from datetime import datetime
+
+# Configura logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # ===========================================
 # ⚙️ CONFIGURAZIONE BASE FLASK + DATABASE
@@ -27,14 +32,64 @@ db.init_app(app)
 # 🛡️ Inizializza CSRF Protection
 csrf = CSRFProtect(app)
 
-# 🚦 Inizializza Rate Limiter con configurazioni dinamiche
+# 🚦 Inizializza Rate Limiter con Redis esplicito e fail-safe
 rate_config = get_rate_limit_config()
+limiter_storage = None
+limiter_enabled = rate_config['enabled']
+
+if limiter_enabled and rate_config['storage_url'].startswith("redis://"):
+    try:
+        import redis
+        from limits.storage import RedisStorage
+        
+        # Estrai parametri Redis dalla configurazione
+        redis_host = Config.REDIS_HOST
+        redis_port = Config.REDIS_PORT
+        redis_db = Config.REDIS_DB
+        redis_password = Config.REDIS_PASSWORD
+        
+        # Crea connessione Redis esplicita con password
+        redis_client = redis.Redis(
+            host=redis_host,
+            port=redis_port,
+            db=redis_db,
+            password=redis_password,
+            socket_connect_timeout=2,
+            socket_timeout=2,
+            decode_responses=False
+        )
+        
+        # Test connessione
+        redis_client.ping()
+        
+        # Crea storage per Flask-Limiter
+        limiter_storage = RedisStorage(redis_client)
+        logger.info(f"✅ Redis connesso per rate limiting: {redis_host}:{redis_port}")
+        
+    except redis.exceptions.AuthenticationError as e:
+        logger.error(f"❌ Errore autenticazione Redis: {e}")
+        logger.warning("⚠️  Rate limiting disabilitato - Redis auth fallita")
+        limiter_enabled = False
+        limiter_storage = None
+    except Exception as e:
+        logger.warning(f"⚠️  Redis non disponibile ({e}), rate limiting disabilitato")
+        limiter_enabled = False
+        limiter_storage = None
+elif limiter_enabled:
+    # Usa storage URL (memory:// o altro)
+    limiter_storage = rate_config['storage_url']
+    logger.info(f"✅ Rate limiting abilitato con storage: {rate_config['storage_url']}")
+else:
+    logger.info("ℹ️  Rate limiting disabilitato via configurazione")
+
+# Inizializza Limiter con storage esplicito o fallback
 limiter = Limiter(
     app=app,
     key_func=get_remote_address,
-    default_limits=get_dynamic_limits(),
-    storage_uri=rate_config['storage_url'],
-    enabled=rate_config['enabled']
+    default_limits=get_dynamic_limits() if limiter_enabled else [],
+    storage_uri=limiter_storage if isinstance(limiter_storage, str) else None,
+    storage=limiter_storage if not isinstance(limiter_storage, str) else None,
+    enabled=limiter_enabled
 )
 
 # Inizializza directory di upload
@@ -145,9 +200,10 @@ def debug_rate_limit():
     """
 
 # ===========================================
-# 🏥 HEALTH CHECK ENDPOINT
+# 🏥 HEALTH CHECK ENDPOINT (escluso da rate limiting)
 # ===========================================
 @app.route('/health')
+@limiter.exempt
 def health_check():
     """Endpoint per healthcheck Docker/Kubernetes - verifica DB e Redis"""
     from flask import jsonify
@@ -169,28 +225,21 @@ def health_check():
     if Config.RATELIMIT_ENABLED and Config.RATELIMIT_STORAGE_URL.startswith("redis://"):
         try:
             import redis
-            redis_url = Config.RATELIMIT_STORAGE_URL
-            url_without_protocol = redis_url.replace("redis://", "")
-            url_parts = url_without_protocol.split("/")
-            
-            auth_and_host = url_parts[0]
-            if "@" in auth_and_host:
-                password_part, host_port = auth_and_host.split("@", 1)
-                password = password_part.lstrip(":") if password_part.startswith(":") else None
-            else:
-                password = None
-                host_port = auth_and_host
-            
-            host = host_port.split(":")[0]
-            port = int(host_port.split(":")[1]) if ":" in host_port else 6379
-            db_num = int(url_parts[1]) if len(url_parts) > 1 else 0
-            
-            r = redis.Redis(host=host, port=port, db=db_num, password=password, socket_connect_timeout=1)
-            r.ping()
+            redis_client = redis.Redis(
+                host=Config.REDIS_HOST,
+                port=Config.REDIS_PORT,
+                db=Config.REDIS_DB,
+                password=Config.REDIS_PASSWORD,
+                socket_connect_timeout=1
+            )
+            redis_client.ping()
             status["redis"] = "ok"
+        except redis.exceptions.AuthenticationError as e:
+            status["redis"] = f"auth_error: {str(e)}"
+            if http_code == 200:
+                status["status"] = "degraded"
         except Exception as e:
             status["redis"] = f"error: {str(e)}"
-            # Redis non è critico se rate limiting ha fallback
             if http_code == 200:
                 status["status"] = "degraded"
     
