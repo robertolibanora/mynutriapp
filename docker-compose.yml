@@ -22,7 +22,7 @@ services:
       - ADMIN_NAME=${ADMIN_NAME:-MyNutriApp}
       # Security: Session configuration
       - SESSION_LIFETIME=${SESSION_LIFETIME:-7200}
-      - SESSION_COOKIE_SECURE=${SESSION_COOKIE_SECURE:-False}
+      - SESSION_COOKIE_SECURE=${SESSION_COOKIE_SECURE:-True}
       - SESSION_COOKIE_HTTPONLY=${SESSION_COOKIE_HTTPONLY:-True}
       - SESSION_COOKIE_SAMESITE=${SESSION_COOKIE_SAMESITE:-Lax}
       # Security: CSRF
@@ -39,7 +39,7 @@ services:
       - ./logs:/app/logs
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health || exit 1"]
+      test: ["CMD", "sh", "-c", "curl -f http://localhost:8000/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -87,17 +87,15 @@ services:
   redis:
     image: redis:7-alpine
     container_name: mynutriapp_redis
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
     volumes:
       - redis_data:/data
     restart: unless-stopped
     command: >
-      redis-server
-      --appendonly yes
-      --maxmemory 256mb
-      --maxmemory-policy allkeys-lru
-      --requirepass ${REDIS_PASSWORD}
+      sh -c "redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru --requirepass $${REDIS_PASSWORD}"
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "--raw", "incr", "ping"]
+      test: ["CMD", "sh", "-c", "redis-cli -a $${REDIS_PASSWORD} --raw incr ping"]
       interval: 10s
       timeout: 3s
       retries: 5
