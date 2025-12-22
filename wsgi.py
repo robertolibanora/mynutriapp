@@ -149,13 +149,52 @@ def debug_rate_limit():
 # ===========================================
 @app.route('/health')
 def health_check():
-    """Endpoint per healthcheck Docker/Kubernetes"""
+    """Endpoint per healthcheck Docker/Kubernetes - verifica DB e Redis"""
+    from flask import jsonify
+    from app.config.config import Config
+    
+    status = {"status": "ok"}
+    http_code = 200
+    
+    # Verifica connessione database
     try:
-        # Verifica connessione database
         db.session.execute(db.text('SELECT 1'))
-        return "healthy", 200
+        status["database"] = "ok"
     except Exception as e:
-        return f"unhealthy: {str(e)}", 503
+        status["database"] = f"error: {str(e)}"
+        status["status"] = "unhealthy"
+        http_code = 503
+    
+    # Verifica Redis se rate limiting è abilitato
+    if Config.RATELIMIT_ENABLED and Config.RATELIMIT_STORAGE_URL.startswith("redis://"):
+        try:
+            import redis
+            redis_url = Config.RATELIMIT_STORAGE_URL
+            url_without_protocol = redis_url.replace("redis://", "")
+            url_parts = url_without_protocol.split("/")
+            
+            auth_and_host = url_parts[0]
+            if "@" in auth_and_host:
+                password_part, host_port = auth_and_host.split("@", 1)
+                password = password_part.lstrip(":") if password_part.startswith(":") else None
+            else:
+                password = None
+                host_port = auth_and_host
+            
+            host = host_port.split(":")[0]
+            port = int(host_port.split(":")[1]) if ":" in host_port else 6379
+            db_num = int(url_parts[1]) if len(url_parts) > 1 else 0
+            
+            r = redis.Redis(host=host, port=port, db=db_num, password=password, socket_connect_timeout=1)
+            r.ping()
+            status["redis"] = "ok"
+        except Exception as e:
+            status["redis"] = f"error: {str(e)}"
+            # Redis non è critico se rate limiting ha fallback
+            if http_code == 200:
+                status["status"] = "degraded"
+    
+    return jsonify(status), http_code
 
 # ===========================================
 # 👤 ROUTE PRESENTAZIONE ROBERTO

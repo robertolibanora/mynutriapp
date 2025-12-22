@@ -15,18 +15,14 @@ auth_bp = Blueprint('auth', __name__)
 # CONFIGURAZIONE ADMIN (DA VARIABILI D'AMBIENTE)
 # ========================
 ADMIN_PHONE = os.getenv("ADMIN_PHONE")
-ADMIN_PASSWORD_HASH = os.getenv("ADMIN_PASSWORD_HASH")  # Hash della password admin (non in chiaro)
+ADMIN_PASSWORD_HASH = os.getenv("ADMIN_PASSWORD_HASH")
 ADMIN_NAME = os.getenv("ADMIN_NAME", "MyNutriApp")
 
-# Se ADMIN_PASSWORD_HASH non esiste, genera hash da ADMIN_PASSWORD (migrazione)
+# Verifica che ADMIN_PASSWORD_HASH sia presente (fail-fast)
 if not ADMIN_PASSWORD_HASH:
-    ADMIN_PASSWORD_PLAIN = os.getenv("ADMIN_PASSWORD")
-    if ADMIN_PASSWORD_PLAIN:
-        # Genera hash una volta e salvalo in .env come ADMIN_PASSWORD_HASH
-        ADMIN_PASSWORD_HASH = generate_password_hash(ADMIN_PASSWORD_PLAIN)
-        # Log warning per ricordare di aggiornare .env
-        import logging
-        logging.warning("⚠️  ADMIN_PASSWORD_HASH non trovato. Usa hash generato. Aggiorna .env con: ADMIN_PASSWORD_HASH=" + ADMIN_PASSWORD_HASH)
+    raise ValueError("❌ ADMIN_PASSWORD_HASH deve essere definita in .env")
+if not ADMIN_PHONE:
+    raise ValueError("❌ ADMIN_PHONE deve essere definita in .env")
 
 
 # ========================
