@@ -1,73 +1,52 @@
 [mysqld]
-server-id = 1
-# bind-address rimosso: in Docker non serve, MySQL ascolta solo sulla rete interna
-port = 3306
+# ======================================
+# MySQL 8.0 – Production Safe Config
+# ======================================
 
+# Charset
 character-set-server = utf8mb4
 collation-server = utf8mb4_unicode_ci
-init_connect = 'SET NAMES utf8mb4'
 
-default-storage-engine = InnoDB
+# Timezone
+default_time_zone = '+00:00'
 
-# Buffer pool ottimizzato per 1G RAM totale: 512M buffer (50% RAM container)
-innodb_buffer_pool_size = 512M
-innodb_buffer_pool_instances = 2
-innodb_buffer_pool_chunk_size = 256M
-
-innodb_log_file_size = 128M
-innodb_log_buffer_size = 16M
-innodb_flush_log_at_trx_commit = 2
-innodb_flush_method = O_DIRECT
-innodb_file_per_table = 1
-innodb_read_io_threads = 4
-innodb_write_io_threads = 4
-innodb_thread_concurrency = 0
-
+# Connections
 max_connections = 50
-max_connect_errors = 10000
-thread_cache_size = 25
-table_open_cache = 1000
-table_definition_cache = 700
 
-tmp_table_size = 32M
-max_heap_table_size = 32M
+# InnoDB (safe & low-memory)
+innodb_buffer_pool_size = 512M
+innodb_log_buffer_size = 16M
+innodb_file_per_table = 1
+innodb_flush_log_at_trx_commit = 1
 
+# Query buffers (conservative)
 sort_buffer_size = 1M
+join_buffer_size = 1M
 read_buffer_size = 1M
 read_rnd_buffer_size = 2M
-join_buffer_size = 1M
 
-log_bin = /var/lib/mysql/mysql-bin
-binlog_format = ROW
-binlog_expire_logs_seconds = 604800
-max_binlog_size = 100M
-sync_binlog = 1
+# Disable DNS lookup (performance + security)
+skip-name-resolve
 
-validate_password.policy = MEDIUM
-validate_password.length = 8
-validate_password.mixed_case_count = 1
-validate_password.number_count = 1
-validate_password.special_char_count = 1
-
-general_log = 0
-general_log_file = /var/lib/mysql/general.log
-
+# Logs (minimi ma utili)
+log_error = /var/lib/mysql/mysql-error.log
 slow_query_log = 1
 slow_query_log_file = /var/lib/mysql/slow-query.log
 long_query_time = 2
 
-log_error = /var/lib/mysql/error.log
-log_error_verbosity = 2
+# SQL strict mode (GOOD)
+sql_mode = STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION
 
-default_time_zone = '+00:00'
+# Performance Schema
+# ⚠️ MySQL 8: MUST be ON
+performance_schema = ON
 
-sql_mode = STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION
+# Disable legacy stuff
+skip_external_locking
 
-skip_name_resolve = 1
-skip_external_locking = 1
-
-# Performance schema disabilitato: risparmia ~100-150MB RAM in produzione
-performance_schema = OFF
+# ======================================
+# END
+# ======================================
 
 [client]
 default-character-set = utf8mb4
