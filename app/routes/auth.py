@@ -37,11 +37,15 @@ def login():
         # --- Caso 1: Login ADMIN (con hash, non più in chiaro)
         if ADMIN_PHONE and ADMIN_PASSWORD_HASH:
             if telefono == ADMIN_PHONE and check_password_hash(ADMIN_PASSWORD_HASH, password):
+                # Protezione contro session fixation: Flask non supporta session.regenerate()
+                # quindi puliamo la sessione esistente e reimpostiamo solo le chiavi necessarie
+                session.clear()
+                
+                # Reimposta solo le chiavi necessarie per l'autenticazione admin
                 session['role'] = 'admin'
                 session['name'] = ADMIN_NAME
                 session.permanent = True  # Session permanente per admin
-                # Invalida sessioni precedenti (session fixation protection)
-                session.regenerate()
+                session.modified = True  # Forza il salvataggio della sessione
                 
                 # Audit log
                 log_audit_event('LOGIN', 'system', details={'user_type': 'admin'})
@@ -53,11 +57,16 @@ def login():
         # --- Caso 2: Login USER da database
         user = Patient.query.filter_by(telefono=telefono).first()
         if user and check_password_hash(user.password_hash, password):
+            # Protezione contro session fixation: Flask non supporta session.regenerate()
+            # quindi puliamo la sessione esistente e reimpostiamo solo le chiavi necessarie
+            session.clear()
+            
+            # Reimposta solo le chiavi necessarie per l'autenticazione user
             session['role'] = 'user'
             session['user_id'] = user.id
             session['name'] = f"{user.nome} {user.cognome}"
             session.permanent = True
-            session.regenerate()  # Session fixation protection
+            session.modified = True  # Forza il salvataggio della sessione
             
             # Audit log
             log_audit_event('LOGIN', 'system', details={'user_type': 'user', 'user_id': user.id})
