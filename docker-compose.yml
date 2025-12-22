@@ -13,6 +13,22 @@ services:
       - RATELIMIT_STORAGE_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
       - GUNICORN_WORKERS=${GUNICORN_WORKERS:-2}
       - GUNICORN_TIMEOUT=${GUNICORN_TIMEOUT:-30}
+      - GUNICORN_THREADS=${GUNICORN_THREADS:-2}
+      # Security: Crittografia dati sensibili
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      # Security: Admin password hash (sostituisce ADMIN_PASSWORD)
+      - ADMIN_PASSWORD_HASH=${ADMIN_PASSWORD_HASH}
+      - ADMIN_PHONE=${ADMIN_PHONE}
+      - ADMIN_NAME=${ADMIN_NAME:-MyNutriApp}
+      # Security: Session configuration
+      - SESSION_LIFETIME=${SESSION_LIFETIME:-7200}
+      - SESSION_COOKIE_SECURE=${SESSION_COOKIE_SECURE:-False}
+      - SESSION_COOKIE_HTTPONLY=${SESSION_COOKIE_HTTPONLY:-True}
+      - SESSION_COOKIE_SAMESITE=${SESSION_COOKIE_SAMESITE:-Lax}
+      # Security: CSRF
+      - WTF_CSRF_ENABLED=${WTF_CSRF_ENABLED:-True}
+      # Security: Secret key (obbligatorio)
+      - SECRET_KEY=${SECRET_KEY}
     depends_on:
       db:
         condition: service_healthy
@@ -81,7 +97,7 @@ services:
       --maxmemory-policy allkeys-lru
       --requirepass ${REDIS_PASSWORD}
     healthcheck:
-      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "--raw", "incr", "ping"]
       interval: 10s
       timeout: 3s
       retries: 5
@@ -94,6 +110,25 @@ services:
           memory: 256M
         reservations:
           memory: 128M
+
+  # phpMyAdmin opzionale: decommentare solo quando serve, poi fermare con: docker-compose stop phpmyadmin
+  # phpmyadmin:
+  #   image: phpmyadmin/phpmyadmin:latest
+  #   container_name: mynutriapp_phpmyadmin
+  #   environment:
+  #     - PMA_HOST=db
+  #     - PMA_PORT=3306
+  #     - PMA_USER=mynutriapp
+  #     - PMA_PASSWORD=${MYSQL_PASSWORD}
+  #     - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+  #   ports:
+  #     - "127.0.0.1:8080:80"
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #   networks:
+  #     - mynutriapp_network
+  #   restart: "no"
 
 volumes:
   mysql_data:

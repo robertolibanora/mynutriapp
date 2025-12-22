@@ -49,6 +49,63 @@ class Patient(db.Model):
     # 🧠 Metodo utile per debug o pannello admin
     def __repr__(self):
         return f"<Patient {self.nome} {self.cognome}>"
+    
+    # ========================
+    # 🔐 CRITTOGRAFIA CAMPI SENSIBILI
+    # ========================
+    # Property per crittografare/decrittare automaticamente campi sensibili
+    # Overhead: ~1-2ms per operazione (accettabile)
+    
+    @property
+    def patologie_decrypted(self):
+        """Legge patologie decrittate."""
+        if not self.patologie:
+            return None
+        try:
+            from app.utils.encryption import decrypt_field
+            return decrypt_field(self.patologie)
+        except:
+            return self.patologie  # Fallback se crittografia non disponibile
+    
+    @patologie_decrypted.setter
+    def patologie_decrypted(self, value):
+        """Salva patologie crittografate."""
+        from app.utils.encryption import encrypt_field
+        self.patologie = encrypt_field(value)
+    
+    @property
+    def intolleranze_decrypted(self):
+        """Legge intolleranze decrittate."""
+        if not self.intolleranze:
+            return None
+        try:
+            from app.utils.encryption import decrypt_field
+            return decrypt_field(self.intolleranze)
+        except:
+            return self.intolleranze
+    
+    @intolleranze_decrypted.setter
+    def intolleranze_decrypted(self, value):
+        """Salva intolleranze crittografate."""
+        from app.utils.encryption import encrypt_field
+        self.intolleranze = encrypt_field(value)
+    
+    @property
+    def esami_biochimici_decrypted(self):
+        """Legge esami biochimici decrittati."""
+        if not self.esami_biochimici:
+            return None
+        try:
+            from app.utils.encryption import decrypt_field
+            return decrypt_field(self.esami_biochimici)
+        except:
+            return self.esami_biochimici
+    
+    @esami_biochimici_decrypted.setter
+    def esami_biochimici_decrypted(self, value):
+        """Salva esami biochimici crittografati."""
+        from app.utils.encryption import encrypt_field
+        self.esami_biochimici = encrypt_field(value)
 
 # ========================
 #   MODEL: Dieta
@@ -427,3 +484,43 @@ class SlotDisponibilita(db.Model):
 
     def __repr__(self):
         return f"<SlotDisponibilita {self.data_ora.strftime('%d/%m/%Y %H:%M')}>"
+
+# ========================
+#   MODEL: AuditLog
+# ========================
+
+class AuditLog(db.Model):
+    __tablename__ = "audit_log"
+
+    # 🔑 Chiave primaria
+    id = db.Column(db.Integer, primary_key=True)
+
+    # 🕒 Timestamp evento
+    timestamp = db.Column(db.DateTime, nullable=False, index=True)
+
+    # 👤 Utente che ha eseguito l'azione
+    user_id = db.Column(db.Integer, nullable=True)  # NULL per admin o anonymous
+    user_role = db.Column(db.Enum('admin', 'user', 'anonymous'), nullable=False)
+
+    # 📋 Tipo di azione
+    action = db.Column(db.String(50), nullable=False, index=True)  # VIEW, CREATE, UPDATE, DELETE, DOWNLOAD, LOGIN, LOGOUT
+
+    # 📦 Risorsa interessata
+    resource_type = db.Column(db.String(50), nullable=False, index=True)  # patient, dieta, documento, etc.
+    resource_id = db.Column(db.Integer, nullable=True, index=True)
+
+    # 🌐 Dati richiesta
+    ip_address = db.Column(db.String(45))  # IPv6 support
+    user_agent = db.Column(db.String(255))
+
+    # 📝 Dettagli aggiuntivi (JSON)
+    details = db.Column(db.Text)
+
+    # Indici per query comuni
+    __table_args__ = (
+        db.Index('idx_audit_user_time', 'user_id', 'timestamp'),
+        db.Index('idx_audit_resource', 'resource_type', 'resource_id'),
+    )
+
+    def __repr__(self):
+        return f"<AuditLog {self.action} {self.resource_type}:{self.resource_id} by {self.user_role}>"

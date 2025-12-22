@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, current_app
-from werkzeug.security import check_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 from app.models.models import db, Patient
+from app.utils.audit import log_audit_event
 import os
 
 # ========================
@@ -14,8 +15,18 @@ auth_bp = Blueprint('auth', __name__)
 # CONFIGURAZIONE ADMIN (DA VARIABILI D'AMBIENTE)
 # ========================
 ADMIN_PHONE = os.getenv("ADMIN_PHONE")
-ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")  # Password in chiaro da .env (sicuro perché .env è locale)
+ADMIN_PASSWORD_HASH = os.getenv("ADMIN_PASSWORD_HASH")  # Hash della password admin (non in chiaro)
 ADMIN_NAME = os.getenv("ADMIN_NAME", "MyNutriApp")
+
+# Se ADMIN_PASSWORD_HASH non esiste, genera hash da ADMIN_PASSWORD (migrazione)
+if not ADMIN_PASSWORD_HASH:
+    ADMIN_PASSWORD_PLAIN = os.getenv("ADMIN_PASSWORD")
+    if ADMIN_PASSWORD_PLAIN:
+        # Genera hash una volta e salvalo in .env come ADMIN_PASSWORD_HASH
+        ADMIN_PASSWORD_HASH = generate_password_hash(ADMIN_PASSWORD_PLAIN)
+        # Log warning per ricordare di aggiornare .env
+        import logging
+        logging.warning("⚠️  ADMIN_PASSWORD_HASH non trovato. Usa hash generato. Aggiorna .env con: ADMIN_PASSWORD_HASH=" + ADMIN_PASSWORD_HASH)
 
 
 # ========================
@@ -27,12 +38,21 @@ def login():
         telefono = request.form['telefono']
         password = request.form['password']
 
-        # --- Caso 1: Login ADMIN da variabili d'ambiente
-        if ADMIN_PHONE and ADMIN_PASSWORD and telefono == ADMIN_PHONE and password == ADMIN_PASSWORD:
-            session['role'] = 'admin'
-            session['name'] = ADMIN_NAME
-            flash("Accesso effettuato come Admin", "success")
-            return redirect(url_for('dashboard.admin_dashboard'))
+        # --- Caso 1: Login ADMIN (con hash, non più in chiaro)
+        if ADMIN_PHONE and ADMIN_PASSWORD_HASH:
+            if telefono == ADMIN_PHONE and check_password_hash(ADMIN_PASSWORD_HASH, password):
+                session['role'] = 'admin'
+                session['name'] = ADMIN_NAME
+                session.permanent = True  # Session permanente per admin
+                # Invalida sessioni precedenti (session fixation protection)
+                session.regenerate()
+                
+                # Audit log
+                log_audit_event('LOGIN', 'system', details={'user_type': 'admin'})
+                db.session.commit()
+                
+                flash("Accesso effettuato come Admin", "success")
+                return redirect(url_for('dashboard.admin_dashboard'))
 
         # --- Caso 2: Login USER da database
         user = Patient.query.filter_by(telefono=telefono).first()
@@ -40,7 +60,19 @@ def login():
             session['role'] = 'user'
             session['user_id'] = user.id
             session['name'] = f"{user.nome} {user.cognome}"
+            session.permanent = True
+            session.regenerate()  # Session fixation protection
+            
+            # Audit log
+            log_audit_event('LOGIN', 'system', details={'user_type': 'user', 'user_id': user.id})
+            db.session.commit()
+            
             return redirect(url_for('dashboard.user_dashboard'))
+        
+        # Audit log per tentativo fallito
+        log_audit_event('LOGIN_FAILED', 'system', details={'telefono': telefono[:3] + '***'})
+        db.session.commit()
+        
         flash("Credenziali non valide", "danger")
         return redirect(url_for('auth.login'))
 
@@ -52,5 +84,11 @@ def login():
 # ========================
 @auth_bp.route('/logout')
 def logout():
+    # Audit log prima di cancellare session
+    user_id = session.get('user_id')
+    user_role = session.get('role')
+    log_audit_event('LOGOUT', 'system', details={'user_type': user_role, 'user_id': user_id})
+    db.session.commit()
+    
     session.clear()
     return redirect(url_for('auth.login'))

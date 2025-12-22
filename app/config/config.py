@@ -91,7 +91,8 @@ class Config:
     SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "False").lower() == "true"
     SESSION_COOKIE_HTTPONLY = os.getenv("SESSION_COOKIE_HTTPONLY", "True").lower() == "true"
     SESSION_COOKIE_SAMESITE = os.getenv("SESSION_COOKIE_SAMESITE", "Lax")
-    PERMANENT_SESSION_LIFETIME = int(os.getenv("SESSION_LIFETIME", "86400"))
+    # Session lifetime ridotto: 2 ore (7200s) invece di 24h per dati sanitari
+    PERMANENT_SESSION_LIFETIME = int(os.getenv("SESSION_LIFETIME", "7200"))
     
     # 🛡️ CSRF Protection
     WTF_CSRF_ENABLED = os.getenv("WTF_CSRF_ENABLED", "True").lower() == "true"

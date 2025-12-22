@@ -40,6 +40,37 @@ limiter = Limiter(
 # Inizializza directory di upload
 ensure_upload_dirs()
 
+# ===========================================
+# 🛡️ SECURITY HEADERS (zero overhead RAM)
+# ===========================================
+@app.after_request
+def set_security_headers(response):
+    """Aggiunge security headers a tutte le risposte."""
+    # HSTS - Force HTTPS (se configurato)
+    if app.config.get('SESSION_COOKIE_SECURE'):
+        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+    
+    # X-Content-Type-Options - Previene MIME sniffing
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    
+    # X-Frame-Options - Previene clickjacking
+    response.headers['X-Frame-Options'] = 'DENY'
+    
+    # X-XSS-Protection - Browser XSS filter
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    
+    # Content-Security-Policy - Base (può essere esteso)
+    # Nota: CSP può rompere app se troppo restrittivo, quindi base
+    csp = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:;"
+    response.headers['Content-Security-Policy'] = csp
+    
+    # Referrer-Policy
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    
+    # Permissions-Policy (ex Feature-Policy)
+    response.headers['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=()'
+    
+    return response
 
 # ===========================================
 # 🔀 REGISTRAZIONE ROUTES (via funzione centralizzata)

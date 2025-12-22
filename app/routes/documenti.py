@@ -68,6 +68,11 @@ def serve_file(documento_id):
     if user_role == 'admin' or (user_role == 'user' and documento.patient_id == user_id):
         file_path = get_full_path(documento.file_path)
         if os.path.exists(file_path):
+            # Audit log per download
+            from app.utils.audit import log_audit_event
+            log_audit_event('DOWNLOAD', 'documento', documento_id)
+            db.session.commit()
+            
             directory = os.path.dirname(file_path)
             filename = os.path.basename(file_path)
             return send_from_directory(directory, filename)
@@ -122,11 +127,43 @@ def nuovo_documento_user():
                 flash("Formato file non valido. Usa PDF, JPG o PNG", "danger")
                 return redirect(request.url)
             
+            # Validazione dimensione file (prima di salvare)
+            file.seek(0, os.SEEK_END)
+            file_size = file.tell()
+            file.seek(0)
+            if file_size > Config.MAX_FILE_SIZE:
+                flash(f"File troppo grande. Massimo {Config.MAX_FILE_SIZE // (1024*1024)}MB", "danger")
+                return redirect(request.url)
+            
+            # Validazione MIME type (oltre estensione) - opzionale
+            try:
+                import magic
+                file_content = file.read(1024)  # Leggi primi 1024 bytes
+                file.seek(0)  # Reset
+                mime_type = magic.from_buffer(file_content, mime=True)
+                allowed_mimes = {
+                    'application/pdf': ['pdf'],
+                    'image/jpeg': ['jpg', 'jpeg'],
+                    'image/png': ['png']
+                }
+                if mime_type not in allowed_mimes:
+                    flash("Tipo file non valido (validazione MIME)", "danger")
+                    return redirect(request.url)
+            except ImportError:
+                # python-magic non installato, skip MIME check (non critico)
+                pass
+            except Exception as e:
+                # Se magic fallisce, continua (non bloccare upload)
+                import logging
+                logging.warning(f"MIME validation failed: {e}")
+            
             filename = secure_filename(file.filename)
             # Aggiungi timestamp per evitare conflitti
             from datetime import datetime
+            import uuid
             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            filename = f"{user_id}_{timestamp}_{filename}"
+            unique_id = str(uuid.uuid4())[:8]
+            filename = f"{user_id}_{timestamp}_{unique_id}_{filename}"
             
             os.makedirs(UPLOAD_FOLDER, exist_ok=True)
             save_path = os.path.join(UPLOAD_FOLDER, filename)
@@ -141,6 +178,11 @@ def nuovo_documento_user():
             )
             
             db.session.add(nuovo)
+            db.session.commit()
+            
+            # Audit log
+            from app.utils.audit import log_audit_event
+            log_audit_event('CREATE', 'documento', nuovo.id, details={'tipo': tipo, 'filename': filename})
             db.session.commit()
             
             flash("Documento caricato con successo ✅", "success")

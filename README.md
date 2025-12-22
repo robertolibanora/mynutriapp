@@ -39,7 +39,8 @@ SECRET_KEY=your-secret-key-minimo-64-caratteri
 MYSQL_ROOT_PASSWORD=your-secure-root-password
 MYSQL_PASSWORD=your-secure-app-password
 ADMIN_PHONE=+39XXXXXXXXXX
-ADMIN_PASSWORD=your-admin-password
+ADMIN_PASSWORD_HASH=your-admin-password-hash
+ENCRYPTION_KEY=your-encryption-key
 
 # OPZIONALE - MySQL ottimizzazioni
 MYSQL_INNODB_BUFFER_POOL_SIZE=1G
@@ -50,9 +51,16 @@ WHATSAPP_ACCESS_TOKEN=your-token
 WHATSAPP_PHONE_NUMBER_ID=your-phone-id
 ```
 
-**Genera SECRET_KEY:**
+**Genera chiavi necessarie:**
 ```bash
+# SECRET_KEY
 python3 -c "import secrets; print(secrets.token_hex(32))"
+
+# ENCRYPTION_KEY (crittografia dati sensibili)
+python3 -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+
+# ADMIN_PASSWORD_HASH (hash password admin)
+python3 -c "from werkzeug.security import generate_password_hash; print(generate_password_hash('tua_password_admin'))"
 ```
 
 ---
@@ -168,10 +176,14 @@ docker-compose up -d --build
 
 ## 🔒 Sicurezza
 
-- ✅ Tutto containerizzato (isolamento)
+- ✅ Crittografia dati sanitari sensibili (Fernet)
+- ✅ Audit logging completo (GDPR Art. 30)
+- ✅ Session hardening (2h timeout, regeneration)
+- ✅ Security headers HTTP (HSTS, CSP, X-Frame, etc.)
 - ✅ Rate limiting (Redis)
 - ✅ CSRF protection
-- ✅ Password hashing
+- ✅ Password hashing (PBKDF2)
+- ✅ File upload validation (dimensione + MIME type)
 - ✅ Firewall configurato
 - ✅ Backup automatico giornaliero
 
@@ -236,7 +248,7 @@ docker-compose logs db
 ls -la .env
 
 # Verifica variabili essenziali
-grep -E "SECRET_KEY|MYSQL_ROOT_PASSWORD|MYSQL_PASSWORD" .env
+grep -E "SECRET_KEY|ENCRYPTION_KEY|ADMIN_PASSWORD_HASH|MYSQL_PASSWORD" .env
 ```
 
 ---
@@ -280,10 +292,17 @@ mynutriapp/
 
 - [ ] VPS accessibile via SSH
 - [ ] Repository clonato
-- [ ] File `.env` configurato
-- [ ] `deploy.sh` eseguito con successo
+- [ ] File `.env` configurato con tutte le variabili obbligatorie:
+  - [ ] `SECRET_KEY`
+  - [ ] `ENCRYPTION_KEY` (genera con script sopra)
+  - [ ] `ADMIN_PASSWORD_HASH` (genera con script sopra)
+  - [ ] `ADMIN_PHONE`
+  - [ ] `MYSQL_ROOT_PASSWORD` e `MYSQL_PASSWORD`
+- [ ] `docker-compose build` eseguito
+- [ ] `docker-compose up -d` eseguito
 - [ ] Tutti i container sono "Up" e MySQL è "(healthy)"
 - [ ] Applicazione accessibile su `http://your-vps-ip`
+- [ ] Tabella `audit_log` creata nel database
 - [ ] Backup automatico configurato
 
 ---

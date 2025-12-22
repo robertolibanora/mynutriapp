@@ -243,6 +243,28 @@ CREATE TABLE IF NOT EXISTS slot_disponibilita (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ========================================
+-- 📋 TABELLA: audit_log
+-- ========================================
+CREATE TABLE IF NOT EXISTS audit_log (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    timestamp DATETIME NOT NULL,
+    user_id INT NULL,
+    user_role ENUM('admin', 'user', 'anonymous') NOT NULL,
+    action VARCHAR(50) NOT NULL,
+    resource_type VARCHAR(50) NOT NULL,
+    resource_id INT NULL,
+    ip_address VARCHAR(45),
+    user_agent VARCHAR(255),
+    details TEXT,
+    INDEX idx_timestamp (timestamp),
+    INDEX idx_action (action),
+    INDEX idx_resource_type (resource_type),
+    INDEX idx_resource_id (resource_id),
+    INDEX idx_user_time (user_id, timestamp),
+    INDEX idx_resource (resource_type, resource_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ========================================
 -- ✅ VERIFICA CREAZIONE TABELLE
 -- ========================================
 -- Mostra tutte le tabelle create

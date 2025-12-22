@@ -81,8 +81,13 @@ def lista_pazienti():
 @admin_required
 def dettaglio_paziente(patient_id):
     from app.models.models import Progresso, Documento
+    from app.utils.audit import log_audit_event
     
     paziente = Patient.query.get_or_404(patient_id)
+    
+    # Audit log per visualizzazione dati paziente
+    log_audit_event('VIEW', 'patient', patient_id)
+    db.session.commit()
     
     # Recupera progressi ordinati per data
     progressi = Progresso.query.filter_by(patient_id=patient_id).order_by(Progresso.data_check.asc()).all()
@@ -176,6 +181,12 @@ def dettaglio_paziente(patient_id):
     pesi = [float(p.peso_settimanale) for p in progressi_con_peso]
     aderenze = [p.aderenza if p.aderenza else 5 for p in progressi_con_peso]  # Default 5 se None
     
+    # Decrittografa campi sensibili per visualizzazione
+    # Le template accedono direttamente ai campi, quindi decrittiamo qui
+    paziente.patologie = paziente.patologie_decrypted
+    paziente.intolleranze = paziente.intolleranze_decrypted
+    paziente.esami_biochimici = paziente.esami_biochimici_decrypted
+    
     return render_template('admin/paziente_dettaglio.html', 
                          paziente=paziente,
                          progressi=progressi,
@@ -225,6 +236,12 @@ def nuovo_paziente():
 
             db.session.add(nuovo)
             db.session.commit()
+            
+            # Audit log
+            from app.utils.audit import log_audit_event
+            log_audit_event('CREATE', 'patient', nuovo.id)
+            db.session.commit()
+            
             flash("Paziente aggiunto con successo ✅", "success")
             return redirect(url_for('patients.lista_pazienti'))
 
@@ -260,16 +277,28 @@ def modifica_paziente(patient_id):
                 paziente.password_hash = generate_password_hash(nuova_password)
                 flash("Password aggiornata con successo 🔐", "success")
             
-            # Informazioni mediche
-            paziente.intolleranze = request.form.get('intolleranze', '').strip() or None
+            # Informazioni mediche (campi sensibili crittografati)
+            intolleranze_val = request.form.get('intolleranze', '').strip() or None
+            paziente.intolleranze_decrypted = intolleranze_val
+            
             paziente.cibi_da_ev = request.form.get('cibi_da_ev', '').strip() or None
-            paziente.patologie = request.form.get('patologie', '').strip() or None
-            paziente.esami_biochimici = request.form.get('esami_biochimici', '').strip() or None
+            
+            patologie_val = request.form.get('patologie', '').strip() or None
+            paziente.patologie_decrypted = patologie_val
+            
+            esami_val = request.form.get('esami_biochimici', '').strip() or None
+            paziente.esami_biochimici_decrypted = esami_val
             
             # Attività fisica
             paziente.allenamenti_descr = request.form.get('allenamenti_descr', '').strip() or None
 
             db.session.commit()
+            
+            # Audit log
+            from app.utils.audit import log_audit_event
+            log_audit_event('UPDATE', 'patient', paziente.id)
+            db.session.commit()
+            
             flash("Dati paziente aggiornati ✅", "success")
             return redirect(url_for('patients.dettaglio_paziente', patient_id=paziente.id))
 
@@ -277,6 +306,11 @@ def modifica_paziente(patient_id):
             db.session.rollback()
             flash(f"Errore durante la modifica: {e}", "danger")
 
+    # Decrittografa campi sensibili per modifica
+    paziente.patologie = paziente.patologie_decrypted
+    paziente.intolleranze = paziente.intolleranze_decrypted
+    paziente.esami_biochimici = paziente.esami_biochimici_decrypted
+    
     return render_template('admin/paziente_modifica.html', paziente=paziente)
 
 
@@ -312,6 +346,11 @@ def profilo_user():
         return redirect(url_for('auth.login'))
     
     paziente = Patient.query.get_or_404(user_id)
+    # Decrittografa campi sensibili per visualizzazione user
+    paziente.patologie = paziente.patologie_decrypted
+    paziente.intolleranze = paziente.intolleranze_decrypted
+    paziente.esami_biochimici = paziente.esami_biochimici_decrypted
+    
     return render_template('user/profilo.html', paziente=paziente)
 
 

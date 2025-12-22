@@ -1,6 +1,6 @@
 [mysqld]
 server-id = 1
-bind-address = 0.0.0.0
+# bind-address rimosso: in Docker non serve, MySQL ascolta solo sulla rete interna
 port = 3306
 
 character-set-server = utf8mb4
@@ -9,12 +9,13 @@ init_connect = 'SET NAMES utf8mb4'
 
 default-storage-engine = InnoDB
 
+# Buffer pool ottimizzato per 1G RAM totale: 512M buffer (50% RAM container)
 innodb_buffer_pool_size = 512M
 innodb_buffer_pool_instances = 2
 innodb_buffer_pool_chunk_size = 256M
 
 innodb_log_file_size = 128M
-innodb_log_buffer_size = 32M
+innodb_log_buffer_size = 16M
 innodb_flush_log_at_trx_commit = 2
 innodb_flush_method = O_DIRECT
 innodb_file_per_table = 1
@@ -65,8 +66,8 @@ sql_mode = STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_B
 skip_name_resolve = 1
 skip_external_locking = 1
 
-performance_schema = ON
-performance_schema_max_table_instances = 12500
+# Performance schema disabilitato: risparmia ~100-150MB RAM in produzione
+performance_schema = OFF
 
 [client]
 default-character-set = utf8mb4

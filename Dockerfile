@@ -5,11 +5,14 @@ ENV PYTHONUNBUFFERED=1
 ENV FLASK_APP=wsgi.py
 ENV FLASK_ENV=production
 
+# Installazione dipendenze di sistema
+# libmagic1: necessario per python-magic (validazione MIME type file upload)
 RUN apt-get update && apt-get install -y \
     gcc \
     default-libmysqlclient-dev \
     pkg-config \
     curl \
+    libmagic1 \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -24,4 +27,4 @@ USER app
 
 EXPOSE 8000
 
-CMD gunicorn --bind 0.0.0.0:8000 --workers ${GUNICORN_WORKERS:-2} --timeout ${GUNICORN_TIMEOUT:-30} --preload --access-logfile - --error-logfile - wsgi:app
+CMD gunicorn --bind 0.0.0.0:8000 --workers ${GUNICORN_WORKERS:-2} --threads ${GUNICORN_THREADS:-2} --worker-class gthread --timeout ${GUNICORN_TIMEOUT:-30} --preload --access-logfile - --error-logfile - wsgi:app
