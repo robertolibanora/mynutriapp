@@ -114,6 +114,19 @@ def debug_rate_limit():
     """
 
 # ===========================================
+# 🏥 HEALTH CHECK ENDPOINT
+# ===========================================
+@app.route('/health')
+def health_check():
+    """Endpoint per healthcheck Docker/Kubernetes"""
+    try:
+        # Verifica connessione database
+        db.session.execute(db.text('SELECT 1'))
+        return "healthy", 200
+    except Exception as e:
+        return f"unhealthy: {str(e)}", 503
+
+# ===========================================
 # 👤 ROUTE PRESENTAZIONE ROBERTO
 # ===========================================
 @app.route('/presentazione')

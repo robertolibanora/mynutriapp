@@ -1,71 +1,59 @@
-# ========================================
-# 🐳 DOCKER COMPOSE PER MYNUTRIAPP
-# Orchestrazione di tutti i servizi
-# ========================================
-
 services:
-  # ========================================
-  # 🌐 APPLICAZIONE FLASK (Web Server)
-  # ========================================
   web:
     build: .
     container_name: mynutriapp_web
-    # Porta esposta per Caddy del sistema host
     ports:
       - "127.0.0.1:8000:8000"
     environment:
       - FLASK_ENV=production
-      - DATABASE_URL=mysql+pymysql://mynutriapp:${MYSQL_PASSWORD:-N0ira2026!}@db:3306/mynutriapp?charset=utf8mb4
+      - DATABASE_URL=mysql+pymysql://mynutriapp:${MYSQL_PASSWORD}@db:3306/mynutriapp?charset=utf8mb4
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - REDIS_PASSWORD=${REDIS_PASSWORD:-I0E6TjyZ4wMBqkXNsUsQXBHCZQWf8rfpeyM-X2KQ7lA}
-      - RATELIMIT_STORAGE_URL=redis://:${REDIS_PASSWORD:-I0E6TjyZ4wMBqkXNsUsQXBHCZQWf8rfpeyM-X2KQ7lA}@redis:6379/0
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - RATELIMIT_STORAGE_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
+      - GUNICORN_WORKERS=${GUNICORN_WORKERS:-2}
+      - GUNICORN_TIMEOUT=${GUNICORN_TIMEOUT:-30}
     depends_on:
       db:
         condition: service_healthy
       redis:
-        condition: service_started
+        condition: service_healthy
     volumes:
       - ./static/uploads:/app/static/uploads
       - ./logs:/app/logs
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     networks:
       - mynutriapp_network
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
 
-  # ========================================
-  # 🌐 CADDY (Reverse Proxy & SSL Automatico)
-  # ========================================
-  # NOTA: Caddy è installato sul sistema host, non come container
-  # Il Caddyfile del sistema deve essere configurato per fare reverse proxy a web:8000
-  # Vedi Caddyfile per configurazione esempio
-
-  # ========================================
-  # 🗄️ DATABASE MYSQL
-  # ========================================
   db:
     image: mysql:8.0
     container_name: mynutriapp_db
     environment:
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-N0ira2026!}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - MYSQL_DATABASE=mynutriapp
       - MYSQL_USER=mynutriapp
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-N0ira2026!}
-      # Ottimizzazioni MySQL per produzione
-      - MYSQL_INNODB_BUFFER_POOL_SIZE=${MYSQL_INNODB_BUFFER_POOL_SIZE:-1G}
-      - MYSQL_MAX_CONNECTIONS=${MYSQL_MAX_CONNECTIONS:-200}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_INNODB_BUFFER_POOL_SIZE=${MYSQL_INNODB_BUFFER_POOL_SIZE:-512M}
+      - MYSQL_MAX_CONNECTIONS=${MYSQL_MAX_CONNECTIONS:-50}
     volumes:
       - mysql_data:/var/lib/mysql
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
-      # Temporaneamente disabilitato per debug
-      # - ./mysql-production.cnf:/etc/mysql/conf.d/production.cnf:ro
-    ports:
-      - "3306:3306"
+      - ./mysql-production.cnf:/etc/mysql/conf.d/production.cnf:ro
     restart: unless-stopped
     command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     healthcheck:
-      # Verifica che MySQL sia pronto e che il database sia accessibile
-      # MySQL esegue init.sql automaticamente al primo avvio (quando il volume è vuoto)
-      # start_period aumentato a 60s per dare più tempo all'inizializzazione
       test: ["CMD", "bash", "-c", "mysqladmin ping -h localhost -u root -p$${MYSQL_ROOT_PASSWORD} > /dev/null 2>&1"]
       interval: 10s
       timeout: 5s
@@ -73,54 +61,46 @@ services:
       start_period: 60s
     networks:
       - mynutriapp_network
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
 
-  # ========================================
-  # ⚡ REDIS (Rate Limiting & Cache)
-  # ========================================
   redis:
     image: redis:7-alpine
     container_name: mynutriapp_redis
-    ports:
-      - "6379:6379"
     volumes:
       - redis_data:/data
     restart: unless-stopped
-    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru --requirepass ${REDIS_PASSWORD:-I0E6TjyZ4wMBqkXNsUsQXBHCZQWf8rfpeyM-X2KQ7lA}
+    command: >
+      redis-server
+      --appendonly yes
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --requirepass ${REDIS_PASSWORD}
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
     networks:
       - mynutriapp_network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
 
-  # ========================================
-  # 📊 PHPMYADMIN (Gestione Database - Opzionale)
-  # ========================================
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    container_name: mynutriapp_phpmyadmin
-    environment:
-      - PMA_HOST=db
-      - PMA_PORT=3306
-      - PMA_USER=root
-      - PMA_PASSWORD=${MYSQL_ROOT_PASSWORD}
-    ports:
-      - "8080:80"
-    depends_on:
-      - db
-    restart: unless-stopped
-    networks:
-      - mynutriapp_network
-
-
-# ========================================
-# 💾 VOLUMI PERSISTENTI
-# ========================================
 volumes:
   mysql_data:
     driver: local
   redis_data:
     driver: local
 
-# ========================================
-# 🌐 RETE PERSONALIZZATA
-# ========================================
 networks:
   mynutriapp_network:
     driver: bridge
