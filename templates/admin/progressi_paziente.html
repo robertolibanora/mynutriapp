@@ -168,7 +168,7 @@
   <p style="color: #b6b1a9; margin-bottom: 2rem; font-size: 1.1rem;">
     {{ paziente.nome }} non ha ancora registrato alcun check dei progressi.
   </p>
-  <a href="{{ url_for('progressi.nuovo_progresso_admin', patient_id=paziente.id) }}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+  <a href="{{ url_for('progressi.check_nutrizionista_completo', patient_id=paziente.id) }}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem;">
     ➕ Aggiungi Primo Check
   </a>
 </div>

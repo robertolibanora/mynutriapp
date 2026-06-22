@@ -1,0 +1,24 @@
+# Sostituisci example.com con il tuo dominio.
+# Caddy ottiene e rinnova automaticamente il certificato HTTPS.
+
+example.com {
+	@static path /static/*
+	handle @static {
+		root * /opt/mynutriapp/static
+		uri strip_prefix /static
+		file_server
+	}
+
+	handle {
+		reverse_proxy 127.0.0.1:8000
+	}
+
+	request_body {
+		max_size 10MB
+	}
+}
+
+# Solo HTTP locale (senza dominio / certificato):
+# :80 {
+# 	reverse_proxy 127.0.0.1:8000
+# }

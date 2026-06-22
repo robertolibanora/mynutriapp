@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from werkzeug.security import check_password_hash, generate_password_hash
 from app.models.models import db, Patient
 from app.utils.audit import log_audit_event
+from app.utils.helpers import normalize_phone
 import os
 
 # ========================
@@ -14,7 +15,7 @@ auth_bp = Blueprint('auth', __name__)
 # ========================
 # CONFIGURAZIONE ADMIN (DA VARIABILI D'AMBIENTE)
 # ========================
-ADMIN_PHONE = os.getenv("ADMIN_PHONE")
+ADMIN_PHONE = normalize_phone(os.getenv("ADMIN_PHONE", ""))
 ADMIN_PASSWORD_HASH = os.getenv("ADMIN_PASSWORD_HASH")
 ADMIN_NAME = os.getenv("ADMIN_NAME", "MyNutriApp")
 
@@ -31,7 +32,7 @@ if not ADMIN_PHONE:
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        telefono = request.form['telefono']
+        telefono = normalize_phone(request.form['telefono'])
         password = request.form['password']
 
         # --- Caso 1: Login ADMIN (con hash, non più in chiaro)
@@ -56,6 +57,11 @@ def login():
 
         # --- Caso 2: Login USER da database
         user = Patient.query.filter_by(telefono=telefono).first()
+        if not user:
+            for candidate in Patient.query.filter(Patient.telefono.isnot(None)).all():
+                if normalize_phone(candidate.telefono) == telefono:
+                    user = candidate
+                    break
         if user and check_password_hash(user.password_hash, password):
             # Protezione contro session fixation: Flask non supporta session.regenerate()
             # quindi puliamo la sessione esistente e reimpostiamo solo le chiavi necessarie

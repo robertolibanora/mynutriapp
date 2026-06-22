@@ -228,7 +228,7 @@ def debug_rate_limit():
 @app.route('/health')
 def health_check():
     """
-    Endpoint per healthcheck Docker/Kubernetes.
+    Endpoint per healthcheck (systemd, load balancer, monitoring).
     Completamente isolato: NO rate limiting, NO database, NO Redis.
     Risponde sempre 200 OK se l'app Flask è avviata.
     """

@@ -102,7 +102,10 @@ class Config:
     # ========================================
     # 🍪 SESSION CONFIGURATION (dati sanitari)
     # ========================================
-    SESSION_COOKIE_SECURE = _get_bool_env("SESSION_COOKIE_SECURE", True)
+    # Default: Secure solo con FLASK_ENV=production. Su http://localhost
+    # SESSION_COOKIE_SECURE=True impedisce al browser di usare il cookie → CSRF/sessione KO.
+    _SESSION_COOKIE_SECURE_DEFAULT = os.getenv("FLASK_ENV", "").lower() == "production"
+    SESSION_COOKIE_SECURE = _get_bool_env("SESSION_COOKIE_SECURE", _SESSION_COOKIE_SECURE_DEFAULT)
     SESSION_COOKIE_HTTPONLY = _get_bool_env("SESSION_COOKIE_HTTPONLY", True)
     SESSION_COOKIE_SAMESITE = os.getenv("SESSION_COOKIE_SAMESITE", "Lax")
     PERMANENT_SESSION_LIFETIME = int(os.getenv("SESSION_LIFETIME", "7200"))
@@ -129,7 +132,7 @@ class Config:
     # ========================================
     # 🔴 REDIS CONFIGURATION
     # ========================================
-    REDIS_HOST = os.getenv("REDIS_HOST", "redis")
+    REDIS_HOST = os.getenv("REDIS_HOST", "127.0.0.1")
     REDIS_PORT = int(os.getenv("REDIS_PORT", "6379"))
     REDIS_DB = int(os.getenv("REDIS_DB", "0"))
     REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")

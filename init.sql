@@ -2,16 +2,16 @@
 -- 🗄️ SCRIPT DI INIZIALIZZAZIONE DATABASE
 -- MyNutriApp - MySQL 8.0
 -- ========================================
--- 
--- NOTA: Questo script viene eseguito automaticamente
--- quando il container MySQL viene avviato per la prima volta.
--- 
--- Il database e l'utente vengono creati automaticamente
--- da MySQL tramite le variabili d'ambiente nel docker-compose.yml:
--- - MYSQL_DATABASE=mynutriapp
--- - MYSQL_USER=mynutriapp
--- - MYSQL_PASSWORD=${MYSQL_PASSWORD}
--- 
+--
+-- Importa su MySQL nativo (systemd):
+--   mysql -u root -p < init.sql
+--
+-- Crea prima database e utente, ad esempio:
+--   CREATE DATABASE mynutriapp CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+--   CREATE USER 'mynutriapp'@'localhost' IDENTIFIED BY 'password';
+--   GRANT ALL PRIVILEGES ON mynutriapp.* TO 'mynutriapp'@'localhost';
+--   FLUSH PRIVILEGES;
+--
 -- Questo script crea tutte le tabelle necessarie per l'applicazione.
 -- ========================================
 
@@ -281,9 +281,9 @@ SHOW TABLES;
 --    - Timestamp automatici per tracciamento
 -- 
 -- 🔄 Per ricreare il database da zero:
---    1. Ferma i container: docker-compose down -v
---    2. Rimuovi il volume MySQL: docker volume rm mynutriapp_mysql_data
---    3. Riavvia: docker-compose up -d
+--    1. DROP DATABASE mynutriapp;
+--    2. Ricrea database e utente (vedi header)
+--    3. Reimporta: mysql -u root -p < init.sql
 -- 
 -- 📊 Le tabelle sono pronte per l'uso con Flask-SQLAlchemy!
 -- ========================================

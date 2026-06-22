@@ -6,6 +6,13 @@ from datetime import datetime, date
 from flask import flash, redirect, url_for, session
 from functools import wraps
 
+def normalize_phone(phone: str) -> str:
+    """Normalizza un numero di telefono (rimuove spazi, +39, ecc.)."""
+    digits = ''.join(c for c in (phone or '') if c.isdigit())
+    if digits.startswith('39') and len(digits) > 10:
+        digits = digits[2:]
+    return digits
+
 def admin_required(func):
     """Decorator per accesso riservato all'admin"""
     @wraps(func)
