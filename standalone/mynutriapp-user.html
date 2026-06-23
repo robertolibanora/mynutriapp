@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>NutriApp</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Adam+Script&display=swap" rel="stylesheet">
+  <meta name="theme-color" content="#ff751f">
+  <style>
+/* ============================================
+   🍎 NUTRIAPP - USER MOBILE INTERFACE
+   Design: Mobile-First, App-like, Fresh & Modern
+   ============================================ */
+
+/* === RESET & BASE === */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* 📱 PREVENZIONE ZOOM MOBILE */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="tel"],
+input[type="number"],
+textarea,
+select {
+    font-size: 16px !important; /* Previene zoom su iOS */
+    -webkit-appearance: none;
+    appearance: none;
+    border-radius: 0;
+}
+
+/* 📱 FIX INPUT FOCUS MOBILE */
+input:focus,
+textarea:focus,
+select:focus {
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+}
+
+html, body {
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #0d331c 0%, #1a4d2e 100%);
+    color: #ffffff;
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: none;
+    overflow-x: hidden;
+    min-height: 100vh;
+    position: relative;
+    /* 📱 FIX NAVBAR MOBILE DEFINITIVO */
+    height: 100vh;
+    height: -webkit-fill-available;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    /* 🎨 SFONDO ESTESO */
+    background-attachment: fixed;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    /* 📱 SPAZIO PER NAVBAR FIXED */
+    padding-bottom: 120px;
+}
+
+/* Estendi lo sfondo verde oltre i bordi del container */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #0d331c 0%, #1a4d2e 100%);
+    z-index: -2;
+    pointer-events: none;
+}
+
+/* === TYPOGRAPHY === */
+h1, h2, h3 {
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+h1 {
+    font-size: 1.75rem;
+    margin-bottom: 0.5rem;
+}
+
+h2 {
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+    color: #ff751f;
+}
+
+h3 {
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
+}
+
+p {
+    line-height: 1.6;
+    font-size: 0.95rem;
+}
+
+/* === TOP HEADER === */
+.user-header {
+    background: rgba(13, 51, 28, 0.95);
+    backdrop-filter: blur(20px);
+    padding: 0.75rem 1.25rem;
+    padding-top: calc(0.25rem + env(safe-area-inset-top));
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 1px solid rgba(255, 117, 31, 0.2);
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+    /* iOS Status Bar Fix */
+    -webkit-backdrop-filter: blur(20px);
+}
+
+/* iOS Status Bar Support */
+@supports (padding: max(0px)) {
+    .user-header {
+        padding-top: max(0.25rem, env(safe-area-inset-top));
+    }
+}
+
+.user-header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.user-greeting {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-greeting-text {
+    font-size: 0.85rem;
+    color: #b6b1a9;
+    font-weight: 500;
+}
+
+.user-name {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-top: 0.15rem;
+}
+
+.user-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ff751f, #ff9a56);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(255, 117, 31, 0.3);
+}
+
+/* === MAIN CONTENT === */
+.user-content {
+    padding: 1.25rem;
+    padding-bottom: 1rem; /* Spazio per scritta Powered by */
+    min-height: calc(100vh - 120px); /* Ridotto per dare spazio alla scritta Powered by */
+    display: flex;
+    flex-direction: column;
+    background: transparent; /* Sfondo trasparente per far vedere il gradient */
+}
+
+/* === CONTENT WRAPPER === */
+.content-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+    background: linear-gradient(135deg, #0d331c 0%, #1a4d2e 100%);
+    background-attachment: fixed;
+    background-size: cover;
+    position: relative;
+    /* 🎨 ESTENSIONE SFONDO */
+    background-repeat: no-repeat;
+    background-position: center;
+    /* Mantieni larghezza limitata ma estendi sfondo */
+    margin: 0 auto;
+    width: 100%;
+    max-width: 480px;
+}
+
+/* Estendi lo sfondo oltre i bordi del container */
+.content-wrapper::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #0d331c 0%, #1a4d2e 100%);
+    z-index: -1;
+    pointer-events: none;
+}
+
+.content-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 40px; /* Spazio per navbar e scritta Powered by */
+}
+
+/* === CARDS === */
+.card-user {
+    background: rgba(26, 77, 46, 0.6);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(182, 177, 169, 0.15);
+    border-radius: 20px;
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-user:active {
+    transform: scale(0.98);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.card-icon {
+    font-size: 1.8rem;
+    margin-right: 0.75rem;
+}
+
+.card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #ff751f;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    flex: 1;
+}
+
+.card-badge {
+    background: rgba(255, 117, 31, 0.2);
+    color: #ff751f;
+    padding: 0.35rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: 1px solid rgba(255, 117, 31, 0.3);
+}
+
+.card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.card-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(182, 177, 169, 0.1);
+}
+
+.card-info-row:last-child {
+    border-bottom: none;
+}
+
+.card-label {
+    font-size: 0.9rem;
+    color: #b6b1a9;
+    font-weight: 500;
+}
+
+.card-value {
+    font-size: 1rem;
+    color: #ffffff;
+    font-weight: 600;
+}
+
+
+/* === SUMMARY CARDS === */
+.summary-card {
+    background: linear-gradient(135deg, rgba(255, 117, 31, 0.15), rgba(255, 154, 86, 0.05));
+    border: 1px solid rgba(255, 117, 31, 0.25);
+    border-radius: 16px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.summary-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.summary-icon {
+    font-size: 1.5rem;
+}
+
+.summary-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #ff751f;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.summary-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+}
+
+.summary-label {
+    color: #b6b1a9;
+}
+
+.summary-value {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+/* === BUTTONS === */
+.btn-user {
+    display: inline-block;
+    padding: 0.85rem 1.5rem;
+    background: linear-gradient(135deg, #ff751f, #ff9a56);
+    color: #ffffff;
+    text-decoration: none;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-align: center;
+    border: none;
+    box-shadow: 0 4px 15px rgba(255, 117, 31, 0.3);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    width: 100%;
+}
+
+.btn-user:active {
+    transform: scale(0.97);
+    box-shadow: 0 2px 10px rgba(255, 117, 31, 0.4);
+}
+
+.btn-user-secondary {
+    background: rgba(182, 177, 169, 0.2);
+    border: 1px solid rgba(182, 177, 169, 0.3);
+    color: #ffffff;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.btn-user-small {
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+    width: auto;
+}
+
+/* === BOTTOM NAVIGATION === */
+.bottom-nav {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 50%;
+    transform: translateX(-50%) translateZ(0) !important;
+    width: 100%;
+    max-width: 480px;
+    background: linear-gradient(135deg, #0d331c 0%, #1a4d2e 100%);
+    background-attachment: fixed;
+    background-size: cover;
+    border-top: 1px solid rgba(255, 117, 31, 0.3);
+    padding: 0.4rem 0.5rem;
+    padding-bottom: max(0.4rem, env(safe-area-inset-bottom));
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 1000;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
+    /* 📱 FIX NAVBAR MOBILE DEFINITIVO */
+    will-change: transform;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    /* Previeni movimento */
+    flex-shrink: 0;
+    min-height: 60px;
+    /* 🎨 INCORPORA PERFETTAMENTE */
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    text-decoration: none;
+    color: #b6b1a9;
+    transition: all 0.2s ease;
+    padding: 0.5rem 0.75rem;
+    border-radius: 12px;
+    min-width: 60px;
+}
+
+.nav-item:active {
+    transform: scale(0.95);
+}
+
+.nav-item.active {
+    color: #4CAF50;
+    transform: scale(1.40);
+}
+
+.nav-item.active .nav-icon,
+.nav-item.active .nav-label {
+    color: #4CAF50;
+}
+
+.nav-icon {
+    font-size: 1.5rem;
+}
+
+.nav-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+/* === EMPTY STATE === */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    color: #b6b1a9;
+}
+
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.empty-text {
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+/* === LIST ITEMS === */
+.list-item {
+    background: rgba(26, 77, 46, 0.4);
+    border: 1px solid rgba(182, 177, 169, 0.15);
+    border-radius: 16px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.list-item-content {
+    flex: 1;
+}
+
+.list-item-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 0.35rem;
+}
+
+.list-item-subtitle {
+    font-size: 0.85rem;
+    color: #b6b1a9;
+}
+
+.list-item-action {
+    flex-shrink: 0;
+}
+
+/* === SECTION HEADER === */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding: 0 0.25rem;
+}
+
+.section-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #ff751f;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.section-action {
+    font-size: 0.85rem;
+    color: #ff751f;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+/* === DIVIDER === */
+.divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(182, 177, 169, 0.2), transparent);
+    margin: 1.5rem 0;
+}
+
+/* === STATUS BADGES === */
+.status-badge {
+    display: inline-block;
+    padding: 0.35rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.status-active {
+    background: rgba(76, 175, 80, 0.2);
+    color: #4caf50;
+    border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.status-expired {
+    background: rgba(244, 67, 54, 0.2);
+    color: #f44336;
+    border: 1px solid rgba(244, 67, 54, 0.3);
+}
+
+.status-upcoming {
+    background: rgba(255, 193, 7, 0.2);
+    color: #ffc107;
+    border: 1px solid rgba(255, 193, 7, 0.3);
+}
+
+/* === PAGE TITLE === */
+.page-title-user {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #ff751f;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+/* === LOADING STATE === */
+.loading {
+    text-align: center;
+    padding: 2rem;
+    color: #b6b1a9;
+    font-size: 0.9rem;
+}
+
+/* === ANIMATIONS === */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.card-user, .list-item, .summary-card {
+    animation: fadeIn 0.3s ease;
+}
+
+/* === RESPONSIVE ADJUSTMENTS === */
+@media (max-width: 360px) {
+    .user-content {
+        padding: 1rem;
+    }
+}
+
+/* === UTILITY CLASSES === */
+.mt-1 { margin-top: 0.5rem; }
+.mt-2 { margin-top: 1rem; }
+.mt-3 { margin-top: 1.5rem; }
+.mb-1 { margin-bottom: 0.5rem; }
+.mb-2 { margin-bottom: 1rem; }
+.mb-3 { margin-bottom: 1.5rem; }
+
+.text-center { text-align: center; }
+.text-muted { color: #b6b1a9; }
+.text-primary { color: #ff751f; }
+.text-white { color: #ffffff; }
+
+.fw-bold { font-weight: 700; }
+.fw-semibold { font-weight: 600; }
+.fw-normal { font-weight: 400; }
+
+/* === STANDALONE EXTRA === */
+
+.flash-wrap {
+  display: grid;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.flash {
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  background: rgba(76, 175, 80, 0.15);
+  border: 1px solid rgba(76, 175, 80, 0.35);
+  color: #fff;
+}
+
+.flash--warning {
+  background: rgba(255, 193, 7, 0.12);
+  border-color: rgba(255, 193, 7, 0.35);
+}
+
+.powered-by {
+  text-align: center;
+  margin: 1rem 0 0.5rem;
+  color: #b6b1a9;
+  font-size: 0.9rem;
+}
+
+.powered-by a {
+  color: #ff751f;
+  text-decoration: none;
+}
+
+.motto {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  color: #ff751f;
+  font-size: 1.2rem;
+  font-weight: 600;
+  font-family: "Adam Script", cursive;
+  line-height: 1.6;
+}
+
+.btn-dettaglio,
+.btn-nuovo-check,
+.btn-nuovo-appuntamento {
+  display: inline-block;
+  padding: 0.75rem 1.25rem;
+  background: rgba(255, 117, 31, 0.12);
+  border: 1px solid rgba(255, 117, 31, 0.3);
+  color: #ff751f;
+  text-decoration: none;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.btn-dettaglio {
+  background: rgba(182, 177, 169, 0.1);
+  border-color: rgba(182, 177, 169, 0.3);
+  color: #b6b1a9;
+}
+
+.section-divider {
+  display: flex;
+  align-items: center;
+  margin: 1.75rem 0 1.25rem;
+  gap: 0.75rem;
+}
+
+.divider-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(182, 177, 169, 0.3), transparent);
+}
+
+.card-nutrizionista {
+  background: rgba(33, 150, 243, 0.1);
+  border-color: rgba(33, 150, 243, 0.25);
+}
+
+.card-completato {
+  background: rgba(76, 175, 80, 0.1);
+  border-color: rgba(76, 175, 80, 0.25);
+  opacity: 0.9;
+}
+
+.card-passato {
+  opacity: 0.75;
+}
+
+.status-confirmed { background: rgba(76, 175, 80, 0.2); color: #4caf50; border: 1px solid rgba(76, 175, 80, 0.3); }
+.status-pending { background: rgba(255, 193, 7, 0.2); color: #ffc107; border: 1px solid rgba(255, 193, 7, 0.3); }
+.status-completed { background: rgba(76, 175, 80, 0.2); color: #4caf50; border: 1px solid rgba(76, 175, 80, 0.3); }
+.status-cancelled { background: rgba(244, 67, 54, 0.2); color: #f44336; border: 1px solid rgba(244, 67, 54, 0.3); }
+.status-past { background: rgba(182, 177, 169, 0.2); color: #b6b1a9; border: 1px solid rgba(182, 177, 169, 0.3); }
+
+.quick-links-user {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.quick-link-btn {
+  display: block;
+  text-align: center;
+  padding: 0.85rem 0.5rem;
+  background: rgba(26, 77, 46, 0.6);
+  border: 1px solid rgba(182, 177, 169, 0.2);
+  border-radius: 14px;
+  text-decoration: none;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.quick-link-btn span {
+  display: block;
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.check-header {
+  background: linear-gradient(135deg, rgba(255, 117, 31, 0.1), rgba(13, 51, 28, 0.35));
+  border: 1px solid rgba(255, 117, 31, 0.2);
+  border-radius: 16px;
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.check-header h1 {
+  color: #ff751f;
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.check-section {
+  background: rgba(13, 51, 28, 0.55);
+  border: 1px solid rgba(182, 177, 169, 0.12);
+  border-radius: 14px;
+  padding: 1.15rem;
+  margin-bottom: 1.15rem;
+}
+
+.check-section .section-title {
+  font-size: 1.05rem;
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(255, 117, 31, 0.2);
+}
+
+.data-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.65rem;
+}
+
+.data-card {
+  background: rgba(13, 51, 28, 0.75);
+  border: 1px solid rgba(182, 177, 169, 0.12);
+  border-radius: 10px;
+  padding: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.data-icon { font-size: 1.4rem; }
+.data-label { color: #b6b1a9; font-size: 0.85rem; }
+.data-value { color: #fff; font-weight: 600; font-size: 1rem; }
+
+.note-section {
+  background: rgba(13, 51, 28, 0.35);
+  border-radius: 10px;
+  padding: 0.85rem;
+  margin-top: 0.85rem;
+  border-left: 3px solid #ff751f;
+}
+
+.note-title { color: #ff751f; font-size: 0.95rem; margin-bottom: 0.35rem; }
+.note-text { color: #b6b1a9; font-size: 0.88rem; line-height: 1.45; margin: 0; }
+
+.form-group { margin-bottom: 0.75rem; }
+
+.card-highlight {
+  background: rgba(255, 117, 31, 0.1);
+  border-color: rgba(255, 117, 31, 0.25);
+}
+
+.card-featured {
+  border: 2px solid #ff751f;
+}
+
+.price-display {
+  text-align: center;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(182, 177, 169, 0.2);
+  font-size: 2rem;
+  font-weight: 700;
+  color: #ff751f;
+}
+
+@media (max-width: 768px) {
+  .divider-line { display: none; }
+}
+
+
+
+.spa-page { display: none; }
+.spa-page.is-active { display: block; }
+
+  </style>
+</head>
+<body data-nav="home">
+  <div id="site-header"></div>
+  <div class="content-wrapper">
+  <main class="user-content content-main">
+<section class="spa-page is-active" id="page-home" data-nav="home" data-title="Dashboard">
+<h1 class="page-title-user">📊 La Tua Dashboard</h1><p class="motto">Non Diamo Pillole, Non Diamo Consigli, Diamo Risultati</p><div class="quick-links-user"><a href="#" data-go="diete-lista" class="quick-link-btn"><span>🥗</span>Diete</a><a href="#" data-go="allenamenti-lista" class="quick-link-btn"><span>🏋️</span>Allenamenti</a><a href="#" data-go="documenti-lista" class="quick-link-btn"><span>📄</span>Documenti</a><a href="#" data-go="listino" class="quick-link-btn"><span>💰</span>Listino</a></div><div class="summary-card">
+        <div class="summary-header"><span class="summary-icon">🥗</span><span class="summary-title">Dieta Attuale</span></div>
+        <div class="summary-content"><div class="summary-row"><span class="summary-label">Periodo:</span><span class="summary-value">01/06/2026 - 30/06/2026</span></div><div class="summary-row"><span class="summary-label">Calorie:</span><span class="summary-value">1800 kcal/giorno</span></div><a href="#" data-go="diete-lista" class="btn-user btn-user-small mt-2">📄 Apri PDF Dieta</a></div>
+      </div><div class="summary-card">
+        <div class="summary-header"><span class="summary-icon">🏋️</span><span class="summary-title">Allenamento Attuale</span></div>
+        <div class="summary-content"><div class="summary-row"><span class="summary-label">Periodo:</span><span class="summary-value">01/06/2026 - 30/06/2026</span></div><div class="summary-row"><span class="summary-label">Note:</span><span class="summary-value">Push/Pull/Legs 3x</span></div><a href="#" data-go="allenamenti-lista" class="btn-user btn-user-small mt-2">📄 Apri PDF Allenamento</a></div>
+      </div><div class="summary-card">
+        <div class="summary-header"><span class="summary-icon">⚖️</span><span class="summary-title">Peso Attuale</span></div>
+        <div class="summary-content"><div class="summary-row"><span class="summary-label">Data Check:</span><span class="summary-value">10/06/2026</span></div><div class="summary-row"><span class="summary-label">Peso:</span><span class="summary-value">78.2 kg</span></div><div class="summary-row"><span class="summary-label">Aderenza:</span><span class="summary-value">85%</span></div><div class="summary-row"><span class="summary-label">Peso Iniziale:</span><span class="summary-value">82 kg</span></div><div class="summary-row"><span class="summary-label">Differenza:</span><span class="summary-value"><span style="color:#4caf50">-3.8 kg</span></span></div><a href="#" data-go="progressi-lista" class="btn-user btn-user-small mt-2">📈 Vedi progressi</a></div>
+      </div><div class="summary-card">
+        <div class="summary-header"><span class="summary-icon">📅</span><span class="summary-title">Prossimo Appuntamento</span></div>
+        <div class="summary-content"><div class="summary-row"><span class="summary-label">Data:</span><span class="summary-value">28/06/2026 alle 10:00</span></div><div class="summary-row"><span class="summary-label">Tipo:</span><span class="summary-value">Check</span></div><a href="#" data-go="appuntamenti-lista" class="btn-user btn-user-small mt-2">📅 I miei appuntamenti</a></div>
+      </div>
+</section>
+<section class="spa-page" id="page-profilo" data-nav="profilo" data-title="Profilo" hidden>
+<h1 class="page-title-user">👤 Il Mio Profilo</h1><div class="card-user ">
+        <div class="card-header">
+          <div style="display:flex;align-items:center"><span class="card-icon">📋</span><span class="card-title">Dati Anagrafici</span></div>
+          
+        </div>
+        <div class="card-body"><div class="card-info-row"><span class="card-label">Nome</span><span class="card-value">Marco Rossi</span></div><div class="card-info-row"><span class="card-label">Data di Nascita</span><span class="card-value">15/03/1985</span></div><div class="card-info-row"><span class="card-label">Sesso</span><span class="card-value">M</span></div><div class="card-info-row"><span class="card-label">Telefono</span><span class="card-value">+39 333 123 4567</span></div></div>
+        
+      </div><div class="card-user ">
+        <div class="card-header">
+          <div style="display:flex;align-items:center"><span class="card-icon">📏</span><span class="card-title">Dati Fisici</span></div>
+          
+        </div>
+        <div class="card-body"><div class="card-info-row"><span class="card-label">Altezza</span><span class="card-value">178 cm</span></div><div class="card-info-row"><span class="card-label">Peso Iniziale</span><span class="card-value">82 kg</span></div></div>
+        
+      </div><div class="card-user ">
+        <div class="card-header">
+          <div style="display:flex;align-items:center"><span class="card-icon">🩺</span><span class="card-title">Informazioni Mediche</span></div>
+          
+        </div>
+        <div class="card-body"><div class="card-info-row"><span class="card-label">Intolleranze</span><span class="card-value">Lattosio</span></div><div class="card-info-row"><span class="card-label">Cibi da Evitare</span><span class="card-value">—</span></div><div class="card-info-row"><span class="card-label">Patologie</span><span class="card-value">—</span></div></div>
+        
+      </div><div class="card-user ">
+        <div class="card-header">
+          <div style="display:flex;align-items:center"><span class="card-icon">🏃</span><span class="card-title">Attività Fisica</span></div>
+          
+        </div>
+        <div class="card-body"><div class="card-info-row"><span class="card-label">Descrizione</span><span class="card-value">3x/sett palestra</span></div></div>
+        
+      </div><div class="quick-links-user"><a href="#" data-go="documenti-lista" class="quick-link-btn"><span>📄</span>Documenti</a><a href="#" data-go="listino" class="quick-link-btn"><span>💰</span>Listino</a></div><div class="divider"></div><a href="#" class="btn-user btn-user-secondary" data-logout>🚪 Esci</a>
+</section>
+<section class="spa-page" id="page-progressi-lista" data-nav="progressi" data-title="Progressi" hidden>
+<h1 class="page-title-user">📈 I Miei Progressi</h1><div class="mb-2 text-center"><a href="#" data-go="progresso-nuovo" class="btn-nuovo-check">➕ Inserisci Nuovo Check</a></div><div class="section-divider"><div class="divider-line"></div><h2 class="section-title">🏥 Check del Dottor MyNutriApp</h2><div class="divider-line"></div></div><div class="card-user card-nutrizionista">
+        <div class="card-header">
+          <div style="display:flex;align-items:center"><span class="card-icon">🏥</span><span class="card-title">Check Nutrizionista 10/06/2026</span></div>
+          
+        </div>
+        <div class="card-body"><div class="text-center"><a href="#" data-go="dettaglio-check-nutrizionista" class="btn-dettaglio">Visualizza Dettagli</a></div></div>
+        
+      </div><div class="card-user card-nutrizionista">
+        <div class="card-header">
+          <div style="display:flex;align-items:center"><span class="card-icon">🏥</span><span class="card-title">Check Nutrizionista 10/04/2026</span></div>
+          
+        </div>
+        <div class="card-body"><div class="text-center"><a href="#" data-go="dettaglio-check-nutrizionista" class="btn-dettaglio">Visualizza Dettagli</a></div></div>
+        
+      </div><div class="section-divider"><div class="divider-line"></div><h2 class="section-title">👤 I Miei Check</h2><div class="divider-line"></div></div><div class="card-user ">
+        <div class="card-header">
+          <div style="display:flex;align-items:center"><span class="card-icon">⚖️</span><span class="card-title">Il Mio Check 05/06/2026</span></div>
+          
+        </div>
+        <div class="card-body"><div class="text-center"><a href="#" data-go="dettaglio-check-paziente" class="btn-dettaglio">Visualizza Dettagli</a></div></div>
+        
+      </div><div class="card-user ">
+        <div class="card-header">
+          <div style="display:flex;align-items:center"><span class="card-icon">⚖️</span><span class="card-title">Il Mio Check 22/05/2026</span></div>
+          
+        </div>
+        <div class="card-body"><div class="text-center"><a href="#" data-go="dettaglio-check-paziente" class="btn-dettaglio">Visualizza Dettagli</a></div></div>
+        
+      </div>
+</section>
+<section class="spa-page" id="page-progresso-nuovo" data-nav="progressi" data-title="Nuovo Check" hidden>
+<h1 class="page-title-user">📊 Nuovo Check Progresso</h1><form class="card-user" data-mock data-success="Check salvato (simulazione)." data-redirect="progressi-lista">
+        <div class="card-body"><div class="form-group">
+        <label for="peso_settimanale" class="card-label" style="display:block;margin-bottom:0.5rem">Peso Attuale (kg) *</label>
+        <input type="number" step="0.1" id="peso_settimanale" name="peso_settimanale" class="btn-user" style="width:100%;text-align:center;font-size:1.5rem;font-weight:700;color:#ff751f" placeholder="Es: 75.5" required>
+      </div><div class="form-group">
+        <label for="aderenza" class="card-label" style="display:block;margin-bottom:0.5rem">Aderenza alla Dieta (1-10, opzionale)</label>
+        <select id="aderenza" name="aderenza" class="btn-user" style="width:100%;text-align:left"><option value="">Seleziona...</option><option value="10">10 - Perfetta</option><option value="8">8 - Molto Buona</option><option value="6">6 - Discreta</option><option value="4">4 - Mediocre</option></select>
+      </div><div class="form-group">
+        <label for="frequenza_allenamenti" class="card-label" style="display:block;margin-bottom:0.5rem">Allenamenti questa Settimana</label>
+        <select id="frequenza_allenamenti" name="frequenza_allenamenti" class="btn-user" style="width:100%;text-align:left"><option value="">Seleziona...</option><option value="0">0 volte</option><option value="2">2 volte</option><option value="3">3 volte</option><option value="5+">5+ volte</option></select>
+      </div></div>
+        <div style="display:flex;gap:0.5rem;margin-top:1rem">
+          <button type="submit" class="btn-user" style="flex:1">💾 Salva Check</button>
+          <a href="#" data-go="progressi-lista" class="btn-user btn-user-secondary" style="flex:1">↩️ Annulla</a>
+        </div>
+      </form>
+</section>
+<section class="spa-page" id="page-dettaglio-check-paziente" data-nav="progressi" data-title="Dettaglio Check" hidden>
+<div class="check-header">
+        <h1>Il Mio Check</h1>
+        <p class="text-muted" style="margin-top:0.35rem">05/06/2026</p>
+      </div>
+      <a href="#" data-go="progressi-lista" class="btn-user btn-user-secondary mb-2">← Torna ai Progressi</a>
+      <div class="check-section"><h2 class="section-title">I Tuoi Dati</h2><div class="data-grid">
+      <div class="data-card"><span class="data-icon">⚖️</span><div><div class="data-label">Peso</div><div class="data-value">77.8 kg</div></div></div>
+      <div class="data-card"><span class="data-icon">📊</span><div><div class="data-label">Aderenza</div><div class="data-value">8/10</div></div></div>
+      <div class="data-card"><span class="data-icon">🏋️</span><div><div class="data-label">Allenamenti</div><div class="data-value">3 volte</div></div></div>
+      </div></div>
+</section>
+<section class="spa-page" id="page-dettaglio-check-nutrizionista" data-nav="progressi" data-title="Dettaglio Check" hidden>
+<div class="check-header">
+        <h1>Check Nutrizionista</h1>
+        <p class="text-muted" style="margin-top:0.35rem">05/06/2026</p>
+      </div>
+      <a href="#" data-go="progressi-lista" class="btn-user btn-user-secondary mb-2">← Torna ai Progressi</a>
+      <div class="check-section"><h2 class="section-title">Dati Base del Check</h2><div class="data-grid">
+      <div class="data-card"><span class="data-icon">⚖️</span><div><div class="data-label">Peso</div><div class="data-value">78.2 kg</div></div></div>
+      <div class="data-card"><span class="data-icon">📊</span><div><div class="data-label">Aderenza</div><div class="data-value">85%</div></div></div>
+      <div class="data-card"><span class="data-icon">🏋️</span><div><div class="data-label">Allenamenti</div><div class="data-value">3/sett</div></div></div>
+      </div></div>
+      <div class="check-section"><h2 class="section-title">Misure Antropometriche</h2><div class="data-grid">
+      <div class="data-card"><span class="data-icon">🩲</span><div><div class="data-label">Vita</div><div class="data-value">82 cm</div></div></div>
+      <div class="data-card"><span class="data-icon">🦵</span><div><div class="data-label">Fianchi</div><div class="data-value">98 cm</div></div></div>
+      <div class="data-card"><span class="data-icon">📏</span><div><div class="data-label">Plica addome</div><div class="data-value">18 mm</div></div></div>
+      </div></div>
+      <div class="check-section"><h2 class="section-title">Composizione Corporea</h2><div class="data-grid">
+      <div class="data-card"><span class="data-icon">🩸</span><div><div class="data-label">Grasso corporeo</div><div class="data-value">18.5%</div></div></div>
+      <div class="data-card"><span class="data-icon">💪</span><div><div class="data-label">Massa muscolare</div><div class="data-value">62.3 kg</div></div></div>
+      <div class="data-card"><span class="data-icon">📊</span><div><div class="data-label">BMI</div><div class="data-value">24.7</div></div></div>
+      </div><div class="note-section"><h3 class="note-title">Note</h3><p class="note-text">Ottimi progressi, continua così!</p></div></div>
+</section>
+<section class="spa-page" id="page-appuntamenti-lista" data-nav="prenota" data-title="Appuntamenti" hidden>
+<h1 class="page-title-user">📅 I Miei Appuntamenti</h1><div class="mb-2 text-center"><a href="#" data-go="appuntamento-prenota" class="btn-nuovo-appuntamento">➕ Prenota Nuovo Appuntamento</a></div><div class="section-divider"><div class="divider-line"></div><h2 class="section-title">🕐 Prossimi Appuntamenti</h2><div class="divider-line"></div></div><div class="card-user ">
+        <div class="card-header">
+          <div style="display:flex;align-items:center"><span class="card-icon">🗓️</span><span class="card-title">Check</span></div>
+          <span class="status-badge status-pending">⏳ In Attesa</span>
+        </div>
+        <div class="card-body"><div class="card-info-row"><span class="card-label">📅 Data</span><span class="card-value">28/06/2026</span></div><div class="card-info-row"><span class="card-label">🕐 Ora</span><span class="card-value">10:00</span></div><div class="card-info-row"><span class="card-label">💬 Note</span><span class="card-value">Porta referto recente</span></div></div>
+        
+      </div><div class="card-user ">
+        <div class="card-header">
+          <div style="display:flex;align-items:center"><span class="card-icon">🗓️</span><span class="card-title">Rinnovo Dieta</span></div>
+          <span class="status-badge status-confirmed">✅ Confermato</span>
+        </div>
+        <div class="card-body"><div class="card-info-row"><span class="card-label">📅 Data</span><span class="card-value">15/07/2026</span></div><div class="card-info-row"><span class="card-label">🕐 Ora</span><span class="card-value">11:30</span></div></div>
+        
+      </div><div class="section-divider"><div class="divider-line"></div><h2 class="section-title">✅ Appuntamenti Completati</h2><div class="divider-line"></div></div><div class="card-user card-completato">
+        <div class="card-header">
+          <div style="display:flex;align-items:center"><span class="card-icon">🗓️</span><span class="card-title">Prima Visita</span></div>
+          <span class="status-badge status-completed">✔️ Completato</span>
+        </div>
+        <div class="card-body"><div class="card-info-row"><span class="card-label">📅 Data</span><span class="card-value">10/01/2024</span></div><div class="card-info-row"><span class="card-label">🕐 Ora</span><span class="card-value">09:00</span></div></div>
+        
+      </div><div class="section-divider"><div class="divider-line"></div><h2 class="section-title">📜 Altri Appuntamenti Passati</h2><div class="divider-line"></div></div><div class="card-user card-passato">
+        <div class="card-header">
+          <div style="display:flex;align-items:center"><span class="card-icon">🗓️</span><span class="card-title">Check</span></div>
+          <span class="status-badge status-past">📅 Passato</span>
+        </div>
+        <div class="card-body"><div class="card-info-row"><span class="card-label">📅 Data</span><span class="card-value">10/03/2026</span></div><div class="card-info-row"><span class="card-label">🕐 Ora</span><span class="card-value">14:00</span></div></div>
+        
+      </div>
+</section>
+<section class="spa-page" id="page-appuntamento-prenota" data-nav="prenota" data-title="Prenota Appuntamento" hidden>
+<h1 class="page-title-user">📅 Prenota Appuntamento</h1><form class="card-user" data-mock data-success="Appuntamento prenotato (simulazione)." data-redirect="appuntamenti-lista">
+        <div class="card-body"><div class="form-group">
+        <label for="data_appuntamento" class="card-label" style="display:block;margin-bottom:0.5rem">Scegli Data e Ora *</label>
+        <select id="data_appuntamento" name="data_appuntamento" class="btn-user" style="width:100%;text-align:left" required><option value="">Seleziona uno slot...</option><option value="2026-06-28T10:00">📅 28/06/2026 — 10:00</option><option value="2026-07-02T15:00">📅 02/07/2026 — 15:00</option><option value="2026-07-05T09:30">📅 05/07/2026 — 09:30</option></select>
+      </div><div class="form-group">
+        <label for="tipo" class="card-label" style="display:block;margin-bottom:0.5rem">Tipo Appuntamento *</label>
+        <select id="tipo" name="tipo" class="btn-user" style="width:100%;text-align:left" required><option value="">Seleziona tipo...</option><option value="allenamento_1to1">💪 Allenamento 1to1</option><option value="rinnovo_dieta">🍽️ Rinnovo Dieta</option><option value="check">✅ Check</option><option value="altro">📌 Altro</option></select>
+      </div><div class="form-group">
+        <label for="note" class="card-label" style="display:block;margin-bottom:0.5rem">Note (opzionale)</label>
+        <textarea id="note" name="note" class="btn-user" style="width:100%;min-height:80px;text-align:left;font-size:0.9rem;padding:0.75rem" placeholder="Es: Ho bisogno di aggiornare la dieta..."></textarea>
+      </div></div>
+        <div style="display:flex;gap:0.5rem;margin-top:1rem">
+          <button type="submit" class="btn-user" style="flex:1">✅ Prenota Appuntamento</button>
+          <a href="#" data-go="appuntamenti-lista" class="btn-user btn-user-secondary" style="flex:1">↩️ Annulla</a>
+        </div>
+      </form>
+</section>
+<section class="spa-page" id="page-diete-lista" data-nav="home" data-title="Le Mie Diete" hidden>
+<h1 class="page-title-user">🥗 Le Mie Diete</h1><div class="card-user ">
+        <div class="card-header">
+          <div style="display:flex;align-items:center"><span class="card-icon">🍽️</span><span class="card-title">Dieta 1</span></div>
+          <span class="status-badge status-active">Attiva</span>
+        </div>
+        <div class="card-body"><div class="card-info-row"><span class="card-label">Data Inizio</span><span class="card-value">01/06/2026</span></div><div class="card-info-row"><span class="card-label">Data Fine</span><span class="card-value">30/06/2026</span></div><div class="card-info-row"><span class="card-label">Calorie</span><span class="card-value">1800 kcal/giorno</span></div><div class="card-info-row"><span class="card-label">Carboidrati</span><span class="card-value">40%</span></div><div class="card-info-row"><span class="card-label">Proteine</span><span class="card-value">30%</span></div><div class="card-info-row"><span class="card-label">Grassi</span><span class="card-value">30%</span></div></div>
+        <a href="#" class="btn-user mt-2">📄 Apri PDF Dieta</a>
+      </div><div class="card-user ">
+        <div class="card-header">
+          <div style="display:flex;align-items:center"><span class="card-icon">🍽️</span><span class="card-title">Dieta 2</span></div>
+          <span class="status-badge status-expired">Scaduta</span>
+        </div>
+        <div class="card-body"><div class="card-info-row"><span class="card-label">Data Inizio</span><span class="card-value">01/05/2026</span></div><div class="card-info-row"><span class="card-label">Data Fine</span><span class="card-value">31/05/2026</span></div><div class="card-info-row"><span class="card-label">Calorie</span><span class="card-value">1900 kcal/giorno</span></div></div>
+        <a href="#" class="btn-user mt-2">📄 Apri PDF Dieta</a>
+      </div>
+</section>
+<section class="spa-page" id="page-allenamenti-lista" data-nav="home" data-title="I Miei Allenamenti" hidden>
+<h1 class="page-title-user">🏋️ I Miei Allenamenti</h1><div class="card-user ">
+        <div class="card-header">
+          <div style="display:flex;align-items:center"><span class="card-icon">💪</span><span class="card-title">Allenamento 1</span></div>
+          <span class="status-badge status-active">Attiva</span>
+        </div>
+        <div class="card-body"><div class="card-info-row"><span class="card-label">Data Inizio</span><span class="card-value">01/06/2026</span></div><div class="card-info-row"><span class="card-label">Data Fine</span><span class="card-value">30/06/2026</span></div><div class="card-info-row"><span class="card-label">Note</span><span class="card-value">Push/Pull/Legs</span></div></div>
+        <a href="#" class="btn-user mt-2">📄 Apri PDF Allenamento</a>
+      </div><div class="card-user ">
+        <div class="card-header">
+          <div style="display:flex;align-items:center"><span class="card-icon">💪</span><span class="card-title">Allenamento 2</span></div>
+          <span class="status-badge status-expired">Scaduta</span>
+        </div>
+        <div class="card-body"><div class="card-info-row"><span class="card-label">Data Inizio</span><span class="card-value">01/04/2026</span></div><div class="card-info-row"><span class="card-label">Data Fine</span><span class="card-value">31/05/2026</span></div><div class="card-info-row"><span class="card-label">Note</span><span class="card-value">Full body 3x</span></div></div>
+        <a href="#" class="btn-user mt-2">📄 Apri PDF Allenamento</a>
+      </div>
+</section>
+<section class="spa-page" id="page-documenti-lista" data-nav="profilo" data-title="Documenti" hidden>
+<h1 class="page-title-user">📄 I Miei Documenti</h1><div class="mb-2"><a href="#" data-go="documento-nuovo" class="btn-user">➕ Carica Nuovo Documento</a></div><div class="card-user ">
+        <div class="card-header">
+          <div style="display:flex;align-items:center"><span class="card-icon">🩸</span><span class="card-title">Analisi</span></div>
+          <span class="card-badge">05/06/2026</span>
+        </div>
+        <div class="card-body"><div class="card-info-row"><span class="card-label">Descrizione</span><span class="card-value">Analisi sangue giugno 2026</span></div><div class="card-info-row"><span class="card-label">Caricato il</span><span class="card-value">05/06/2026 alle 14:30</span></div></div>
+        <div style="display:flex;gap:0.5rem;margin-top:1rem">
+        <a href="#" class="btn-user btn-user-small" style="flex:1">👁️ Visualizza</a>
+        <button type="button" class="btn-user btn-user-secondary btn-user-small" style="flex:1" data-confirm="Eliminare questo documento?">🗑️ Elimina</button>
+      </div>
+      </div><div class="card-user ">
+        <div class="card-header">
+          <div style="display:flex;align-items:center"><span class="card-icon">📋</span><span class="card-title">Referto</span></div>
+          <span class="card-badge">12/01/2024</span>
+        </div>
+        <div class="card-body"><div class="card-info-row"><span class="card-label">Descrizione</span><span class="card-value">Certificato intolleranza lattosio</span></div><div class="card-info-row"><span class="card-label">Caricato il</span><span class="card-value">12/01/2024 alle 10:00</span></div></div>
+        <div style="display:flex;gap:0.5rem;margin-top:1rem">
+        <a href="#" class="btn-user btn-user-small" style="flex:1">👁️ Visualizza</a>
+        <button type="button" class="btn-user btn-user-secondary btn-user-small" style="flex:1" data-confirm="Eliminare questo documento?">🗑️ Elimina</button>
+      </div>
+      </div>
+</section>
+<section class="spa-page" id="page-documento-nuovo" data-nav="profilo" data-title="Carica Documento" hidden>
+<h1 class="page-title-user">📤 Carica Documento</h1><form class="card-user" data-mock data-success="Documento caricato (simulazione)." data-redirect="documenti-lista">
+        <div class="card-body"><div class="form-group">
+        <label for="tipo" class="card-label" style="display:block;margin-bottom:0.5rem">Tipo Documento</label>
+        <select id="tipo" name="tipo" class="btn-user" style="width:100%;text-align:left" required><option value="">Seleziona tipo...</option><option value="analisi">🩸 Analisi del Sangue</option><option value="referto">📋 Referto Medico</option><option value="pdf_altro">📄 Altro Documento</option></select>
+      </div><div class="form-group">
+        <label for="descrizione" class="card-label" style="display:block;margin-bottom:0.5rem">Descrizione (opzionale)</label>
+        <textarea id="descrizione" name="descrizione" class="btn-user" style="width:100%;min-height:80px;text-align:left;font-size:0.9rem;padding:0.75rem" placeholder="Es: Analisi del sangue giugno 2026"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="file" class="card-label" style="display:block;margin-bottom:0.5rem">File (PDF, JPG, PNG)</label>
+        <input type="file" id="file" name="file" accept=".pdf,.jpg,.jpeg,.png" class="btn-user" style="width:100%;padding:0.75rem;font-size:0.85rem" required>
+      </div></div>
+        <div style="display:flex;gap:0.5rem;margin-top:1rem">
+          <button type="submit" class="btn-user" style="flex:1">💾 Carica Documento</button>
+          <a href="#" data-go="documenti-lista" class="btn-user btn-user-secondary" style="flex:1">↩️ Annulla</a>
+        </div>
+      </form>
+      <div class="card-user card-highlight" style="margin-top:1rem">
+        <div class="card-body">
+          <p class="card-label" style="margin-bottom:0.5rem">💡 Suggerimento</p>
+          <p class="card-value" style="font-size:0.85rem;line-height:1.5">Carica esami del sangue, certificati di intolleranze o altri documenti medici. Il tuo nutrizionista potrà visualizzarli.</p>
+        </div>
+      </div>
+</section>
+<section class="spa-page" id="page-listino" data-nav="profilo" data-title="Listino Prezzi" hidden>
+<h1 class="page-title-user">💰 Listino Prezzi</h1><h2 class="section-title">🥗 Piano Nutrizionale</h2><div class="card-user  card-featured">
+        <div class="card-header">
+          <div style="display:flex;align-items:center"><span class="card-icon">🥗</span><span class="card-title">Pacchetto 3 Mesi — IL PIÙ SCELTO</span></div>
+          <span class="card-badge">⭐ PIÙ SCELTO</span>
+        </div>
+        <div class="card-body"><div class="card-info-row"><span class="card-label">Durata</span><span class="card-value">3 mesi</span></div><div class="card-info-row"><span class="card-label">Check Inclusi</span><span class="card-value">6 check</span></div><div class="card-info-row"><span class="card-label">Dettagli</span><span class="card-value">Dieta personalizzata + follow-up</span></div><div class="price-display">450€</div></div>
+        
+      </div><div class="card-user ">
+        <div class="card-header">
+          <div style="display:flex;align-items:center"><span class="card-icon">🥗</span><span class="card-title">Prima Visita + Dieta</span></div>
+          
+        </div>
+        <div class="card-body"><div class="card-info-row"><span class="card-label">Durata</span><span class="card-value">1 mese</span></div><div class="card-info-row"><span class="card-label">Check Inclusi</span><span class="card-value">1 check</span></div><div class="card-info-row"><span class="card-label">Dettagli</span><span class="card-value">Prima consulenza completa</span></div><div class="price-display">120€</div></div>
+        
+      </div><div class="divider"></div><h2 class="section-title">🏋️ Piano di Allenamento</h2><div class="card-user ">
+        <div class="card-header">
+          <div style="display:flex;align-items:center"><span class="card-icon">💪</span><span class="card-title">Scheda 3 Mesi</span></div>
+          
+        </div>
+        <div class="card-body"><div class="card-info-row"><span class="card-label">Durata</span><span class="card-value">3 mesi</span></div><div class="card-info-row"><span class="card-label">Dettagli</span><span class="card-value">Piano fitness personalizzato</span></div><div class="price-display">200€</div></div>
+        
+      </div><div class="divider"></div><h2 class="section-title">🌟 Piano Completo</h2><div class="card-user  card-featured">
+        <div class="card-header">
+          <div style="display:flex;align-items:center"><span class="card-icon">🌟</span><span class="card-title">Nutrizione + Allenamento</span></div>
+          <span class="card-badge">⭐ PIÙ SCELTO</span>
+        </div>
+        <div class="card-body"><div class="card-info-row"><span class="card-label">Durata</span><span class="card-value">3 mesi</span></div><div class="card-info-row"><span class="card-label">Check Inclusi</span><span class="card-value">8 check</span></div><div class="card-info-row"><span class="card-label">Dettagli</span><span class="card-value">Pacchetto totale</span></div><div class="price-display">580€</div></div>
+        
+      </div><div class="divider"></div><h2 class="section-title">💪 Allenamento 1 to 1</h2><div class="card-user ">
+        <div class="card-header">
+          <div style="display:flex;align-items:center"><span class="card-icon">💪</span><span class="card-title">Sessione singola</span></div>
+          
+        </div>
+        <div class="card-body"><div class="card-info-row"><span class="card-label">Durata</span><span class="card-value">1 allenamento</span></div><div class="card-info-row"><span class="card-label">Dettagli</span><span class="card-value">Con il nutrizionista</span></div><div class="price-display">60€</div></div>
+        
+      </div><div class="card-user card-highlight" style="margin-top:1.5rem">
+        <div class="card-body">
+          <p class="card-label" style="margin-bottom:0.75rem;font-size:1rem;color:#ff751f">✨ Tutti i piani includono:</p>
+          <div style="display:flex;flex-direction:column;gap:0.5rem;font-size:0.9rem">
+            <div>💬 Follow up via WhatsApp</div>
+            <div>🎯 Supporto e motivazione continua</div>
+            <div>📹 Possibilità di video-call di aggiornamento</div>
+          </div>
+        </div>
+      </div>
+      <p class="text-center text-muted mt-2" style="font-size:0.9rem">Per maggiori informazioni contatta il tuo nutrizionista!</p>
+</section>
+    <div id="site-powered"></div>
+  </main>
+  </div>
+  <div id="site-bottom-nav"></div>
+  <script>
+(function () {
+  "use strict";
+
+  var USER_NAME = "Marco";
+
+  var BOTTOM_NAV = [
+    { id: "home", label: "Home", icon: "🏠", go: "home" },
+    { id: "progressi", label: "Progressi", icon: "📈", go: "progressi-lista" },
+    { id: "prenota", label: "Prenota", icon: "📅", go: "appuntamenti-lista" },
+    { id: "profilo", label: "Profilo", icon: "👤", go: "profilo" }
+  ];
+
+  function renderHeader() {
+    var initial = USER_NAME.charAt(0).toUpperCase();
+    return (
+      '<header class="user-header">' +
+      '<div class="user-header-content">' +
+      '<div class="user-greeting">' +
+      '<span class="user-greeting-text">Ciao,</span>' +
+      '<span class="user-name">' + USER_NAME + "</span>" +
+      "</div>" +
+      '<a href="#" data-go="profilo" class="user-avatar">' + initial + "</a>" +
+      "</div></header>"
+    );
+  }
+
+  function renderBottomNav(active) {
+    var items = BOTTOM_NAV.map(function (item) {
+      var cls = "nav-item" + (item.id === active ? " active" : "");
+      return (
+        '<a href="#" data-go="' + item.go + '" class="' + cls + '">' +
+        '<span class="nav-icon">' + item.icon + "</span>" +
+        '<span class="nav-label">' + item.label + "</span></a>"
+      );
+    }).join("");
+    return '<nav class="bottom-nav">' + items + "</nav>";
+  }
+
+  function renderPoweredBy() {
+    return (
+      '<div class="powered-by">' +
+      'Powered by <a href="#">Roberto Libanora</a>' +
+      "</div>"
+    );
+  }
+
+  function showFlash(message, type) {
+    var page = document.querySelector(".spa-page.is-active");
+    if (!page) return;
+    var wrap = page.querySelector(".flash-wrap");
+    if (!wrap) {
+      wrap = document.createElement("div");
+      wrap.className = "flash-wrap";
+      page.insertBefore(wrap, page.firstChild);
+    }
+    var el = document.createElement("div");
+    el.className = "flash flash--" + (type || "success");
+    el.textContent = message;
+    wrap.appendChild(el);
+    setTimeout(function () { el.remove(); }, 4000);
+  }
+
+  function initForms() {
+    document.querySelectorAll("form[data-mock]").forEach(function (form) {
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var msg = form.getAttribute("data-success") || "Operazione completata (simulazione).";
+        showFlash(msg, "success");
+        var redirect = form.getAttribute("data-redirect");
+        if (redirect && window.goTo) {
+          setTimeout(function () { window.goTo(redirect); }, 600);
+        }
+      });
+    });
+    document.querySelectorAll("[data-confirm]").forEach(function (el) {
+      el.addEventListener("click", function (e) {
+        if (!confirm(el.getAttribute("data-confirm"))) e.preventDefault();
+      });
+    });
+    var logout = document.querySelector("[data-logout]");
+    if (logout) {
+      logout.addEventListener("click", function (e) {
+        e.preventDefault();
+        if (confirm("Uscire dall'app?")) {
+          showFlash("Logout simulato — demo standalone senza backend.", "warning");
+        }
+      });
+    }
+  }
+
+  function mountChrome() {
+    var active = document.body.getAttribute("data-nav") || "home";
+    var headerHost = document.getElementById("site-header");
+    var navHost = document.getElementById("site-bottom-nav");
+    var poweredHost = document.getElementById("site-powered");
+    if (headerHost) headerHost.innerHTML = renderHeader();
+    if (navHost) navHost.innerHTML = renderBottomNav(active);
+    if (poweredHost) poweredHost.innerHTML = renderPoweredBy();
+  }
+
+  window.__spaAfterNav = function () {
+    mountChrome();
+  };
+
+  document.addEventListener("DOMContentLoaded", function () {
+    mountChrome();
+    initForms();
+  });
+
+  window.userFlash = showFlash;
+})();
+
+
+document.addEventListener('DOMContentLoaded', function() {
+  var PAGE_TITLES = {"home": "Dashboard", "profilo": "Profilo", "progressi-lista": "Progressi", "progresso-nuovo": "Nuovo Check", "dettaglio-check-paziente": "Dettaglio Check", "dettaglio-check-nutrizionista": "Dettaglio Check", "appuntamenti-lista": "Appuntamenti", "appuntamento-prenota": "Prenota Appuntamento", "diete-lista": "Le Mie Diete", "allenamenti-lista": "I Miei Allenamenti", "documenti-lista": "Documenti", "documento-nuovo": "Carica Documento", "listino": "Listino Prezzi"};
+  var HOME = 'home';
+
+  function goTo(pageId) {
+    if (!document.getElementById('page-' + pageId)) pageId = HOME;
+    document.querySelectorAll('.spa-page').forEach(function(p) {
+      p.classList.remove('is-active');
+      p.hidden = true;
+    });
+    var page = document.getElementById('page-' + pageId);
+    page.hidden = false;
+    page.classList.add('is-active');
+    document.body.setAttribute('data-nav', page.getAttribute('data-nav') || HOME);
+    document.title = (PAGE_TITLES[pageId] || 'NutriApp') + ' — NutriApp';
+    window.scrollTo(0, 0);
+    if (location.hash.replace('#', '') !== pageId) location.hash = pageId;
+    if (typeof window.__spaAfterNav === 'function') window.__spaAfterNav(pageId);
+  }
+
+  document.addEventListener('click', function(e) {
+    var go = e.target.closest('[data-go]');
+    if (go) { e.preventDefault(); goTo(go.getAttribute('data-go')); return; }
+  });
+
+  window.goTo = goTo;
+  var initial = location.hash.replace('#', '') || HOME;
+  goTo(initial);
+  window.addEventListener('hashchange', function() {
+    goTo(location.hash.replace('#', '') || HOME);
+  });
+});
+
+  </script>
+</body>
+</html>
