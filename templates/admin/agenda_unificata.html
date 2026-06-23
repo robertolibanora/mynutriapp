@@ -16,7 +16,7 @@
     <div style="color: #b6b1a9; font-size: 0.9rem;">Appuntamenti Oggi</div>
   </div>
   
-  <div class="stat-card">
+  <div class="stat-card" style="cursor: pointer;" onclick="window.location.href='{{ url_for('agenda.agenda_unificata', tab='appuntamenti', filtro='da_confermare') }}'">
     <div class="adm-icon--lg">{{ icon('hourglass', 28) }}</div>
     <div style="font-size: 1.5rem; font-weight: 700; color: #FFC107; margin-bottom: 0.25rem;">{{ appuntamenti_in_attesa|length }}</div>
     <div style="color: #b6b1a9; font-size: 0.9rem;">In Attesa</div>
@@ -216,24 +216,41 @@
   <div id="appuntamenti-tab" class="tab-panel">
     <div class="appuntamenti-section">
       <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
-        <h3 style="margin: 0; color: #4CAF50; font-size: 1.5rem;">{{ icon('clipboard', 18) }} Appuntamenti</h3>
+        <h3 style="margin: 0; color: #4CAF50; font-size: 1.5rem;">{{ icon('clipboard', 18) }} Appuntamenti — {{ vista_appuntamenti }}</h3>
         <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+          <a href="{{ url_for('agenda.agenda_unificata', tab='appuntamenti', filtro='da_confermare') }}"
+             class="btn btn-small {% if filtro_vista == 'da_confermare' %}btn-primary{% else %}btn-secondary{% endif %}"
+             style="font-size: 0.85rem; padding: 0.5rem 0.75rem;">
+            Da confermare ({{ appuntamenti_in_attesa|length }})
+          </a>
+          <a href="{{ url_for('agenda.agenda_unificata', tab='appuntamenti', filtro='oggi') }}"
+             class="btn btn-small {% if filtro_vista == 'oggi' %}btn-primary{% else %}btn-secondary{% endif %}"
+             style="font-size: 0.85rem; padding: 0.5rem 0.75rem;">
+            Oggi
+          </a>
+          <a href="{{ url_for('agenda.agenda_unificata', tab='appuntamenti', filtro='mese') }}"
+             class="btn btn-small {% if filtro_vista == 'mese' %}btn-primary{% else %}btn-secondary{% endif %}"
+             style="font-size: 0.85rem; padding: 0.5rem 0.75rem;">
+            Mese
+          </a>
+          {% if filtro_vista == 'giorno' %}
           <!-- Navigazione Giorno per Giorno -->
           <div style="display: flex; gap: 0.5rem; align-items: center; background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 12px; padding: 0.5rem;">
-            <a href="{{ url_for('agenda.agenda_unificata', filtro_giorno=giorno_precedente) }}" 
+            <a href="{{ url_for('agenda.agenda_unificata', tab='appuntamenti', filtro_giorno=giorno_precedente) }}" 
                class="nav-day-btn" style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: rgba(76, 175, 80, 0.2); color: #4CAF50; border: 1px solid rgba(76, 175, 80, 0.3); border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.2s ease;" 
                title="Giorno precedente">
               {{ icon('arrow-left', 16) }}
             </a>
             <span style="color: #b6b1a9; font-size: 0.9rem; font-weight: 500; min-width: 120px; text-align: center;">
-              {% if filtro_giorno_display %}{{ filtro_giorno_display }}{% else %}Oggi{% endif %}
+              {{ filtro_giorno_display }}
             </span>
-            <a href="{{ url_for('agenda.agenda_unificata', filtro_giorno=giorno_successivo) }}" 
+            <a href="{{ url_for('agenda.agenda_unificata', tab='appuntamenti', filtro_giorno=giorno_successivo) }}" 
                class="nav-day-btn" style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: rgba(76, 175, 80, 0.2); color: #4CAF50; border: 1px solid rgba(76, 175, 80, 0.3); border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.2s ease;" 
                title="Giorno successivo">
               {{ icon('arrow-right', 16) }}
             </a>
           </div>
+          {% endif %}
         </div>
       </div>
       
@@ -307,9 +324,18 @@
       <div class="empty-state" style="text-align: center; padding: 3rem 2rem; background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px;">
         <div class="adm-empty-icon">{{ icon('clipboard', 48) }}</div>
         <h3 style="color: #4CAF50; margin-bottom: 1rem;">Nessun appuntamento</h3>
-        <p style="color: #b6b1a9; margin-bottom: 2rem;">Non ci sono appuntamenti per il periodo selezionato.</p>
+        <p style="color: #b6b1a9; margin-bottom: 2rem;">
+          {% if filtro_vista == 'da_confermare' %}
+            Non ci sono richieste in attesa di conferma.
+          {% else %}
+            Non ci sono appuntamenti per il periodo selezionato.
+          {% endif %}
+        </p>
         <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-          <a href="{{ url_for('appuntamenti.nuovo_admin') }}" class="btn btn-primary">{{ icon('plus', 16) }} Nuovo appuntamento</a>
+          {% if filtro_vista != 'da_confermare' %}
+          <a href="{{ url_for('agenda.agenda_unificata', tab='appuntamenti', filtro='da_confermare') }}" class="btn btn-primary">{{ icon('hourglass', 16) }} Da confermare</a>
+          {% endif %}
+          <a href="{{ url_for('appuntamenti.nuovo_admin') }}" class="btn btn-secondary">{{ icon('plus', 16) }} Nuovo appuntamento</a>
         </div>
       </div>
       {% endif %}
@@ -341,10 +367,15 @@
   });
 
   var urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get('filtro_giorno') || urlParams.get('tutti_giorni')) {
+  if (urlParams.get('filtro_giorno') || urlParams.get('tutti_giorni') || urlParams.get('filtro') || urlParams.get('tab') === 'appuntamenti') {
     var appuntamentiButton = document.querySelector('.tab-btn[data-tab="appuntamenti"]');
     if (appuntamentiButton) {
       showTab('appuntamenti', appuntamentiButton);
+    }
+  } else if ({{ appuntamenti_in_attesa|length }} > 0) {
+    var pendingButton = document.querySelector('.tab-btn[data-tab="appuntamenti"]');
+    if (pendingButton) {
+      showTab('appuntamenti', pendingButton);
     }
   }
 })();

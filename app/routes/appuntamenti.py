@@ -42,7 +42,7 @@ def user_required(func):
 @admin_required
 def lista_admin():
     """Redirect alla pagina agenda unificata"""
-    return redirect(url_for('agenda.agenda_unificata'))
+    return redirect(url_for('agenda.agenda_unificata', tab='appuntamenti', filtro='da_confermare'))
 
 
 # ========================
@@ -76,7 +76,7 @@ def nuovo_admin():
             safe_trigger_appuntamento_stato(nuovo, 'confermato')
             
             flash("Appuntamento aggiunto ✅", "success")
-            return redirect(url_for('agenda.agenda_unificata'))
+            return redirect(url_for('agenda.agenda_unificata', tab='appuntamenti', filtro='da_confermare'))
 
         except Exception as e:
             db.session.rollback()
@@ -100,7 +100,7 @@ def cambia_stato_admin(id, nuovo_stato):
     stati_validi = ['in_attesa', 'confermato', 'completato', 'annullato']
     if nuovo_stato not in stati_validi:
         flash("Stato non valido", "danger")
-        return redirect(url_for('agenda.agenda_unificata'))
+        return redirect(url_for('agenda.agenda_unificata', tab='appuntamenti', filtro='da_confermare'))
     
     try:
         vecchio_stato = app.stato
@@ -129,7 +129,7 @@ def cambia_stato_admin(id, nuovo_stato):
         db.session.rollback()
         flash(f"Errore durante aggiornamento: {e}", "danger")
     
-    return redirect(url_for('agenda.agenda_unificata'))
+    return redirect(url_for('agenda.agenda_unificata', tab='appuntamenti', filtro='da_confermare'))
 
 
 # ========================
@@ -156,7 +156,7 @@ def elimina_admin(id):
     except Exception as e:
         db.session.rollback()
         flash(f"Errore durante eliminazione: {e}", "danger")
-    return redirect(url_for('agenda.agenda_unificata'))
+    return redirect(url_for('agenda.agenda_unificata', tab='appuntamenti', filtro='da_confermare'))
 
 
 # ========================
@@ -256,4 +256,4 @@ import calendar
 @admin_required
 def calendario_admin():
     """Redirect alla pagina agenda unificata"""
-    return redirect(url_for('agenda.agenda_unificata'))
+    return redirect(url_for('agenda.agenda_unificata', tab='appuntamenti', filtro='da_confermare'))

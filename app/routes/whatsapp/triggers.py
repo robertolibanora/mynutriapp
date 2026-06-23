@@ -30,8 +30,10 @@ def trigger_appuntamento_confermato(appuntamento):
         }
         messaggio = sostituisci_variabili(testo, appuntamento.patient, variabili_extra)
         from .sender import invia_whatsapp
-        invia_whatsapp(appuntamento.patient.telefono, messaggio)
-        print(f"✅ WhatsApp inviato per appuntamento confermato: {appuntamento.patient.nome}")
+        if invia_whatsapp(appuntamento.patient.telefono, messaggio):
+            print(f"✅ WhatsApp inviato per appuntamento confermato: {appuntamento.patient.nome}")
+        else:
+            print(f"⚠️ WhatsApp non inviato per appuntamento confermato: {appuntamento.patient.nome}")
     except Exception as e:
         print(f"⚠️ Errore invio WhatsApp appuntamento confermato: {e}")
 
@@ -53,8 +55,10 @@ def trigger_appuntamento_annullato(appuntamento):
         }
         messaggio = sostituisci_variabili(testo, appuntamento.patient, variabili_extra)
         from .sender import invia_whatsapp
-        invia_whatsapp(appuntamento.patient.telefono, messaggio)
-        print(f"✅ WhatsApp inviato per appuntamento annullato: {appuntamento.patient.nome}")
+        if invia_whatsapp(appuntamento.patient.telefono, messaggio):
+            print(f"✅ WhatsApp inviato per appuntamento annullato: {appuntamento.patient.nome}")
+        else:
+            print(f"⚠️ WhatsApp non inviato per appuntamento annullato: {appuntamento.patient.nome}")
     except Exception as e:
         print(f"⚠️ Errore invio WhatsApp appuntamento annullato: {e}")
 

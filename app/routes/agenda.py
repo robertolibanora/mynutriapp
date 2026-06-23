@@ -49,16 +49,21 @@ def agenda_unificata():
     else:
         mese_corrente = date.today().replace(day=1)
     
-    # Parametri per filtro giorno
+    # Parametri per filtro vista appuntamenti
     filtro_giorno_param = request.args.get('filtro_giorno')
     tutti_giorni = request.args.get('tutti_giorni')
+    filtro_vista = request.args.get('filtro', 'da_confermare')
     filtro_giorno = None
     
     if filtro_giorno_param:
         try:
             filtro_giorno = datetime.strptime(filtro_giorno_param, '%Y-%m-%d').date()
+            filtro_vista = 'giorno'
         except ValueError:
             filtro_giorno = None
+    
+    if tutti_giorni:
+        filtro_vista = 'mese'
     
     oggi = datetime.now()
     
@@ -92,30 +97,35 @@ def agenda_unificata():
         SlotDisponibilita.data_ora <= fine_mese
     ).order_by(SlotDisponibilita.data_ora.asc()).all()
     
-    # APPUNTAMENTI - Gestisce diversi tipi di filtro
-    if tutti_giorni:
-        # Mostra tutti gli appuntamenti del mese
-        query_appuntamenti = Appuntamento.query.filter(
-            Appuntamento.data_appuntamento >= inizio_mese,
-            Appuntamento.data_appuntamento <= fine_mese + timedelta(days=1)
-        )
-    elif filtro_giorno:
-        # Mostra appuntamenti del giorno specifico
-        query_appuntamenti = Appuntamento.query.filter(
-            db.func.date(Appuntamento.data_appuntamento) == filtro_giorno
-        )
+    # APPUNTAMENTI
+    appuntamenti_mese = Appuntamento.query.filter(
+        Appuntamento.data_appuntamento >= inizio_mese,
+        Appuntamento.data_appuntamento < fine_mese + timedelta(days=1)
+    ).order_by(Appuntamento.data_appuntamento.asc()).all()
+
+    appuntamenti_oggi = Appuntamento.query.filter(
+        db.func.date(Appuntamento.data_appuntamento) == oggi.date()
+    ).order_by(Appuntamento.data_appuntamento.asc()).all()
+
+    appuntamenti_in_attesa = Appuntamento.query.filter(
+        Appuntamento.stato == 'in_attesa',
+        Appuntamento.data_appuntamento >= oggi.replace(hour=0, minute=0, second=0, microsecond=0)
+    ).order_by(Appuntamento.data_appuntamento.asc()).all()
+
+    appuntamenti_confermati = [a for a in appuntamenti_oggi if a.stato == 'confermato']
+
+    if filtro_vista == 'giorno' and filtro_giorno:
+        appuntamenti = [a for a in appuntamenti_mese if a.data_appuntamento.date() == filtro_giorno]
+        vista_appuntamenti = filtro_giorno.strftime('%d/%m/%Y')
+    elif filtro_vista == 'mese':
+        appuntamenti = appuntamenti_mese
+        vista_appuntamenti = mese_corrente_display
+    elif filtro_vista == 'oggi':
+        appuntamenti = appuntamenti_oggi
+        vista_appuntamenti = 'Oggi'
     else:
-        # Default: mostra solo gli appuntamenti di oggi
-        query_appuntamenti = Appuntamento.query.filter(
-            db.func.date(Appuntamento.data_appuntamento) == oggi.date()
-        )
-    
-    appuntamenti = query_appuntamenti.order_by(Appuntamento.data_appuntamento.asc()).all()
-    
-    # Filtri per statistiche
-    appuntamenti_oggi = [a for a in appuntamenti if a.data_appuntamento.date() == oggi.date()]
-    appuntamenti_in_attesa = [a for a in appuntamenti if a.stato == 'in_attesa']
-    appuntamenti_confermati = [a for a in appuntamenti if a.stato == 'confermato']
+        appuntamenti = appuntamenti_in_attesa
+        vista_appuntamenti = 'Da confermare'
     
     # CALENDARIO
     giorni_calendario = []
@@ -129,8 +139,8 @@ def agenda_unificata():
     for i in range(42):
         giorno_data = primo_giorno + timedelta(days=i)
         
-        # Appuntamenti del giorno
-        appuntamenti_giorno = [a for a in appuntamenti if a.data_appuntamento.date() == giorno_data]
+        # Appuntamenti del giorno (sempre dal mese visualizzato)
+        appuntamenti_giorno = [a for a in appuntamenti_mese if a.data_appuntamento.date() == giorno_data]
         
         # Slot del giorno
         slot_giorno = [s for s in slot_futuri if s.data_ora.date() == giorno_data and s.attivo]
@@ -155,6 +165,8 @@ def agenda_unificata():
                          mese_successivo=mese_successivo,
                          filtro_giorno=filtro_giorno_param,
                          filtro_giorno_display=filtro_giorno_display,
+                         filtro_vista=filtro_vista,
+                         vista_appuntamenti=vista_appuntamenti,
                          giorno_precedente=giorno_precedente,
                          giorno_successivo=giorno_successivo,
                          tutti_giorni=tutti_giorni,
