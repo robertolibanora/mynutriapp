@@ -2,7 +2,7 @@
 {% block title %}Nuovo Check - NutriApp{% endblock %}
 {% block content %}
 
-<h1 class="page-title-user">📊 Nuovo Check Progresso</h1>
+<h1 class="page-title-user">{{ icon('chart', 22, 'usr-icon') }} Nuovo Check Progresso</h1>
 
 <form method="POST" class="card-user">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
@@ -25,16 +25,16 @@
             <label for="aderenza" class="card-label" style="display: block; margin-bottom: 0.5rem;">Aderenza alla Dieta (1-10, opzionale)</label>
             <select id="aderenza" name="aderenza" class="btn-user" style="width: 100%; text-align: left;">
                 <option value="">Seleziona...</option>
-                <option value="10">🟢 10 - Perfetta</option>
-                <option value="9">🟢 9 - Ottima</option>
-                <option value="8">🟢 8 - Molto Buona</option>
-                <option value="7">🟡 7 - Buona</option>
-                <option value="6">🟡 6 - Discreta</option>
-                <option value="5">🟠 5 - Sufficiente</option>
-                <option value="4">🟠 4 - Mediocre</option>
-                <option value="3">🔴 3 - Scarsa</option>
-                <option value="2">🔴 2 - Molto Scarsa</option>
-                <option value="1">🔴 1 - Pessima</option>
+                <option value="10">10 - Perfetta</option>
+                <option value="9">9 - Ottima</option>
+                <option value="8">8 - Molto Buona</option>
+                <option value="7">7 - Buona</option>
+                <option value="6">6 - Discreta</option>
+                <option value="5">5 - Sufficiente</option>
+                <option value="4">4 - Mediocre</option>
+                <option value="3">3 - Scarsa</option>
+                <option value="2">2 - Molto Scarsa</option>
+                <option value="1">1 - Pessima</option>
             </select>
         </div>
         
@@ -54,10 +54,10 @@
     
     <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
         <button type="submit" class="btn-user" style="flex: 1;">
-            💾 Salva Check
+            {{ icon('save', 16, 'usr-icon') }} Salva Check
         </button>
         <a href="{{ url_for('progressi.lista_progressi_user') }}" class="btn-user btn-user-secondary" style="flex: 1; text-align: center;">
-            ↩️ Annulla
+            {{ icon('arrow-left', 16, 'usr-icon') }} Annulla
         </a>
     </div>
 </form>
@@ -70,4 +70,3 @@
 </div>
 
 {% endblock %}
-

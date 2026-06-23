@@ -2,7 +2,7 @@
 {% block title %}Dashboard - NutriApp{% endblock %}
 {% block content %}
 
-<h1 class="page-title-user">📊 La Tua Dashboard</h1>
+<h1 class="page-title-user">{{ icon('chart', 22, 'usr-icon') }} La Tua Dashboard</h1>
 
 <!-- MOTTO -->
 <div style="text-align: center; margin-bottom: 2rem; padding: 1.5rem 1rem;">
@@ -11,10 +11,10 @@
   </p>
 </div>
 
-<!-- 🥗 ULTIMA DIETA -->
+<!-- ULTIMA DIETA -->
 <div class="summary-card">
     <div class="summary-header">
-        <span class="summary-icon">🥗</span>
+        <span class="summary-icon">{{ icon('diet', 22, 'usr-icon') }}</span>
         <span class="summary-title">Dieta Attuale</span>
     </div>
     <div class="summary-content">
@@ -29,22 +29,22 @@
         </div>
         {% if ultima_dieta.pdf_path %}
         <a href="{{ url_for('diete.serve_file', dieta_id=ultima_dieta.id) }}" target="_blank" class="btn-user btn-user-small mt-2">
-            📄 Apri PDF Dieta
+            {{ icon('file', 16, 'usr-icon') }} Apri PDF Dieta
         </a>
         {% endif %}
         {% else %}
         <div class="empty-state">
-            <div class="empty-icon">🍽️</div>
+            <div class="empty-icon">{{ icon('diet', 48, 'usr-icon usr-icon--lg') }}</div>
             <p class="empty-text">Nessuna dieta assegnata ancora</p>
         </div>
         {% endif %}
     </div>
 </div>
 
-<!-- 🏋️ ULTIMO ALLENAMENTO -->
+<!-- ULTIMO ALLENAMENTO -->
 <div class="summary-card">
     <div class="summary-header">
-        <span class="summary-icon">🏋️</span>
+        <span class="summary-icon">{{ icon('dumbbell', 22, 'usr-icon') }}</span>
         <span class="summary-title">Allenamento Attuale</span>
     </div>
     <div class="summary-content">
@@ -61,22 +61,22 @@
         {% endif %}
         {% if ultimo_allenamento.pdf_path %}
         <a href="{{ url_for('allenamenti.serve_file', allenamento_id=ultimo_allenamento.id) }}" target="_blank" class="btn-user btn-user-small mt-2">
-            📄 Apri PDF Allenamento
+            {{ icon('file', 16, 'usr-icon') }} Apri PDF Allenamento
         </a>
         {% endif %}
         {% else %}
         <div class="empty-state">
-            <div class="empty-icon">💪</div>
+            <div class="empty-icon">{{ icon('dumbbell', 48, 'usr-icon usr-icon--lg') }}</div>
             <p class="empty-text">Nessun allenamento assegnato ancora</p>
         </div>
         {% endif %}
     </div>
 </div>
 
-<!-- 📈 PESO PIÙ RECENTE -->
+<!-- PESO PIÙ RECENTE -->
 <div class="summary-card">
     <div class="summary-header">
-        <span class="summary-icon">⚖️</span>
+        <span class="summary-icon">{{ icon('scale', 22, 'usr-icon') }}</span>
         <span class="summary-title">Peso Attuale</span>
     </div>
     <div class="summary-content">
@@ -107,17 +107,17 @@
         </div>
         {% else %}
         <div class="empty-state">
-            <div class="empty-icon">📊</div>
+            <div class="empty-icon">{{ icon('chart', 48, 'usr-icon usr-icon--lg') }}</div>
             <p class="empty-text">Nessun progresso registrato ancora</p>
         </div>
         {% endif %}
     </div>
 </div>
 
-<!-- 📅 PROSSIMO APPUNTAMENTO -->
+<!-- PROSSIMO APPUNTAMENTO -->
 <div class="summary-card">
     <div class="summary-header">
-        <span class="summary-icon">📅</span>
+        <span class="summary-icon">{{ icon('calendar', 22, 'usr-icon') }}</span>
         <span class="summary-title">Prossimo Appuntamento</span>
     </div>
     <div class="summary-content">
@@ -138,7 +138,7 @@
         {% endif %}
         {% else %}
         <div class="empty-state">
-            <div class="empty-icon">🗓️</div>
+            <div class="empty-icon">{{ icon('calendar', 48, 'usr-icon usr-icon--lg') }}</div>
             <p class="empty-text">Nessun appuntamento in programma</p>
         </div>
         {% endif %}
@@ -154,4 +154,3 @@
 
 
 {% endblock %}
-

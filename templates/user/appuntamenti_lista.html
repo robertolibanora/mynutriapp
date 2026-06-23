@@ -2,11 +2,11 @@
 {% block title %}I Miei Appuntamenti - NutriApp{% endblock %}
 {% block content %}
 
-<h1 class="page-title-user">📅 I Miei Appuntamenti</h1>
+<h1 class="page-title-user">{{ icon('calendar', 22, 'usr-icon') }} I Miei Appuntamenti</h1>
 
 <div class="mb-2" style="text-align: center;">
     <a href="{{ url_for('appuntamenti.prenota_user') }}" class="btn-nuovo-appuntamento">
-        ➕ Prenota Nuovo Appuntamento
+        {{ icon('plus', 16, 'usr-icon') }} Prenota Nuovo Appuntamento
     </a>
 </div>
 
@@ -27,7 +27,7 @@
     {% if appuntamenti_futuri %}
     <div class="section-divider">
         <div class="divider-line"></div>
-        <h2 class="section-title">🕐 Prossimi Appuntamenti</h2>
+        <h2 class="section-title">{{ icon('clock', 18, 'usr-icon') }} Prossimi Appuntamenti</h2>
         <div class="divider-line"></div>
     </div>
     
@@ -35,7 +35,7 @@
     <div class="card-user">
         <div class="card-header">
             <div style="display: flex; align-items: center;">
-                <span class="card-icon">🗓️</span>
+                <span class="card-icon">{{ icon('calendar', 24, 'usr-icon') }}</span>
                 <span class="card-title">
                     {% if appuntamento.tipo == 'allenamento_1to1' %}Allenamento 1to1
                     {% elif appuntamento.tipo == 'rinnovo_dieta' %}Rinnovo Dieta
@@ -48,28 +48,28 @@
             </div>
             
             {% if appuntamento.stato == 'confermato' %}
-            <span class="status-badge status-confirmed">✅ Confermato</span>
+            <span class="status-badge status-confirmed">{{ icon('check-circle', 14, 'usr-icon') }} Confermato</span>
             {% elif appuntamento.stato == 'in_attesa' %}
-            <span class="status-badge status-pending">⏳ In Attesa</span>
+            <span class="status-badge status-pending">{{ icon('hourglass', 14, 'usr-icon') }} In Attesa</span>
             {% elif appuntamento.stato == 'annullato' %}
-            <span class="status-badge status-cancelled">❌ Annullato</span>
+            <span class="status-badge status-cancelled">{{ icon('x-circle', 14, 'usr-icon') }} Annullato</span>
             {% endif %}
         </div>
         
         <div class="card-body">
             <div class="card-info-row">
-                <span class="card-label">📅 Data</span>
+                <span class="card-label card-label--icon">{{ icon('calendar', 14, 'usr-icon') }} Data</span>
                 <span class="card-value">{{ appuntamento.data_appuntamento.strftime('%d/%m/%Y') }}</span>
             </div>
             
             <div class="card-info-row">
-                <span class="card-label">🕐 Ora</span>
+                <span class="card-label card-label--icon">{{ icon('clock', 14, 'usr-icon') }} Ora</span>
                 <span class="card-value">{{ appuntamento.data_appuntamento.strftime('%H:%M') }}</span>
             </div>
             
             {% if appuntamento.note %}
             <div class="card-info-row">
-                <span class="card-label">💬 Note</span>
+                <span class="card-label card-label--icon">{{ icon('message', 14, 'usr-icon') }} Note</span>
                 <span class="card-value">{{ appuntamento.note }}</span>
             </div>
             {% endif %}
@@ -93,7 +93,7 @@
     {% if appuntamenti_completati %}
     <div class="section-divider">
         <div class="divider-line"></div>
-        <h2 class="section-title">✅ Appuntamenti Completati</h2>
+        <h2 class="section-title">{{ icon('check-circle', 18, 'usr-icon') }} Appuntamenti Completati</h2>
         <div class="divider-line"></div>
     </div>
     
@@ -101,7 +101,7 @@
     <div class="card-user card-completato">
         <div class="card-header">
             <div style="display: flex; align-items: center;">
-                <span class="card-icon">🗓️</span>
+                <span class="card-icon">{{ icon('calendar', 24, 'usr-icon') }}</span>
                 <span class="card-title">
                     {% if appuntamento.tipo == 'allenamento_1to1' %}Allenamento 1to1
                     {% elif appuntamento.tipo == 'rinnovo_dieta' %}Rinnovo Dieta
@@ -113,23 +113,23 @@
                 </span>
             </div>
             
-            <span class="status-badge status-completed">✔️ Completato</span>
+            <span class="status-badge status-completed">{{ icon('check', 14, 'usr-icon') }} Completato</span>
         </div>
         
         <div class="card-body">
             <div class="card-info-row">
-                <span class="card-label">📅 Data</span>
+                <span class="card-label card-label--icon">{{ icon('calendar', 14, 'usr-icon') }} Data</span>
                 <span class="card-value">{{ appuntamento.data_appuntamento.strftime('%d/%m/%Y') }}</span>
             </div>
             
             <div class="card-info-row">
-                <span class="card-label">🕐 Ora</span>
+                <span class="card-label card-label--icon">{{ icon('clock', 14, 'usr-icon') }} Ora</span>
                 <span class="card-value">{{ appuntamento.data_appuntamento.strftime('%H:%M') }}</span>
             </div>
             
             {% if appuntamento.note %}
             <div class="card-info-row">
-                <span class="card-label">💬 Note</span>
+                <span class="card-label card-label--icon">{{ icon('message', 14, 'usr-icon') }} Note</span>
                 <span class="card-value">{{ appuntamento.note }}</span>
             </div>
             {% endif %}
@@ -142,7 +142,7 @@
     {% if appuntamenti_altri_passati %}
     <div class="section-divider">
         <div class="divider-line"></div>
-        <h2 class="section-title">📜 Altri Appuntamenti Passati</h2>
+        <h2 class="section-title">{{ icon('history', 18, 'usr-icon') }} Altri Appuntamenti Passati</h2>
         <div class="divider-line"></div>
     </div>
     
@@ -150,7 +150,7 @@
     <div class="card-user card-passato">
         <div class="card-header">
             <div style="display: flex; align-items: center;">
-                <span class="card-icon">🗓️</span>
+                <span class="card-icon">{{ icon('calendar', 24, 'usr-icon') }}</span>
                 <span class="card-title">
                     {% if appuntamento.tipo == 'allenamento_1to1' %}Allenamento 1to1
                     {% elif appuntamento.tipo == 'rinnovo_dieta' %}Rinnovo Dieta
@@ -163,26 +163,26 @@
             </div>
             
             {% if appuntamento.stato == 'annullato' %}
-            <span class="status-badge status-cancelled">❌ Annullato</span>
+            <span class="status-badge status-cancelled">{{ icon('x-circle', 14, 'usr-icon') }} Annullato</span>
             {% else %}
-            <span class="status-badge status-past">📅 Passato</span>
+            <span class="status-badge status-past">{{ icon('calendar', 14, 'usr-icon') }} Passato</span>
             {% endif %}
         </div>
         
         <div class="card-body">
             <div class="card-info-row">
-                <span class="card-label">📅 Data</span>
+                <span class="card-label card-label--icon">{{ icon('calendar', 14, 'usr-icon') }} Data</span>
                 <span class="card-value">{{ appuntamento.data_appuntamento.strftime('%d/%m/%Y') }}</span>
             </div>
             
             <div class="card-info-row">
-                <span class="card-label">🕐 Ora</span>
+                <span class="card-label card-label--icon">{{ icon('clock', 14, 'usr-icon') }} Ora</span>
                 <span class="card-value">{{ appuntamento.data_appuntamento.strftime('%H:%M') }}</span>
             </div>
             
             {% if appuntamento.note %}
             <div class="card-info-row">
-                <span class="card-label">💬 Note</span>
+                <span class="card-label card-label--icon">{{ icon('message', 14, 'usr-icon') }} Note</span>
                 <span class="card-value">{{ appuntamento.note }}</span>
             </div>
             {% endif %}
@@ -193,7 +193,7 @@
 
 {% else %}
 <div class="empty-state">
-    <div class="empty-icon">🗓️</div>
+    <div class="empty-icon">{{ icon('calendar', 48, 'usr-icon usr-icon--lg') }}</div>
     <p class="empty-text">Non hai ancora nessun appuntamento.<br>Contatta il tuo nutrizionista per fissare una visita!</p>
 </div>
 {% endif %}

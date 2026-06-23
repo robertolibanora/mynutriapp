@@ -27,7 +27,7 @@
 <!-- NAVIGATION -->
 <div class="navigation" style="margin-bottom: 1.5rem;">
   <a href="{{ url_for('progressi.lista_progressi_user') }}" class="btn-user">
-    ← Torna ai Progressi
+    {{ icon('arrow-left', 16, 'usr-icon') }} Torna ai Progressi
   </a>
 </div>
 
@@ -41,7 +41,7 @@
       <div class="data-grid">
         {% if progresso.peso_settimanale %}
         <div class="data-card">
-          <div class="data-icon">⚖️</div>
+          <div class="data-icon">{{ icon('scale', 20, 'usr-icon') }}</div>
           <div class="data-content">
             <div class="data-label">Peso</div>
             <div class="data-value">{{ progresso.peso_settimanale }} kg</div>
@@ -51,7 +51,7 @@
         
         {% if progresso.aderenza %}
         <div class="data-card">
-          <div class="data-icon">📊</div>
+          <div class="data-icon">{{ icon('chart', 20, 'usr-icon') }}</div>
           <div class="data-content">
             <div class="data-label">Aderenza</div>
             <div class="data-value">{{ progresso.aderenza }}/10</div>
@@ -61,7 +61,7 @@
         
         {% if progresso.frequenza_allenamenti %}
         <div class="data-card">
-          <div class="data-icon">🏋️</div>
+          <div class="data-icon">{{ icon('dumbbell', 20, 'usr-icon') }}</div>
           <div class="data-content">
             <div class="data-label">Allenamenti</div>
             <div class="data-value">{{ progresso.frequenza_allenamenti }}</div>
@@ -71,7 +71,7 @@
         
         {% if progresso.foto_path %}
         <div class="data-card">
-          <div class="data-icon">📸</div>
+          <div class="data-icon">{{ icon('camera', 20, 'usr-icon') }}</div>
           <div class="data-content">
             <div class="data-label">Foto Progresso</div>
             <div class="data-value">
@@ -85,7 +85,7 @@
         
         {% if progresso.check_richiesta %}
         <div class="data-card">
-          <div class="data-icon">📋</div>
+          <div class="data-icon">{{ icon('clipboard', 20, 'usr-icon') }}</div>
           <div class="data-content">
             <div class="data-label">Richiesta Check</div>
             <div class="data-value">Sì</div>
@@ -103,7 +103,7 @@
       <div class="data-grid">
         {% if progresso.peso_settimanale %}
         <div class="data-card">
-          <div class="data-icon">⚖️</div>
+          <div class="data-icon">{{ icon('scale', 20, 'usr-icon') }}</div>
           <div class="data-content">
             <div class="data-label">Peso</div>
             <div class="data-value">{{ progresso.peso_settimanale }} kg</div>
@@ -113,7 +113,7 @@
         
         {% if progresso.aderenza %}
         <div class="data-card">
-          <div class="data-icon">📊</div>
+          <div class="data-icon">{{ icon('chart', 20, 'usr-icon') }}</div>
           <div class="data-content">
             <div class="data-label">Aderenza</div>
             <div class="data-value">{{ progresso.aderenza }}/10</div>
@@ -123,7 +123,7 @@
         
         {% if progresso.frequenza_allenamenti %}
         <div class="data-card">
-          <div class="data-icon">🏋️</div>
+          <div class="data-icon">{{ icon('dumbbell', 20, 'usr-icon') }}</div>
           <div class="data-content">
             <div class="data-label">Allenamenti</div>
             <div class="data-value">{{ progresso.frequenza_allenamenti }}</div>
@@ -133,7 +133,7 @@
         
         {% if progresso.foto_path %}
         <div class="data-card">
-          <div class="data-icon">📸</div>
+          <div class="data-icon">{{ icon('camera', 20, 'usr-icon') }}</div>
           <div class="data-content">
             <div class="data-label">Foto Progresso</div>
             <div class="data-value">
@@ -155,7 +155,7 @@
       <div class="data-grid">
         {% if misure_antropometriche.circonferenza_braccio %}
         <div class="data-card">
-          <div class="data-icon">💪</div>
+          <div class="data-icon">{{ icon('dumbbell', 20, 'usr-icon') }}</div>
           <div class="data-content">
             <div class="data-label">Circonferenza Braccio</div>
             <div class="data-value">{{ misure_antropometriche.circonferenza_braccio }} cm</div>
@@ -165,7 +165,7 @@
         
         {% if misure_antropometriche.circonferenza_spalle %}
         <div class="data-card">
-          <div class="data-icon">🦾</div>
+          <div class="data-icon">{{ icon('dumbbell', 20, 'usr-icon') }}</div>
           <div class="data-content">
             <div class="data-label">Circonferenza Spalle</div>
             <div class="data-value">{{ misure_antropometriche.circonferenza_spalle }} cm</div>
@@ -175,7 +175,7 @@
         
         {% if misure_antropometriche.circonferenza_torace %}
         <div class="data-card">
-          <div class="data-icon">🫁</div>
+          <div class="data-icon">{{ icon('heart-pulse', 20, 'usr-icon') }}</div>
           <div class="data-content">
             <div class="data-label">Circonferenza Torace</div>
             <div class="data-value">{{ misure_antropometriche.circonferenza_torace }} cm</div>
@@ -185,7 +185,7 @@
         
         {% if misure_antropometriche.circonferenza_vita %}
         <div class="data-card">
-          <div class="data-icon">🩲</div>
+          <div class="data-icon">{{ icon('ruler', 20, 'usr-icon') }}</div>
           <div class="data-content">
             <div class="data-label">Circonferenza Vita</div>
             <div class="data-value">{{ misure_antropometriche.circonferenza_vita }} cm</div>
@@ -195,7 +195,7 @@
         
         {% if misure_antropometriche.circonferenza_fianchi %}
         <div class="data-card">
-          <div class="data-icon">🦵</div>
+          <div class="data-icon">{{ icon('activity', 20, 'usr-icon') }}</div>
           <div class="data-content">
             <div class="data-label">Circonferenza Fianchi</div>
             <div class="data-value">{{ misure_antropometriche.circonferenza_fianchi }} cm</div>
@@ -205,7 +205,7 @@
         
         {% if misure_antropometriche.circonferenza_coscia %}
         <div class="data-card">
-          <div class="data-icon">🦵</div>
+          <div class="data-icon">{{ icon('activity', 20, 'usr-icon') }}</div>
           <div class="data-content">
             <div class="data-label">Circonferenza Coscia</div>
             <div class="data-value">{{ misure_antropometriche.circonferenza_coscia }} cm</div>
@@ -215,7 +215,7 @@
         
         {% if misure_antropometriche.circonferenza_polpaccio %}
         <div class="data-card">
-          <div class="data-icon">🦵</div>
+          <div class="data-icon">{{ icon('activity', 20, 'usr-icon') }}</div>
           <div class="data-content">
             <div class="data-label">Circonferenza Polpaccio</div>
             <div class="data-value">{{ misure_antropometriche.circonferenza_polpaccio }} cm</div>
@@ -225,7 +225,7 @@
         
         {% if misure_antropometriche.plica_addominale %}
         <div class="data-card">
-          <div class="data-icon">📏</div>
+          <div class="data-icon">{{ icon('ruler', 20, 'usr-icon') }}</div>
           <div class="data-content">
             <div class="data-label">Plica Addominale</div>
             <div class="data-value">{{ misure_antropometriche.plica_addominale }} mm</div>
@@ -235,7 +235,7 @@
         
         {% if misure_antropometriche.plica_tricipitale %}
         <div class="data-card">
-          <div class="data-icon">📏</div>
+          <div class="data-icon">{{ icon('ruler', 20, 'usr-icon') }}</div>
           <div class="data-content">
             <div class="data-label">Plica Tricipitale</div>
             <div class="data-value">{{ misure_antropometriche.plica_tricipitale }} mm</div>
@@ -245,7 +245,7 @@
         
         {% if misure_antropometriche.plica_soprailiaca %}
         <div class="data-card">
-          <div class="data-icon">📏</div>
+          <div class="data-icon">{{ icon('ruler', 20, 'usr-icon') }}</div>
           <div class="data-content">
             <div class="data-label">Plica Soprailiaca</div>
             <div class="data-value">{{ misure_antropometriche.plica_soprailiaca }} mm</div>
@@ -255,7 +255,7 @@
         
         {% if misure_antropometriche.plica_sottoscapolare %}
         <div class="data-card">
-          <div class="data-icon">📏</div>
+          <div class="data-icon">{{ icon('ruler', 20, 'usr-icon') }}</div>
           <div class="data-content">
             <div class="data-label">Plica Sottoscapolare</div>
             <div class="data-value">{{ misure_antropometriche.plica_sottoscapolare }} mm</div>
@@ -265,7 +265,7 @@
         
         {% if misure_antropometriche.plica_cutanea_coscia %}
         <div class="data-card">
-          <div class="data-icon">📏</div>
+          <div class="data-icon">{{ icon('ruler', 20, 'usr-icon') }}</div>
           <div class="data-content">
             <div class="data-label">Plica Cutanea Coscia</div>
             <div class="data-value">{{ misure_antropometriche.plica_cutanea_coscia }} mm</div>
@@ -291,7 +291,7 @@
       <div class="data-grid">
         {% if composizione_corporea.grasso_corporeo %}
         <div class="data-card">
-          <div class="data-icon">🩸</div>
+          <div class="data-icon">{{ icon('droplet', 20, 'usr-icon') }}</div>
           <div class="data-content">
             <div class="data-label">Grasso Corporeo</div>
             <div class="data-value">{{ composizione_corporea.grasso_corporeo }}%</div>
@@ -301,7 +301,7 @@
         
         {% if composizione_corporea.massa_muscolare %}
         <div class="data-card">
-          <div class="data-icon">💪</div>
+          <div class="data-icon">{{ icon('dumbbell', 20, 'usr-icon') }}</div>
           <div class="data-content">
             <div class="data-label">Massa Muscolare</div>
             <div class="data-value">{{ composizione_corporea.massa_muscolare }} kg</div>
@@ -311,7 +311,7 @@
         
         {% if composizione_corporea.grasso_viscerale %}
         <div class="data-card">
-          <div class="data-icon">🫀</div>
+          <div class="data-icon">{{ icon('heart-pulse', 20, 'usr-icon') }}</div>
           <div class="data-content">
             <div class="data-label">Grasso Viscerale</div>
             <div class="data-value">Livello {{ composizione_corporea.grasso_viscerale }}</div>
@@ -321,7 +321,7 @@
         
         {% if composizione_corporea.tbw %}
         <div class="data-card">
-          <div class="data-icon">💧</div>
+          <div class="data-icon">{{ icon('droplet', 20, 'usr-icon') }}</div>
           <div class="data-content">
             <div class="data-label">TBW (Total Body Water)</div>
             <div class="data-value">{{ composizione_corporea.tbw }}%</div>
@@ -331,7 +331,7 @@
         
         {% if composizione_corporea.tasso_metabolico_basale %}
         <div class="data-card">
-          <div class="data-icon">🔥</div>
+          <div class="data-icon">{{ icon('flame', 20, 'usr-icon') }}</div>
           <div class="data-content">
             <div class="data-label">Tasso Metabolico Basale</div>
             <div class="data-value">{{ composizione_corporea.tasso_metabolico_basale }} kcal/giorno</div>
@@ -341,7 +341,7 @@
         
         {% if composizione_corporea.eta_metabolica %}
         <div class="data-card">
-          <div class="data-icon">⏰</div>
+          <div class="data-icon">{{ icon('clock', 20, 'usr-icon') }}</div>
           <div class="data-content">
             <div class="data-label">Età Metabolica</div>
             <div class="data-value">{{ composizione_corporea.eta_metabolica }} anni</div>
@@ -351,7 +351,7 @@
         
         {% if composizione_corporea.punteggio_postura %}
         <div class="data-card">
-          <div class="data-icon">🧍</div>
+          <div class="data-icon">{{ icon('user', 20, 'usr-icon') }}</div>
           <div class="data-content">
             <div class="data-label">Punteggio Postura</div>
             <div class="data-value">{{ composizione_corporea.punteggio_postura }}/100</div>
@@ -361,7 +361,7 @@
         
         {% if composizione_corporea.massa_ossea %}
         <div class="data-card">
-          <div class="data-icon">🦴</div>
+          <div class="data-icon">{{ icon('bone', 20, 'usr-icon') }}</div>
           <div class="data-content">
             <div class="data-label">Massa Ossea</div>
             <div class="data-value">{{ composizione_corporea.massa_ossea }} kg</div>
@@ -371,7 +371,7 @@
         
         {% if composizione_corporea.bmi %}
         <div class="data-card">
-          <div class="data-icon">📊</div>
+          <div class="data-icon">{{ icon('chart', 20, 'usr-icon') }}</div>
           <div class="data-content">
             <div class="data-label">BMI</div>
             <div class="data-value">{{ composizione_corporea.bmi }} kg/m²</div>
@@ -441,9 +441,12 @@
 }
 
 .data-icon {
-  font-size: 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #ff751f;
   min-width: 2rem;
-  text-align: center;
+  flex-shrink: 0;
 }
 
 .data-content {

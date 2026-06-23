@@ -2,13 +2,13 @@
 {% block title %}Il Mio Profilo - NutriApp{% endblock %}
 {% block content %}
 
-<h1 class="page-title-user">👤 Il Mio Profilo</h1>
+<h1 class="page-title-user">{{ icon('user', 22, 'usr-icon') }} Il Mio Profilo</h1>
 
 <!-- DATI ANAGRAFICI -->
 <div class="card-user">
     <div class="card-header">
         <div style="display: flex; align-items: center;">
-            <span class="card-icon">📋</span>
+            <span class="card-icon">{{ icon('clipboard', 24, 'usr-icon') }}</span>
             <span class="card-title">Dati Anagrafici</span>
         </div>
     </div>
@@ -40,7 +40,7 @@
 <div class="card-user">
     <div class="card-header">
         <div style="display: flex; align-items: center;">
-            <span class="card-icon">📏</span>
+            <span class="card-icon">{{ icon('ruler', 24, 'usr-icon') }}</span>
             <span class="card-title">Dati Fisici</span>
         </div>
     </div>
@@ -62,7 +62,7 @@
 <div class="card-user">
     <div class="card-header">
         <div style="display: flex; align-items: center;">
-            <span class="card-icon">🩺</span>
+            <span class="card-icon">{{ icon('medical', 24, 'usr-icon') }}</span>
             <span class="card-title">Informazioni Mediche</span>
         </div>
     </div>
@@ -109,7 +109,7 @@
 <div class="card-user">
     <div class="card-header">
         <div style="display: flex; align-items: center;">
-            <span class="card-icon">🏃</span>
+            <span class="card-icon">{{ icon('activity', 24, 'usr-icon') }}</span>
             <span class="card-title">Attività Fisica</span>
         </div>
     </div>
@@ -127,7 +127,7 @@
 
 <!-- LOGOUT BUTTON -->
 <a href="{{ url_for('auth.logout') }}" class="btn-user btn-user-secondary">
-    🚪 Esci
+    {{ icon('log-out', 16, 'usr-icon') }} Esci
 </a>
 
 <!-- LINK PRESENTAZIONE ROBERTO -->
@@ -138,4 +138,3 @@
 </div>
 
 {% endblock %}
-

@@ -2,11 +2,11 @@
 {% block title %}I Miei Progressi - NutriApp{% endblock %}
 {% block content %}
 
-<h1 class="page-title-user">📈 I Miei Progressi</h1>
+<h1 class="page-title-user">{{ icon('trending', 22, 'usr-icon') }} I Miei Progressi</h1>
 
 <div class="mb-2" style="text-align: center;">
     <a href="{{ url_for('progressi.nuovo_progresso_user') }}" class="btn-nuovo-check">
-        ➕ Inserisci Nuovo Check
+        {{ icon('plus', 16, 'usr-icon') }} Inserisci Nuovo Check
     </a>
 </div>
 
@@ -26,7 +26,7 @@
     {% if check_nutrizionista %}
     <div class="section-divider">
         <div class="divider-line"></div>
-        <h2 class="section-title">🏥 Check del Dottor MyNutriApp</h2>
+        <h2 class="section-title">{{ icon('medical', 18, 'usr-icon') }} Check del Dottor MyNutriApp</h2>
         <div class="divider-line"></div>
     </div>
     
@@ -34,7 +34,7 @@
     <div class="card-user card-nutrizionista">
         <div class="card-header">
             <div style="display: flex; align-items: center;">
-                <span class="card-icon">🏥</span>
+                <span class="card-icon">{{ icon('medical', 24, 'usr-icon') }}</span>
                 <span class="card-title">Check Nutrizionista {{ progresso.data_check.strftime('%d/%m/%Y') }}</span>
             </div>
         </div>
@@ -54,7 +54,7 @@
     {% if check_paziente %}
     <div class="section-divider">
         <div class="divider-line"></div>
-        <h2 class="section-title">👤 I Miei Check</h2>
+        <h2 class="section-title">{{ icon('user', 18, 'usr-icon') }} I Miei Check</h2>
         <div class="divider-line"></div>
     </div>
     
@@ -62,7 +62,7 @@
     <div class="card-user">
         <div class="card-header">
             <div style="display: flex; align-items: center;">
-                <span class="card-icon">⚖️</span>
+                <span class="card-icon">{{ icon('scale', 24, 'usr-icon') }}</span>
                 <span class="card-title">Il Mio Check {{ progresso.data_check.strftime('%d/%m/%Y') }}</span>
             </div>
         </div>
@@ -80,7 +80,7 @@
 
 {% else %}
 <div class="empty-state">
-    <div class="empty-icon">📊</div>
+    <div class="empty-icon">{{ icon('chart', 48, 'usr-icon usr-icon--lg') }}</div>
     <p class="empty-text">Non hai ancora nessun progresso registrato.<br>Il tuo nutrizionista registrerà i tuoi progressi durante le visite!</p>
 </div>
 {% endif %}

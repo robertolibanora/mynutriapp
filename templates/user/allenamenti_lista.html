@@ -2,14 +2,14 @@
 {% block title %}I Miei Allenamenti - NutriApp{% endblock %}
 {% block content %}
 
-<h1 class="page-title-user">🏋️ I Miei Allenamenti</h1>
+<h1 class="page-title-user">{{ icon('dumbbell', 22, 'usr-icon') }} I Miei Allenamenti</h1>
 
 {% if allenamenti %}
     {% for allenamento in allenamenti %}
     <div class="card-user">
         <div class="card-header">
             <div style="display: flex; align-items: center;">
-                <span class="card-icon">💪</span>
+                <span class="card-icon">{{ icon('dumbbell', 24, 'usr-icon') }}</span>
                 <span class="card-title">Allenamento {{ loop.index }}</span>
             </div>
             {% if allenamento.data_fine >= now %}
@@ -40,14 +40,14 @@
         
         {% if allenamento.pdf_path %}
         <a href="{{ url_for('allenamenti.serve_file', allenamento_id=allenamento.id) }}" target="_blank" class="btn-user mt-2">
-            📄 Apri PDF Allenamento
+            {{ icon('file', 16, 'usr-icon') }} Apri PDF Allenamento
         </a>
         {% endif %}
     </div>
     {% endfor %}
 {% else %}
 <div class="empty-state">
-    <div class="empty-icon">💪</div>
+    <div class="empty-icon">{{ icon('dumbbell', 48, 'usr-icon usr-icon--lg') }}</div>
     <p class="empty-text">Non hai ancora nessun allenamento assegnato.<br>Il tuo nutrizionista ti assegnerà presto un piano di allenamento personalizzato!</p>
 </div>
 
@@ -69,4 +69,3 @@
 </div>
 
 {% endblock %}
-

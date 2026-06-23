@@ -235,8 +235,12 @@ p {
 }
 
 .card-icon {
-    font-size: 1.8rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     margin-right: 0.75rem;
+    color: #ff751f;
+    flex-shrink: 0;
 }
 
 .card-title {
@@ -306,7 +310,10 @@ p {
 }
 
 .summary-icon {
-    font-size: 1.5rem;
+    display: inline-flex;
+    align-items: center;
+    color: #ff751f;
+    flex-shrink: 0;
 }
 
 .summary-title {
@@ -341,7 +348,10 @@ p {
 
 /* === BUTTONS === */
 .btn-user {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
     padding: 0.85rem 1.5rem;
     background: linear-gradient(135deg, #ff751f, #ff9a56);
     color: #ffffff;
@@ -386,22 +396,19 @@ p {
     background: linear-gradient(135deg, #0d331c 0%, #1a4d2e 100%);
     background-attachment: fixed;
     background-size: cover;
-    border-top: 1px solid rgba(255, 117, 31, 0.3);
-    padding: 0.4rem 0.5rem;
-    padding-bottom: max(0.4rem, env(safe-area-inset-bottom));
+    border-top: 1px solid rgba(255, 117, 31, 0.25);
+    padding: 0.35rem 0.4rem;
+    padding-bottom: max(0.35rem, env(safe-area-inset-bottom));
     display: flex;
     justify-content: space-around;
-    align-items: center;
+    align-items: stretch;
     z-index: 1000;
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
-    /* 📱 FIX NAVBAR MOBILE DEFINITIVO */
     will-change: transform;
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
-    /* Previeni movimento */
     flex-shrink: 0;
-    min-height: 60px;
-    /* 🎨 INCORPORA PERFETTAMENTE */
+    min-height: 64px;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
 }
@@ -410,36 +417,64 @@ p {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.25rem;
+    justify-content: center;
+    gap: 0.3rem;
     text-decoration: none;
     color: #b6b1a9;
-    transition: all 0.2s ease;
-    padding: 0.5rem 0.75rem;
-    border-radius: 12px;
-    min-width: 60px;
+    transition: color 0.2s ease, background 0.2s ease;
+    padding: 0.4rem 0.5rem;
+    border-radius: 14px;
+    flex: 1;
+    min-width: 0;
+    max-width: 96px;
+    position: relative;
 }
 
 .nav-item:active {
-    transform: scale(0.95);
+    transform: scale(0.96);
+}
+
+.nav-item .usr-nav-icon {
+    color: #c4bfb6;
+    transition: color 0.2s ease, filter 0.2s ease;
 }
 
 .nav-item.active {
-    color: #4CAF50;
-    transform: scale(1.40);
+    color: #6ee07a;
+    background: rgba(76, 175, 80, 0.14);
+    transform: none;
 }
 
 .nav-item.active .nav-icon,
-.nav-item.active .nav-label {
-    color: #4CAF50;
+.nav-item.active .nav-label,
+.nav-item.active .usr-nav-icon {
+    color: #6ee07a;
+}
+
+.nav-item.active .usr-nav-icon svg {
+    stroke-width: 2.4;
+    filter: drop-shadow(0 0 5px rgba(110, 224, 122, 0.35));
 }
 
 .nav-icon {
-    font-size: 1.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+}
+
+.usr-nav-icon svg {
+    display: block;
 }
 
 .nav-label {
-    font-size: 0.9rem;
+    font-size: 0.72rem;
     font-weight: 600;
+    letter-spacing: 0.02em;
+    line-height: 1;
+    white-space: nowrap;
 }
 
 /* === EMPTY STATE === */
@@ -450,8 +485,10 @@ p {
 }
 
 .empty-icon {
-    font-size: 4rem;
+    display: flex;
+    justify-content: center;
     margin-bottom: 1rem;
+    color: #b6b1a9;
     opacity: 0.5;
 }
 
@@ -503,6 +540,9 @@ p {
 }
 
 .section-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
     font-size: 1.2rem;
     font-weight: 700;
     color: #ff751f;
@@ -526,7 +566,9 @@ p {
 
 /* === STATUS BADGES === */
 .status-badge {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
     padding: 0.35rem 0.75rem;
     border-radius: 12px;
     font-size: 0.75rem;
@@ -555,6 +597,10 @@ p {
 
 /* === PAGE TITLE === */
 .page-title-user {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
     font-size: 1.5rem;
     font-weight: 700;
     color: #ff751f;
@@ -562,6 +608,44 @@ p {
     letter-spacing: 0.05em;
     margin-bottom: 1.5rem;
     text-align: center;
+}
+
+/* === SVG ICONS (user) === */
+.usr-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: currentColor;
+    vertical-align: middle;
+    flex-shrink: 0;
+}
+
+.usr-icon svg {
+    display: block;
+}
+
+.usr-icon--lg {
+    opacity: 0.5;
+    color: #b6b1a9;
+}
+
+.usr-icon--inline {
+    margin-right: 0.1rem;
+}
+
+.card-label--icon {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.btn-user,
+.btn-nuovo-appuntamento,
+.btn-nuovo-check {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
 }
 
 /* === LOADING STATE === */

@@ -2,14 +2,14 @@
 {% block title %}Le Mie Diete - NutriApp{% endblock %}
 {% block content %}
 
-<h1 class="page-title-user">🥗 Le Mie Diete</h1>
+<h1 class="page-title-user">{{ icon('diet', 22, 'usr-icon') }} Le Mie Diete</h1>
 
 {% if diete %}
     {% for dieta in diete %}
     <div class="card-user">
         <div class="card-header">
             <div style="display: flex; align-items: center;">
-                <span class="card-icon">🍽️</span>
+                <span class="card-icon">{{ icon('diet', 24, 'usr-icon') }}</span>
                 <span class="card-title">Dieta {{ loop.index }}</span>
             </div>
             {% if dieta.data_fine >= now %}
@@ -66,14 +66,14 @@
         
         {% if dieta.pdf_path %}
         <a href="{{ url_for('diete.serve_file', dieta_id=dieta.id) }}" target="_blank" class="btn-user mt-2">
-            📄 Apri PDF Dieta
+            {{ icon('file', 16, 'usr-icon') }} Apri PDF Dieta
         </a>
         {% endif %}
     </div>
     {% endfor %}
 {% else %}
 <div class="empty-state">
-    <div class="empty-icon">🍽️</div>
+    <div class="empty-icon">{{ icon('diet', 48, 'usr-icon usr-icon--lg') }}</div>
     <p class="empty-text">Non hai ancora nessuna dieta assegnata.<br>Il tuo nutrizionista ti assegnerà presto un piano alimentare personalizzato!</p>
 </div>
 {% endif %}
@@ -86,4 +86,3 @@
 </div>
 
 {% endblock %}
-

@@ -58,25 +58,25 @@
         </main>
     </div>
 
-    <!-- 🔻 BOTTOM NAVIGATION -->
-    <nav class="bottom-nav">
+    <!-- BOTTOM NAVIGATION -->
+    <nav class="bottom-nav" aria-label="Navigazione principale">
         <a href="{{ url_for('dashboard.user_dashboard') }}" class="nav-item {% if request.endpoint == 'dashboard.user_dashboard' %}active{% endif %}">
-            <span class="nav-icon">🏠</span>
+            <span class="nav-icon">{{ icon('home', 24, 'usr-icon usr-nav-icon', stroke=2.2) }}</span>
             <span class="nav-label">Home</span>
         </a>
         
         <a href="{{ url_for('progressi.lista_progressi_user') }}" class="nav-item {% if 'progressi' in request.endpoint %}active{% endif %}">
-            <span class="nav-icon">📈</span>
+            <span class="nav-icon">{{ icon('trending', 24, 'usr-icon usr-nav-icon', stroke=2.2) }}</span>
             <span class="nav-label">Progressi</span>
         </a>
         
         <a href="{{ url_for('appuntamenti.lista_user') }}" class="nav-item {% if 'appuntamenti' in request.endpoint %}active{% endif %}">
-            <span class="nav-icon">📅</span>
+            <span class="nav-icon">{{ icon('calendar', 24, 'usr-icon usr-nav-icon', stroke=2.2) }}</span>
             <span class="nav-label">Prenota</span>
         </a>
         
         <a href="{{ url_for('patients.profilo_user') }}" class="nav-item {% if 'profilo' in request.endpoint %}active{% endif %}">
-            <span class="nav-icon">👤</span>
+            <span class="nav-icon">{{ icon('user', 24, 'usr-icon usr-nav-icon', stroke=2.2) }}</span>
             <span class="nav-label">Profilo</span>
         </a>
     </nav>
@@ -110,7 +110,7 @@
                     <div style="position: fixed; bottom: 80px; left: 10px; right: 10px; background: #ff751f; color: white; padding: 15px; border-radius: 10px; z-index: 1000; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
                         <div style="display: flex; align-items: center; justify-content: space-between;">
                             <div>
-                                <strong>📱 Installa NutriApp</strong><br>
+                                <strong>Installa NutriApp</strong><br>
                                 <small>Aggiungi alla schermata home per un accesso rapido</small>
                             </div>
                             <button onclick="installApp()" style="background: white; color: #ff751f; border: none; padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: pointer;">

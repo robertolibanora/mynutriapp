@@ -2,7 +2,7 @@
 {% block title %}Prenota Appuntamento - NutriApp{% endblock %}
 {% block content %}
 
-<h1 class="page-title-user">📅 Prenota Appuntamento</h1>
+<h1 class="page-title-user">{{ icon('calendar', 22, 'usr-icon') }} Prenota Appuntamento</h1>
 
 {% if slot_liberi %}
 <form method="POST" class="card-user">
@@ -14,7 +14,7 @@
                 <option value="">Seleziona uno slot...</option>
                 {% for slot in slot_liberi %}
                 <option value="{{ slot.data }}">
-                    📅 {{ slot.label }}
+                    {{ slot.label }}
                 </option>
                 {% endfor %}
             </select>
@@ -24,11 +24,11 @@
             <label for="tipo" class="card-label" style="display: block; margin-bottom: 0.5rem;">Tipo Appuntamento *</label>
             <select id="tipo" name="tipo" class="btn-user" style="width: 100%; text-align: left;" required>
                 <option value="">Seleziona tipo...</option>
-                <option value="allenamento_1to1">💪 Allenamento 1to1</option>
-                <option value="rinnovo_dieta">🍽️ Rinnovo Dieta</option>
-                <option value="rinnovo_allenamento">🏋️ Rinnovo Allenamento</option>
-                <option value="check">✅ Check</option>
-                <option value="altro">📌 Altro</option>
+                <option value="allenamento_1to1">Allenamento 1to1</option>
+                <option value="rinnovo_dieta">Rinnovo Dieta</option>
+                <option value="rinnovo_allenamento">Rinnovo Allenamento</option>
+                <option value="check">Check</option>
+                <option value="altro">Altro</option>
             </select>
         </div>
         
@@ -46,17 +46,17 @@
     
     <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
         <button type="submit" class="btn-user" style="flex: 1;">
-            ✅ Prenota Appuntamento
+            {{ icon('check-circle', 16, 'usr-icon') }} Prenota Appuntamento
         </button>
         <a href="{{ url_for('appuntamenti.lista_user') }}" class="btn-user btn-user-secondary" style="flex: 1; text-align: center;">
-            ↩️ Annulla
+            {{ icon('arrow-left', 16, 'usr-icon') }} Annulla
         </a>
     </div>
 </form>
 
 {% else %}
 <div class="empty-state">
-    <div class="empty-icon">📅</div>
+    <div class="empty-icon">{{ icon('calendar', 48, 'usr-icon usr-icon--lg') }}</div>
     <p class="empty-text">
         Al momento non ci sono slot disponibili.<br>
         Contatta direttamente il tuo nutrizionista per fissare un appuntamento.
@@ -65,7 +65,7 @@
 
 <div class="mt-2">
     <a href="{{ url_for('appuntamenti.lista_user') }}" class="btn-user btn-user-secondary">
-        ↩️ Torna agli Appuntamenti
+        {{ icon('arrow-left', 16, 'usr-icon') }} Torna agli Appuntamenti
     </a>
 </div>
 
@@ -79,4 +79,3 @@
 {% endif %}
 
 {% endblock %}
-

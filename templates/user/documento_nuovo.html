@@ -2,7 +2,7 @@
 {% block title %}Carica Documento - NutriApp{% endblock %}
 {% block content %}
 
-<h1 class="page-title-user">📤 Carica Documento</h1>
+<h1 class="page-title-user">{{ icon('upload', 22, 'usr-icon') }} Carica Documento</h1>
 
 <form method="POST" enctype="multipart/form-data" class="card-user">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
@@ -11,9 +11,9 @@
             <label for="tipo" class="card-label" style="display: block; margin-bottom: 0.5rem;">Tipo Documento</label>
             <select id="tipo" name="tipo" class="btn-user" style="width: 100%; text-align: left;" required>
                 <option value="">Seleziona tipo...</option>
-                <option value="analisi">🩸 Analisi del Sangue</option>
-                <option value="referto">📋 Referto Medico</option>
-                <option value="pdf_altro">📄 Altro Documento</option>
+                <option value="analisi">Analisi del Sangue</option>
+                <option value="referto">Referto Medico</option>
+                <option value="pdf_altro">Altro Documento</option>
             </select>
         </div>
         
@@ -44,17 +44,17 @@
     
     <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
         <button type="submit" class="btn-user" style="flex: 1;">
-            💾 Carica Documento
+            {{ icon('save', 16, 'usr-icon') }} Carica Documento
         </button>
         <a href="{{ url_for('documenti.lista_documenti_user') }}" class="btn-user btn-user-secondary" style="flex: 1; text-align: center;">
-            ↩️ Annulla
+            {{ icon('arrow-left', 16, 'usr-icon') }} Annulla
         </a>
     </div>
 </form>
 
 <div class="card-user" style="margin-top: 1rem; background: rgba(255, 117, 31, 0.1);">
     <div class="card-body">
-        <p class="card-label" style="margin-bottom: 0.5rem;">💡 Suggerimento</p>
+        <p class="card-label card-label--icon" style="margin-bottom: 0.5rem;">{{ icon('help', 16, 'usr-icon') }} Suggerimento</p>
         <p class="card-value" style="font-size: 0.85rem; line-height: 1.5;">
             Carica qui i tuoi esami del sangue, certificati di intolleranze o altri documenti medici. 
             Il tuo nutrizionista potrà visualizzarli e tenerli in considerazione per il tuo piano alimentare.
@@ -70,4 +70,3 @@
 </div>
 
 {% endblock %}
-

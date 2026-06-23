@@ -2,20 +2,20 @@
 {% block title %}Listino Prezzi - NutriApp{% endblock %}
 {% block content %}
 
-<h1 class="page-title-user">💰 Listino Prezzi</h1>
+<h1 class="page-title-user">{{ icon('wallet', 22, 'usr-icon') }} Listino Prezzi</h1>
 
 <!-- PIANO NUTRIZIONALE -->
 {% if nutrizione %}
-<h2 class="section-title">🥗 Piano Nutrizionale</h2>
+<h2 class="section-title">{{ icon('diet', 18, 'usr-icon') }} Piano Nutrizionale</h2>
 {% for p in nutrizione %}
 <div class="card-user">
   <div class="card-header">
     <div style="display: flex; align-items: center;">
-      <span class="card-icon">🥗</span>
+      <span class="card-icon">{{ icon('diet', 24, 'usr-icon') }}</span>
       <span class="card-title">{{ p.nome_prodotto }}</span>
     </div>
     {% if 'PIÙ SCELTO' in p.nome_prodotto.upper() or 'IL PIU' in p.nome_prodotto.upper() %}
-    <span class="card-badge" style="background: #ff751f; color: white;">⭐ PIÙ SCELTO</span>
+    <span class="card-badge" style="background: #ff751f; color: white;">{{ icon('star', 14, 'usr-icon') }} PIÙ SCELTO</span>
     {% endif %}
   </div>
   
@@ -50,16 +50,16 @@
 <!-- PIANO DI ALLENAMENTO -->
 {% if allenamento %}
 <div class="divider"></div>
-<h2 class="section-title">🏋️ Piano di Allenamento</h2>
+<h2 class="section-title">{{ icon('dumbbell', 18, 'usr-icon') }} Piano di Allenamento</h2>
 {% for p in allenamento %}
 <div class="card-user">
   <div class="card-header">
     <div style="display: flex; align-items: center;">
-      <span class="card-icon">💪</span>
+      <span class="card-icon">{{ icon('dumbbell', 24, 'usr-icon') }}</span>
       <span class="card-title">{{ p.nome_prodotto }}</span>
     </div>
     {% if 'PIÙ SCELTO' in p.nome_prodotto.upper() or 'IL PIU' in p.nome_prodotto.upper() %}
-    <span class="card-badge" style="background: #ff751f; color: white;">⭐ PIÙ SCELTO</span>
+    <span class="card-badge" style="background: #ff751f; color: white;">{{ icon('star', 14, 'usr-icon') }} PIÙ SCELTO</span>
     {% endif %}
   </div>
   
@@ -94,16 +94,16 @@
 <!-- PIANO COMPLETO -->
 {% if completo %}
 <div class="divider"></div>
-<h2 class="section-title">🌟 Piano Completo</h2>
+<h2 class="section-title">{{ icon('star', 18, 'usr-icon') }} Piano Completo</h2>
 {% for p in completo %}
 <div class="card-user" style="border: 2px solid #ff751f;">
   <div class="card-header">
     <div style="display: flex; align-items: center;">
-      <span class="card-icon">🌟</span>
+      <span class="card-icon">{{ icon('star', 24, 'usr-icon') }}</span>
       <span class="card-title">{{ p.nome_prodotto }}</span>
     </div>
     {% if 'PIÙ SCELTO' in p.nome_prodotto.upper() or 'IL PIU' in p.nome_prodotto.upper() %}
-    <span class="card-badge" style="background: #ff751f; color: white;">⭐ PIÙ SCELTO</span>
+    <span class="card-badge" style="background: #ff751f; color: white;">{{ icon('star', 14, 'usr-icon') }} PIÙ SCELTO</span>
     {% endif %}
   </div>
   
@@ -138,16 +138,16 @@
 <!-- ALLENAMENTO 1 TO 1 -->
 {% if uno_a_uno %}
 <div class="divider"></div>
-<h2 class="section-title">💪 Allenamento 1 to 1</h2>
+<h2 class="section-title">{{ icon('dumbbell', 18, 'usr-icon') }} Allenamento 1 to 1</h2>
 {% for p in uno_a_uno %}
 <div class="card-user">
   <div class="card-header">
     <div style="display: flex; align-items: center;">
-      <span class="card-icon">💪</span>
+      <span class="card-icon">{{ icon('dumbbell', 24, 'usr-icon') }}</span>
       <span class="card-title">{{ p.nome_prodotto }}</span>
     </div>
     {% if 'PIÙ SCELTO' in p.nome_prodotto.upper() or 'IL PIU' in p.nome_prodotto.upper() %}
-    <span class="card-badge" style="background: #ff751f; color: white;">⭐ PIÙ SCELTO</span>
+    <span class="card-badge" style="background: #ff751f; color: white;">{{ icon('star', 14, 'usr-icon') }} PIÙ SCELTO</span>
     {% endif %}
   </div>
   
@@ -175,18 +175,18 @@
 <!-- SERVIZI INCLUSI -->
 <div class="card-user" style="margin-top: 2rem; background: rgba(255, 117, 31, 0.1);">
   <div class="card-body">
-    <p class="card-label" style="margin-bottom: 0.75rem; font-size: 1rem; color: #ff751f;">✨ Tutti i piani includono:</p>
+    <p class="card-label card-label--icon" style="margin-bottom: 0.75rem; font-size: 1rem; color: #ff751f;">{{ icon('star', 16, 'usr-icon') }} Tutti i piani includono:</p>
     <div style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.9rem;">
       <div style="display: flex; align-items: center; gap: 0.5rem;">
-        <span>💬</span>
+        <span>{{ icon('message', 16, 'usr-icon') }}</span>
         <span>Follow up via WhatsApp</span>
       </div>
       <div style="display: flex; align-items: center; gap: 0.5rem;">
-        <span>🎯</span>
+        <span>{{ icon('target', 16, 'usr-icon') }}</span>
         <span>Supporto e motivazione continua</span>
       </div>
       <div style="display: flex; align-items: center; gap: 0.5rem;">
-        <span>📹</span>
+        <span>{{ icon('video', 16, 'usr-icon') }}</span>
         <span>Possibilità di video-call di aggiornamento</span>
       </div>
     </div>
@@ -208,4 +208,3 @@
 </div>
 
 {% endblock %}
-
