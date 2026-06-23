@@ -163,10 +163,13 @@ class Config:
     AUDIT_LOG_RETENTION_DAYS = int(os.getenv("AUDIT_LOG_RETENTION_DAYS", "730"))
     
     # ========================================
-    # 📱 WHATSAPP BUSINESS API (opzionale)
+    # 📱 WHATSAPP - Evolution API (opzionale)
     # ========================================
-    WHATSAPP_ACCESS_TOKEN = os.getenv("WHATSAPP_ACCESS_TOKEN")
-    WHATSAPP_PHONE_NUMBER_ID = os.getenv("WHATSAPP_PHONE_NUMBER_ID")
+    WHATSAPP_ENABLED = os.getenv("WHATSAPP_ENABLED", "False").lower() in ("true", "1", "yes")
+    WHATSAPP_FROM_NAME = os.getenv("WHATSAPP_FROM_NAME", "MyNutriApp")
+    EVOLUTION_API_URL = os.getenv("EVOLUTION_API_URL", "").rstrip("/")
+    EVOLUTION_API_KEY = os.getenv("EVOLUTION_API_KEY")
+    EVOLUTION_INSTANCE = os.getenv("EVOLUTION_INSTANCE")
 
 
 # ========================================

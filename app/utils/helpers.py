@@ -13,6 +13,16 @@ def normalize_phone(phone: str) -> str:
         digits = digits[2:]
     return digits
 
+
+def format_phone_whatsapp(phone: str) -> str:
+    """Formato internazionale per API WhatsApp (solo cifre, es. 393401234567)."""
+    digits = ''.join(c for c in (phone or '') if c.isdigit())
+    if not digits:
+        return ''
+    if len(digits) == 10 and digits.startswith('3'):
+        return f'39{digits}'
+    return digits
+
 def admin_required(func):
     """Decorator per accesso riservato all'admin"""
     @wraps(func)

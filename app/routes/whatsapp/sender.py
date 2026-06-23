@@ -1,61 +1,68 @@
 """
-Sistema WhatsApp Semplificato
-Solo invio messaggi diretti, niente tracking o webhook
+Sistema WhatsApp via Evolution API
 """
 
 import requests
 import logging
 from app.config.config import Config
+from app.utils.helpers import format_phone_whatsapp
 
-# Configurazione logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
+def _configurazione_valida() -> bool:
+    if not Config.WHATSAPP_ENABLED:
+        logger.warning("⚠️ WhatsApp disabilitato (WHATSAPP_ENABLED=False)")
+        return False
+
+    if not all([Config.EVOLUTION_API_URL, Config.EVOLUTION_API_KEY, Config.EVOLUTION_INSTANCE]):
+        logger.error("❌ Configurazione Evolution API mancante: EVOLUTION_API_URL, EVOLUTION_API_KEY o EVOLUTION_INSTANCE")
+        return False
+
+    return True
+
+
 def invia_whatsapp(telefono, messaggio):
     """
-    Invia messaggio WhatsApp diretto tramite Meta API
-    
+    Invia messaggio WhatsApp al destinatario tramite Evolution API.
+
     Args:
-        telefono (str): Numero telefono destinatario (formato internazionale, es. "393401234567")
-        messaggio (str): Testo del messaggio da inviare
-    
+        telefono (str): Numero destinatario (locale o internazionale)
+        messaggio (str): Testo del messaggio
+
     Returns:
         bool: True se inviato con successo, False altrimenti
     """
     try:
-        # Verifica configurazione
-        if not Config.WHATSAPP_ACCESS_TOKEN or not Config.WHATSAPP_PHONE_NUMBER_ID:
-            logger.error("❌ Configurazione WhatsApp mancante: ACCESS_TOKEN o PHONE_NUMBER_ID")
+        if not _configurazione_valida():
             return False
-        
-        # URL API Meta WhatsApp
-        url = f"https://graph.facebook.com/v18.0/{Config.WHATSAPP_PHONE_NUMBER_ID}/messages"
-        
-        # Headers per autenticazione
+
+        numero = format_phone_whatsapp(telefono)
+        if not numero:
+            logger.error("❌ Numero di telefono non valido")
+            return False
+
+        url = f"{Config.EVOLUTION_API_URL}/message/sendText/{Config.EVOLUTION_INSTANCE}"
         headers = {
-            "Authorization": f"Bearer {Config.WHATSAPP_ACCESS_TOKEN}",
-            "Content-Type": "application/json"
+            "apikey": Config.EVOLUTION_API_KEY,
+            "Content-Type": "application/json",
         }
-        
-        # Payload del messaggio
         data = {
-            "messaging_product": "whatsapp",
-            "to": telefono,
-            "type": "text",
-            "text": {"body": messaggio}
+            "number": numero,
+            "text": messaggio,
         }
-        
-        # Invio richiesta
-        logger.info(f"📤 Invio WhatsApp a {telefono}: {messaggio[:50]}...")
+
+        logger.info(f"📤 Invio WhatsApp a {numero}: {messaggio[:50]}...")
         response = requests.post(url, headers=headers, json=data, timeout=30)
-        
-        if response.status_code == 200:
-            logger.info(f"✅ Messaggio inviato con successo a {telefono}")
+
+        if response.status_code in (200, 201):
+            logger.info(f"✅ Messaggio inviato con successo a {numero}")
             return True
-        else:
-            logger.error(f"❌ Errore invio WhatsApp: {response.status_code} - {response.text}")
-            return False
-            
+
+        logger.error(f"❌ Errore Evolution API: {response.status_code} - {response.text}")
+        return False
+
     except requests.exceptions.Timeout:
         logger.error("❌ Timeout invio WhatsApp")
         return False
@@ -66,13 +73,14 @@ def invia_whatsapp(telefono, messaggio):
         logger.error(f"❌ Errore generico WhatsApp: {e}")
         return False
 
+
 def invia_messaggio_appuntamento(paziente, appuntamento, azione):
     """
     Invia messaggio per appuntamento (confermato/annullato)
-    
+
     Args:
         paziente: Oggetto Patient
-        appuntamento: Oggetto Appuntamento  
+        appuntamento: Oggetto Appuntamento
         azione (str): 'confermato' o 'annullato'
     """
     if azione == 'confermato':
@@ -85,7 +93,7 @@ Il tuo appuntamento è stato CONFERMATO ✅
 📋 Tipo: {appuntamento.tipo.replace('_', ' ').title()}
 
 Ti aspettiamo! 🎯"""
-    
+
     elif azione == 'annullato':
         messaggio = f"""Ciao {paziente.nome}! 👋
 
@@ -95,16 +103,17 @@ Il tuo appuntamento è stato ANNULLATO ❌
 🕐 Ora: {appuntamento.data_appuntamento.strftime('%H:%M')}
 
 Contattaci per riprogrammare! 📞"""
-    
+
     else:
         return False
-    
+
     return invia_whatsapp(paziente.telefono, messaggio)
+
 
 def invia_messaggio_nuova_dieta(paziente, dieta):
     """
     Invia messaggio per nuova dieta caricata
-    
+
     Args:
         paziente: Oggetto Patient
         dieta: Oggetto Dieta
@@ -119,13 +128,14 @@ La tua nuova dieta è pronta! ✅
 Puoi scaricarla dall'area riservata del sito! 📱
 
 Buon lavoro! 💪"""
-    
+
     return invia_whatsapp(paziente.telefono, messaggio)
+
 
 def invia_messaggio_nuovo_allenamento(paziente, allenamento):
     """
     Invia messaggio per nuovo allenamento caricato
-    
+
     Args:
         paziente: Oggetto Patient
         allenamento: Oggetto Allenamento
@@ -139,13 +149,14 @@ Il tuo nuovo piano di allenamento è pronto! ✅
 Puoi scaricarlo dall'area riservata del sito! 📱
 
 Forza, iniziamo! 🔥"""
-    
+
     return invia_whatsapp(paziente.telefono, messaggio)
+
 
 def invia_messaggio_scadenza(paziente, tipo, data_scadenza):
     """
     Invia messaggio per scadenza imminente
-    
+
     Args:
         paziente: Oggetto Patient
         tipo (str): 'dieta' o 'allenamento'
@@ -159,7 +170,7 @@ La tua dieta scade tra 10 giorni! 📅
 📅 Scadenza: {data_scadenza.strftime('%d/%m/%Y')}
 
 Contattaci per il rinnovo! 📞"""
-    
+
     elif tipo == 'allenamento':
         messaggio = f"""Ciao {paziente.nome}! ⏰
 
@@ -168,18 +179,17 @@ Il tuo piano di allenamento scade tra 10 giorni! 📅
 📅 Scadenza: {data_scadenza.strftime('%d/%m/%Y')}
 
 Contattaci per il rinnovo! 📞"""
-    
+
     else:
         return False
-    
+
     return invia_whatsapp(paziente.telefono, messaggio)
 
-# Test della funzione (solo per debug)
+
 if __name__ == "__main__":
-    # Test con numero di prova (sostituisci con un numero reale per test)
-    test_telefono = "393401234567"  # Sostituisci con numero reale
+    test_telefono = "3401234567"
     test_messaggio = "Test messaggio WhatsApp dal sistema nutriapp! 🚀"
-    
+
     print("🧪 Test invio WhatsApp...")
     risultato = invia_whatsapp(test_telefono, test_messaggio)
     print(f"Risultato: {'✅ Successo' if risultato else '❌ Errore'}")
