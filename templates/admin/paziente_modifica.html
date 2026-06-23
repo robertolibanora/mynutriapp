@@ -2,7 +2,7 @@
 {% block title %}Modifica Paziente{% endblock %}
 {% block content %}
 
-<h2 class="page-title">✏️ Modifica: {{ paziente.nome }} {{ paziente.cognome }}</h2>
+<h2 class="page-title">{{ icon('edit', 16) }} Modifica: {{ paziente.nome }} {{ paziente.cognome }}</h2>
 
 <form method="POST" class="form-container">
 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
@@ -10,52 +10,52 @@
   <!-- DATI ANAGRAFICI -->
   <div class="form-section" style="margin-bottom: 2rem;">
     <h3 style="color: #ff751f; margin-bottom: 1rem; border-bottom: 1px solid rgba(182, 177, 169, 0.2); padding-bottom: 0.5rem;">
-      👤 Dati Anagrafici
+      {{ icon('user', 16) }} Dati anagrafici
     </h3>
     
     <div class="form-grid">
       <div class="form-group">
-        <label for="nome">📝 Nome *</label>
+        <label for="nome">Nome *</label>
         <input type="text" id="nome" name="nome" class="input-text" value="{{ paziente.nome }}" required>
       </div>
 
       <div class="form-group">
-        <label for="cognome">📝 Cognome *</label>
+        <label for="cognome">Cognome *</label>
         <input type="text" id="cognome" name="cognome" class="input-text" value="{{ paziente.cognome }}" required>
       </div>
 
       <div class="form-group">
-        <label for="telefono">📱 Telefono *</label>
+        <label for="telefono">Telefono *</label>
         <input type="tel" id="telefono" name="telefono" class="input-text" value="{{ paziente.telefono }}" required>
       </div>
 
       <div class="form-group">
-        <label for="password">🔐 Nuova Password</label>
+        <label for="password">Nuova password</label>
         <input type="password" id="password" name="password" class="input-text" placeholder="Lascia vuoto per non modificare">
         <small style="color: #b6b1a9; font-size: 0.85rem;">Inserisci una nuova password per il paziente. Lascia vuoto per mantenere quella attuale.</small>
       </div>
 
       <div class="form-group">
-        <label for="data_nascita">📅 Data di Nascita *</label>
+        <label for="data_nascita">{{ icon('calendar', 14) }} Data di Nascita *</label>
         <input type="date" id="data_nascita" name="data_nascita" class="input-text" value="{{ paziente.data_nascita }}" required>
       </div>
 
       <div class="form-group">
-        <label for="sesso">👤 Sesso *</label>
+        <label for="sesso">Sesso *</label>
         <select id="sesso" name="sesso" class="input-select" required>
-          <option value="M" {% if paziente.sesso == 'M' %}selected{% endif %}>👨 Maschio</option>
-          <option value="F" {% if paziente.sesso == 'F' %}selected{% endif %}>👩 Femmina</option>
-          <option value="Altro" {% if paziente.sesso == 'Altro' %}selected{% endif %}>🤝 Altro</option>
+          <option value="M" {% if paziente.sesso == 'M' %}selected{% endif %}>Maschio</option>
+          <option value="F" {% if paziente.sesso == 'F' %}selected{% endif %}>Femmina</option>
+          <option value="Altro" {% if paziente.sesso == 'Altro' %}selected{% endif %}>Altro</option>
         </select>
       </div>
 
       <div class="form-group">
-        <label for="altezza_cm">📏 Altezza (cm) *</label>
+        <label for="altezza_cm">Altezza (cm) *</label>
         <input type="number" id="altezza_cm" name="altezza_cm" class="input-text" value="{{ paziente.altezza_cm }}" required min="100" max="250">
       </div>
 
       <div class="form-group">
-        <label for="peso_iniziale">⚖️ Peso Iniziale (kg) *</label>
+        <label for="peso_iniziale">Peso Iniziale (kg) *</label>
         <input type="number" step="0.1" id="peso_iniziale" name="peso_iniziale" class="input-text" value="{{ paziente.peso_iniziale }}" required min="30" max="300">
       </div>
     </div>
@@ -64,27 +64,27 @@
   <!-- INFORMAZIONI MEDICHE -->
   <div class="form-section" style="margin-bottom: 2rem;">
     <h3 style="color: #ff751f; margin-bottom: 1rem; border-bottom: 1px solid rgba(182, 177, 169, 0.2); padding-bottom: 0.5rem;">
-      🩺 Informazioni Mediche
+      Informazioni mediche
     </h3>
 
     <div class="form-grid">
       <div class="form-group">
-        <label for="intolleranze">🚫 Intolleranze</label>
+        <label for="intolleranze">Intolleranze</label>
         <textarea id="intolleranze" name="intolleranze" class="input-text" rows="3" placeholder="Es: lattosio, glutine">{{ paziente.intolleranze or '' }}</textarea>
       </div>
 
       <div class="form-group">
-        <label for="cibi_da_ev">⚠️ Cibi da Evitare</label>
+        <label for="cibi_da_ev">Cibi da evitare</label>
         <textarea id="cibi_da_ev" name="cibi_da_ev" class="input-text" rows="3" placeholder="Es: zuccheri raffinati, grassi saturi">{{ paziente.cibi_da_ev or '' }}</textarea>
       </div>
 
       <div class="form-group">
-        <label for="patologie">🏥 Patologie</label>
+        <label for="patologie">Patologie</label>
         <textarea id="patologie" name="patologie" class="input-text" rows="3" placeholder="Es: diabete, ipertensione">{{ paziente.patologie or '' }}</textarea>
       </div>
 
       <div class="form-group">
-        <label for="esami_biochimici">🧪 Esami Biochimici</label>
+        <label for="esami_biochimici">Esami biochimici</label>
         <textarea id="esami_biochimici" name="esami_biochimici" class="input-text" rows="3" placeholder="Es: colesterolo, glicemia">{{ paziente.esami_biochimici or '' }}</textarea>
       </div>
     </div>
@@ -93,11 +93,11 @@
   <!-- ATTIVITÀ FISICA -->
   <div class="form-section" style="margin-bottom: 2rem;">
     <h3 style="color: #ff751f; margin-bottom: 1rem; border-bottom: 1px solid rgba(182, 177, 169, 0.2); padding-bottom: 0.5rem;">
-      🏃 Attività Fisica
+      {{ icon('dumbbell', 16) }} Attività fisica
     </h3>
 
     <div class="form-group">
-      <label for="allenamenti_descr">💪 Descrizione Allenamenti</label>
+      <label for="allenamenti_descr">Descrizione allenamenti</label>
       <textarea id="allenamenti_descr" name="allenamenti_descr" class="input-text" rows="3" placeholder="Es: palestra 3 volte a settimana, corsa 2 volte">{{ paziente.allenamenti_descr or '' }}</textarea>
       <small style="color: #b6b1a9; font-size: 0.85rem;">Descrizione dell'attività fisica attuale</small>
     </div>
@@ -105,10 +105,10 @@
 
   <div class="form-actions">
     <button type="submit" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem; font-size: 1.1rem; padding: 1rem 2rem;">
-      <span>💾</span>
+      {{ icon('save', 16) }}
       <span>Salva Modifiche</span>
     </button>
-    <a href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id) }}" class="btn btn-secondary">↩️ Annulla</a>
+    <a href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id) }}" class="btn btn-secondary">{{ icon('undo', 16) }} Annulla</a>
   </div>
 
 </form>

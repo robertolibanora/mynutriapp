@@ -6,7 +6,7 @@
 <div class="patient-header" style="background: linear-gradient(135deg, rgba(255, 117, 31, 0.1) 0%, rgba(13, 51, 28, 0.3) 100%); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; border: 1px solid rgba(255, 117, 31, 0.2);">
   <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
     <div>
-      <h1 style="color: #ff751f; margin: 0; font-size: 2.2rem; font-weight: 700;">🥗 Diete di {{ paziente.nome }} {{ paziente.cognome }}</h1>
+      <h1 style="color: #ff751f; margin: 0; font-size: 2.2rem; font-weight: 700;">Diete di {{ paziente.nome }} {{ paziente.cognome }}</h1>
       <p style="color: #b6b1a9; margin: 0.5rem 0 0 0; font-size: 1.1rem;">Piani nutrizionali personalizzati per il paziente</p>
     </div>
     <div style="text-align: right;">
@@ -20,14 +20,14 @@
 <div class="toolbar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
   <div>
     <a href="{{ url_for('diete.nuova_dieta', patient_id=paziente.id) }}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem;">
-      ➕ Nuova Dieta
+      {{ icon('plus', 16) }} Nuova dieta
     </a>
     <a href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id) }}" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 0.5rem; margin-left: 0.5rem;">
-      👤 Dettaglio Paziente
+      {{ icon('user', 14) }} Dettaglio Paziente
     </a>
   </div>
   <div style="color: #b6b1a9; font-size: 0.9rem;">
-    🥗 {{ diete|length }} diete totali
+    {{ diete|length }} diete totali
   </div>
 </div>
 
@@ -38,12 +38,12 @@
     <table class="diete-table" style="width: 100%; border-collapse: collapse;">
       <thead>
         <tr style="border-bottom: 2px solid rgba(255, 117, 31, 0.3);">
-          <th style="padding: 1rem; text-align: left; color: #ff751f; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">📅 Data Inizio</th>
-          <th style="padding: 1rem; text-align: left; color: #ff751f; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">📅 Data Fine</th>
-          <th style="padding: 1rem; text-align: left; color: #ff751f; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">⏱️ Durata</th>
-          <th style="padding: 1rem; text-align: left; color: #ff751f; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">🔥 Kcal</th>
-          <th style="padding: 1rem; text-align: left; color: #ff751f; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">🍽️ Macros</th>
-          <th style="padding: 1rem; text-align: left; color: #ff751f; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">📄 PDF</th>
+          <th style="padding: 1rem; text-align: left; color: #ff751f; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">Data inizio</th>
+          <th style="padding: 1rem; text-align: left; color: #ff751f; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">Data fine</th>
+          <th style="padding: 1rem; text-align: left; color: #ff751f; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">Durata</th>
+          <th style="padding: 1rem; text-align: left; color: #ff751f; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">Kcal</th>
+          <th style="padding: 1rem; text-align: left; color: #ff751f; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">Macro</th>
+          <th style="padding: 1rem; text-align: left; color: #ff751f; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">PDF</th>
         </tr>
       </thead>
       <tbody>
@@ -88,7 +88,7 @@
           <td style="padding: 1rem;">
             {% if d.pdf_path %}
               <a href="{{ url_for('diete.serve_file', dieta_id=d.id) }}" target="_blank" class="btn btn-primary btn-small" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">
-                📄 Visualizza
+                {{ icon('file', 16) }} Visualizza
               </a>
             {% else %}
               <span style="color: #b6b1a9; font-size: 0.85rem;">Nessun PDF</span>
@@ -102,32 +102,32 @@
 </div>
 
 <!-- STATISTICHE RAPIDE -->
-<div class="quick-stats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+<div class="quick-stats">
   {% set dieta_attiva = diete|selectattr('data_inizio', 'le', today)|selectattr('data_fine', 'ge', today)|first %}
   {% set kcal_media = (diete|map(attribute='kcal')|list|sum / diete|length) if diete|length > 0 else 0 %}
   {% set pdf_totali = diete|selectattr('pdf_path')|list|length %}
   {% set durata_totale = diete|length %}
   
-  <div class="stat-card" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(76, 175, 80, 0.3); border-radius: 12px; padding: 1.5rem; text-align: center;">
-    <div style="font-size: 2rem; color: #4CAF50; margin-bottom: 0.5rem;">🥗</div>
+  <div class="stat-card">
+    <div class="adm-icon--lg">{{ icon('diet', 28) }}</div>
     <div style="font-size: 1.5rem; font-weight: 700; color: #4CAF50; margin-bottom: 0.25rem;">{{ diete|length }}</div>
     <div style="color: #b6b1a9; font-size: 0.9rem;">Diete Totali</div>
   </div>
   
-  <div class="stat-card" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(255, 152, 0, 0.3); border-radius: 12px; padding: 1.5rem; text-align: center;">
-    <div style="font-size: 2rem; color: #FF9800; margin-bottom: 0.5rem;">🔥</div>
+  <div class="stat-card">
+    <div class="adm-icon--lg">{{ icon('flame', 28) }}</div>
     <div style="font-size: 1.5rem; font-weight: 700; color: #FF9800; margin-bottom: 0.25rem;">{{ "%.0f"|format(kcal_media) }}</div>
     <div style="color: #b6b1a9; font-size: 0.9rem;">Kcal Media</div>
   </div>
   
-  <div class="stat-card" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(33, 150, 243, 0.3); border-radius: 12px; padding: 1.5rem; text-align: center;">
-    <div style="font-size: 2rem; color: #2196F3; margin-bottom: 0.5rem;">📊</div>
+  <div class="stat-card">
+    <div class="adm-icon--lg">{{ icon('chart', 28) }}</div>
     <div style="font-size: 1.5rem; font-weight: 700; color: #2196F3; margin-bottom: 0.25rem;">{{ pdf_totali }}</div>
     <div style="color: #b6b1a9; font-size: 0.9rem;">PDF Disponibili</div>
   </div>
   
-  <div class="stat-card" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(255, 193, 7, 0.3); border-radius: 12px; padding: 1.5rem; text-align: center;">
-    <div style="font-size: 2rem; color: #FFC107; margin-bottom: 0.5rem;">⏱️</div>
+  <div class="stat-card">
+    <div class="adm-icon--lg">{{ icon('clock', 28) }}</div>
     <div style="font-size: 1.5rem; font-weight: 700; color: #FFC107; margin-bottom: 0.25rem;">
       {% if dieta_attiva %}
         Attiva
@@ -142,60 +142,16 @@
 {% else %}
 <!-- NESSUNA DIETA -->
 <div class="no-diete" style="text-align: center; padding: 4rem 2rem; background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px;">
-  <div style="font-size: 4rem; color: #b6b1a9; margin-bottom: 1rem;">🥗</div>
+  <div class="adm-empty-icon">{{ icon('diet', 48) }}</div>
   <h3 style="color: #4CAF50; margin-bottom: 1rem;">Nessuna Dieta Registrata</h3>
   <p style="color: #b6b1a9; margin-bottom: 2rem; font-size: 1.1rem;">
     {{ paziente.nome }} non ha ancora ricevuto alcun piano nutrizionale.
   </p>
   <a href="{{ url_for('diete.nuova_dieta', patient_id=paziente.id) }}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem;">
-    ➕ Crea Prima Dieta
+    {{ icon('plus', 16) }} Crea prima dieta
   </a>
 </div>
 {% endif %}
 
 <!-- CSS AGGIUNTIVO -->
-<style>
-.diete-table tbody tr:hover {
-  background: rgba(76, 175, 80, 0.05);
-}
-
-.btn-small {
-  font-size: 0.8rem;
-  padding: 0.4rem 0.8rem;
-  border-radius: 6px;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  transition: all 0.2s ease;
-}
-
-.btn-primary.btn-small {
-  background: rgba(76, 175, 80, 0.2);
-  color: #4CAF50;
-  border: 1px solid rgba(76, 175, 80, 0.3);
-}
-
-.btn-primary.btn-small:hover {
-  background: rgba(76, 175, 80, 0.3);
-  color: #ffffff;
-}
-
-@media (max-width: 768px) {
-  .diete-table-container {
-    padding: 1rem;
-  }
-  
-  .diete-table th,
-  .diete-table td {
-    padding: 0.75rem 0.5rem;
-    font-size: 0.85rem;
-  }
-  
-  .quick-stats {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-</style>
-
 {% endblock %}

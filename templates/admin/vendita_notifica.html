@@ -2,7 +2,7 @@
 {% block title %}Modifica Vendita{% endblock %}
 {% block content %}
 
-<h2 class="page-title">✏️ Modifica Vendita #{{ vendita.id }}</h2>
+<h2 class="page-title">{{ icon('edit', 16) }} Modifica Vendita #{{ vendita.id }}</h2>
 
 <form method="POST" class="form-container">
 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
@@ -57,8 +57,8 @@
   </div>
 
   <div class="form-actions">
-    <button type="submit" class="btn btn-primary">💾 Aggiorna</button>
-    <a href="{{ url_for('vendite.dettaglio_vendita', id=vendita.id) }}" class="btn btn-secondary">↩️ Indietro</a>
+    <button type="submit" class="btn btn-primary">{{ icon('save', 16) }} Aggiorna</button>
+    <a href="{{ url_for('vendite.dettaglio_vendita', id=vendita.id) }}" class="btn btn-secondary">{{ icon('undo', 16) }} Indietro</a>
   </div>
 
 </form>

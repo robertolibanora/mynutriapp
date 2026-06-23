@@ -2,7 +2,7 @@
 {% block title %}Nuova Vendita{% endblock %}
 {% block content %}
 
-<h2 class="page-title">➕ Nuova Vendita</h2>
+<h2 class="page-title">{{ icon('plus', 16) }} Nuova vendita</h2>
 
 <form method="POST" class="form-container">
 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
@@ -48,7 +48,7 @@
   <!-- CALCOLI IVA -->
         <div class="price-calculations" style="background: rgba(255, 117, 31, 0.1); border: 1px solid rgba(255, 117, 31, 0.3); border-radius: 8px; padding: 1rem; margin: 1rem 0;">
           <h4 style="color: #ff751f; margin: 0 0 1rem 0; display: flex; align-items: center; gap: 0.5rem;">
-            💰 Calcoli Prezzo
+            {{ icon('wallet', 14) }} Calcoli Prezzo
           </h4>
           
           <div class="price-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
@@ -75,8 +75,8 @@
   </div>
 
   <div class="form-actions">
-    <button type="submit" class="btn btn-primary">💾 Salva Vendita</button>
-    <a href="{{ url_for('vendite.lista_vendite') }}" class="btn btn-secondary">↩️ Annulla</a>
+    <button type="submit" class="btn btn-primary">{{ icon('save', 16) }} Salva Vendita</button>
+    <a href="{{ url_for('vendite.lista_vendite') }}" class="btn btn-secondary">{{ icon('undo', 16) }} Annulla</a>
   </div>
 
 </form>

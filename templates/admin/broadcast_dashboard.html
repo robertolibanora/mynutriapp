@@ -2,29 +2,15 @@
 {% block title %}Broadcast WhatsApp{% endblock %}
 {% block content %}
 
-<!-- HEADER PRINCIPALE (allineato a Pazienti) -->
-<div class="whatsapp-header" style="background: linear-gradient(135deg, rgba(255, 117, 31, 0.1) 0%, rgba(13, 51, 28, 0.3) 100%); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; border: 1px solid rgba(255, 117, 31, 0.2);">
-  <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
-    <div>
-      <h1 style="color: #ff751f; margin: 0; font-size: 2.5rem; font-weight: 700;">📱 WhatsApp</h1>
-      <p style="color: #b6b1a9; margin: 0.5rem 0 0 0; font-size: 1.1rem;">Gestione trigger e messaggi personalizzati</p>
-    </div>
-    <div style="text-align: right;">
-      <div style="color: #4CAF50; font-size: 1.1rem; font-weight: 700;">{{ stats.con_telefono }} Pazienti</div>
-      <div style="color: #4CAF50; font-size: 0.9rem; font-weight: 600;">Con Telefono</div>
-    </div>
-  </div>
-</div>
-
 <!-- GESTIONE TRIGGER -->
 <div class="triggers-section" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
-  <h3 style="color: #ff751f; margin-bottom: 1rem;">⚙️ Gestione Trigger Automatici</h3>
+  <h3 style="color: #ff751f; margin-bottom: 1rem;">{{ icon('settings', 16) }} Gestione trigger automatici</h3>
   <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
     
     <!-- TRIGGER APPUNTAMENTI -->
     <div class="trigger-card" style="background: rgba(13, 51, 28, 0.6); border: 1px solid rgba(182, 177, 169, 0.3); border-radius: 8px; padding: 1rem;">
       <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 0.75rem;">
-        <h4 style="color: #ffffff; margin: 0;">📅 Appuntamenti</h4>
+        <h4 style="color: #ffffff; margin: 0;">{{ icon('calendar', 18) }} Appuntamenti</h4>
         <form method="POST" action="{{ url_for('broadcast.toggle_trigger', trigger_name='appuntamenti') }}" style="display: inline;">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
           <button type="submit" class="btn-toggle {{ 'btn-on' if stats.trigger_stats.appuntamenti else 'btn-off' }}">
@@ -38,7 +24,7 @@
     <!-- TRIGGER DIETE -->
     <div class="trigger-card" style="background: rgba(13, 51, 28, 0.6); border: 1px solid rgba(182, 177, 169, 0.3); border-radius: 8px; padding: 1rem;">
       <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 0.75rem;">
-        <h4 style="color: #ffffff; margin: 0;">🍽️ Diete</h4>
+        <h4 style="color: #ffffff; margin: 0;">Diete</h4>
         <form method="POST" action="{{ url_for('broadcast.toggle_trigger', trigger_name='diete') }}" style="display: inline;">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
           <button type="submit" class="btn-toggle {{ 'btn-on' if stats.trigger_stats.diete else 'btn-off' }}">
@@ -52,7 +38,7 @@
     <!-- TRIGGER ALLENAMENTI -->
     <div class="trigger-card" style="background: rgba(13, 51, 28, 0.6); border: 1px solid rgba(182, 177, 169, 0.3); border-radius: 8px; padding: 1rem;">
       <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 0.75rem;">
-        <h4 style="color: #ffffff; margin: 0;">💪 Allenamenti</h4>
+        <h4 style="color: #ffffff; margin: 0;">{{ icon('dumbbell', 18) }} Allenamenti</h4>
         <form method="POST" action="{{ url_for('broadcast.toggle_trigger', trigger_name='allenamenti') }}" style="display: inline;">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
           <button type="submit" class="btn-toggle {{ 'btn-on' if stats.trigger_stats.allenamenti else 'btn-off' }}">
@@ -66,7 +52,7 @@
     <!-- TRIGGER SCADENZE -->
     <div class="trigger-card" style="background: rgba(13, 51, 28, 0.6); border: 1px solid rgba(182, 177, 169, 0.3); border-radius: 8px; padding: 1rem;">
       <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 0.75rem;">
-        <h4 style="color: #ffffff; margin: 0;">⏰ Scadenze</h4>
+        <h4 style="color: #ffffff; margin: 0;">{{ icon('clock', 16) }} Scadenze</h4>
         <form method="POST" action="{{ url_for('broadcast.toggle_trigger', trigger_name='scadenze') }}" style="display: inline;">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
           <button type="submit" class="btn-toggle {{ 'btn-on' if stats.trigger_stats.scadenze else 'btn-off' }}">
@@ -82,19 +68,19 @@
 <!-- TOOLBAR PRINCIPALE -->
 <div class="toolbar" style="display: flex; gap: 0.75rem; margin-bottom: 2rem; flex-wrap: wrap; align-items: center;">
   <a href="{{ url_for('broadcast.nuovo_broadcast') }}" class="btn btn-primary btn-lg" style="display: inline-flex; align-items: center; gap: 0.6rem;">
-    📱 Invia Messaggio
+    {{ icon('message', 16) }} Invia messaggio
   </a>
   <a href="{{ url_for('broadcast.config_templates') }}" class="btn btn-outline btn-lg" title="Configura messaggi trigger">
-    ⚙️ Configura Messaggi
+    {{ icon('settings', 16) }} Configura messaggi
   </a>
 </div>
 
 <!-- GUIDA VARIABILI -->
 <div class="guide-section" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(37, 211, 102, 0.3); border-radius: 12px; padding: 1.5rem;">
-  <h3 style="color: #25D366; margin-bottom: 1rem;">📝 Variabili per Messaggi Personalizzati</h3>
+  <h3 style="color: #25D366; margin-bottom: 1rem;">{{ icon('edit', 16) }} Variabili per messaggi personalizzati</h3>
   <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
     <div>
-      <h4 style="color: #ffffff; margin-bottom: 0.5rem;">👤 Dati Personali</h4>
+      <h4 style="color: #ffffff; margin-bottom: 0.5rem;">{{ icon('user', 18) }} Dati personali</h4>
       <ul style="color: #b6b1a9; font-size: 0.9rem; margin: 0; padding-left: 1rem;">
         <li><code>{nome}</code> - Nome del paziente</li>
         <li><code>{cognome}</code> - Cognome del paziente</li>
@@ -104,7 +90,7 @@
       </ul>
     </div>
     <div>
-      <h4 style="color: #ffffff; margin-bottom: 0.5rem;">📏 Dati Fisici</h4>
+      <h4 style="color: #ffffff; margin-bottom: 0.5rem;">{{ icon('ruler', 18) }} Dati fisici</h4>
       <ul style="color: #b6b1a9; font-size: 0.9rem; margin: 0; padding-left: 1rem;">
         <li><code>{altezza}</code> - Altezza in cm</li>
         <li><code>{peso_iniziale}</code> - Peso iniziale</li>
@@ -115,29 +101,11 @@
   </div>
   
   <div style="margin-top: 1rem; padding: 1rem; background: rgba(13, 51, 28, 0.6); border-radius: 8px; border-left: 3px solid #25D366;">
-    <div style="color: #b6b1a9; font-size: 0.85rem; margin-bottom: 0.5rem;">💡 Esempio:</div>
+    <div style="color: #b6b1a9; font-size: 0.85rem; margin-bottom: 0.5rem;">Esempio:</div>
     <div style="color: #ffffff; font-family: monospace; font-size: 0.9rem;">
-      Ciao {nome}! Come stai? Continua a seguire il tuo percorso! 💪
+      Ciao {nome}! Come stai? Continua a seguire il tuo percorso!
     </div>
   </div>
 </div>
-
-<style>
-.stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-}
-
-@media (max-width: 768px) {
-  .quick-stats {
-    grid-template-columns: 1fr !important;
-  }
-  
-  .toolbar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-}
-</style>
 
 {% endblock %}

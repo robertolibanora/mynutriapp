@@ -2,10 +2,10 @@
 {% block title %}Vendite{% endblock %}
 {% block content %}
 
-<h2 class="page-title">💰 Vendite Registrate</h2>
+<h2 class="page-title">{{ icon('wallet', 14) }} Vendite Registrate</h2>
 
 <div class="toolbar">
-  <a href="{{ url_for('vendite.nuova_vendita') }}" class="btn btn-primary">➕ Nuova Vendita</a>
+  <a href="{{ url_for('vendite.nuova_vendita') }}" class="btn btn-primary">{{ icon('plus', 16) }} Nuova vendita</a>
 </div>
 
 <p><strong>Totale incassato:</strong> {{ "%.2f"|format(totale) }} €</p>
@@ -33,10 +33,10 @@
       <td>{{ v.stato }}</td>
       <td>
         <div class="action-buttons">
-          <a href="{{ url_for('vendite.dettaglio_vendita', id=v.id) }}" class="btn btn-white btn-small">🔍 Dettaglio</a>
+          <a href="{{ url_for('vendite.dettaglio_vendita', id=v.id) }}" class="btn btn-white btn-small">{{ icon('eye', 16) }} Dettaglio</a>
           <form method="POST" action="{{ url_for('vendite.elimina_vendita', id=v.id) }}" style="display:inline;">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-            <button type="submit" class="btn btn-danger btn-small" onclick="return confirm('Eliminare questa vendita?')">🗑️ Elimina</button>
+            <button type="submit" class="btn btn-danger btn-small" onclick="return confirm('Eliminare questa vendita?')">{{ icon('trash', 16) }} Elimina</button>
           </form>
         </div>
       </td>

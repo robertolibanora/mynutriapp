@@ -135,7 +135,13 @@ def set_security_headers(response):
     
     # Content-Security-Policy - Base (può essere esteso)
     # Nota: CSP può rompere app se troppo restrittivo, quindi base
-    csp = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:;"
+    csp = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline'; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+        "font-src 'self' data: https://fonts.gstatic.com; "
+        "img-src 'self' data:;"
+    )
     response.headers['Content-Security-Policy'] = csp
     
     # Referrer-Policy
@@ -176,6 +182,12 @@ def inject_timezone():
         """Ritorna l'ora locale corrente"""
         return datetime.now(pytz.timezone('Europe/Rome'))
     return dict(get_local_time=get_local_time, timezone=pytz.timezone('Europe/Rome'))
+
+from app.utils.admin_icons import admin_icon
+
+@app.context_processor
+def inject_admin_icons():
+    return dict(icon=admin_icon)
 
 # 🚦 Applica rate limiting specifico al login con configurazione dinamica
 # Decora la view function del login dopo la registrazione delle routes

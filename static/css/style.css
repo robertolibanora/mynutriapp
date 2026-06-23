@@ -37,77 +37,11 @@ html {
 body {
     margin: 0;
     font-family: 'Inter', sans-serif;
-    background-color: #0d331c; /*  mediterraneo */
-    color: #ffffff; /* testo bianco */
+    background-color: #0d331c;
+    color: #ffffff;
     overflow-x: hidden;
     max-width: 100vw;
     width: 100%;
-}
-
-/* Titoli: AGRANDIR, colore brand e maiuscolo per tutte le pagine */
-h1, h2, h3, h4, h5, h6 {
-    font-family: 'Agrandir', sans-serif;
-    color: #4CAF50;
-}
-
-/* === NAVBAR === */
-.navbar {
-    background: rgba(13, 51, 28, 0.98);
-    border-bottom: 1px solid rgba(182, 177, 169, 0.15);
-    padding: 10px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-.logo {
-    font-size: 36px;
-    font-weight: 700;
-    color: #4CAF50;
-    font-family: 'Agrandir', sans-serif;
-}
-.nav-link {
-    margin-left: 15px;
-    color: #ff751f;
-    text-decoration: none;
-    font-weight: 500;
-    font-family: 'Agrandir', sans-serif;
-    font-size: 1.1rem;
-}
-.nav-link:hover {
-    color: #ff751f;
-    opacity: 0.8;
-}
-.nav-link.logout {
-    color: #ff0000; /* terracotta */
-}
-
-.nav-link.active {
-    color: #4CAF50;
-    transform: scale(1.40);
-    font-weight: 600;
-}
-
-/* === LAYOUT === */
-.content {
-    padding: 25px;
-    max-width: 1200px;
-    width: 100%;
-    margin: 0 auto;
-    box-sizing: border-box;
-}
-.page-subtitle {
-    color: #ffffff;
-    opacity: 0.8;
-    margin-top: -10px;
-    margin-bottom: 20px;
-}
-.page-title {
-    font-size: 22px;
-    margin-bottom: 20px;
-    font-weight: 600;
-    font-family: 'Agrandir', sans-serif;
-    color: #ff751f;
-    text-transform: uppercase;
 }
 
 /* === GRID === */

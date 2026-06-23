@@ -11,22 +11,22 @@
       </div>
       <div>
         <h1 style="color: #ffffff; margin: 0; font-size: 2.5rem; font-weight: 700;">{{ paziente.nome }} {{ paziente.cognome }}</h1>
-        <p style="color: #b6b1a9; margin: 0.5rem 0 0 0; font-size: 1.1rem;">📱 {{ paziente.telefono }}</p>
+        <p style="color: #b6b1a9; margin: 0.5rem 0 0 0; font-size: 1.1rem;">{{ icon('phone', 14) }} {{ paziente.telefono }}</p>
         {% if paziente.data_creazione %}
-        <p style="color: #4CAF50; margin: 0.25rem 0 0 0; font-size: 0.9rem;">📅 Registrato il {{ paziente.data_creazione.strftime('%d/%m/%Y') }}</p>
+        <p style="color: #4CAF50; margin: 0.25rem 0 0 0; font-size: 0.9rem;">{{ icon('calendar', 14) }} Registrato il {{ paziente.data_creazione.strftime('%d/%m/%Y') }}</p>
         {% endif %}
       </div>
     </div>
     <div class="header-actions" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
       <a href="{{ url_for('progressi.check_nutrizionista_completo', patient_id=paziente.id) }}" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem; background: #4CAF50; border-color: #4CAF50;">
-        <span>🏥</span>
+        {{ icon('medical', 20) }}
         <span>Check Nutrizionista</span>
       </a>
       <a href="{{ url_for('patients.modifica_paziente', patient_id=paziente.id) }}" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem;">
-        <span>✏️</span>
+        {{ icon('edit', 16) }}
         <span>Modifica Dati</span>
       </a>
-      <a href="{{ url_for('patients.lista_pazienti') }}" class="btn btn-secondary">← Torna alla Lista</a>
+      <a href="{{ url_for('patients.lista_pazienti') }}" class="btn btn-secondary">{{ icon('arrow-left', 14) }} Torna alla Lista</a>
     </div>
   </div>
 </div>
@@ -50,11 +50,11 @@
       <div style="display: flex; align-items: center; gap: 0.5rem;">
         {% if alert.urgenza == 'alta' %}
         <span style="background: rgba(244, 67, 54, 0.2); color: #F44336; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">
-          🔥 Urgente
+          Urgente
         </span>
         {% else %}
         <span style="background: rgba(255, 152, 0, 0.2); color: #FF9800; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">
-          ⚠️ Attenzione
+          Attenzione
         </span>
         {% endif %}
       </div>
@@ -67,12 +67,12 @@
 <!-- STATUS PROFILO -->
 <div class="status-card" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
   <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
-    <h3 style="color: #ff751f; margin: 0;">📊 Stato Profilo</h3>
+    <h3 style="color: #ff751f; margin: 0;">{{ icon('chart', 16) }} Stato profilo</h3>
     <span class="{% if paziente.intolleranze or paziente.patologie or paziente.allenamenti_descr %}status-complete{% else %}status-incomplete{% endif %}" style="padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">
       {% if paziente.intolleranze or paziente.patologie or paziente.allenamenti_descr %}
-        ✅ Completo
+        Completo
       {% else %}
-        ⚠️ Incompleto
+        Incompleto
       {% endif %}
     </span>
   </div>
@@ -92,37 +92,37 @@
   <!-- DATI ANAGRAFICI -->
   <div class="content-card" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px; padding: 1.5rem;">
     <h3 style="color: #ff751f; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-      👤 Dati Anagrafici
+      {{ icon('user', 16) }} Dati anagrafici
     </h3>
     
     <div class="info-list" style="display: flex; flex-direction: column; gap: 1rem;">
       <div class="info-item" style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: rgba(13, 51, 28, 0.6); border-radius: 8px;">
-        <span style="color: #b6b1a9; font-size: 0.9rem;">📱 Telefono</span>
+        <span style="color: #b6b1a9; font-size: 0.9rem;">Telefono</span>
         <span style="color: #ffffff; font-weight: 600;">{{ paziente.telefono }}</span>
       </div>
       
       <div class="info-item" style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: rgba(13, 51, 28, 0.6); border-radius: 8px;">
-        <span style="color: #b6b1a9; font-size: 0.9rem;">🔐 Password</span>
+        <span style="color: #b6b1a9; font-size: 0.9rem;">Password</span>
         <span style="color: #ffffff; font-weight: 600; font-family: monospace;">{{ paziente.password_plain }}</span>
       </div>
       
       <div class="info-item" style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: rgba(13, 51, 28, 0.6); border-radius: 8px;">
-        <span style="color: #b6b1a9; font-size: 0.9rem;">📅 Data Nascita</span>
+        <span style="color: #b6b1a9; font-size: 0.9rem;">Data nascita</span>
         <span style="color: #ffffff; font-weight: 600;">{{ paziente.data_nascita.strftime('%d/%m/%Y') if paziente.data_nascita else '—' }}</span>
       </div>
       
       <div class="info-item" style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: rgba(13, 51, 28, 0.6); border-radius: 8px;">
-        <span style="color: #b6b1a9; font-size: 0.9rem;">👤 Sesso</span>
+        <span style="color: #b6b1a9; font-size: 0.9rem;">Sesso</span>
         <span style="color: #ffffff; font-weight: 600;">{{ paziente.sesso }}</span>
       </div>
       
       <div class="info-item" style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: rgba(13, 51, 28, 0.6); border-radius: 8px;">
-        <span style="color: #b6b1a9; font-size: 0.9rem;">📏 Altezza</span>
+        <span style="color: #b6b1a9; font-size: 0.9rem;">Altezza</span>
         <span style="color: #ffffff; font-weight: 600;">{{ paziente.altezza_cm }} cm</span>
       </div>
       
       <div class="info-item" style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: rgba(13, 51, 28, 0.6); border-radius: 8px;">
-        <span style="color: #b6b1a9; font-size: 0.9rem;">⚖️ Peso Iniziale</span>
+        <span style="color: #b6b1a9; font-size: 0.9rem;">Peso Iniziale</span>
         <span style="color: #ffffff; font-weight: 600;">{{ paziente.peso_iniziale }} kg</span>
       </div>
     </div>
@@ -131,33 +131,33 @@
   <!-- INFORMAZIONI MEDICHE -->
   <div class="content-card" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px; padding: 1.5rem;">
     <h3 style="color: #ff751f; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-      🩺 Informazioni Mediche
+      Informazioni mediche
     </h3>
     
     <div class="medical-info" style="display: flex; flex-direction: column; gap: 1rem;">
       <div class="medical-item {% if paziente.intolleranze %}medical-complete{% else %}medical-incomplete{% endif %}" style="padding: 1rem; background: rgba(13, 51, 28, 0.6); border-radius: 8px;">
-        <div style="color: #b6b1a9; font-size: 0.85rem; margin-bottom: 0.5rem;">🚫 Intolleranze</div>
+        <div style="color: #b6b1a9; font-size: 0.85rem; margin-bottom: 0.5rem;">Intolleranze</div>
         <div style="color: #ffffff; font-size: 0.9rem;">
           {{ paziente.intolleranze or 'Nessuna intolleranza registrata' }}
         </div>
       </div>
       
       <div class="medical-item {% if paziente.cibi_da_ev %}medical-complete{% else %}medical-incomplete{% endif %}" style="padding: 1rem; background: rgba(13, 51, 28, 0.6); border-radius: 8px;">
-        <div style="color: #b6b1a9; font-size: 0.85rem; margin-bottom: 0.5rem;">⚠️ Cibi da Evitare</div>
+        <div style="color: #b6b1a9; font-size: 0.85rem; margin-bottom: 0.5rem;">Cibi da evitare</div>
         <div style="color: #ffffff; font-size: 0.9rem;">
           {{ paziente.cibi_da_ev or 'Nessuna restrizione alimentare' }}
         </div>
       </div>
       
       <div class="medical-item {% if paziente.patologie %}medical-complete{% else %}medical-incomplete{% endif %}" style="padding: 1rem; background: rgba(13, 51, 28, 0.6); border-radius: 8px;">
-        <div style="color: #b6b1a9; font-size: 0.85rem; margin-bottom: 0.5rem;">🏥 Patologie</div>
+        <div style="color: #b6b1a9; font-size: 0.85rem; margin-bottom: 0.5rem;">Patologie</div>
         <div style="color: #ffffff; font-size: 0.9rem;">
           {{ paziente.patologie or 'Nessuna patologia registrata' }}
         </div>
       </div>
       
       <div class="medical-item {% if paziente.esami_biochimici %}medical-complete{% else %}medical-incomplete{% endif %}" style="padding: 1rem; background: rgba(13, 51, 28, 0.6); border-radius: 8px;">
-        <div style="color: #b6b1a9; font-size: 0.85rem; margin-bottom: 0.5rem;">🧪 Esami Biochimici</div>
+        <div style="color: #b6b1a9; font-size: 0.85rem; margin-bottom: 0.5rem;">Esami biochimici</div>
         <div style="color: #ffffff; font-size: 0.9rem;">
           {{ paziente.esami_biochimici or 'Nessun esame registrato' }}
         </div>
@@ -169,11 +169,11 @@
 <!-- ATTIVITÀ FISICA -->
 <div class="activity-card" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem;">
   <h3 style="color: #ff751f; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-    🏃 Attività Fisica
+    {{ icon('dumbbell', 16) }} Attività fisica
   </h3>
   
   <div class="{% if paziente.allenamenti_descr %}medical-complete{% else %}medical-incomplete{% endif %}" style="padding: 1rem; background: rgba(13, 51, 28, 0.6); border-radius: 8px;">
-    <div style="color: #b6b1a9; font-size: 0.85rem; margin-bottom: 0.5rem;">💪 Descrizione Allenamenti</div>
+    <div style="color: #b6b1a9; font-size: 0.85rem; margin-bottom: 0.5rem;">Descrizione allenamenti</div>
     <div style="color: #ffffff; font-size: 0.9rem;">
       {{ paziente.allenamenti_descr or 'Nessun allenamento personalizzato registrato' }}
     </div>
@@ -186,12 +186,12 @@
   <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
     <div>
       <h3 style="color: #ff751f; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
-        📈 Andamento Peso e Aderenza
+        Andamento peso e aderenza
       </h3>
       <p style="color: #b6b1a9; font-size: 0.9rem; margin: 0.25rem 0 0 0;">Include check paziente + nutrizionista</p>
     </div>
     <div style="display: flex; gap: 0.5rem;">
-      <a href="{{ url_for('progressi.check_nutrizionista_completo', patient_id=paziente.id) }}" class="btn btn-primary btn-small">➕ Nuovo Check</a>
+      <a href="{{ url_for('progressi.check_nutrizionista_completo', patient_id=paziente.id) }}" class="btn btn-primary btn-small">{{ icon('plus', 16) }} Nuovo Check</a>
     </div>
   </div>
   
@@ -202,7 +202,7 @@
   
   <!-- LEGENDA ADERENZA -->
   <div style="margin-top: 1rem; padding: 1rem; background: rgba(13, 51, 28, 0.6); border-radius: 8px;">
-    <div style="color: #b6b1a9; font-size: 0.85rem; margin-bottom: 0.5rem;">🎨 Legenda Aderenza:</div>
+    <div style="color: #b6b1a9; font-size: 0.85rem; margin-bottom: 0.5rem;">Legenda aderenza:</div>
     <div style="display: flex; gap: 1.5rem; flex-wrap: wrap;">
       <div style="display: flex; align-items: center; gap: 0.5rem;">
         <div style="width: 12px; height: 12px; background: #4CAF50; border-radius: 50%;"></div>
@@ -226,7 +226,7 @@
 <div class="photos-section" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem;">
   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
     <h3 style="color: #ff751f; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
-      📷 Foto Progressi
+      Foto progressi
     </h3>
     <span style="background: rgba(156, 39, 176, 0.2); color: #9C27B0; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">
       {{ foto_inviate }} foto
@@ -249,9 +249,9 @@
           </div>
           <div style="color: #b6b1a9; font-size: 0.8rem;">
             {% if progresso.tipo_check == 'nutrizionista' %}
-              🏥 Check Nutrizionista
+              {{ icon('medical', 16) }} Check nutrizionista
             {% else %}
-              👤 Check Paziente
+              {{ icon('user', 14) }} Check Paziente
             {% endif %}
           </div>
           {% if progresso.peso_settimanale %}
@@ -303,173 +303,53 @@ document.addEventListener('keydown', function(e) {
   <!-- DIETE -->
   <div class="management-card" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(255, 117, 31, 0.3); border-radius: 12px; padding: 1.5rem;">
     <h3 style="color: #ff751f; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-      🍽️ Diete
+      {{ icon('diet', 18) }} Diete
     </h3>
     <p style="color: #b6b1a9; margin-bottom: 1rem; font-size: 0.9rem;">Gestisci i piani nutrizionali</p>
     <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-      <a href="{{ url_for('diete.nuova_dieta', patient_id=paziente.id) }}" class="btn btn-primary btn-small">➕ Nuova</a>
-      <a href="{{ url_for('diete.diete_paziente', patient_id=paziente.id) }}" class="btn btn-white btn-small">👁️ Tutte</a>
+      <a href="{{ url_for('diete.nuova_dieta', patient_id=paziente.id) }}" class="btn btn-primary btn-small">{{ icon('plus', 16) }} Nuova</a>
+      <a href="{{ url_for('diete.diete_paziente', patient_id=paziente.id) }}" class="btn btn-white btn-small adm-icon-btn">{{ icon('eye', 14) }} Tutte</a>
     </div>
   </div>
 
   <!-- ALLENAMENTI -->
   <div class="management-card" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(33, 150, 243, 0.3); border-radius: 12px; padding: 1.5rem;">
     <h3 style="color: #ff751f; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-      🏋️ Allenamenti
+      Allenamenti
     </h3>
     <p style="color: #b6b1a9; margin-bottom: 1rem; font-size: 0.9rem;">Crea programmi di allenamento</p>
     <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-      <a href="{{ url_for('allenamenti.nuovo_allenamento', patient_id=paziente.id) }}" class="btn btn-primary btn-small">➕ Nuovo</a>
-      <a href="{{ url_for('allenamenti.allenamenti_paziente', patient_id=paziente.id) }}" class="btn btn-white btn-small">👁️ Tutti</a>
+      <a href="{{ url_for('allenamenti.nuovo_allenamento', patient_id=paziente.id) }}" class="btn btn-primary btn-small">{{ icon('plus', 16) }} Nuovo</a>
+      <a href="{{ url_for('allenamenti.allenamenti_paziente', patient_id=paziente.id) }}" class="btn btn-white btn-small adm-icon-btn">{{ icon('eye', 14) }} Tutti</a>
     </div>
   </div>
 
   <!-- PROGRESSI -->
   <div class="management-card" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(156, 39, 176, 0.3); border-radius: 12px; padding: 1.5rem;">
     <h3 style="color: #ff751f; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-      📈 Progressi
+      Progressi
     </h3>
     <p style="color: #b6b1a9; margin-bottom: 1rem; font-size: 0.9rem;">Monitora i risultati</p>
     <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-      <a href="{{ url_for('progressi.check_nutrizionista_completo', patient_id=paziente.id) }}" class="btn btn-primary btn-small">➕ Nuovo</a>
-      <a href="{{ url_for('progressi.progressi_paziente_admin', patient_id=paziente.id) }}" class="btn btn-white btn-small">👁️ Tutti</a>
+      <a href="{{ url_for('progressi.check_nutrizionista_completo', patient_id=paziente.id) }}" class="btn btn-primary btn-small">{{ icon('plus', 16) }} Nuovo</a>
+      <a href="{{ url_for('progressi.progressi_paziente_admin', patient_id=paziente.id) }}" class="btn btn-white btn-small adm-icon-btn">{{ icon('eye', 14) }} Tutti</a>
     </div>
   </div>
 
   <!-- DOCUMENTI -->
   <div class="management-card" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(255, 152, 0, 0.3); border-radius: 12px; padding: 1.5rem;">
     <h3 style="color: #ff751f; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-      📄 Documenti
+      {{ icon('file', 16) }} Documenti
     </h3>
     <p style="color: #b6b1a9; margin-bottom: 1rem; font-size: 0.9rem;">Documenti caricati dal paziente</p>
     <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-      <a href="{{ url_for('documenti.lista_documenti_admin', patient_id=paziente.id) }}" class="btn btn-primary btn-small">👁️ Visualizza ({{ documenti|length }})</a>
+      <a href="{{ url_for('documenti.lista_documenti_admin', patient_id=paziente.id) }}" class="btn btn-primary btn-small">{{ icon('eye', 16) }} Visualizza ({{ documenti|length }})</a>
     </div>
   </div>
 </div>
 
-<style>
-.patient-header:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-}
-
-/* ALERT STYLES */
-.alert-urgent {
-  background: rgba(244, 67, 54, 0.1) !important;
-  border: 2px solid #F44336 !important;
-}
-
-.alert-warning {
-  background: rgba(255, 152, 0, 0.1) !important;
-  border: 2px solid #FF9800 !important;
-}
-
-.alert-border {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 4px;
-  height: 100%;
-}
-
-.alert-urgent .alert-border {
-  background: #F44336;
-}
-
-.alert-warning .alert-border {
-  background: #FF9800;
-}
-
-.alert-urgent .alert-title {
-  color: #F44336;
-}
-
-.alert-warning .alert-title {
-  color: #FF9800;
-}
-
-.medical-complete {
-  border-left: 4px solid #4CAF50 !important;
-}
-
-.medical-incomplete {
-  border-left: 4px solid #b6b1a9 !important;
-}
-
-.status-complete {
-  background: rgba(76, 175, 80, 0.2) !important;
-  color: #4CAF50 !important;
-}
-
-.status-incomplete {
-  background: rgba(255, 193, 7, 0.2) !important;
-  color: #FFC107 !important;
-}
-
-.alert-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-}
-
-.status-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-}
-
-.content-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-}
-
-.activity-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-}
-
-.management-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-}
-
-@media (max-width: 768px) {
-  .main-content {
-    grid-template-columns: 1fr !important;
-  }
-  
-  .patient-header {
-    text-align: center;
-  }
-  
-  .patient-header > div {
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .header-actions {
-    justify-content: center;
-  }
-  
-  .management-section {
-    grid-template-columns: 1fr !important;
-  }
-}
-
-@media (max-width: 480px) {
-  .header-actions {
-    flex-direction: column;
-    width: 100%;
-  }
-  
-  .header-actions .btn {
-    width: 100%;
-    justify-content: center;
-  }
-}
-</style>
-
 <!-- CHART.JS -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/chart.umd.min.js') }}"></script>
 
 {% if progressi %}
 <script>

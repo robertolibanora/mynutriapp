@@ -47,6 +47,10 @@ def admin_dashboard():
         Appuntamento.data_appuntamento <= oggi + timedelta(days=7)
     ).count()
     
+    appuntamenti_oggi = Appuntamento.query.filter(
+        db.func.date(Appuntamento.data_appuntamento) == oggi_data
+    ).order_by(Appuntamento.data_appuntamento.asc()).all()
+
     # Prodotti più venduti questo mese
     prodotti_top = db.session.query(
         Listino.nome_prodotto,
@@ -62,6 +66,7 @@ def admin_dashboard():
     return render_template('admin/dashboard.html',
                          n_pazienti=n_pazienti,
                          n_appuntamenti_oggi=n_appuntamenti_oggi,
+                         appuntamenti_oggi=appuntamenti_oggi,
                          totale_mese=int(entrate_mese),
                          n_slot_futuri=n_slot_futuri,
                          n_appuntamenti_settimana=n_appuntamenti_settimana,

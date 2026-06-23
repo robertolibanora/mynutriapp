@@ -2,7 +2,7 @@
 {% block title %}Nuovo Appuntamento{% endblock %}
 {% block content %}
 
-<h2 class="page-title">➕ Crea Nuovo Appuntamento</h2>
+<h2 class="page-title">{{ icon('plus', 16) }} Crea Nuovo Appuntamento</h2>
 
 <form method="POST" class="form-container">
 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
@@ -10,15 +10,15 @@
   <!-- SELEZIONE PAZIENTE -->
   <div class="form-section" style="margin-bottom: 2rem;">
     <h3 style="color: #ff751f; margin-bottom: 1rem; border-bottom: 1px solid rgba(182, 177, 169, 0.2); padding-bottom: 0.5rem;">
-      👤 Paziente
+      Paziente
     </h3>
     
     <div class="form-group">
-      <label for="patient_id">👥 Seleziona Paziente *</label>
+      <label for="patient_id">Seleziona paziente *</label>
       <select name="patient_id" id="patient_id" class="input-select" required>
         <option value="">Scegli un paziente...</option>
         {% for p in pazienti %}
-        <option value="{{ p.id }}">{{ p.nome }} {{ p.cognome }} - 📱 {{ p.telefono }}</option>
+        <option value="{{ p.id }}">{{ p.nome }} {{ p.cognome }} — {{ p.telefono }}</option>
         {% endfor %}
       </select>
     </div>
@@ -27,11 +27,11 @@
   <!-- DATA E ORA -->
   <div class="form-section" style="margin-bottom: 2rem;">
     <h3 style="color: #ff751f; margin-bottom: 1rem; border-bottom: 1px solid rgba(182, 177, 169, 0.2); padding-bottom: 0.5rem;">
-      📅 Data e Ora
+      {{ icon('calendar', 14) }} Data e Ora
     </h3>
     
     <div class="form-group">
-      <label for="data_appuntamento">🕐 Data e Ora Appuntamento *</label>
+      <label for="data_appuntamento">{{ icon('clock', 14) }} Data e Ora Appuntamento *</label>
       <input type="datetime-local" id="data_appuntamento" name="data_appuntamento" class="input-text" required>
     </div>
   </div>
@@ -39,25 +39,25 @@
   <!-- DETTAGLI -->
   <div class="form-section" style="margin-bottom: 2rem;">
     <h3 style="color: #ff751f; margin-bottom: 1rem; border-bottom: 1px solid rgba(182, 177, 169, 0.2); padding-bottom: 0.5rem;">
-      📋 Dettagli
+      {{ icon('clipboard', 14) }} Dettagli
     </h3>
     
     <div class="form-grid">
       <div class="form-group">
-        <label for="tipo">📋 Tipo di Appuntamento *</label>
+        <label for="tipo">{{ icon('clipboard', 14) }} Tipo di Appuntamento *</label>
         <select name="tipo" id="tipo" class="input-select" required>
           <option value="">Seleziona tipo...</option>
-          <option value="allenamento_1to1">💪 Allenamento 1to1</option>
-          <option value="rinnovo_dieta">🍽️ Rinnovo Dieta</option>
-          <option value="rinnovo_allenamento">🏋️ Rinnovo Allenamento</option>
-          <option value="check">✅ Check</option>
-          <option value="altro">📌 Altro</option>
+          <option value="allenamento_1to1">Allenamento 1-to-1</option>
+          <option value="rinnovo_dieta">Rinnovo dieta</option>
+          <option value="rinnovo_allenamento">Rinnovo allenamento</option>
+          <option value="check">Check</option>
+          <option value="altro">Altro</option>
         </select>
         <small style="color: #b6b1a9; font-size: 0.85rem;">Tipologia dell'appuntamento</small>
       </div>
 
       <div class="form-group">
-        <label for="note">💬 Note (Opzionale)</label>
+        <label for="note">{{ icon('message', 14) }} Note (Opzionale)</label>
         <textarea id="note" name="note" class="input-text" rows="3" placeholder="Es: Portare esami del sangue recenti"></textarea>
         <small style="color: #b6b1a9; font-size: 0.85rem;">Informazioni aggiuntive per l'appuntamento</small>
       </div>
@@ -66,10 +66,10 @@
 
   <div class="form-actions">
     <button type="submit" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem; font-size: 1.1rem; padding: 1rem 2rem;">
-      <span>💾</span>
+      {{ icon('save', 16) }}
       <span>Crea Appuntamento</span>
     </button>
-    <a href="{{ url_for('agenda.agenda_unificata') }}" class="btn btn-secondary">↩️ Annulla</a>
+    <a href="{{ url_for('agenda.agenda_unificata') }}" class="btn btn-secondary">{{ icon('undo', 16) }} Annulla</a>
   </div>
 
 </form>

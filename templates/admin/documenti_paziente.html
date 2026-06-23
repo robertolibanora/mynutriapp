@@ -6,7 +6,7 @@
 <div class="patient-header" style="background: linear-gradient(135deg, rgba(255, 152, 0, 0.1) 0%, rgba(13, 51, 28, 0.3) 100%); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; border: 1px solid rgba(255, 152, 0, 0.2);">
   <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
     <div>
-      <h1 style="color: #FF9800; margin: 0; font-size: 2.2rem; font-weight: 700;">📄 Documenti di {{ paziente.nome }} {{ paziente.cognome }}</h1>
+      <h1 style="color: #FF9800; margin: 0; font-size: 2.2rem; font-weight: 700;">Documenti di {{ paziente.nome }} {{ paziente.cognome }}</h1>
       <p style="color: #b6b1a9; margin: 0.5rem 0 0 0; font-size: 1.1rem;">Documenti caricati dal paziente</p>
     </div>
     <div style="text-align: right;">
@@ -20,11 +20,11 @@
 <div class="toolbar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
   <div>
     <a href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id) }}" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 0.5rem;">
-      👤 Dettaglio Paziente
+      {{ icon('user', 14) }} Dettaglio Paziente
     </a>
   </div>
   <div style="color: #b6b1a9; font-size: 0.9rem;">
-    📄 {{ documenti|length }} documenti totali
+    {{ documenti|length }} documenti totali
   </div>
 </div>
 
@@ -35,11 +35,11 @@
     <table class="documenti-table" style="width: 100%; border-collapse: collapse;">
       <thead>
         <tr style="border-bottom: 2px solid rgba(255, 152, 0, 0.3);">
-          <th style="padding: 1rem; text-align: left; color: #FF9800; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; min-width: 150px;">📄 Tipo</th>
-          <th style="padding: 1rem; text-align: left; color: #FF9800; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; min-width: 200px;">📝 Descrizione</th>
-          <th style="padding: 1rem; text-align: left; color: #FF9800; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; min-width: 150px;">📅 Data Upload</th>
-          <th style="padding: 1rem; text-align: left; color: #FF9800; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; min-width: 100px;">📁 File</th>
-          <th style="padding: 1rem; text-align: left; color: #FF9800; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; min-width: 150px;">🔧 Azioni</th>
+          <th style="padding: 1rem; text-align: left; color: #FF9800; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; min-width: 150px;">Tipo</th>
+          <th style="padding: 1rem; text-align: left; color: #FF9800; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; min-width: 200px;">Descrizione</th>
+          <th style="padding: 1rem; text-align: left; color: #FF9800; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; min-width: 150px;">{{ icon('calendar', 14) }} Data Upload</th>
+          <th style="padding: 1rem; text-align: left; color: #FF9800; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; min-width: 100px;">File</th>
+          <th style="padding: 1rem; text-align: left; color: #FF9800; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; min-width: 150px;">Azioni</th>
         </tr>
       </thead>
       <tbody>
@@ -47,13 +47,13 @@
         <tr style="border-bottom: 1px solid rgba(182, 177, 169, 0.1); transition: background-color 0.2s ease;">
           <td style="padding: 1rem; color: #ffffff; font-weight: 500; min-width: 150px;">
             {% if doc.tipo == 'analisi' %}
-              <span style="background: rgba(76, 175, 80, 0.2); color: #4CAF50; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem; font-weight: 600;">🧪 Analisi</span>
+              <span style="background: rgba(76, 175, 80, 0.2); color: #4CAF50; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem; font-weight: 600;">Analisi</span>
             {% elif doc.tipo == 'referto' %}
-              <span style="background: rgba(33, 150, 243, 0.2); color: #2196F3; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem; font-weight: 600;">📋 Referto</span>
+              <span style="background: rgba(33, 150, 243, 0.2); color: #2196F3; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem; font-weight: 600;">{{ icon('clipboard', 14) }} Referto</span>
             {% elif doc.tipo == 'excel' %}
-              <span style="background: rgba(76, 175, 80, 0.2); color: #4CAF50; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem; font-weight: 600;">📊 Excel</span>
+              <span style="background: rgba(76, 175, 80, 0.2); color: #4CAF50; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem; font-weight: 600;">Excel</span>
             {% else %}
-              <span style="background: rgba(156, 39, 176, 0.2); color: #9C27B0; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem; font-weight: 600;">📄 Altro</span>
+              <span style="background: rgba(156, 39, 176, 0.2); color: #9C27B0; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem; font-weight: 600;">Altro</span>
             {% endif %}
           </td>
           <td style="padding: 1rem; color: #b6b1a9; min-width: 200px;">
@@ -71,19 +71,19 @@
           <td style="padding: 1rem; min-width: 100px;">
             {% set file_extension = doc.file_path.split('.')[-1].lower() %}
             {% if file_extension == 'pdf' %}
-              <span style="color: #F44336; font-size: 1.2rem;">📄</span>
+              {{ icon('file', 18) }}
             {% elif file_extension in ['jpg', 'jpeg', 'png'] %}
-              <span style="color: #4CAF50; font-size: 1.2rem;">🖼️</span>
+              {{ icon('image', 18) }}
             {% else %}
-              <span style="color: #FF9800; font-size: 1.2rem;">📁</span>
+              {{ icon('folder', 18) }}
             {% endif %}
           </td>
           <td style="padding: 1rem; min-width: 150px;">
             <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-              <a href="{{ url_for('documenti.serve_file', documento_id=doc.id) }}" target="_blank" class="btn btn-primary btn-small" style="font-size: 0.8rem;">👁️ Visualizza</a>
+              <a href="{{ url_for('documenti.serve_file', documento_id=doc.id) }}" target="_blank" class="btn btn-primary btn-small" style="font-size: 0.8rem;">{{ icon('eye', 16) }} Visualizza</a>
               <form method="POST" action="{{ url_for('documenti.elimina_documento_admin', documento_id=doc.id) }}" style="display: inline;">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                <button type="submit" class="btn btn-danger btn-small" style="font-size: 0.8rem;" onclick="return confirm('Eliminare questo documento?')">🗑️ Elimina</button>
+                <button type="submit" class="btn btn-danger btn-small" style="font-size: 0.8rem;" onclick="return confirm('Eliminare questo documento?')">{{ icon('trash', 16) }} Elimina</button>
               </form>
             </div>
           </td>
@@ -97,31 +97,15 @@
 {% else %}
 <!-- STATO VUOTO -->
 <div class="empty-state" style="text-align: center; padding: 3rem; background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px;">
-  <div style="font-size: 4rem; margin-bottom: 1rem;">📄</div>
+  <div class="adm-empty-icon">{{ icon('file', 48) }}</div>
   <h3 style="color: #FF9800; margin-bottom: 1rem;">Nessun Documento</h3>
   <p style="color: #b6b1a9; margin-bottom: 2rem;">
     {{ paziente.nome }} {{ paziente.cognome }} non ha ancora caricato nessun documento.
   </p>
   <a href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id) }}" class="btn btn-secondary">
-    ← Torna al Dettaglio Paziente
+    {{ icon('arrow-left', 14) }} Torna al Dettaglio Paziente
   </a>
 </div>
 {% endif %}
-
-<style>
-.documenti-table tbody tr:hover {
-  background-color: rgba(255, 152, 0, 0.05);
-}
-
-@media (max-width: 768px) {
-  .documenti-table-container {
-    overflow-x: auto;
-  }
-  
-  .documenti-table {
-    min-width: 600px;
-  }
-}
-</style>
 
 {% endblock %}

@@ -2,7 +2,7 @@
 {% block title %}Modifica Vendita{% endblock %}
 {% block content %}
 
-<h2 class="page-title">✏️ Modifica Vendita</h2>
+<h2 class="page-title">{{ icon('edit', 16) }} Modifica Vendita</h2>
 
 <form method="POST" class="form-container">
 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
@@ -44,9 +44,9 @@
   <div class="form-group">
     <label for="stato">Stato</label>
     <select id="stato" name="stato" class="input-select" required>
-      <option value="pagato" {% if vendita.stato == 'pagato' %}selected{% endif %}>✅ Pagato</option>
-      <option value="in_attesa" {% if vendita.stato == 'in_attesa' %}selected{% endif %}>⏳ In Attesa</option>
-      <option value="rimborsato" {% if vendita.stato == 'rimborsato' %}selected{% endif %}>↩️ Rimborsato</option>
+      <option value="pagato" {% if vendita.stato == 'pagato' %}selected{% endif %}>Pagato</option>
+      <option value="in_attesa" {% if vendita.stato == 'in_attesa' %}selected{% endif %}>In attesa</option>
+      <option value="rimborsato" {% if vendita.stato == 'rimborsato' %}selected{% endif %}>Rimborsato</option>
     </select>
   </div>
 
@@ -57,10 +57,10 @@
 
   <div class="form-actions">
     <button type="submit" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem; font-size: 1.1rem; padding: 1rem 2rem;">
-      <span>💾</span>
+      {{ icon('save', 16) }}
       <span>Salva Modifiche</span>
     </button>
-    <a href="{{ url_for('vendite.dashboard_economia') }}" class="btn btn-secondary">↩️ Annulla</a>
+    <a href="{{ url_for('vendite.dashboard_economia') }}" class="btn btn-secondary">{{ icon('undo', 16) }} Annulla</a>
   </div>
 
 </form>

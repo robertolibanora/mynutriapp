@@ -4,36 +4,36 @@
 
 <!-- HEADER CON STATISTICHE -->
 <div class="stats-overview" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
-  <div class="stat-card" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); padding: 1.5rem; border-radius: 12px; text-align: center;">
-    <div style="font-size: 2rem; margin-bottom: 0.5rem;">📅</div>
+  <div class="stat-card">
+    <div class="adm-icon--lg">{{ icon('calendar', 28) }}</div>
     <div style="font-size: 1.8rem; font-weight: 700; color: #ff751f;">{{ appuntamenti|length }}</div>
     <div style="color: #b6b1a9; font-size: 0.9rem;">Appuntamenti Totali</div>
   </div>
   
-  <div class="stat-card" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); padding: 1.5rem; border-radius: 12px; text-align: center;">
-    <div style="font-size: 2rem; margin-bottom: 0.5rem;">✅</div>
+  <div class="stat-card">
+    <div class="adm-icon--lg">{{ icon('check-circle', 28) }}</div>
     <div style="font-size: 1.8rem; font-weight: 700; color: #4CAF50;">{{ appuntamenti|selectattr('stato', 'equalto', 'confermato')|list|length }}</div>
     <div style="color: #b6b1a9; font-size: 0.9rem;">Confermati</div>
   </div>
   
-  <div class="stat-card" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); padding: 1.5rem; border-radius: 12px; text-align: center;">
-    <div style="font-size: 2rem; margin-bottom: 0.5rem;">⏳</div>
+  <div class="stat-card">
+    <div class="adm-icon--lg">{{ icon('hourglass', 28) }}</div>
     <div style="font-size: 1.8rem; font-weight: 700; color: #FFC107;">{{ appuntamenti|selectattr('stato', 'equalto', 'in_attesa')|list|length }}</div>
     <div style="color: #b6b1a9; font-size: 0.9rem;">In Attesa</div>
   </div>
 </div>
 
-<h2 class="page-title">📅 Gestione Appuntamenti</h2>
+<h2 class="page-title">Gestione appuntamenti</h2>
 
 <!-- TOOLBAR MIGLIORATA -->
 <div class="toolbar" style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; align-items: center;">
   <a href="{{ url_for('appuntamenti.nuovo_admin') }}" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem;">
-    <span>➕</span>
+    {{ icon('plus', 16) }}
     <span>Nuovo Appuntamento</span>
   </a>
   
   <a href="{{ url_for('appuntamenti.calendario_admin') }}" class="btn btn-white" style="display: flex; align-items: center; gap: 0.5rem;">
-    <span>🗓️</span>
+    {{ icon('calendar', 16) }}
     <span>Vista Calendario</span>
   </a>
 </div>
@@ -68,12 +68,12 @@
         
         <div style="display: flex; gap: 1.5rem; flex-wrap: wrap; margin-top: 0.75rem;">
           <div style="display: flex; align-items: center; gap: 0.5rem; color: #b6b1a9; font-size: 0.9rem;">
-            <span>📋</span>
+            {{ icon('clipboard', 16) }}
             <span>{{ a.tipo }}</span>
           </div>
           
           <div style="display: flex; align-items: center; gap: 0.5rem; color: #b6b1a9; font-size: 0.9rem;">
-            <span>👤</span>
+            {{ icon('user', 16) }}
             <span>Creato da: {{ a.created_by }}</span>
           </div>
         </div>
@@ -85,27 +85,27 @@
         <form method="POST" action="{{ url_for('appuntamenti.cambia_stato_admin', id=a.id, nuovo_stato='confermato') }}" style="display: inline;">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
           <button type="submit" class="btn btn-primary btn-small" style="font-size: 0.85rem;">
-            ✅ Conferma
+            {{ icon('check', 16) }} Conferma
           </button>
         </form>
         {% elif a.stato == 'confermato' %}
         <form method="POST" action="{{ url_for('appuntamenti.cambia_stato_admin', id=a.id, nuovo_stato='completato') }}" style="display: inline;">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
           <button type="submit" class="btn btn-primary btn-small" style="font-size: 0.85rem;">
-            ✔️ Completa
+            {{ icon('check', 16) }} Completa
           </button>
         </form>
         {% endif %}
         
         <a href="{{ url_for('patients.dettaglio_paziente', patient_id=a.patient.id) }}" class="btn btn-white btn-small" style="font-size: 0.85rem;">
-          👁️ Paziente
+          {{ icon('eye', 16) }} Paziente
         </a>
         
         {% if a.stato not in ['completato', 'annullato'] %}
         <form method="POST" action="{{ url_for('appuntamenti.cambia_stato_admin', id=a.id, nuovo_stato='annullato') }}" style="display: inline;">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
           <button type="submit" class="btn btn-secondary btn-small" style="font-size: 0.85rem;" onclick="return confirm('Annullare appuntamento?')">
-            ❌ Annulla
+            {{ icon('x-circle', 16) }} Annulla
           </button>
         </form>
         {% endif %}
@@ -113,7 +113,7 @@
         <form method="POST" action="{{ url_for('appuntamenti.elimina_admin', id=a.id) }}" style="display: inline;">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
           <button type="submit" class="btn btn-danger btn-small" style="font-size: 0.85rem;" onclick="return confirm('Eliminare definitivamente?')">
-            🗑️ Elimina
+            {{ icon('trash', 16) }} Elimina
           </button>
         </form>
       </div>
@@ -126,52 +126,12 @@
 {% else %}
 <!-- EMPTY STATE -->
 <div class="empty-state" style="text-align: center; padding: 4rem 2rem; background: rgba(13, 51, 28, 0.2); border: 2px dashed rgba(182, 177, 169, 0.3); border-radius: 12px;">
-  <div style="font-size: 5rem; margin-bottom: 1rem;">📅</div>
+  <div class="adm-empty-icon">{{ icon('calendar', 48) }}</div>
   <h3 style="color: #ff751f; margin-bottom: 2rem;">Nessun appuntamento programmato</h3>
   <a href="{{ url_for('appuntamenti.nuovo_admin') }}" class="btn btn-primary" style="font-size: 1.1rem; padding: 1rem 2rem;">
-    ➕ Crea Primo Appuntamento
+    {{ icon('plus', 16) }} Crea primo appuntamento
   </a>
 </div>
 {% endif %}
-
-<style>
-.appointment-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-}
-
-.stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-}
-
-@media (max-width: 768px) {
-  .appointment-card > div {
-    grid-template-columns: 1fr !important;
-    gap: 1rem !important;
-    text-align: center;
-  }
-  
-  .appointment-card > div > div:last-child {
-    justify-content: center;
-  }
-  
-  .stats-overview {
-    grid-template-columns: 1fr !important;
-  }
-}
-
-@media (max-width: 480px) {
-  .toolbar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .toolbar > div {
-    margin-left: 0 !important;
-    margin-top: 1rem;
-  }
-}
-</style>
 
 {% endblock %}

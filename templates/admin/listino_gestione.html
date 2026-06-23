@@ -2,16 +2,16 @@
 {% block title %}Gestione Listino Prezzi{% endblock %}
 {% block content %}
 
-<h2 class="page-title">💰 GESTIONE LISTINO PREZZI</h2>
+<h2 class="page-title">{{ icon('wallet', 14) }} GESTIONE LISTINO PREZZI</h2>
 
 <div class="toolbar">
-  <a href="{{ url_for('listino.nuovo_listino') }}" class="btn btn-primary">➕ Nuovo Prodotto</a>
-  <a href="{{ url_for('listino.lista_listino_public') }}" target="_blank" class="btn btn-white">👁️ Visualizza Come Pubblico</a>
+  <a href="{{ url_for('listino.nuovo_listino') }}" class="btn btn-primary">{{ icon('plus', 16) }} Nuovo prodotto</a>
+  <a href="{{ url_for('listino.lista_listino_public') }}" target="_blank" class="btn btn-white">{{ icon('eye', 16) }} Visualizza Come Pubblico</a>
 </div>
 
 <!-- PIANO NUTRIZIONALE -->
 <div class="section">
-  <h3>🥗 PIANO NUTRIZIONALE</h3>
+  <h3>{{ icon('diet', 18) }} Piano nutrizionale</h3>
   {% if nutrizione %}
   <table class="table">
     <thead>
@@ -40,10 +40,10 @@
         </td>
         <td>
           <div class="action-buttons">
-            <a href="{{ url_for('listino.modifica_listino', listino_id=p.id) }}" class="btn btn-primary btn-small">✏️ Modifica</a>
+            <a href="{{ url_for('listino.modifica_listino', listino_id=p.id) }}" class="btn btn-primary btn-small">{{ icon('edit', 16) }} Modifica</a>
             <form method="POST" action="{{ url_for('listino.elimina_listino', listino_id=p.id) }}" style="display:inline;">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-              <button type="submit" class="btn btn-danger btn-small" onclick="return confirm('Eliminare questo prodotto?')">🗑️ Elimina</button>
+              <button type="submit" class="btn btn-danger btn-small" onclick="return confirm('Eliminare questo prodotto?')">{{ icon('trash', 16) }} Elimina</button>
             </form>
           </div>
         </td>
@@ -58,7 +58,7 @@
 
 <!-- PIANO DI ALLENAMENTO -->
 <div class="section">
-  <h3>🏋️ PIANO DI ALLENAMENTO</h3>
+  <h3>{{ icon('dumbbell', 18) }} Piano di allenamento</h3>
   {% if allenamento %}
   <table class="table">
     <thead>
@@ -87,10 +87,10 @@
         </td>
         <td>
           <div class="action-buttons">
-            <a href="{{ url_for('listino.modifica_listino', listino_id=p.id) }}" class="btn btn-primary btn-small">✏️ Modifica</a>
+            <a href="{{ url_for('listino.modifica_listino', listino_id=p.id) }}" class="btn btn-primary btn-small">{{ icon('edit', 16) }} Modifica</a>
             <form method="POST" action="{{ url_for('listino.elimina_listino', listino_id=p.id) }}" style="display:inline;">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-              <button type="submit" class="btn btn-danger btn-small" onclick="return confirm('Eliminare questo prodotto?')">🗑️ Elimina</button>
+              <button type="submit" class="btn btn-danger btn-small" onclick="return confirm('Eliminare questo prodotto?')">{{ icon('trash', 16) }} Elimina</button>
             </form>
           </div>
         </td>
@@ -105,7 +105,7 @@
 
 <!-- PIANO COMPLETO -->
 <div class="section">
-  <h3>🌟 PIANO COMPLETO</h3>
+  <h3>{{ icon('star', 18) }} Piano completo</h3>
   {% if completo %}
   <table class="table">
     <thead>
@@ -134,10 +134,10 @@
         </td>
         <td>
           <div class="action-buttons">
-            <a href="{{ url_for('listino.modifica_listino', listino_id=p.id) }}" class="btn btn-primary btn-small">✏️ Modifica</a>
+            <a href="{{ url_for('listino.modifica_listino', listino_id=p.id) }}" class="btn btn-primary btn-small">{{ icon('edit', 16) }} Modifica</a>
             <form method="POST" action="{{ url_for('listino.elimina_listino', listino_id=p.id) }}" style="display:inline;">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-              <button type="submit" class="btn btn-danger btn-small" onclick="return confirm('Eliminare questo prodotto?')">🗑️ Elimina</button>
+              <button type="submit" class="btn btn-danger btn-small" onclick="return confirm('Eliminare questo prodotto?')">{{ icon('trash', 16) }} Elimina</button>
             </form>
           </div>
         </td>
@@ -152,7 +152,7 @@
 
 <!-- ALLENAMENTO 1 TO 1 -->
 <div class="section">
-  <h3>💪 ALLENAMENTO 1 TO 1</h3>
+  <h3>{{ icon('dumbbell', 18) }} Allenamento 1-to-1</h3>
   {% if uno_a_uno %}
   <table class="table">
     <thead>
@@ -179,10 +179,10 @@
         </td>
         <td>
           <div class="action-buttons">
-            <a href="{{ url_for('listino.modifica_listino', listino_id=p.id) }}" class="btn btn-primary btn-small">✏️ Modifica</a>
+            <a href="{{ url_for('listino.modifica_listino', listino_id=p.id) }}" class="btn btn-primary btn-small">{{ icon('edit', 16) }} Modifica</a>
             <form method="POST" action="{{ url_for('listino.elimina_listino', listino_id=p.id) }}" style="display:inline;">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-              <button type="submit" class="btn btn-danger btn-small" onclick="return confirm('Eliminare questo prodotto?')">🗑️ Elimina</button>
+              <button type="submit" class="btn btn-danger btn-small" onclick="return confirm('Eliminare questo prodotto?')">{{ icon('trash', 16) }} Elimina</button>
             </form>
           </div>
         </td>

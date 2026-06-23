@@ -2,60 +2,39 @@
 {% block title %}Dashboard Economia{% endblock %}
 {% block content %}
 
-<!-- HEADER PRINCIPALE -->
-<div class="economia-header" style="background: linear-gradient(135deg, rgba(255, 117, 31, 0.1) 0%, rgba(13, 51, 28, 0.3) 100%); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; border: 1px solid rgba(255, 117, 31, 0.2);">
-  <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
-    <div>
-      <h1 style="color: #ff751f; margin: 0; font-size: 2.5rem; font-weight: 700;">💰 Dashboard Economia</h1>
-      <p style="color: #b6b1a9; margin: 0.5rem 0 0 0; font-size: 1.1rem;">Gestisci vendite, entrate e listino prezzi</p>
-            <div style="color: #b6b1a9; margin: 0.5rem 0 0 0; font-size: 1rem;">
-              <span>{{ "%.2f"|format(totale_incassato) }}€</span>
-            </div>
-    </div>
-    <div style="text-align: right;">
-      <div style="color: #4CAF50; font-size: 1.1rem; font-weight: 700;">{{ "%.0f"|format(totale_incassato) }}€</div>
-      <div style="color: #4CAF50; font-size: 0.9rem; font-weight: 600;">Totale Incassato</div>
-    </div>
-  </div>
-</div>
-    <!-- QUICK STATS LISTINO -->
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
+<!-- QUICK STATS LISTINO -->
+  <div class="quick-stats">
     <div style="background: rgba(13, 51, 28, 0.6); border: 1px solid rgba(76, 175, 80, 0.3); border-radius: 8px; padding: 1rem; text-align: center;">
-      <div style="color: #4CAF50; font-size: 1.2rem; font-weight: 600;">🥗</div>
+      <div class="adm-icon--lg" style="font-weight:600">{{ icon('diet', 22) }}</div>
       <div style="color: #4CAF50; font-size: 1.1rem; font-weight: 600; margin: 0.25rem 0;">Nutrizione</div>
       <div style="color: #b6b1a9; font-size: 0.8rem;">Piani alimentari</div>
     </div>
     
     <div style="background: rgba(13, 51, 28, 0.6); border: 1px solid rgba(33, 150, 243, 0.3); border-radius: 8px; padding: 1rem; text-align: center;">
-      <div style="color: #2196F3; font-size: 1.2rem; font-weight: 600;">🏋️</div>
+      <div class="adm-icon--lg" style="font-weight:600">{{ icon('dumbbell', 22) }}</div>
       <div style="color: #2196F3; font-size: 1.1rem; font-weight: 600; margin: 0.25rem 0;">Allenamento</div>
       <div style="color: #b6b1a9; font-size: 0.8rem;">Piani fitness</div>
     </div>
     
     <div style="background: rgba(13, 51, 28, 0.6); border: 1px solid rgba(255, 193, 7, 0.3); border-radius: 8px; padding: 1rem; text-align: center;">
-      <div style="color: #FFC107; font-size: 1.2rem; font-weight: 600;">🎯</div>
+      <div class="adm-icon--lg" style="font-weight:600">{{ icon('target', 22) }}</div>
       <div style="color: #FFC107; font-size: 1.1rem; font-weight: 600; margin: 0.25rem 0;">Completo</div>
       <div style="color: #b6b1a9; font-size: 0.8rem;">Pacchetti totali</div>
     </div>
     
     <div style="background: rgba(13, 51, 28, 0.6); border: 1px solid rgba(156, 39, 176, 0.3); border-radius: 8px; padding: 1rem; text-align: center;">
-      <div style="color: #9C27B0; font-size: 1.2rem; font-weight: 600;">👤</div>
+      <div class="adm-icon--lg" style="font-weight:600">{{ icon('user', 22) }}</div>
       <div style="color: #9C27B0; font-size: 1.1rem; font-weight: 600; margin: 0.25rem 0;">1-to-1</div>
       <div style="color: #b6b1a9; font-size: 0.8rem;">Sessioni private</div>
     </div>
   </div>
-</div>
-
-<div> 
-  <p>  </p>
-</div>
 
 <!-- GRAFICO ENTRATE -->
 {% if date_labels and (importi_nutrizione|sum + importi_allenamento|sum + importi_completo|sum + importi_1to1|sum > 0) %}
 <div class="revenue-chart-section" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem;">
   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
     <h3 style="color: #ff751f; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
-      📊 Entrate Ultimi {{ periodo }} Giorni
+      {{ icon('chart', 16) }} Entrate ultimi {{ periodo }} Giorni
     </h3>
     
     <!-- FILTRI PERIODO GRAFICO -->
@@ -90,39 +69,39 @@
 <div class="toolbar" style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; align-items: center;">
   <form method="get" style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; flex: 1;">
     <div style="display: flex; align-items: center; gap: 0.5rem;">
-      <label for="cliente" style="color: #b6b1a9; font-weight: 600;">👤</label>
+      <label for="cliente" style="color: #b6b1a9; font-weight: 600;">{{ icon('user', 16) }}</label>
       <input type="text" name="cliente" id="cliente" placeholder="Cerca paziente..." class="input-text" value="{{ request.args.get('cliente', '') }}" style="width: 200px;">
     </div>
     
     <div style="display: flex; align-items: center; gap: 0.5rem;">
-      <label for="stato" style="color: #b6b1a9; font-weight: 600;">📊</label>
+      <label for="stato" style="color: #b6b1a9; font-weight: 600;">{{ icon('chart', 16) }}</label>
       <select name="stato" id="stato" class="input-select" style="width: 150px;">
             <option value="">Tutti gli stati</option>
-        <option value="pagato" {% if request.args.get('stato') == 'pagato' %}selected{% endif %}>✅ Pagato</option>
-        <option value="in_attesa" {% if request.args.get('stato') == 'in_attesa' %}selected{% endif %}>⏳ In attesa</option>
-        <option value="rimborsato" {% if request.args.get('stato') == 'rimborsato' %}selected{% endif %}>↩️ Rimborsato</option>
+        <option value="pagato" {% if request.args.get('stato') == 'pagato' %}selected{% endif %}>Pagato</option>
+        <option value="in_attesa" {% if request.args.get('stato') == 'in_attesa' %}selected{% endif %}>In attesa</option>
+        <option value="rimborsato" {% if request.args.get('stato') == 'rimborsato' %}selected{% endif %}>Rimborsato</option>
         </select>
     </div>
     
     <button type="submit" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem;">
-      <span>🔍</span>
+      <span>{{ icon('search', 16) }}</span>
       <span>Filtra</span>
     </button>
     
     {% if request.args.get('cliente') or request.args.get('stato') %}
     <a href="{{ url_for('vendite.dashboard_economia') }}" class="btn btn-secondary" style="font-size: 0.9rem;">
-      ✖️ Rimuovi Filtri
+      {{ icon('x', 16) }} Rimuovi filtri
     </a>
     {% endif %}
     </form>
 
   <div style="display: flex; gap: 0.75rem; align-items: center;">
     <a href="{{ url_for('listino.lista_listino_admin') }}" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem;">
-      <span>📋</span>
+      {{ icon('clipboard', 16) }}
       <span>Gestisci Listino</span>
     </a>
     <a href="{{ url_for('vendite.nuova_vendita') }}" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem;">
-      <span>➕</span>
+      {{ icon('plus', 16) }}
       <span>Nuova Vendita</span>
     </a>
   </div>
@@ -158,24 +137,24 @@
         
         <div style="display: flex; gap: 1.5rem; flex-wrap: wrap; margin-top: 0.75rem;">
           <div style="display: flex; align-items: center; gap: 0.5rem; color: #b6b1a9; font-size: 0.9rem;">
-            <span>📦</span>
+            {{ icon('package', 16) }}
             <span>{{ v.listino.nome_prodotto }}</span>
           </div>
           
           <div style="display: flex; align-items: center; gap: 0.5rem; color: #b6b1a9; font-size: 0.9rem;">
-            <span>💳</span>
+            {{ icon('card', 16) }}
             <span>{{ v.metodo_pagamento|capitalize }}</span>
           </div>
           
           <div style="display: flex; align-items: center; gap: 0.5rem; color: #9C27B0; font-size: 1rem; font-weight: 600;">
-            <span>💰</span>
+            {{ icon('wallet', 16) }}
             <span>{{ "%.2f"|format(v.importo_finale) }}€</span>
           </div>
         </div>
         
         {% if v.note %}
         <div style="margin-top: 0.5rem; padding: 0.5rem; background: rgba(13, 51, 28, 0.6); border-radius: 6px;">
-          <div style="color: #b6b1a9; font-size: 0.85rem;">💬 {{ v.note }}</div>
+          <div style="color: #b6b1a9; font-size: 0.85rem;">{{ icon('message', 14) }} {{ v.note }}</div>
         </div>
         {% endif %}
       </div>
@@ -183,18 +162,18 @@
       <!-- AZIONI -->
       <div style="display: flex; gap: 0.5rem; flex-direction: column;">
         <a href="{{ url_for('patients.dettaglio_paziente', patient_id=v.patient.id) }}" class="btn btn-white btn-small" style="font-size: 0.85rem;">
-          👁️ Paziente
+          {{ icon('eye', 16) }} Paziente
         </a>
         <a href="{{ url_for('vendite.registro_economico_paziente', patient_id=v.patient.id) }}" class="btn btn-primary btn-small" style="font-size: 0.85rem;">
-          💰 Registro Economico
+          {{ icon('wallet', 16) }} Registro economico
         </a>
         <a href="{{ url_for('vendite.modifica_vendita', id=v.id) }}" class="btn btn-secondary btn-small" style="font-size: 0.85rem;">
-          ✏️ Modifica
+          {{ icon('edit', 16) }} Modifica
         </a>
         <form method="POST" action="{{ url_for('vendite.elimina_vendita', id=v.id) }}" style="display: inline;">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
           <button type="submit" class="btn btn-danger btn-small" style="width: 100%; font-size: 0.85rem;" onclick="return confirm('Eliminare vendita a {{ v.patient.nome }} {{ v.patient.cognome }}?')">
-            🗑️ Elimina
+            {{ icon('trash', 16) }} Elimina
           </button>
         </form>
       </div>
@@ -204,25 +183,21 @@
   {% endfor %}
 </div>
 
-<div> 
-<p>  </p>
-</div>
-
 <!-- SEZIONE LISTINO PREZZI -->
 <div class="listino-section" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem;">
   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
     <div>
       <h3 style="color: #ff751f; margin: 0; font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
-        💰 Listino Prezzi
+        {{ icon('wallet', 16) }} Listino prezzi
       </h3>
       <p style="color: #b6b1a9; margin: 0.5rem 0 0 0; font-size: 0.9rem;">Gestisci i prezzi dei tuoi servizi e prodotti</p>
     </div>
     <div style="display: flex; gap: 0.5rem;">
       <a href="{{ url_for('listino.lista_listino_public') }}" target="_blank" class="btn btn-secondary" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem;">
-        👁️ Vedi Listino Pubblico
+        {{ icon('eye', 16) }} Vedi listino pubblico
       </a>
       <a href="{{ url_for('listino.nuovo_listino') }}" class="btn btn-white" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem;">
-        ➕ Nuovo Prodotto
+        {{ icon('plus', 16) }} Nuovo prodotto
       </a>
     </div>
   </div>
@@ -230,25 +205,25 @@
   <!-- QUICK STATS LISTINO -->
   <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
     <div style="background: rgba(13, 51, 28, 0.6); border: 1px solid rgba(76, 175, 80, 0.3); border-radius: 8px; padding: 1rem; text-align: center;">
-      <div style="color: #4CAF50; font-size: 1.2rem; font-weight: 600;">🥗</div>
+      <div class="adm-icon--lg" style="font-weight:600">{{ icon('diet', 22) }}</div>
       <div style="color: #4CAF50; font-size: 1.1rem; font-weight: 600; margin: 0.25rem 0;">Nutrizione</div>
       <div style="color: #b6b1a9; font-size: 0.8rem;">Piani alimentari</div>
     </div>
     
     <div style="background: rgba(13, 51, 28, 0.6); border: 1px solid rgba(33, 150, 243, 0.3); border-radius: 8px; padding: 1rem; text-align: center;">
-      <div style="color: #2196F3; font-size: 1.2rem; font-weight: 600;">🏋️</div>
+      <div class="adm-icon--lg" style="font-weight:600">{{ icon('dumbbell', 22) }}</div>
       <div style="color: #2196F3; font-size: 1.1rem; font-weight: 600; margin: 0.25rem 0;">Allenamento</div>
       <div style="color: #b6b1a9; font-size: 0.8rem;">Piani fitness</div>
     </div>
     
     <div style="background: rgba(13, 51, 28, 0.6); border: 1px solid rgba(255, 193, 7, 0.3); border-radius: 8px; padding: 1rem; text-align: center;">
-      <div style="color: #FFC107; font-size: 1.2rem; font-weight: 600;">🎯</div>
+      <div class="adm-icon--lg" style="font-weight:600">{{ icon('target', 22) }}</div>
       <div style="color: #FFC107; font-size: 1.1rem; font-weight: 600; margin: 0.25rem 0;">Completo</div>
       <div style="color: #b6b1a9; font-size: 0.8rem;">Pacchetti totali</div>
     </div>
     
     <div style="background: rgba(13, 51, 28, 0.6); border: 1px solid rgba(156, 39, 176, 0.3); border-radius: 8px; padding: 1rem; text-align: center;">
-      <div style="color: #9C27B0; font-size: 1.2rem; font-weight: 600;">👤</div>
+      <div class="adm-icon--lg" style="font-weight:600">{{ icon('user', 22) }}</div>
       <div style="color: #9C27B0; font-size: 1.1rem; font-weight: 600; margin: 0.25rem 0;">1-to-1</div>
       <div style="color: #b6b1a9; font-size: 0.8rem;">Sessioni private</div>
     </div>
@@ -258,7 +233,7 @@
 {% else %}
 <!-- EMPTY STATE -->
 <div class="empty-state" style="text-align: center; padding: 4rem 2rem; background: rgba(13, 51, 28, 0.2); border: 2px dashed rgba(182, 177, 169, 0.3); border-radius: 12px;">
-  <div style="font-size: 5rem; margin-bottom: 1rem;">💰</div>
+  <div class="adm-empty-icon">{{ icon('wallet', 48) }}</div>
   <h3 style="color: #ff751f; margin-bottom: 2rem;">
     {% if request.args.get('cliente') or request.args.get('stato') %}
     Nessuna vendita trovata
@@ -268,71 +243,17 @@
   </h3>
   {% if request.args.get('cliente') or request.args.get('stato') %}
   <a href="{{ url_for('vendite.dashboard_economia') }}" class="btn btn-secondary" style="font-size: 1.1rem; padding: 1rem 2rem; margin-right: 1rem;">
-    ✖️ Rimuovi Filtri
+    {{ icon('x', 16) }} Rimuovi filtri
   </a>
   {% endif %}
   <a href="{{ url_for('vendite.nuova_vendita') }}" class="btn btn-primary" style="font-size: 1.1rem; padding: 1rem 2rem;">
-    ➕ Nuova Vendita
+    {{ icon('plus', 16) }} Nuova vendita
   </a>
 </div>
 {% endif %}
 
-<style>
-.sale-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-}
-
-.stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-}
-
-@media (max-width: 768px) {
-  .sale-card > div {
-    grid-template-columns: 1fr !important;
-    gap: 1rem !important;
-    text-align: center;
-  }
-  
-  .sale-card > div > div:last-child {
-    flex-direction: row;
-    justify-content: center;
-  }
-  
-  .stats-overview {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
-  
-  .toolbar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .toolbar form {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .toolbar form > div {
-    width: 100% !important;
-  }
-  
-  .toolbar form input,
-  .toolbar form select {
-    width: 100% !important;
-  }
-}
-
-@media (max-width: 480px) {
-  .stats-overview {
-    grid-template-columns: 1fr !important;
-  }
-}
-</style>
-
 <!-- CHART.JS -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/chart.umd.min.js') }}"></script>
 
 {% if date_labels and (importi_nutrizione|sum + importi_allenamento|sum + importi_completo|sum + importi_1to1|sum > 0) %}
 <script>
@@ -351,7 +272,7 @@ document.addEventListener('DOMContentLoaded', function() {
         data: {
             labels: dates,
             datasets: [{
-                label: '🍽️ Dieta',
+                label: 'Dieta',
                 data: revenues_nutrizione,
                 borderColor: '#4CAF50',
                 backgroundColor: 'rgba(76, 175, 80, 0.15)',
@@ -365,7 +286,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 pointBorderWidth: 2,
                 pointHoverBorderWidth: 3
             }, {
-                label: '🏋️ Allenamento',
+                label: 'Allenamento',
                 data: revenues_allenamento,
                 borderColor: '#2196F3',
                 backgroundColor: 'rgba(33, 150, 243, 0.15)',
@@ -379,7 +300,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 pointBorderWidth: 2,
                 pointHoverBorderWidth: 3
             }, {
-                label: '🎯 Completo',
+                label: 'Completo',
                 data: revenues_completo,
                 borderColor: '#FFC107',
                 backgroundColor: 'rgba(255, 193, 7, 0.15)',
@@ -393,7 +314,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 pointBorderWidth: 2,
                 pointHoverBorderWidth: 3
             }, {
-                label: '👤 Allenamento 1-to-1',
+                label: 'Allenamento 1-to-1',
                 data: revenues_1to1,
                 borderColor: '#9C27B0',
                 backgroundColor: 'rgba(156, 39, 176, 0.15)',
@@ -474,35 +395,5 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 {% endif %}
-
-<style>
-/* CSS per le classi dinamiche */
-.sale-card-pagato {
-    border: 1px solid rgba(76, 175, 80, 0.3);
-}
-
-.sale-card-in_attesa {
-    border: 1px solid rgba(255, 193, 7, 0.3);
-}
-
-.sale-card-annullato {
-    border: 1px solid rgba(244, 67, 54, 0.3);
-}
-
-.status-pagato {
-    background: rgba(76, 175, 80, 0.2);
-    color: #4CAF50;
-}
-
-.status-in_attesa {
-    background: rgba(255, 193, 7, 0.2);
-    color: #FFC107;
-}
-
-.status-annullato {
-    background: rgba(244, 67, 54, 0.2);
-    color: #F44336;
-}
-</style>
 
 {% endblock %}

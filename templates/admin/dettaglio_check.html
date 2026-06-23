@@ -8,9 +8,9 @@
     <div>
       <h1 style="color: #ff751f; margin: 0; font-size: 2.2rem; font-weight: 700;">
         {% if progresso.tipo_check == 'nutrizionista' %}
-          🏥 Check Nutrizionista
+          {{ icon('medical', 16) }} Check nutrizionista
         {% else %}
-          👤 Check Paziente
+          {{ icon('user', 14) }} Check Paziente
         {% endif %}
       </h1>
       <p style="color: #b6b1a9; margin: 0.5rem 0 0 0; font-size: 1.1rem;">
@@ -27,11 +27,11 @@
 <!-- NAVIGATION -->
 <div class="navigation" style="margin-bottom: 2rem;">
   <a href="{{ url_for('progressi.progressi_paziente_admin', patient_id=paziente.id) }}" class="btn btn-secondary">
-    ← Torna ai Progressi
+    {{ icon('arrow-left', 14) }} Torna ai Progressi
   </a>
   {% if progresso.tipo_check == 'nutrizionista' %}
   <a href="{{ url_for('progressi.check_nutrizionista_completo', patient_id=paziente.id) }}" class="btn btn-primary" style="margin-left: 0.5rem;">
-    ✏️ Modifica Check
+    {{ icon('edit', 16) }} Modifica Check
   </a>
   {% endif %}
 </div>
@@ -41,12 +41,12 @@
   {% if progresso.tipo_check == 'paziente' %}
     <!-- CHECK PAZIENTE -->
     <div class="check-section">
-      <h2 class="section-title">👤 Check Paziente</h2>
+      <h2 class="section-title">{{ icon('user', 14) }} Check Paziente</h2>
       
       <div class="data-grid">
         {% if progresso.peso_settimanale %}
         <div class="data-card">
-          <div class="data-icon">⚖️</div>
+          <div class="data-icon">{{ icon('scale', 22) }}</div>
           <div class="data-content">
             <div class="data-label">Peso</div>
             <div class="data-value">{{ progresso.peso_settimanale }} kg</div>
@@ -56,7 +56,7 @@
         
         {% if progresso.aderenza %}
         <div class="data-card">
-          <div class="data-icon">📊</div>
+          <div class="data-icon">{{ icon('chart', 22) }}</div>
           <div class="data-content">
             <div class="data-label">Aderenza</div>
             <div class="data-value">{{ progresso.aderenza }}/10</div>
@@ -66,7 +66,7 @@
         
         {% if progresso.frequenza_allenamenti %}
         <div class="data-card">
-          <div class="data-icon">🏋️</div>
+          <div class="data-icon">{{ icon('dumbbell', 22) }}</div>
           <div class="data-content">
             <div class="data-label">Frequenza Allenamenti</div>
             <div class="data-value">{{ progresso.frequenza_allenamenti }}</div>
@@ -76,12 +76,12 @@
         
         {% if progresso.foto_path %}
         <div class="data-card">
-          <div class="data-icon">📸</div>
+          <div class="data-icon">{{ icon('camera', 22) }}</div>
           <div class="data-content">
             <div class="data-label">Foto</div>
             <div class="data-value">
               <a href="{{ url_for('static', filename=progresso.foto_path) }}" target="_blank" class="btn btn-primary btn-small">
-                📸 Visualizza Foto
+                {{ icon('camera', 16) }} Visualizza foto
               </a>
             </div>
           </div>
@@ -90,10 +90,10 @@
         
         {% if progresso.check_richiesta %}
         <div class="data-card">
-          <div class="data-icon">🔔</div>
+          <div class="data-icon">{{ icon('bell', 22) }}</div>
           <div class="data-content">
             <div class="data-label">Check Richiesto</div>
-            <div class="data-value">✅ Sì</div>
+            <div class="data-value">Sì</div>
           </div>
         </div>
         {% endif %}
@@ -105,12 +105,12 @@
     
     <!-- DATI BASE NUTRIZIONISTA -->
     <div class="check-section">
-      <h2 class="section-title">📊 Dati Base</h2>
+      <h2 class="section-title">{{ icon('chart', 18) }} Dati base</h2>
       
       <div class="data-grid">
         {% if progresso.peso_settimanale %}
         <div class="data-card">
-          <div class="data-icon">⚖️</div>
+          <div class="data-icon">{{ icon('scale', 22) }}</div>
           <div class="data-content">
             <div class="data-label">Peso</div>
             <div class="data-value">{{ progresso.peso_settimanale }} kg</div>
@@ -120,7 +120,7 @@
         
         {% if progresso.aderenza %}
         <div class="data-card">
-          <div class="data-icon">📊</div>
+          <div class="data-icon">{{ icon('chart', 22) }}</div>
           <div class="data-content">
             <div class="data-label">Aderenza</div>
             <div class="data-value">{{ progresso.aderenza }}/10</div>
@@ -130,7 +130,7 @@
         
         {% if progresso.frequenza_allenamenti %}
         <div class="data-card">
-          <div class="data-icon">🏋️</div>
+          <div class="data-icon">{{ icon('dumbbell', 22) }}</div>
           <div class="data-content">
             <div class="data-label">Frequenza Allenamenti</div>
             <div class="data-value">{{ progresso.frequenza_allenamenti }}</div>
@@ -140,12 +140,12 @@
         
         {% if progresso.foto_path %}
         <div class="data-card">
-          <div class="data-icon">📸</div>
+          <div class="data-icon">{{ icon('camera', 22) }}</div>
           <div class="data-content">
             <div class="data-label">Foto</div>
             <div class="data-value">
               <a href="{{ url_for('static', filename=progresso.foto_path) }}" target="_blank" class="btn btn-primary btn-small">
-                📸 Visualizza Foto
+                {{ icon('camera', 16) }} Visualizza foto
               </a>
             </div>
           </div>
@@ -154,10 +154,10 @@
         
         {% if progresso.check_richiesta %}
         <div class="data-card">
-          <div class="data-icon">🔔</div>
+          <div class="data-icon">{{ icon('bell', 22) }}</div>
           <div class="data-content">
             <div class="data-label">Check Richiesto</div>
-            <div class="data-value">✅ Sì</div>
+            <div class="data-value">Sì</div>
           </div>
         </div>
         {% endif %}
@@ -166,12 +166,12 @@
     
     {% if misure_antropometriche %}
     <div class="check-section">
-      <h2 class="section-title">📏 Misure Antropometriche</h2>
+      <h2 class="section-title">Misure antropometriche</h2>
       
       <div class="misure-grid">
         <!-- Circonferenze -->
         <div class="misure-subsection">
-          <h3 class="subsection-title">📐 Circonferenze (cm)</h3>
+          <h3 class="subsection-title">{{ icon('ruler', 18) }} Circonferenze (cm)</h3>
           <div class="data-grid">
             {% if misure_antropometriche.circonferenza_braccio %}
             <div class="data-card">
@@ -220,7 +220,7 @@
         
         <!-- Pliche Cutanee -->
         <div class="misure-subsection">
-          <h3 class="subsection-title">📏 Pliche Cutanee (mm)</h3>
+          <h3 class="subsection-title">{{ icon('ruler', 18) }} Pliche cutanee (mm)</h3>
           <div class="data-grid">
             {% if misure_antropometriche.plica_addominale %}
             <div class="data-card">
@@ -258,7 +258,7 @@
       
       {% if misure_antropometriche.note %}
       <div class="notes-section">
-        <h3 class="subsection-title">💬 Note Misure</h3>
+        <h3 class="subsection-title">{{ icon('message', 14) }} Note Misure</h3>
         <p class="note-text">{{ misure_antropometriche.note }}</p>
       </div>
       {% endif %}
@@ -267,12 +267,12 @@
     
     {% if composizione_corporea %}
     <div class="check-section">
-      <h2 class="section-title">🧮 Composizione Corporea</h2>
+      <h2 class="section-title">Composizione corporea</h2>
       
       <div class="data-grid">
         {% if composizione_corporea.grasso_corporeo %}
         <div class="data-card">
-          <div class="data-icon">🩸</div>
+          <div class="data-icon">{{ icon('droplet', 22) }}</div>
           <div class="data-content">
             <div class="data-label">Grasso Corporeo</div>
             <div class="data-value">{{ composizione_corporea.grasso_corporeo }}%</div>
@@ -282,7 +282,7 @@
         
         {% if composizione_corporea.massa_muscolare %}
         <div class="data-card">
-          <div class="data-icon">💪</div>
+          <div class="data-icon">{{ icon('dumbbell', 22) }}</div>
           <div class="data-content">
             <div class="data-label">Massa Muscolare</div>
             <div class="data-value">{{ composizione_corporea.massa_muscolare }} kg</div>
@@ -292,7 +292,7 @@
         
         {% if composizione_corporea.grasso_viscerale %}
         <div class="data-card">
-          <div class="data-icon">🫀</div>
+          <div class="data-icon">{{ icon('heart-pulse', 22) }}</div>
           <div class="data-content">
             <div class="data-label">Grasso Viscerale</div>
             <div class="data-value">{{ composizione_corporea.grasso_viscerale }}</div>
@@ -302,7 +302,7 @@
         
         {% if composizione_corporea.tbw %}
         <div class="data-card">
-          <div class="data-icon">💧</div>
+          <div class="data-icon">{{ icon('droplet', 22) }}</div>
           <div class="data-content">
             <div class="data-label">TBW - Total Body Water</div>
             <div class="data-value">{{ composizione_corporea.tbw }}%</div>
@@ -312,7 +312,7 @@
         
         {% if composizione_corporea.tasso_metabolico_basale %}
         <div class="data-card">
-          <div class="data-icon">🔥</div>
+          <div class="data-icon">{{ icon('flame', 22) }}</div>
           <div class="data-content">
             <div class="data-label">Tasso Metabolico Basale</div>
             <div class="data-value">{{ composizione_corporea.tasso_metabolico_basale }} kcal/giorno</div>
@@ -332,7 +332,7 @@
         
         {% if composizione_corporea.punteggio_postura %}
         <div class="data-card">
-          <div class="data-icon">🧍</div>
+          <div class="data-icon">{{ icon('user', 22) }}</div>
           <div class="data-content">
             <div class="data-label">Punteggio Postura</div>
             <div class="data-value">{{ composizione_corporea.punteggio_postura }}/100</div>
@@ -342,7 +342,7 @@
         
         {% if composizione_corporea.massa_ossea %}
         <div class="data-card">
-          <div class="data-icon">🦴</div>
+          <div class="data-icon">{{ icon('bone', 22) }}</div>
           <div class="data-content">
             <div class="data-label">Massa Ossea</div>
             <div class="data-value">{{ composizione_corporea.massa_ossea }} kg</div>
@@ -352,7 +352,7 @@
         
         {% if composizione_corporea.bmi %}
         <div class="data-card">
-          <div class="data-icon">📊</div>
+          <div class="data-icon">{{ icon('chart', 22) }}</div>
           <div class="data-content">
             <div class="data-label">BMI</div>
             <div class="data-value">{{ composizione_corporea.bmi }} kg/m²</div>
@@ -363,7 +363,7 @@
       
       {% if composizione_corporea.note %}
       <div class="notes-section">
-        <h3 class="subsection-title">💬 Note Composizione</h3>
+        <h3 class="subsection-title">{{ icon('message', 14) }} Note Composizione</h3>
         <p class="note-text">{{ composizione_corporea.note }}</p>
       </div>
       {% endif %}
@@ -371,104 +371,5 @@
     {% endif %}
   {% endif %}
 </div>
-
-<style>
-.check-section {
-  background: rgba(13, 51, 28, 0.4);
-  border: 1px solid rgba(182, 177, 169, 0.2);
-  border-radius: 12px;
-  padding: 2rem;
-  margin-bottom: 2rem;
-}
-
-.section-title {
-  color: #ff751f;
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin-bottom: 1.5rem;
-  border-bottom: 2px solid rgba(255, 117, 31, 0.3);
-  padding-bottom: 0.5rem;
-}
-
-.subsection-title {
-  color: #b6b1a9;
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-  border-bottom: 1px solid rgba(182, 177, 169, 0.2);
-  padding-bottom: 0.25rem;
-}
-
-.data-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.data-card {
-  background: rgba(13, 51, 28, 0.6);
-  border: 1px solid rgba(182, 177, 169, 0.1);
-  border-radius: 8px;
-  padding: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.data-icon {
-  font-size: 1.5rem;
-  color: #ff751f;
-}
-
-.data-content {
-  flex: 1;
-}
-
-.data-label {
-  color: #b6b1a9;
-  font-size: 0.9rem;
-  font-weight: 500;
-  margin-bottom: 0.25rem;
-}
-
-.data-value {
-  color: #ffffff;
-  font-size: 1.1rem;
-  font-weight: 600;
-}
-
-.misure-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
-}
-
-.misure-subsection {
-  background: rgba(13, 51, 28, 0.3);
-  border-radius: 8px;
-  padding: 1.5rem;
-}
-
-.notes-section {
-  margin-top: 1.5rem;
-  padding: 1rem;
-  background: rgba(255, 117, 31, 0.1);
-  border-radius: 8px;
-  border-left: 4px solid #ff751f;
-}
-
-.note-text {
-  color: #b6b1a9;
-  font-size: 0.95rem;
-  line-height: 1.5;
-  margin: 0;
-}
-
-.btn-small {
-  font-size: 0.8rem;
-  padding: 0.4rem 0.8rem;
-}
-</style>
 
 {% endblock %}

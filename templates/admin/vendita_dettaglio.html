@@ -2,7 +2,7 @@
 {% block title %}Dettaglio Vendita{% endblock %}
 {% block content %}
 
-<h2 class="page-title">🔍 Dettaglio Vendita #{{ vendita.id }}</h2>
+<h2 class="page-title">{{ icon('eye', 16) }} Dettaglio Vendita #{{ vendita.id }}</h2>
 
 <div class="form-container">
   
@@ -12,7 +12,7 @@
     <div class="info-display">
       <strong>{{ vendita.patient.nome }} {{ vendita.patient.cognome }}</strong>
       <br>
-      <small style="color: #b6b1a9;">📞 {{ vendita.patient.telefono }}</small>
+      <small style="color: #b6b1a9;">{{ icon('phone', 14) }} {{ vendita.patient.telefono }}</small>
     </div>
   </div>
 
@@ -22,7 +22,7 @@
     <div class="info-display">
       <strong>{{ vendita.listino.nome_prodotto }}</strong>
       <br>
-      <small style="color: #b6b1a9;">📋 {{ vendita.listino.categoria|title }} - {{ "%.2f"|format(vendita.listino.prezzo) }}€</small>
+      <small style="color: #b6b1a9;">{{ icon('clipboard', 14) }} {{ vendita.listino.categoria|title }} - {{ "%.2f"|format(vendita.listino.prezzo) }}€</small>
     </div>
   </div>
 
@@ -48,10 +48,10 @@
       <label>Metodo di Pagamento</label>
       <div class="info-display">
         <strong>
-          {% if vendita.metodo_pagamento == 'contanti' %}💵 Contanti
-          {% elif vendita.metodo_pagamento == 'bonifico' %}🏦 Bonifico
-          {% elif vendita.metodo_pagamento == 'carta' %}💳 Carta
-          {% else %}❓ {{ vendita.metodo_pagamento|title }}
+          {% if vendita.metodo_pagamento == 'contanti' %}Contanti
+          {% elif vendita.metodo_pagamento == 'bonifico' %}Bonifico
+          {% elif vendita.metodo_pagamento == 'carta' %}Carta
+          {% else %}{{ vendita.metodo_pagamento|title }}
           {% endif %}
         </strong>
       </div>
@@ -66,9 +66,9 @@
           {% elif vendita.stato == 'rimborsato' %}#F44336
           {% else %}#b6b1a9
           {% endif %};">
-          {% if vendita.stato == 'pagato' %}✅ Pagato
-          {% elif vendita.stato == 'in_attesa' %}⏳ In Attesa
-          {% elif vendita.stato == 'rimborsato' %}🔄 Rimborsato
+          {% if vendita.stato == 'pagato' %}Pagato
+          {% elif vendita.stato == 'in_attesa' %}In attesa
+          {% elif vendita.stato == 'rimborsato' %}Rimborsato
           {% else %}{{ vendita.stato|title }}
           {% endif %}
         </strong>
@@ -123,39 +123,17 @@
 <!-- PULSANTI AZIONE -->
 <div style="display: flex; gap: 1rem; margin-top: 2rem; justify-content: center;">
   <a href="{{ url_for('vendite.modifica_vendita', id=vendita.id) }}" class="btn btn-primary">
-    ✏️ Modifica
+    {{ icon('edit', 16) }} Modifica
   </a>
   
   <a href="{{ url_for('vendite.registro_economico_paziente', patient_id=vendita.patient_id) }}" class="btn btn-white">
-    👤 Registro Paziente
+    {{ icon('user', 16) }} Registro paziente
   </a>
   
   <a href="{{ url_for('vendite.lista_vendite') }}" class="btn btn-secondary">
-    📋 Lista Vendite
+    {{ icon('list', 16) }} Lista vendite
   </a>
 </div>
-
-<style>
-.info-display {
-  background: rgba(182, 177, 169, 0.05);
-  padding: 0.75rem;
-  border-radius: 6px;
-  border: 1px solid rgba(182, 177, 169, 0.2);
-  margin-top: 0.5rem;
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-}
-
-@media (max-width: 768px) {
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-}
-</style>
 
 {% endblock %}
 

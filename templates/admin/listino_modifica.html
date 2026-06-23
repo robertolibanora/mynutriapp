@@ -2,7 +2,7 @@
 {% block title %}Modifica Prodotto{% endblock %}
 {% block content %}
 
-<h2 class="page-title">✏️ MODIFICA PRODOTTO</h2>
+<h2 class="page-title">Modifica prodotto</h2>
 
 <form method="POST" class="form-container">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
@@ -72,14 +72,14 @@
   </div>
   
   <div class="form-actions">
-    <button type="submit" class="btn btn-primary">💾 Salva Modifiche</button>
-    <a href="{{ url_for('listino.lista_listino_admin') }}" class="btn btn-secondary">↩️ Annulla</a>
+    <button type="submit" class="btn btn-primary">{{ icon('save', 16) }} Salva Modifiche</button>
+    <a href="{{ url_for('listino.lista_listino_admin') }}" class="btn btn-secondary">{{ icon('undo', 16) }} Annulla</a>
   </div>
 
 </form>
 
 <div class="card" style="margin-top: 2rem; background: rgba(255, 117, 31, 0.1);">
-  <p style="margin-bottom: 0.5rem;"><strong>📋 Dettagli:</strong></p>
+  <p style="margin-bottom: 0.5rem;"><strong>{{ icon('clipboard', 14) }} Dettagli:</strong></p>
   <p style="margin: 0; font-size: 0.9em;">
     <strong>Categoria:</strong> {{ prodotto.categoria }}<br>
     <strong>Durata:</strong> {{ prodotto.durata_mesi }} {% if prodotto.durata_mesi == 1 %}mese{% else %}mesi{% endif %}<br>

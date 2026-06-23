@@ -2,7 +2,7 @@
 {% block title %}Nuovo Prodotto{% endblock %}
 {% block content %}
 
-<h2 class="page-title">➕ NUOVO PRODOTTO</h2>
+<h2 class="page-title">{{ icon('plus', 16) }} NUOVO PRODOTTO</h2>
 
 <form method="POST" class="form-container">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
@@ -24,10 +24,10 @@
       <label for="categoria">Categoria *</label>
       <select id="categoria" name="categoria" class="input-select" required>
         <option value="">Seleziona categoria...</option>
-        <option value="nutrizione">🥗 Piano Nutrizionale</option>
-        <option value="allenamento">🏋️ Piano Allenamento</option>
-        <option value="completo">🌟 Piano Completo</option>
-        <option value="1to1">💪 Allenamento 1 to 1</option>
+        <option value="nutrizione">Piano nutrizionale</option>
+        <option value="allenamento">Piano allenamento</option>
+        <option value="completo">Piano completo</option>
+        <option value="1to1">Allenamento 1-to-1</option>
       </select>
     </div>
     
@@ -84,8 +84,8 @@
   </div>
   
   <div class="form-actions">
-    <button type="submit" class="btn btn-primary">💾 Crea Prodotto</button>
-    <a href="{{ url_for('listino.lista_listino_admin') }}" class="btn btn-secondary">↩️ Annulla</a>
+    <button type="submit" class="btn btn-primary">{{ icon('save', 16) }} Crea prodotto</button>
+    <a href="{{ url_for('listino.lista_listino_admin') }}" class="btn btn-secondary">{{ icon('undo', 16) }} Annulla</a>
   </div>
 
 </form>

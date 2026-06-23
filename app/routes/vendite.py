@@ -272,28 +272,26 @@ def registro_economico_paziente(patient_id):
                 if categoria in vendite_per_mese_categoria:
                     vendite_per_mese_categoria[categoria][mese_key] += safe_float(v.importo_finale)
     
-    # Crea array per il grafico (ultimi 12 mesi)
+    # Crea array per il grafico (ultimi 12 mesi, calendario)
     date_labels = []
     importi_nutrizione = []
     importi_allenamento = []
     importi_completo = []
     importi_1to1 = []
-    
-    for i in range(12):
-        data = oggi - timedelta(days=30*i)
-        mese_key = data.strftime('%Y-%m')
-        date_labels.append(data.strftime('%b %Y'))
+
+    y, m = oggi.year, oggi.month
+    for i in range(11, -1, -1):
+        mm = m - i
+        yy = y
+        while mm <= 0:
+            mm += 12
+            yy -= 1
+        mese_key = f'{yy:04d}-{mm:02d}'
+        date_labels.append(date(yy, mm, 1).strftime('%b %Y'))
         importi_nutrizione.append(vendite_per_mese_categoria['nutrizione'].get(mese_key, 0))
         importi_allenamento.append(vendite_per_mese_categoria['allenamento'].get(mese_key, 0))
         importi_completo.append(vendite_per_mese_categoria['completo'].get(mese_key, 0))
         importi_1to1.append(vendite_per_mese_categoria['1to1'].get(mese_key, 0))
-    
-    # Inverti l'ordine per mostrare dal più vecchio al più recente
-    date_labels.reverse()
-    importi_nutrizione.reverse()
-    importi_allenamento.reverse()
-    importi_completo.reverse()
-    importi_1to1.reverse()
     
     return render_template(
         'admin/registro_economico_paziente.html',

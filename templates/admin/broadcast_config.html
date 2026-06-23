@@ -2,38 +2,38 @@
 {% block title %}Configura Messaggi WhatsApp{% endblock %}
 {% block content %}
 
-<h2 class="page-title">⚙️ Configura Messaggi Trigger</h2>
+<h2 class="page-title">{{ icon('settings', 16) }} Configura messaggi Trigger</h2>
 
 <form method="POST" class="form-container">
 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 
   <div class="form-group">
-    <label for="tpl_appuntamenti">📅 Appuntamenti</label>
+    <label for="tpl_appuntamenti">{{ icon('calendar', 18) }} Appuntamenti</label>
     <textarea id="tpl_appuntamenti" name="tpl_appuntamenti" class="input-text" rows="4">{{ templates.appuntamenti }}</textarea>
     <div class="subtitle">Variabili: {nome}, {cognome}, {nome_completo}, {stato_appuntamento}</div>
   </div>
 
   <div class="form-group">
-    <label for="tpl_diete">🍽️ Diete</label>
+    <label for="tpl_diete">Diete</label>
     <textarea id="tpl_diete" name="tpl_diete" class="input-text" rows="4">{{ templates.diete }}</textarea>
     <div class="subtitle">Variabili: {nome}, {cognome}, {nome_completo}</div>
   </div>
 
   <div class="form-group">
-    <label for="tpl_allenamenti">💪 Allenamenti</label>
+    <label for="tpl_allenamenti">{{ icon('dumbbell', 18) }} Allenamenti</label>
     <textarea id="tpl_allenamenti" name="tpl_allenamenti" class="input-text" rows="4">{{ templates.allenamenti }}</textarea>
     <div class="subtitle">Variabili: {nome}, {cognome}, {nome_completo}</div>
   </div>
 
   <div class="form-group">
-    <label for="tpl_scadenze">⏰ Scadenze</label>
+    <label for="tpl_scadenze">{{ icon('clock', 16) }} Scadenze</label>
     <textarea id="tpl_scadenze" name="tpl_scadenze" class="input-text" rows="4">{{ templates.scadenze }}</textarea>
     <div class="subtitle">Variabili: {nome}, {cognome}, {nome_completo}, {tipo_scadenza}, {data_scadenza}, {giorni_scadenza}</div>
   </div>
 
   <div class="form-actions">
-    <button type="submit" class="btn btn-primary">💾 Salva</button>
-    <a href="{{ url_for('broadcast.dashboard') }}" class="btn btn-white">↩️ Torna alla Dashboard</a>
+    <button type="submit" class="btn btn-primary">{{ icon('save', 16) }} Salva</button>
+    <a href="{{ url_for('broadcast.dashboard') }}" class="btn btn-white">{{ icon('undo', 16) }} Torna alla dashboard</a>
   </div>
 
 </form>
