@@ -1,0 +1,160 @@
+{% extends 'base_admin.html' %}
+{% block title %}Segretario AI{% endblock %}
+{% block content %}
+
+<!-- STATO + ATTIVAZIONE -->
+<div style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+  <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
+    <div>
+      <h3 style="color: #ff751f; margin: 0 0 0.35rem 0;">{{ icon('phone', 18) }} Segretario AI inbound</h3>
+      <div style="color: #b6b1a9; font-size: 0.9rem;">
+        Risponde alle chiamate dei pazienti quando non sei disponibile: fissa appuntamenti e fa customer care.
+      </div>
+    </div>
+    <form method="POST" action="{{ url_for('segretario.toggle') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+      <button type="submit" class="btn-toggle {{ 'btn-on' if cfg.attivo else 'btn-off' }}">
+        <span class="dot"></span>{{ 'Attivo' if cfg.attivo else 'Disattivo' }}
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- STATO CONNESSIONE VAPI -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+  <div style="background: rgba(13, 51, 28, 0.6); border: 1px solid rgba(182, 177, 169, 0.25); border-radius: 10px; padding: 1rem;">
+    <div style="color: #b6b1a9; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em;">Connessione Vapi</div>
+    <div style="color: {{ '#25D366' if stato_vapi.configured else '#ff6b6b' }}; font-weight: 700; font-size: 1.1rem; margin-top: 0.3rem;">
+      {{ 'Configurata ✓' if stato_vapi.configured else 'Mancante ✕' }}
+    </div>
+    {% if not stato_vapi.configured %}
+    <div style="color: #b6b1a9; font-size: 0.78rem; margin-top: 0.3rem;">Imposta VAPI_API_KEY e VAPI_ASSISTANT_ID nel .env</div>
+    {% endif %}
+  </div>
+  <div style="background: rgba(13, 51, 28, 0.6); border: 1px solid rgba(182, 177, 169, 0.25); border-radius: 10px; padding: 1rem;">
+    <div style="color: #b6b1a9; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em;">Numero da chiamare</div>
+    <div style="color: #ffffff; font-weight: 700; font-size: 1.1rem; margin-top: 0.3rem;">{{ numero_inbound or '—' }}</div>
+    <div style="color: #b6b1a9; font-size: 0.78rem; margin-top: 0.3rem;">I pazienti chiamano questo numero Vapi</div>
+  </div>
+  <div style="background: rgba(13, 51, 28, 0.6); border: 1px solid rgba(182, 177, 169, 0.25); border-radius: 10px; padding: 1rem;">
+    <div style="color: #b6b1a9; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em;">Chiamate gestite</div>
+    <div style="color: #ffffff; font-weight: 700; font-size: 1.4rem; margin-top: 0.3rem;">{{ stats.totale }}</div>
+    <div style="color: #b6b1a9; font-size: 0.78rem; margin-top: 0.3rem;">{{ stats.con_appuntamento }} con appuntamento fissato</div>
+  </div>
+</div>
+
+{% if not stato_vapi.public_url_set %}
+<div style="background: rgba(255, 117, 31, 0.12); border: 1px solid rgba(255, 117, 31, 0.4); border-radius: 10px; padding: 1rem; margin-bottom: 1.5rem; color: #ffcd9e; font-size: 0.88rem;">
+  {{ icon('alert', 16) }} Imposta <code>VAPI_PUBLIC_URL</code> nel <code>.env</code> con l'URL pubblico HTTPS dell'app, altrimenti Vapi non potrà chiamare il webhook per prenotare appuntamenti.
+  {% if stato_vapi.webhook_url %}<br>Webhook attuale: <code>{{ stato_vapi.webhook_url }}</code>{% endif %}
+</div>
+{% endif %}
+
+<!-- CONFIGURAZIONE -->
+<form method="POST" action="{{ url_for('segretario.salva_config') }}" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(37, 211, 102, 0.3); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+  <h3 style="color: #25D366; margin: 0 0 1.2rem 0;">{{ icon('settings', 16) }} Configurazione assistente</h3>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.2rem;">
+    <div>
+      <label style="display:block; color:#fff; font-size:0.85rem; margin-bottom:0.35rem;">Il tuo numero (nutrizionista)</label>
+      <input type="text" name="numero_nutrizionista" value="{{ cfg.numero_nutrizionista or '' }}" placeholder="+39 351 4701562"
+             style="width:100%; padding:0.6rem 0.75rem; border-radius:8px; border:1px solid rgba(182,177,169,0.3); background:rgba(0,0,0,0.25); color:#fff;">
+      <div style="color:#b6b1a9; font-size:0.75rem; margin-top:0.3rem;">Usato come riferimento per inoltro/richiamate.</div>
+    </div>
+    <div>
+      <label style="display:block; color:#fff; font-size:0.85rem; margin-bottom:0.35rem;">Nome dello studio</label>
+      <input type="text" name="nome_studio" value="{{ cfg.nome_studio or '' }}" placeholder="Studio Nutrizionale"
+             style="width:100%; padding:0.6rem 0.75rem; border-radius:8px; border:1px solid rgba(182,177,169,0.3); background:rgba(0,0,0,0.25); color:#fff;">
+    </div>
+    <div>
+      <label style="display:block; color:#fff; font-size:0.85rem; margin-bottom:0.35rem;">Nome dell'assistente AI</label>
+      <input type="text" name="nome_assistente" value="{{ cfg.nome_assistente or '' }}" placeholder="Sofia"
+             style="width:100%; padding:0.6rem 0.75rem; border-radius:8px; border:1px solid rgba(182,177,169,0.3); background:rgba(0,0,0,0.25); color:#fff;">
+    </div>
+  </div>
+
+  <div style="margin-top:1.2rem;">
+    <label style="display:block; color:#fff; font-size:0.85rem; margin-bottom:0.35rem;">Messaggio di benvenuto</label>
+    <textarea name="messaggio_benvenuto" rows="2" placeholder="Studio ..., sono Sofia, l'assistente virtuale..."
+              style="width:100%; padding:0.6rem 0.75rem; border-radius:8px; border:1px solid rgba(182,177,169,0.3); background:rgba(0,0,0,0.25); color:#fff; resize:vertical;">{{ cfg.messaggio_benvenuto or '' }}</textarea>
+    <div style="color:#b6b1a9; font-size:0.75rem; margin-top:0.3rem;">Lascia vuoto per usare il messaggio predefinito.</div>
+  </div>
+
+  <div style="margin-top:1.2rem;">
+    <label style="display:block; color:#fff; font-size:0.85rem; margin-bottom:0.35rem;">Istruzioni aggiuntive per l'AI</label>
+    <textarea name="istruzioni_ai" rows="4" placeholder="Es. Orari studio: lun-ven 9-18. Prima visita 60 minuti. Indirizzo: ..."
+              style="width:100%; padding:0.6rem 0.75rem; border-radius:8px; border:1px solid rgba(182,177,169,0.3); background:rgba(0,0,0,0.25); color:#fff; resize:vertical;">{{ cfg.istruzioni_ai or '' }}</textarea>
+  </div>
+
+  <div style="display:flex; gap:1.5rem; flex-wrap:wrap; margin-top:1.2rem;">
+    <label style="display:flex; align-items:center; gap:0.5rem; color:#fff; font-size:0.88rem; cursor:pointer;">
+      <input type="checkbox" name="inoltra_a_nutrizionista" {{ 'checked' if cfg.inoltra_a_nutrizionista }}> Inoltra al nutrizionista per le urgenze
+    </label>
+    <label style="display:flex; align-items:center; gap:0.5rem; color:#fff; font-size:0.88rem; cursor:pointer;">
+      <input type="checkbox" name="conferma_whatsapp" {{ 'checked' if cfg.conferma_whatsapp }}> Invia conferma WhatsApp dopo la prenotazione
+    </label>
+  </div>
+
+  <div style="display:flex; gap:0.75rem; margin-top:1.5rem; flex-wrap:wrap; align-items:center;">
+    <button type="submit" class="btn btn-primary btn-lg" style="display:inline-flex; align-items:center; gap:0.5rem;">
+      {{ icon('save', 16) }} Salva e sincronizza con Vapi
+    </button>
+    {% if cfg.ultimo_sync %}
+    <span style="color:#b6b1a9; font-size:0.8rem;">Ultimo sync: {{ cfg.ultimo_sync.strftime('%d/%m/%Y %H:%M') if cfg.ultimo_sync else '—' }}</span>
+    {% endif %}
+  </div>
+</form>
+
+<div style="display:flex; gap:0.75rem; margin-bottom:1.5rem; flex-wrap:wrap;">
+  <form method="POST" action="{{ url_for('segretario.sync') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <button type="submit" class="btn btn-outline" style="display:inline-flex; align-items:center; gap:0.5rem;">
+      {{ icon('refresh', 16) }} Risincronizza assistente su Vapi
+    </button>
+  </form>
+</div>
+
+<!-- LOG CHIAMATE -->
+<div style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 12px; padding: 1.5rem;">
+  <h3 style="color: #ff751f; margin: 0 0 1rem 0;">{{ icon('history', 16) }} Ultime chiamate</h3>
+
+  {% if chiamate %}
+  <div style="overflow-x:auto;">
+    <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+      <thead>
+        <tr style="color:#b6b1a9; text-align:left; border-bottom:1px solid rgba(182,177,169,0.25);">
+          <th style="padding:0.6rem 0.5rem;">Data</th>
+          <th style="padding:0.6rem 0.5rem;">Chiamante</th>
+          <th style="padding:0.6rem 0.5rem;">Paziente</th>
+          <th style="padding:0.6rem 0.5rem;">Durata</th>
+          <th style="padding:0.6rem 0.5rem;">Esito</th>
+          <th style="padding:0.6rem 0.5rem;">Appuntamento</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in chiamate %}
+        <tr style="color:#e7e3dc; border-bottom:1px solid rgba(182,177,169,0.12);">
+          <td style="padding:0.6rem 0.5rem; white-space:nowrap;">{{ c.created_at.strftime('%d/%m %H:%M') if c.created_at else '—' }}</td>
+          <td style="padding:0.6rem 0.5rem;">{{ c.numero_chiamante or '—' }}</td>
+          <td style="padding:0.6rem 0.5rem;">{{ (c.patient.nome ~ ' ' ~ c.patient.cognome) if c.patient else '—' }}</td>
+          <td style="padding:0.6rem 0.5rem;">{{ (c.durata_secondi ~ 's') if c.durata_secondi is not none else '—' }}</td>
+          <td style="padding:0.6rem 0.5rem;">{{ c.esito or c.stato or '—' }}</td>
+          <td style="padding:0.6rem 0.5rem;">
+            {% if c.appuntamento_creato %}
+              <span style="color:#25D366;">{{ icon('check', 14) }} Sì</span>
+            {% else %}
+              <span style="color:#b6b1a9;">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="color:#b6b1a9; font-size:0.9rem;">Nessuna chiamata registrata. Le chiamate appariranno qui appena il segretario AI risponderà.</div>
+  {% endif %}
+</div>
+
+{% endblock %}

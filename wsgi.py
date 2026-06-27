@@ -159,6 +159,20 @@ def set_security_headers(response):
 from app.routes import register_blueprints
 register_blueprints(app)
 
+# ===========================================
+# ☎️ WEBHOOK VAPI: esente da CSRF e rate limiting
+# Vapi invia POST senza token CSRF e può generare molti eventi per chiamata.
+# ===========================================
+try:
+    _vapi_webhook_view = app.view_functions.get('segretario.webhook')
+    if _vapi_webhook_view is not None:
+        csrf.exempt(_vapi_webhook_view)
+        if limiter is not None:
+            limiter.exempt(_vapi_webhook_view)
+        logger.info("✅ Webhook Vapi esente da CSRF e rate limiting")
+except Exception as e:
+    logger.warning(f"⚠️  Impossibile esentare il webhook Vapi: {e}")
+
 # Rende disponibile csrf_token() in tutte le template
 @app.context_processor
 def inject_csrf_token():
@@ -300,7 +314,8 @@ def init_db_command():
         from app.models.models import (
             Patient, Dieta, Allenamento, Progresso, 
             MisureAntropometriche, ComposizioneCorporea,
-            Documento, Appuntamento, Listino, Vendita, SlotDisponibilita
+            Documento, Appuntamento, Listino, Vendita, SlotDisponibilita,
+            SegretarioConfig, ChiamataInbound
         )
         
         # Crea tutte le tabelle

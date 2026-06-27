@@ -486,6 +486,94 @@ class SlotDisponibilita(db.Model):
         return f"<SlotDisponibilita {self.data_ora.strftime('%d/%m/%Y %H:%M')}>"
 
 # ========================
+#   MODEL: SegretarioConfig
+# ========================
+
+class SegretarioConfig(db.Model):
+    """Configurazione (riga singola) del Segretario AI inbound Vapi."""
+    __tablename__ = "segretario_config"
+
+    # 🔑 Chiave primaria (riga singola, id=1)
+    id = db.Column(db.Integer, primary_key=True)
+
+    # ⚙️ Stato
+    attivo = db.Column(db.Boolean, nullable=False, server_default="0")
+
+    # ☎️ Numero del nutrizionista (per inoltro / riferimento)
+    numero_nutrizionista = db.Column(db.String(30))
+
+    # 🏷️ Identità dell'assistente
+    nome_studio = db.Column(db.String(120), server_default="MyNutriApp")
+    nome_assistente = db.Column(db.String(80), server_default="Sofia")
+
+    # 💬 Comportamento dell'AI
+    messaggio_benvenuto = db.Column(db.Text)
+    istruzioni_ai = db.Column(db.Text)
+
+    # 🔁 Inoltra al nutrizionista quando l'AI non basta
+    inoltra_a_nutrizionista = db.Column(db.Boolean, nullable=False, server_default="1")
+
+    # 📲 Conferma WhatsApp automatica dopo prenotazione AI
+    conferma_whatsapp = db.Column(db.Boolean, nullable=False, server_default="1")
+
+    # 🕒 Ultimo aggiornamento / sync con Vapi
+    ultimo_sync = db.Column(db.DateTime)
+    updated_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
+
+    def __repr__(self):
+        return f"<SegretarioConfig attivo={self.attivo}>"
+
+
+# ========================
+#   MODEL: ChiamataInbound
+# ========================
+
+class ChiamataInbound(db.Model):
+    """Log delle chiamate gestite dal Segretario AI (webhook Vapi)."""
+    __tablename__ = "chiamate_inbound"
+
+    # 🔑 Chiave primaria
+    id = db.Column(db.Integer, primary_key=True)
+
+    # 🔗 ID chiamata su Vapi (per upsert dai webhook)
+    vapi_call_id = db.Column(db.String(100), unique=True, index=True)
+
+    # ☎️ Dati chiamata
+    numero_chiamante = db.Column(db.String(30), index=True)
+    direzione = db.Column(db.String(20), server_default="inbound")
+
+    # 🔗 Paziente collegato (se il numero corrisponde)
+    patient_id = db.Column(db.Integer, db.ForeignKey("patients.id", ondelete="SET NULL"), nullable=True)
+
+    # ⚙️ Stato ed esito
+    stato = db.Column(db.String(30))      # squillo, in_corso, terminata
+    esito = db.Column(db.String(80))      # endedReason Vapi
+
+    # ⏱️ Metriche
+    durata_secondi = db.Column(db.Integer)
+    costo_usd = db.Column(db.Numeric(8, 4))
+
+    # 📝 Contenuti
+    trascrizione = db.Column(db.Text)
+    riassunto = db.Column(db.Text)
+    registrazione_url = db.Column(db.String(500))
+
+    # 📅 Esito operativo
+    appuntamento_creato = db.Column(db.Boolean, nullable=False, server_default="0")
+    appuntamento_id = db.Column(db.Integer, db.ForeignKey("appuntamenti.id", ondelete="SET NULL"), nullable=True)
+
+    # 🕒 Timestamp
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
+    updated_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
+
+    # 🔗 Relazioni
+    patient = db.relationship("Patient", backref=db.backref("chiamate_inbound", lazy=True))
+
+    def __repr__(self):
+        return f"<ChiamataInbound {self.vapi_call_id} da {self.numero_chiamante}>"
+
+
+# ========================
 #   MODEL: AuditLog
 # ========================
 

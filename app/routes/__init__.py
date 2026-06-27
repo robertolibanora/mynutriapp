@@ -19,6 +19,7 @@ def register_blueprints(app):
     from .vendite import vendite_bp
     from .slot import slot_bp
     from .whatsapp.broadcast_routes import broadcast_bp
+    from .segretario import segretario_bp
     
     # Registra i blueprint
     app.register_blueprint(auth_bp)
@@ -34,3 +35,4 @@ def register_blueprints(app):
     app.register_blueprint(vendite_bp)
     app.register_blueprint(slot_bp)
     app.register_blueprint(broadcast_bp)
+    app.register_blueprint(segretario_bp)

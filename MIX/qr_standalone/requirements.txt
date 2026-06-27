@@ -1,0 +1,9 @@
+# Dipendenze per QR Code Generator
+# Esegui: pip install -r requirements.txt
+
+# Generazione QR code
+qrcode[pil]>=7.4.2
+
+# Pillow è incluso in qrcode[pil], ma se serve separatamente:
+# Pillow>=10.0.0
+

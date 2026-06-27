@@ -171,6 +171,17 @@ class Config:
     EVOLUTION_API_KEY = os.getenv("EVOLUTION_API_KEY")
     EVOLUTION_INSTANCE = os.getenv("EVOLUTION_INSTANCE")
 
+    # ========================================
+    # ☎️ VAPI - SEGRETARIO AI (chiamate inbound)
+    # ========================================
+    VAPI_ENABLED = os.getenv("VAPI_ENABLED", "False").lower() in ("true", "1", "yes")
+    VAPI_API_KEY = os.getenv("VAPI_API_KEY", "").strip()
+    VAPI_ASSISTANT_ID = os.getenv("VAPI_ASSISTANT_ID", "").strip()
+    VAPI_PHONE_NUMBER_ID = os.getenv("VAPI_PHONE_NUMBER_ID", "").strip()
+    VAPI_WEBHOOK_SECRET = os.getenv("VAPI_WEBHOOK_SECRET", "").strip()
+    VAPI_PUBLIC_URL = os.getenv("VAPI_PUBLIC_URL", "").strip().rstrip("/")
+    VAPI_BASE_URL = "https://api.vapi.ai"
+
 
 # ========================================
 # 📁 UPLOAD HELPER FUNCTIONS
