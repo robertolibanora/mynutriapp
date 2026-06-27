@@ -1,0 +1,1 @@
+/var/www/mynutriapp/.w.sh

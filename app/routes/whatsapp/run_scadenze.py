@@ -13,7 +13,7 @@ project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(_
 sys.path.append(project_root)
 
 # Importa Flask app per inizializzare il database
-from app import app
+from wsgi import app
 from app.routes.whatsapp.scadenze import controlla_scadenze, controlla_scadenze_multiple
 
 def main():

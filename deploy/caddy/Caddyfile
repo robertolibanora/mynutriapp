@@ -1,16 +1,18 @@
-# Sostituisci example.com con il tuo dominio.
+# MyNutriApp - reverse proxy + HTTPS automatico (Let's Encrypt)
 # Caddy ottiene e rinnova automaticamente il certificato HTTPS.
 
-example.com {
+mynutriapp.cloud {
+	encode gzip zstd
+
 	@static path /static/*
 	handle @static {
-		root * /opt/mynutriapp/static
+		root * /var/www/mynutriapp/static
 		uri strip_prefix /static
 		file_server
 	}
 
 	handle {
-		reverse_proxy 127.0.0.1:8000
+		reverse_proxy 127.0.0.1:8999
 	}
 
 	request_body {
@@ -18,7 +20,6 @@ example.com {
 	}
 }
 
-# Solo HTTP locale (senza dominio / certificato):
-# :80 {
-# 	reverse_proxy 127.0.0.1:8000
-# }
+www.mynutriapp.cloud {
+	redir https://mynutriapp.cloud{uri} permanent
+}

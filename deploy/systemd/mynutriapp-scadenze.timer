@@ -1,0 +1,11 @@
+[Unit]
+Description=MyNutriApp - timer giornaliero controllo scadenze
+
+[Timer]
+# Ogni giorno alle 09:00 (ora locale del server)
+OnCalendar=*-*-* 09:00:00
+Persistent=true
+RandomizedDelaySec=300
+
+[Install]
+WantedBy=timers.target
