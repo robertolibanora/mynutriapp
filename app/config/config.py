@@ -182,6 +182,20 @@ class Config:
     VAPI_PUBLIC_URL = os.getenv("VAPI_PUBLIC_URL", "").strip().rstrip("/")
     VAPI_BASE_URL = "https://api.vapi.ai"
 
+    # ========================================
+    # 📲 DEVIAZIONE CHIAMATE → VAPI (strada 1)
+    # ========================================
+    # webhook: POST verso automazione sul telefono (MacroDroid, Tasker, n8n...)
+    # pushcut: notifiche Pushcut che lanciano shortcut iOS/Android con codice USSD
+    CALL_FORWARDING_MODE = os.getenv("CALL_FORWARDING_MODE", "webhook").strip().lower()
+    CALL_FORWARDING_TARGET = os.getenv("CALL_FORWARDING_TARGET", "").strip()
+    CALL_FORWARDING_ON_URL = os.getenv("CALL_FORWARDING_ON_URL", "").strip()
+    CALL_FORWARDING_OFF_URL = os.getenv("CALL_FORWARDING_OFF_URL", "").strip()
+    CALL_FORWARDING_SECRET = os.getenv("CALL_FORWARDING_SECRET", "").strip()
+    PUSHCUT_API_KEY = os.getenv("PUSHCUT_API_KEY", "").strip()
+    PUSHCUT_NOTIF_ON = os.getenv("PUSHCUT_NOTIF_ON", "").strip()
+    PUSHCUT_NOTIF_OFF = os.getenv("PUSHCUT_NOTIF_OFF", "").strip()
+
 
 # ========================================
 # 📁 UPLOAD HELPER FUNCTIONS

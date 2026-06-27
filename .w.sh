@@ -26,7 +26,7 @@ fi
 sudo systemctl reload caddy
 
 echo ""
-echo "App locale:  curl http://127.0.0.1:8999/health"
+echo "App locale:  curl http://127.0.0.1:8099/health"
 echo "Sito pubblico: https://mynutriapp.cloud/"
 
 if ! grep -q 'mynutriapp.cloud' /etc/caddy/Caddyfile 2>/dev/null; then

@@ -498,6 +498,8 @@ class SegretarioConfig(db.Model):
 
     # ⚙️ Stato
     attivo = db.Column(db.Boolean, nullable=False, server_default="0")
+    deviazione_attiva = db.Column(db.Boolean, nullable=False, server_default="0")
+    deviazione_aggiornata_at = db.Column(db.DateTime)
 
     # ☎️ Numero del nutrizionista (per inoltro / riferimento)
     numero_nutrizionista = db.Column(db.String(30))

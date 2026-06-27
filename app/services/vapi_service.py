@@ -276,13 +276,16 @@ def push_assistant_config(config) -> tuple[bool, str]:
 
     # Assegna l'assistente + webhook anche al numero inbound, se configurato.
     if Config.VAPI_PHONE_NUMBER_ID:
-        _attach_assistant_to_number()
+        attach_assistant_to_number()
 
     return True, "Configurazione sincronizzata con Vapi."
 
 
-def _attach_assistant_to_number() -> None:
+def attach_assistant_to_number() -> tuple[bool, str]:
     """Collega l'assistente (e il webhook) al numero inbound su Vapi."""
+    if not Config.VAPI_PHONE_NUMBER_ID:
+        return False, "VAPI_PHONE_NUMBER_ID non configurato."
+
     payload: dict = {"assistantId": Config.VAPI_ASSISTANT_ID}
     hook = webhook_url()
     if hook:
@@ -297,10 +300,39 @@ def _attach_assistant_to_number() -> None:
             data=json.dumps(payload),
             timeout=TIMEOUT,
         )
-        if resp.status_code >= 400:
-            logger.warning("Vapi PATCH phone-number %s: %s", resp.status_code, resp.text[:300])
     except requests.RequestException as exc:
         logger.warning("Vapi PATCH phone-number errore rete: %s", exc)
+        return False, f"Errore di rete verso Vapi: {exc}"
+
+    if resp.status_code >= 400:
+        logger.warning("Vapi PATCH phone-number %s: %s", resp.status_code, resp.text[:300])
+        return False, f"Vapi ha risposto {resp.status_code}."
+
+    return True, "Assistente collegato al numero inbound."
+
+
+def detach_assistant_from_number() -> tuple[bool, str]:
+    """Scollega l'assistente dal numero inbound su Vapi."""
+    if not Config.VAPI_PHONE_NUMBER_ID:
+        return False, "VAPI_PHONE_NUMBER_ID non configurato."
+
+    payload: dict = {"assistantId": None}
+    try:
+        resp = requests.patch(
+            f"{Config.VAPI_BASE_URL}/phone-number/{Config.VAPI_PHONE_NUMBER_ID}",
+            headers=_headers(),
+            data=json.dumps(payload),
+            timeout=TIMEOUT,
+        )
+    except requests.RequestException as exc:
+        logger.warning("Vapi PATCH phone-number (detach) errore rete: %s", exc)
+        return False, f"Errore di rete verso Vapi: {exc}"
+
+    if resp.status_code >= 400:
+        logger.warning("Vapi PATCH phone-number detach %s: %s", resp.status_code, resp.text[:300])
+        return False, f"Vapi ha risposto {resp.status_code}."
+
+    return True, "Assistente scollegato dal numero inbound."
 
 
 # ============================================================

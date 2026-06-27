@@ -1,5 +1,7 @@
 from flask import Blueprint, render_template, session, redirect, url_for, flash
-from app.models.models import db, Patient, Dieta, Allenamento, Progresso, Appuntamento, SlotDisponibilita, Listino, Vendita
+from app.models.models import db, Patient, Dieta, Allenamento, Progresso, Appuntamento, SlotDisponibilita, Listino, Vendita, SegretarioConfig
+from app.services import call_forwarding_service
+from app.utils.db_schema import ensure_segretario_deviazione_schema
 from datetime import datetime, date, timedelta
 
 dashboard_bp = Blueprint('dashboard', __name__)
@@ -12,6 +14,8 @@ def admin_dashboard():
     if session.get('role') != 'admin':
         flash("Accesso non autorizzato", "danger")
         return redirect(url_for('auth.login'))
+
+    ensure_segretario_deviazione_schema()
     
     # Calcola statistiche
     oggi = datetime.now()
@@ -62,7 +66,13 @@ def admin_dashboard():
     ).group_by(Listino.id, Listino.nome_prodotto).order_by(
         db.func.count(Vendita.id).desc()
     ).limit(3).all()
-    
+
+    segretario_cfg = SegretarioConfig.query.first()
+    deviazione_attiva = bool(segretario_cfg and segretario_cfg.deviazione_attiva)
+    deviazione = call_forwarding_service.status_info(deviazione_attiva)
+    if segretario_cfg:
+        deviazione["aggiornata_at"] = segretario_cfg.deviazione_aggiornata_at
+
     return render_template('admin/dashboard.html',
                          n_pazienti=n_pazienti,
                          n_appuntamenti_oggi=n_appuntamenti_oggi,
@@ -71,6 +81,7 @@ def admin_dashboard():
                          n_slot_futuri=n_slot_futuri,
                          n_appuntamenti_settimana=n_appuntamenti_settimana,
                          prodotti_top=prodotti_top,
+                         deviazione=deviazione,
                          oggi=oggi)
 
 # ============================

@@ -248,6 +248,8 @@ CREATE TABLE IF NOT EXISTS slot_disponibilita (
 CREATE TABLE IF NOT EXISTS segretario_config (
     id INT AUTO_INCREMENT PRIMARY KEY,
     attivo BOOLEAN NOT NULL DEFAULT FALSE,
+    deviazione_attiva BOOLEAN NOT NULL DEFAULT FALSE,
+    deviazione_aggiornata_at DATETIME,
     numero_nutrizionista VARCHAR(30),
     nome_studio VARCHAR(120) DEFAULT 'MyNutriApp',
     nome_assistente VARCHAR(80) DEFAULT 'Sofia',

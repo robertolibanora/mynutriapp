@@ -30,7 +30,7 @@ mynutriapp.cloud {
 	}
 
 	handle {
-		reverse_proxy 127.0.0.1:8999
+		reverse_proxy 127.0.0.1:8099
 	}
 
 	request_body {

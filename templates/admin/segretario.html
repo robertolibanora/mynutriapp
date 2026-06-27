@@ -20,6 +20,10 @@
   </div>
 </div>
 
+{% if deviazione is defined %}
+{% include 'admin/_deviazione_widget.html' %}
+{% endif %}
+
 <!-- STATO CONNESSIONE VAPI -->
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
   <div style="background: rgba(13, 51, 28, 0.6); border: 1px solid rgba(182, 177, 169, 0.25); border-radius: 10px; padding: 1rem;">

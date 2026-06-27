@@ -77,6 +77,10 @@
   </article>
 </div>
 
+{% if deviazione is defined %}
+{% include 'admin/_deviazione_widget.html' %}
+{% endif %}
+
 <div class="adm-split-grid">
   <section class="adm-panel">
     <div class="adm-panel-head">

@@ -71,7 +71,7 @@ mynutriapp.cloud {
 	}
 
 	handle {
-		reverse_proxy 127.0.0.1:8999
+		reverse_proxy 127.0.0.1:8099
 	}
 
 	request_body {
@@ -93,5 +93,5 @@ systemctl --no-pager --lines=0 status mynutriapp.service || true
 systemctl list-timers mynutriapp-scadenze.timer --no-pager || true
 echo ""
 echo "Fatto. Test rapido:"
-echo "  curl -i http://127.0.0.1:8999/health"
+echo "  curl -i http://127.0.0.1:8099/health"
 echo "  curl -i https://${DOMAIN}/health"

@@ -3,9 +3,9 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-load_dotenv(Path(__file__).resolve().parents[1] / ".env")
+load_dotenv(Path(__file__).resolve().parents[1] / ".env", override=True)
 
-bind = os.getenv("GUNICORN_BIND", "127.0.0.1:8999")
+bind = os.getenv("GUNICORN_BIND", "127.0.0.1:8099")
 workers = int(os.getenv("GUNICORN_WORKERS", "2"))
 threads = int(os.getenv("GUNICORN_THREADS", "2"))
 worker_class = "gthread"

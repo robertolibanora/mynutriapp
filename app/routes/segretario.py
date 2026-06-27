@@ -35,7 +35,9 @@ from app.models.models import (
     db,
 )
 from app.services import vapi_service
+from app.services import call_forwarding_service
 from app.utils.helpers import normalize_phone
+from app.utils.db_schema import ensure_segretario_deviazione_schema
 
 logger = logging.getLogger(__name__)
 
@@ -69,6 +71,7 @@ def admin_required(func):
 
 def get_config() -> SegretarioConfig:
     """Ritorna (creandola se serve) la riga singola di configurazione."""
+    ensure_segretario_deviazione_schema()
     cfg = SegretarioConfig.query.first()
     if cfg is None:
         cfg = SegretarioConfig(
@@ -154,6 +157,8 @@ def dashboard():
             numero_inbound = info.get("number") or ""
 
     stats = {"totale": totale, "con_appuntamento": con_appuntamento}
+    deviazione = call_forwarding_service.status_info(cfg.deviazione_attiva)
+    deviazione["aggiornata_at"] = cfg.deviazione_aggiornata_at
     return render_template(
         "admin/segretario.html",
         cfg=cfg,
@@ -161,6 +166,7 @@ def dashboard():
         stats=stats,
         stato_vapi=stato_vapi,
         numero_inbound=numero_inbound,
+        deviazione=deviazione,
     )
 
 
@@ -211,7 +217,34 @@ def toggle():
     except Exception as exc:  # noqa: BLE001
         db.session.rollback()
         flash(f"Errore: {exc}", "danger")
-    return redirect(url_for("segretario.dashboard"))
+    return redirect(request.referrer or url_for("segretario.dashboard"))
+
+
+@segretario_bp.route("/deviazione/toggle", methods=["POST"])
+@admin_required
+def toggle_deviazione():
+    """Attiva/disattiva deviazione chiamate dal cellulare verso Vapi."""
+    cfg = get_config()
+    target_state = not cfg.deviazione_attiva
+    try:
+        ok, msg = call_forwarding_service.set_forwarding(target_state, config=cfg)
+        if not ok:
+            flash(msg, "warning")
+            return redirect(request.referrer or url_for("dashboard.admin_dashboard"))
+
+        cfg.deviazione_attiva = target_state
+        cfg.deviazione_aggiornata_at = datetime.now()
+        cfg.attivo = target_state
+        db.session.commit()
+
+        stato = "attivata" if target_state else "disattivata"
+        flash(f"Deviazione chiamate {stato} ✅ {msg}", "success")
+    except Exception as exc:  # noqa: BLE001
+        db.session.rollback()
+        logger.exception("Errore toggle deviazione chiamate")
+        flash(f"Errore deviazione: {exc}", "danger")
+
+    return redirect(request.referrer or url_for("dashboard.admin_dashboard"))
 
 
 @segretario_bp.route("/sync", methods=["POST"])
