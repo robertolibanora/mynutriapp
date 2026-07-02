@@ -32,6 +32,9 @@
         <a href="{{ url_for('diete_plans.user_diet_plan', diet_plan_id=ultimo_diet_plan.id) }}" class="btn-user btn-user-small mt-2">
             {{ icon('diet', 16, 'usr-icon') }} Visualizza dieta
         </a>
+        <a href="{{ url_for('diete.lista_diete_user') }}" class="btn-user btn-user-small mt-2" style="margin-left:.5rem;opacity:.85;">
+            Tutte le diete
+        </a>
         {% elif ultima_dieta %}
         <div class="summary-row">
             <span class="summary-label">Periodo:</span>
