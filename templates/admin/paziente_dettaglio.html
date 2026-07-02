@@ -76,13 +76,21 @@
       {% endif %}
     </span>
   </div>
-  <p style="color: #b6b1a9; margin: 0;">
-    {% if paziente.intolleranze or paziente.patologie or paziente.allenamenti_descr %}
-      Il profilo contiene informazioni mediche dettagliate per piani personalizzati.
-    {% else %}
-      Aggiungi informazioni mediche per completare il profilo e creare piani più efficaci.
+  <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
+    <p style="color: #b6b1a9; margin: 0; flex: 1;">
+      {% if paziente.intolleranze or paziente.patologie or paziente.allenamenti_descr %}
+        Il profilo contiene informazioni mediche dettagliate per piani personalizzati.
+      {% else %}
+        Aggiungi informazioni mediche per completare il profilo e creare piani più efficaci.
+      {% endif %}
+    </p>
+    {% if not (paziente.intolleranze or paziente.patologie or paziente.allenamenti_descr) %}
+    <a href="{{ url_for('patients.modifica_paziente', patient_id=paziente.id) }}#informazioni-mediche"
+       class="btn btn-primary btn-small" style="flex-shrink: 0;">
+      {{ icon('plus', 16) }} Aggiungi informazioni mediche
+    </a>
     {% endif %}
-  </p>
+  </div>
 </div>
 
 
@@ -130,9 +138,19 @@
 
   <!-- INFORMAZIONI MEDICHE -->
   <div class="content-card" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px; padding: 1.5rem;">
-    <h3 style="color: #ff751f; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-      Informazioni mediche
-    </h3>
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap;">
+      <h3 style="color: #ff751f; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+        {{ icon('medical', 16) }} Informazioni mediche
+      </h3>
+      <a href="{{ url_for('patients.modifica_paziente', patient_id=paziente.id) }}#informazioni-mediche"
+         class="btn btn-primary btn-small">
+        {% if paziente.intolleranze or paziente.cibi_da_ev or paziente.patologie or paziente.esami_biochimici %}
+          {{ icon('edit', 14) }} Modifica
+        {% else %}
+          {{ icon('plus', 16) }} Aggiungi
+        {% endif %}
+      </a>
+    </div>
     
     <div class="medical-info" style="display: flex; flex-direction: column; gap: 1rem;">
       <div class="medical-item {% if paziente.intolleranze %}medical-complete{% else %}medical-incomplete{% endif %}" style="padding: 1rem; background: rgba(13, 51, 28, 0.6); border-radius: 8px;">
@@ -168,9 +186,19 @@
 
 <!-- ATTIVITÀ FISICA -->
 <div class="activity-card" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem;">
-  <h3 style="color: #ff751f; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-    {{ icon('dumbbell', 16) }} Attività fisica
-  </h3>
+  <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap;">
+    <h3 style="color: #ff751f; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+      {{ icon('dumbbell', 16) }} Attività fisica
+    </h3>
+    <a href="{{ url_for('patients.modifica_paziente', patient_id=paziente.id) }}#attivita-fisica"
+       class="btn btn-primary btn-small">
+      {% if paziente.allenamenti_descr %}
+        {{ icon('edit', 14) }} Modifica
+      {% else %}
+        {{ icon('plus', 16) }} Aggiungi
+      {% endif %}
+    </a>
+  </div>
   
   <div class="{% if paziente.allenamenti_descr %}medical-complete{% else %}medical-incomplete{% endif %}" style="padding: 1rem; background: rgba(13, 51, 28, 0.6); border-radius: 8px;">
     <div style="color: #b6b1a9; font-size: 0.85rem; margin-bottom: 0.5rem;">Descrizione allenamenti</div>

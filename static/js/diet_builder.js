@@ -26,13 +26,16 @@
   function fmt0(v) { return (Math.round(v || 0)).toString(); }
   function fmt1(v) { return (Math.round((v || 0) * 10) / 10).toFixed(1); }
 
-  function showMsg(text, isError) {
+  function showMsg(text, isSuccess) {
     if (!msgBox) return;
     msgBox.textContent = text;
     msgBox.style.display = "block";
-    msgBox.style.color = isError === false ? "#4caf50" : "";
+    msgBox.classList.toggle("is-success", isSuccess === true);
     clearTimeout(showMsg._t);
-    showMsg._t = setTimeout(function () { msgBox.style.display = "none"; }, 6000);
+    showMsg._t = setTimeout(function () {
+      msgBox.style.display = "none";
+      msgBox.classList.remove("is-success");
+    }, 6000);
   }
 
   function jsonFetch(url, options) {

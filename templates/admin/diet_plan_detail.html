@@ -3,8 +3,8 @@
 
 {% block content %}
 
-<div style="display:flex;gap:.5rem;margin-bottom:1.2rem;flex-wrap:wrap;justify-content:space-between;align-items:center;">
-  <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+<div class="diet-page-toolbar">
+  <div class="diet-page-toolbar__left">
     <a href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id) }}" class="btn btn-secondary btn-small">{{ icon('user', 14) }} Scheda paziente</a>
     <a href="{{ url_for('diete_plans.user_diet_plan', diet_plan_id=plan.id) }}" target="_blank" class="btn btn-white btn-small">{{ icon('eye', 14) }} Anteprima paziente</a>
   </div>
@@ -15,28 +15,26 @@
   </button>
 </div>
 
-<div class="adm-hero" style="margin-bottom:1.2rem;">
-  <h2 style="margin:0;">{{ plan.title }}</h2>
-  <p style="margin:.35rem 0 0 0;">
+<div class="adm-hero diet-page-hero">
+  <h2>{{ plan.title }}</h2>
+  <p>
     Paziente: <strong>{{ paziente.nome }} {{ paziente.cognome }}</strong>
     {% if plan.goal %} · Obiettivo: {{ plan.goal }}{% endif %}
     · Stato: {{ 'Pubblicata' if plan.status == 'published' else 'Bozza' }}
   </p>
-  {% if plan.notes %}<p style="margin:.5rem 0 0 0;color:#b6b1a9;">{{ plan.notes }}</p>{% endif %}
+  {% if plan.notes %}<p>{{ plan.notes }}</p>{% endif %}
 </div>
 
-<!-- TOTALI DIETA -->
 <div class="diet-summary" data-plan-total>
-  <div class="diet-kpi"><b style="color:#FF9800;" data-k="kcal">{{ "%.0f"|format(totals.plan.total.kcal) }}</b><span>kcal totali</span></div>
-  <div class="diet-kpi"><b style="color:#2196F3;" data-k="protein">{{ "%.1f"|format(totals.plan.total.protein) }}</b><span>proteine (g)</span></div>
-  <div class="diet-kpi"><b style="color:#4CAF50;" data-k="carbs">{{ "%.1f"|format(totals.plan.total.carbs) }}</b><span>carboidrati (g)</span></div>
-  <div class="diet-kpi"><b style="color:#FFC107;" data-k="fat">{{ "%.1f"|format(totals.plan.total.fat) }}</b><span>grassi (g)</span></div>
-  <div class="diet-kpi"><b style="color:#9CCC65;" data-k="fiber">{{ "%.1f"|format(totals.plan.total.fiber) }}</b><span>fibre (g)</span></div>
+  <div class="diet-kpi diet-kpi--kcal"><b data-k="kcal">{{ "%.0f"|format(totals.plan.total.kcal) }}</b><span>kcal totali</span></div>
+  <div class="diet-kpi diet-kpi--protein"><b data-k="protein">{{ "%.1f"|format(totals.plan.total.protein) }}</b><span>proteine (g)</span></div>
+  <div class="diet-kpi diet-kpi--carbs"><b data-k="carbs">{{ "%.1f"|format(totals.plan.total.carbs) }}</b><span>carboidrati (g)</span></div>
+  <div class="diet-kpi diet-kpi--fat"><b data-k="fat">{{ "%.1f"|format(totals.plan.total.fat) }}</b><span>grassi (g)</span></div>
+  <div class="diet-kpi diet-kpi--fiber"><b data-k="fiber">{{ "%.1f"|format(totals.plan.total.fiber) }}</b><span>fibre (g)</span></div>
 </div>
 
 <div id="diet-msg" class="diet-msg" style="display:none;margin-bottom:1rem;"></div>
 
-<!-- CONTENITORE PASTI -->
 <div id="diet-builder"
      data-plan-id="{{ plan.id }}"
      data-search-url="{{ url_for('admin_nutrition.search_foods') }}"
@@ -59,7 +57,7 @@
           <div class="diet-meal-title">{{ meal.meal_name }}</div>
           <div class="diet-meal-sub">Giorno {{ meal.day_index + 1 }}{% if meal.meal_time %} · {{ meal.meal_time.strftime('%H:%M') }}{% endif %}{% if meal.notes %} · {{ meal.notes }}{% endif %}</div>
         </div>
-        <div style="display:flex;align-items:flex-start;gap:.6rem;flex-wrap:wrap;">
+        <div class="diet-meal-actions">
           <div class="dm-total" data-meal-total="{{ meal.id }}">
             <b data-k="kcal">{{ "%.0f"|format(mt.kcal) }}</b> kcal ·
             P <span data-k="protein">{{ "%.1f"|format(mt.protein) }}</span> ·
@@ -77,7 +75,7 @@
         <div class="diet-item" data-item-id="{{ item.id }}">
           <span class="di-name">{{ item.food.name }}{% if item.food.brand %} <span style="color:#b6b1a9;font-weight:400;">· {{ item.food.brand }}</span>{% endif %}</span>
           <span class="di-qty">{{ item.quantity_g|round(0) }} g</span>
-          <span class="di-macros">{{ "%.0f"|format(it.kcal) }} kcal · P {{ "%.1f"|format(it.protein) }} · C {{ "%.1f"|format(it.carbs) }} · G {{ "%.1f"|format(it.fat) }} · Fib {{ "%.1f"|format(it.fiber) }}</span>
+          <span class="di-macros">{{ "%.0f"|format(it.kcal) }} kcal · P {{ "%.1f"|format(it.protein) }} · C {{ "%.1f"|format(it.carbs) }} · G {{ "%.1f"|format(it.fat) }}</span>
           <button type="button" class="btn btn-danger btn-small btn-icon-danger" data-delete-item="{{ item.id }}" title="Rimuovi alimento">×</button>
         </div>
         {% else %}
@@ -91,13 +89,13 @@
             <input type="text" class="input-text food-search" data-meal="{{ meal.id }}" placeholder="Cerca alimento (es. petto di pollo)" autocomplete="off">
             <div class="food-results" data-results="{{ meal.id }}"></div>
           </div>
-          <input type="number" class="input-text food-grams" data-grams="{{ meal.id }}" placeholder="grammi" min="1" step="1">
+          <input type="number" class="input-text food-grams" data-grams="{{ meal.id }}" placeholder="Grammi" min="1" step="1">
           <button type="button" class="btn btn-primary btn-small" data-add-item="{{ meal.id }}">{{ icon('plus', 14) }} Aggiungi</button>
         </div>
         <div class="food-selected" data-selected="{{ meal.id }}"></div>
-        <details class="diet-custom-toggle" style="margin-top:.6rem;">
-          <summary style="color:#b6b1a9;font-size:.82rem;cursor:pointer;">Non trovi l'alimento? Inseriscilo manualmente</summary>
-          <div class="diet-custom-form" data-custom-meal="{{ meal.id }}" style="margin-top:.6rem;padding:.8rem;background:rgba(0,0,0,.15);border-radius:10px;">
+        <details class="diet-custom-toggle">
+          <summary>Non trovi l'alimento? Inseriscilo manualmente</summary>
+          <div class="diet-custom-form" data-custom-meal="{{ meal.id }}">
             <div class="diet-form-grid">
               <div class="diet-form-field">
                 <label class="diet-form-label">Nome *</label>
@@ -132,10 +130,9 @@
     {% endfor %}
   </div>
 
-  <!-- FORM NUOVO PASTO -->
-  <div class="management-card" style="background:rgba(13,51,28,.4);border:1px solid rgba(255,117,31,.3);border-radius:12px;padding:1.2rem;">
-    <h3 style="color:#ff751f;margin:0 0 .9rem 0;">Aggiungi pasto</h3>
-    <form id="meal-form" class="diet-form-grid">
+  <div class="diet-add-meal-panel">
+    <h3>Aggiungi pasto</h3>
+    <form id="meal-form" class="diet-meal-form">
       <div class="diet-form-field">
         <label class="diet-form-label">Nome pasto *</label>
         <input type="text" class="input-text" name="meal_name" required placeholder="Es. Colazione">
@@ -153,7 +150,6 @@
   </div>
 </div>
 
-<!-- TEMPLATE JS: pasto -->
 <template id="meal-tpl">
   <div class="diet-meal" data-meal-id="__MEAL_ID__">
     <div class="diet-meal-head">
@@ -161,7 +157,7 @@
         <div class="diet-meal-title">__MEAL_NAME__</div>
         <div class="diet-meal-sub">__MEAL_SUB__</div>
       </div>
-      <div style="display:flex;align-items:flex-start;gap:.6rem;flex-wrap:wrap;">
+      <div class="diet-meal-actions">
         <div class="dm-total" data-meal-total="__MEAL_ID__">
           <b data-k="kcal">0</b> kcal ·
           P <span data-k="protein">0.0</span> ·
@@ -181,29 +177,14 @@
           <input type="text" class="input-text food-search" data-meal="__MEAL_ID__" placeholder="Cerca alimento (es. petto di pollo)" autocomplete="off">
           <div class="food-results" data-results="__MEAL_ID__"></div>
         </div>
-        <input type="number" class="input-text food-grams" data-grams="__MEAL_ID__" placeholder="grammi" min="1" step="1">
+        <input type="number" class="input-text food-grams" data-grams="__MEAL_ID__" placeholder="Grammi" min="1" step="1">
         <button type="button" class="btn btn-primary btn-small" data-add-item="__MEAL_ID__">Aggiungi</button>
       </div>
       <div class="food-selected" data-selected="__MEAL_ID__"></div>
-      <details class="diet-custom-toggle" style="margin-top:.6rem;">
-        <summary style="color:#b6b1a9;font-size:.82rem;cursor:pointer;">Non trovi l'alimento? Inseriscilo manualmente</summary>
-        <div class="diet-custom-form" data-custom-meal="__MEAL_ID__" style="margin-top:.6rem;padding:.8rem;background:rgba(0,0,0,.15);border-radius:10px;">
-          <div class="diet-form-grid">
-            <div class="diet-form-field"><label class="diet-form-label">Nome *</label><input type="text" class="input-text" data-c-name placeholder="Es. Petto di pollo"></div>
-            <div class="diet-form-field diet-form-field--sm"><label class="diet-form-label">Kcal/100g</label><input type="number" class="input-text" data-c-kcal step="0.1"></div>
-            <div class="diet-form-field diet-form-field--sm"><label class="diet-form-label">Prot/100g</label><input type="number" class="input-text" data-c-protein step="0.1"></div>
-            <div class="diet-form-field diet-form-field--sm"><label class="diet-form-label">Carbo/100g</label><input type="number" class="input-text" data-c-carbs step="0.1"></div>
-            <div class="diet-form-field diet-form-field--sm"><label class="diet-form-label">Grassi/100g</label><input type="number" class="input-text" data-c-fat step="0.1"></div>
-            <div class="diet-form-field diet-form-field--sm"><label class="diet-form-label">Grammi *</label><input type="number" class="input-text" data-c-grams min="1"></div>
-            <button type="button" class="btn btn-secondary btn-small" data-add-custom="__MEAL_ID__">Aggiungi custom</button>
-          </div>
-        </div>
-      </details>
     </div>
   </div>
 </template>
 
-<!-- TEMPLATE JS: item -->
 <template id="item-tpl">
   <div class="diet-item" data-item-id="__ITEM_ID__">
     <span class="di-name">__NAME__</span>

@@ -1090,28 +1090,70 @@
   font-size: 0.9rem;
 }
 
-.admin-app .diet-summary {
+.admin-app .diet-msg.is-success {
+  background: rgba(76, 175, 80, 0.12);
+  border-color: rgba(76, 175, 80, 0.35);
+  color: #4caf50;
+}
+
+.admin-app .diet-page-toolbar {
   display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
   flex-wrap: wrap;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.admin-app .diet-page-toolbar__left {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.admin-app .diet-page-hero {
+  margin-bottom: 1rem;
+}
+
+.admin-app .diet-page-hero h2 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.admin-app .diet-page-hero p {
+  margin: 0.35rem 0 0;
+  color: var(--adm-text-muted);
+  font-size: 0.92rem;
+}
+
+.admin-app .diet-summary {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin-bottom: 1.25rem;
 }
 
 .admin-app .diet-kpi {
-  flex: 1;
-  min-width: 120px;
   background: var(--adm-surface);
   border: 1px solid var(--adm-border);
   border-radius: 12px;
-  padding: 1rem 1.1rem;
+  padding: 0.75rem 0.85rem;
+  text-align: center;
 }
 
 .admin-app .diet-kpi b {
   display: block;
-  font-size: 1.6rem;
+  font-size: 1.35rem;
   font-weight: 800;
-  line-height: 1;
+  line-height: 1.1;
+  margin-bottom: 0.15rem;
 }
+
+.admin-app .diet-kpi--kcal b { color: var(--adm-orange); }
+.admin-app .diet-kpi--protein b { color: #42a5f5; }
+.admin-app .diet-kpi--carbs b { color: #4caf50; }
+.admin-app .diet-kpi--fat b { color: #ffca28; }
+.admin-app .diet-kpi--fiber b { color: #9ccc65; }
 
 .admin-app .diet-kpi span {
   color: var(--adm-text-muted);
@@ -1129,12 +1171,19 @@
 }
 
 .admin-app .diet-meal-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: start;
   gap: 1rem;
+  margin-bottom: 0.85rem;
+}
+
+.admin-app .diet-meal-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
   flex-wrap: wrap;
-  margin-bottom: 0.8rem;
+  justify-content: flex-end;
 }
 
 .admin-app .diet-meal-title {
@@ -1166,33 +1215,34 @@
 }
 
 .admin-app .diet-item {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(140px, 1fr) auto minmax(120px, auto) auto;
   align-items: center;
-  gap: 0.8rem;
-  padding: 0.55rem 0.7rem;
+  gap: 0.65rem 1rem;
+  padding: 0.55rem 0.75rem;
   background: rgba(0, 0, 0, 0.18);
   border-radius: 10px;
-  flex-wrap: wrap;
 }
 
 .admin-app .di-name {
   color: var(--adm-text);
   font-weight: 600;
   font-size: 0.9rem;
-  flex: 1;
-  min-width: 140px;
+  min-width: 0;
 }
 
 .admin-app .di-qty {
   color: #4caf50;
   font-weight: 600;
   font-size: 0.85rem;
+  white-space: nowrap;
 }
 
 .admin-app .di-macros {
   color: var(--adm-text-muted);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
+  text-align: right;
+  white-space: nowrap;
 }
 
 .admin-app .diet-empty-items {
@@ -1208,10 +1258,10 @@
 }
 
 .admin-app .food-adder-row {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  align-items: stretch;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 100px auto;
+  gap: 0.55rem;
+  align-items: start;
 }
 
 .admin-app .food-search-wrap {
@@ -1225,7 +1275,149 @@
 }
 
 .admin-app .food-grams {
-  width: 110px;
+  width: 100%;
+}
+
+.admin-app .food-adder-row .btn {
+  align-self: stretch;
+  white-space: nowrap;
+}
+
+.admin-app .diet-add-meal-panel {
+  background: rgba(13, 51, 28, 0.4);
+  border: 1px solid rgba(255, 117, 31, 0.3);
+  border-radius: 12px;
+  padding: 1.1rem 1.2rem;
+  margin-top: 0.5rem;
+}
+
+.admin-app .diet-add-meal-panel h3 {
+  color: var(--adm-orange);
+  margin: 0 0 0.85rem;
+  font-size: 1rem;
+}
+
+.admin-app .diet-meal-form {
+  display: grid;
+  grid-template-columns: minmax(160px, 1fr) 88px 118px auto;
+  gap: 0.55rem 0.75rem;
+  align-items: end;
+}
+
+.admin-app .diet-meal-form .btn-primary {
+  height: 42px;
+  padding-left: 1.1rem;
+  padding-right: 1.1rem;
+  white-space: nowrap;
+}
+
+.admin-app .diet-form-grid {
+  display: grid;
+  grid-template-columns: minmax(160px, 2fr) repeat(5, minmax(72px, 1fr)) auto;
+  gap: 0.55rem 0.65rem;
+  align-items: end;
+}
+
+.admin-app .diet-form-field {
+  min-width: 0;
+}
+
+.admin-app .diet-form-field--sm {
+  min-width: 0;
+}
+
+.admin-app .diet-form-label {
+  display: block;
+  color: var(--adm-text-muted);
+  font-size: 0.78rem;
+  margin-bottom: 0.28rem;
+  letter-spacing: 0.02em;
+}
+
+.admin-app .diet-custom-toggle summary {
+  color: var(--adm-text-muted);
+  font-size: 0.82rem;
+  cursor: pointer;
+  margin-top: 0.55rem;
+  user-select: none;
+}
+
+.admin-app .diet-custom-form {
+  margin-top: 0.65rem;
+  padding: 0.85rem;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 10px;
+  border: 1px solid var(--adm-border-soft);
+}
+
+.admin-app .input-text:focus,
+.admin-app select.input-text:focus,
+.admin-app textarea.input-text:focus {
+  outline: none;
+  border-color: rgba(255, 117, 31, 0.45) !important;
+  box-shadow: 0 0 0 2px rgba(255, 117, 31, 0.12);
+}
+
+@media (max-width: 900px) {
+  .admin-app .diet-summary {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .admin-app .diet-meal-form {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .admin-app .diet-meal-form .diet-form-field:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .admin-app .diet-meal-form .btn-primary {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .admin-app .diet-form-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .admin-app .diet-form-grid .diet-form-field:first-child,
+  .admin-app .diet-form-grid [data-add-custom] {
+    grid-column: 1 / -1;
+  }
+
+  .admin-app .food-adder-row {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-app .diet-item {
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "name qty"
+      "macros btn";
+  }
+
+  .admin-app .di-name { grid-area: name; }
+  .admin-app .di-qty { grid-area: qty; justify-self: end; }
+  .admin-app .di-macros { grid-area: macros; text-align: left; white-space: normal; }
+  .admin-app .diet-item .btn-icon-danger { grid-area: btn; justify-self: end; }
+}
+
+@media (max-width: 560px) {
+  .admin-app .diet-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-app .diet-meal-head {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-app .diet-meal-actions {
+    justify-content: space-between;
+  }
+
+  .admin-app .dm-total {
+    text-align: left;
+  }
 }
 
 .admin-app .food-results {
@@ -1291,36 +1483,19 @@
   padding: 0.5rem 0.7rem;
 }
 
-.admin-app .diet-form-grid {
-  display: flex;
-  gap: 0.6rem;
-  flex-wrap: wrap;
-  align-items: flex-end;
-}
-
-.admin-app .diet-form-field {
-  flex: 1;
-  min-width: 160px;
-}
-
-.admin-app .diet-form-field--sm {
-  width: 120px;
-  flex: 0 0 auto;
-}
-
-.admin-app .diet-form-label {
-  display: block;
-  color: var(--adm-text-muted);
-  font-size: 0.8rem;
-  margin-bottom: 0.3rem;
-}
-
 .admin-app input[type="time"].input-text {
   color-scheme: dark;
+  min-height: 42px;
+}
+
+.admin-app .diet-meal-form .input-text,
+.admin-app .food-adder-row .input-text {
+  min-height: 42px;
 }
 
 .admin-app .btn-icon-danger {
   padding: 0.35rem 0.55rem;
   font-size: 0.78rem;
   line-height: 1;
+  flex-shrink: 0;
 }
