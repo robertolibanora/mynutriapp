@@ -75,7 +75,7 @@
 
   <div id="meals-container">
     {% for meal in plan.meals %}
-    {% set mt = totals.meals[meal.id] %}
+    {% set mt = totals.meal[meal.id] %}
     <div class="diet-meal" data-meal-id="{{ meal.id }}">
       <div class="diet-meal-head">
         <div>
@@ -93,7 +93,7 @@
 
       <div class="diet-items" data-items="{{ meal.id }}">
         {% for item in meal.items %}
-        {% set it = totals.items[item.id] %}
+        {% set it = totals.item[item.id] %}
         <div class="diet-item" data-item-id="{{ item.id }}">
           <span class="di-name">{{ item.food.name }}{% if item.food.brand %} <span style="color:#b6b1a9;font-weight:400;">· {{ item.food.brand }}</span>{% endif %}</span>
           <span class="di-qty">{{ item.quantity_g|round(0) }} g</span>

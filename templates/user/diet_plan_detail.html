@@ -41,7 +41,7 @@
 
 {% if plan.meals %}
   {% for meal in plan.meals %}
-  {% set mt = totals.meals[meal.id] %}
+  {% set mt = totals.meal[meal.id] %}
   <div class="dp-meal">
     <div class="dp-meal-head">
       <span class="dp-meal-name">{{ meal.meal_name }}</span>
@@ -50,7 +50,7 @@
 
     {% if meal.items %}
       {% for item in meal.items %}
-      {% set it = totals.items[item.id] %}
+      {% set it = totals.item[item.id] %}
       <div class="dp-item">
         <div>
           <div class="dp-item-name">{{ item.food.name }}{% if item.food.brand %} · <span style="color:#999;font-weight:400;">{{ item.food.brand }}</span>{% endif %}</div>

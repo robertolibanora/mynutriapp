@@ -75,10 +75,11 @@ def _build_totals(plan: DietPlan) -> dict:
                 item.food, item.quantity_g
             )
     plan_totals = NutritionCalculatorService.compute_plan(plan.meals)
+    # NB: niente chiave "items"/"meals" per non collidere con dict.items()/.meals in Jinja.
     return {
         "plan": plan_totals,
-        "meals": meal_totals,
-        "items": item_totals,
+        "meal": meal_totals,
+        "item": item_totals,
     }
 
 
