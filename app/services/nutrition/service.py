@@ -218,6 +218,32 @@ class NutritionService:
         db.session.commit()
         return plan
 
+    def update_diet_plan(self, diet_plan_id: int, data: Dict[str, Any]) -> DietPlan:
+        """Aggiorna metadati del piano (es. bozza ↔ pubblicata)."""
+        plan = db.session.get(DietPlan, diet_plan_id)
+        if plan is None:
+            raise ResourceNotFoundError(f"Piano dieta {diet_plan_id} inesistente")
+
+        if "status" in data:
+            status = (data.get("status") or "").strip()
+            if status not in ("draft", "published"):
+                raise NutritionServiceError("status deve essere 'draft' o 'published'")
+            plan.status = status
+
+        if "title" in data:
+            title = (data.get("title") or "").strip()
+            if title:
+                plan.title = title
+
+        if "goal" in data:
+            plan.goal = (data.get("goal") or None)
+
+        if "notes" in data:
+            plan.notes = (data.get("notes") or None)
+
+        db.session.commit()
+        return plan
+
     def add_meal(self, diet_plan_id: int, data: Dict[str, Any]) -> DietMeal:
         plan = db.session.get(DietPlan, diet_plan_id)
         if plan is None:

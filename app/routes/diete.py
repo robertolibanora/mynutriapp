@@ -193,7 +193,7 @@ def lista_diete_user():
     # Piani alimentari strutturati (nuovo flusso)
     from app.models.models import DietPlan
     diet_plans = (
-        DietPlan.query.filter_by(patient_id=user_id)
+        DietPlan.query.filter_by(patient_id=user_id, status="published")
         .order_by(DietPlan.created_at.desc())
         .all()
     )

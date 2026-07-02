@@ -65,6 +65,16 @@ def add_meal_item(meal_id):
     return jsonify({"item": diet_meal_item_to_dict(item)}), 201
 
 
+@admin_diets_bp.route("/diet-plans/<int:diet_plan_id>", methods=["PATCH"])
+@api_admin_required
+@handle_service_errors
+def update_diet_plan(diet_plan_id):
+    """PATCH /api/admin/diet-plans/{id} — aggiorna metadati (stato, titolo, …)."""
+    data = request.get_json(silent=True) or {}
+    plan = NutritionService().update_diet_plan(diet_plan_id, data)
+    return jsonify({"diet_plan": diet_plan_to_dict(plan)})
+
+
 @admin_diets_bp.route("/diet-plans/<int:diet_plan_id>", methods=["DELETE"])
 @api_admin_required
 @handle_service_errors

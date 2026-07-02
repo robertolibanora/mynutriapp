@@ -7,6 +7,14 @@
   <div class="diet-page-toolbar__left">
     <a href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id) }}" class="btn btn-secondary btn-small">{{ icon('user', 14) }} Scheda paziente</a>
     <a href="{{ url_for('diete_plans.user_diet_plan', diet_plan_id=plan.id) }}" target="_blank" class="btn btn-white btn-small">{{ icon('eye', 14) }} Anteprima paziente</a>
+    <div class="diet-status-control">
+      <label class="diet-form-label" for="plan-status">Stato dieta</label>
+      <select id="plan-status" class="input-text input-select diet-status-select"
+              data-plan-update-url="{{ url_for('admin_diets.update_diet_plan', diet_plan_id=plan.id) }}">
+        <option value="draft" {% if plan.status != 'published' %}selected{% endif %}>Bozza</option>
+        <option value="published" {% if plan.status == 'published' %}selected{% endif %}>Pubblicata</option>
+      </select>
+    </div>
   </div>
   <button type="button" class="btn btn-danger btn-small" id="delete-plan-btn"
           data-plan-id="{{ plan.id }}"
@@ -20,7 +28,7 @@
   <p>
     Paziente: <strong>{{ paziente.nome }} {{ paziente.cognome }}</strong>
     {% if plan.goal %} · Obiettivo: {{ plan.goal }}{% endif %}
-    · Stato: {{ 'Pubblicata' if plan.status == 'published' else 'Bozza' }}
+    · Stato: <span id="plan-status-label">{{ 'Pubblicata' if plan.status == 'published' else 'Bozza' }}</span>
   </p>
   {% if plan.notes %}<p>{{ plan.notes }}</p>{% endif %}
 </div>

@@ -107,7 +107,7 @@ def user_dashboard():
     # Ultimo piano alimentare strutturato (nuovo flusso)
     from app.models.models import DietPlan
     ultimo_diet_plan = (
-        DietPlan.query.filter_by(patient_id=user_id)
+        DietPlan.query.filter_by(patient_id=user_id, status="published")
         .order_by(DietPlan.created_at.desc())
         .first()
     )

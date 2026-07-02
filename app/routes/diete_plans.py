@@ -132,6 +132,8 @@ def user_diet_plan(diet_plan_id):
     if role == "user":
         if plan.patient_id != session.get("user_id"):
             abort(403)
+        if plan.status != "published":
+            abort(404)
     elif role != "admin":
         abort(403)
 

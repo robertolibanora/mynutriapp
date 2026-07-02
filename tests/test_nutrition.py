@@ -30,6 +30,7 @@ from app.services.nutrition import (
     NormalizedFood,
     NutritionCalculatorService,
     NutritionService,
+    NutritionServiceError,
 )
 from app.services.nutrition.openfoodfacts import OpenFoodFactsProvider
 from app.services.nutrition.providers import NutritionProvider
@@ -218,6 +219,34 @@ class MealTotalsTest(DbTestCase):
         plan_totals = service.plan_totals(plan.id)
         self.assertEqual(plan_totals["total"]["kcal"], 100.3)
         self.assertIn(0, plan_totals["per_day"])
+
+
+class DietPlanStatusTest(DbTestCase):
+    """Aggiornamento stato bozza ↔ pubblicata."""
+
+    def test_update_diet_plan_status(self):
+        patient = Patient(
+            password_hash="x",
+            telefono="+390000000000",
+            nome="Luigi",
+            cognome="Verdi",
+            sesso="M",
+            data_nascita=date(1990, 1, 1),
+            altezza_cm=180,
+            peso_iniziale=80,
+        )
+        db.session.add(patient)
+        db.session.commit()
+
+        service = NutritionService(provider=FakeProvider())
+        plan = service.create_diet_plan({"patient_id": patient.id, "title": "Piano test"})
+        self.assertEqual(plan.status, "draft")
+
+        updated = service.update_diet_plan(plan.id, {"status": "published"})
+        self.assertEqual(updated.status, "published")
+
+        with self.assertRaises(NutritionServiceError):
+            service.update_diet_plan(plan.id, {"status": "invalid"})
 
 
 if __name__ == "__main__":

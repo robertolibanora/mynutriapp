@@ -54,6 +54,7 @@
   }
 
   function writeTotals(el, t) {
+    if (!el || !t) return;
     var map = { kcal: fmt0(t.kcal), protein: fmt1(t.protein), carbs: fmt1(t.carbs), fat: fmt1(t.fat), fiber: fmt1(t.fiber) };
     Object.keys(map).forEach(function (k) {
       var span = el.querySelector('[data-k="' + k + '"]');
@@ -61,20 +62,48 @@
     });
   }
 
+  function bumpTotals(el, delta) {
+    if (!el || !delta) return;
+    var keys = ["kcal", "protein", "carbs", "fat", "fiber"];
+    keys.forEach(function (k) {
+      var node = el.querySelector('[data-k="' + k + '"]');
+      if (!node) return;
+      var cur = parseFloat(String(node.textContent).replace(",", ".")) || 0;
+      var next = cur + (parseFloat(delta[k]) || 0);
+      node.textContent = k === "kcal" ? fmt0(next) : fmt1(next);
+    });
+  }
+
+  function mealTotalEl(mealId) {
+    return document.querySelector('[data-meal-total="' + mealId + '"]');
+  }
+
+  function planTotalEl() {
+    return document.querySelector("[data-plan-total]");
+  }
+
   function refreshMealTotals(mealId) {
+    if (!MEAL_TOTAL_BASE) return;
     jsonFetch(MEAL_TOTAL_BASE + mealId + "/totals").then(function (res) {
       if (!res.ok) return;
-      var el = root.querySelector('[data-meal-total="' + mealId + '"]');
-      if (el) writeTotals(el, res.data.totals || {});
+      writeTotals(mealTotalEl(mealId), res.data.totals || {});
     });
   }
 
   function refreshPlanTotals() {
+    if (!PLAN_TOTALS_URL) return;
     jsonFetch(PLAN_TOTALS_URL).then(function (res) {
       if (!res.ok) return;
       var t = (res.data.totals && res.data.totals.total) || {};
-      var el = root.querySelector("[data-plan-total]");
-      if (el) writeTotals(el, t);
+      writeTotals(planTotalEl(), t);
+    });
+  }
+
+  function refreshAllTotals() {
+    refreshPlanTotals();
+    root.querySelectorAll("[data-meal-total]").forEach(function (el) {
+      var mealId = el.getAttribute("data-meal-total");
+      if (mealId && mealId.indexOf("__") === -1) refreshMealTotals(mealId);
     });
   }
 
@@ -204,6 +233,9 @@
     }).then(function (res) {
       if (!res.ok) throw new Error(res.data.error || "Errore aggiunta alimento.");
       appendItemRow(mealId, food, res.data.item);
+      var computed = (res.data.item && res.data.item.computed) || {};
+      bumpTotals(mealTotalEl(mealId), computed);
+      bumpTotals(planTotalEl(), computed);
       refreshMealTotals(mealId);
       refreshPlanTotals();
       selected[mealId] = null;
@@ -212,7 +244,7 @@
       if (searchInput) searchInput.value = "";
       var sel = root.querySelector('[data-selected="' + mealId + '"]');
       if (sel) sel.textContent = "";
-      showMsg("Alimento aggiunto.", false);
+      showMsg("Alimento aggiunto.", true);
     }).catch(function (err) {
       showMsg(err.message || "Errore imprevisto.");
     }).finally(function () {
@@ -278,6 +310,41 @@
     });
   }
 
+  var planStatusSelect = document.getElementById("plan-status");
+  var planStatusLabel = document.getElementById("plan-status-label");
+  if (planStatusSelect) {
+    var planStatusPrev = planStatusSelect.value;
+    planStatusSelect.addEventListener("change", function () {
+      var nextStatus = planStatusSelect.value;
+      var updateUrl = planStatusSelect.dataset.planUpdateUrl;
+      if (!updateUrl) return;
+
+      planStatusSelect.classList.add("is-saving");
+      jsonFetch(updateUrl, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: nextStatus })
+      }).then(function (res) {
+        if (!res.ok) throw new Error(res.data.error || "Impossibile aggiornare lo stato.");
+        planStatusPrev = nextStatus;
+        if (planStatusLabel) {
+          planStatusLabel.textContent = nextStatus === "published" ? "Pubblicata" : "Bozza";
+        }
+        showMsg(
+          nextStatus === "published"
+            ? "Dieta pubblicata: il paziente può vederla."
+            : "Dieta salvata come bozza: non visibile al paziente.",
+          true
+        );
+      }).catch(function (err) {
+        planStatusSelect.value = planStatusPrev;
+        showMsg(err.message || "Errore aggiornamento stato.");
+      }).finally(function () {
+        planStatusSelect.classList.remove("is-saving");
+      });
+    });
+  }
+
   root.addEventListener("click", function (e) {
     var addBtn = e.target.closest("[data-add-item]");
     if (addBtn) { e.preventDefault(); addItem(addBtn.dataset.addItem); return; }
@@ -337,10 +404,13 @@
       }).then(function (itemRes) {
         if (!itemRes.ok) throw new Error(itemRes.data.error || "Errore aggiunta alimento.");
         appendItemRow(mealId, food, itemRes.data.item);
+        var computed = (itemRes.data.item && itemRes.data.item.computed) || {};
+        bumpTotals(mealTotalEl(mealId), computed);
+        bumpTotals(planTotalEl(), computed);
         refreshMealTotals(mealId);
         refreshPlanTotals();
         form.querySelectorAll("input").forEach(function (inp) { inp.value = ""; });
-        showMsg("Alimento custom aggiunto.", false);
+        showMsg("Alimento custom aggiunto.", true);
       });
     }).catch(function (err) {
       showMsg(err.message || "Errore imprevisto.");
@@ -389,4 +459,6 @@
     node.querySelector(".diet-meal-title").textContent = meal.meal_name;
     mealsContainer.appendChild(node);
   }
+
+  refreshAllTotals();
 })();
