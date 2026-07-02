@@ -203,6 +203,12 @@ from app.utils.admin_icons import admin_icon
 def inject_admin_icons():
     return dict(icon=admin_icon)
 
+@app.context_processor
+def inject_admin_name():
+    """Nome admin da .env (ADMIN_NAME), sempre aggiornato senza rifare login."""
+    from app.config.config import Config
+    return dict(admin_name=Config.ADMIN_NAME)
+
 # 🚦 Applica rate limiting specifico al login con configurazione dinamica
 # Decora la view function del login dopo la registrazione delle routes
 if limiter and limiter_enabled:

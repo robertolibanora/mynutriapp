@@ -92,6 +92,7 @@ class Config:
     # ========================================
     # 🔐 SECRET KEY (obbligatoria)
     # ========================================
+    ADMIN_NAME = os.getenv("ADMIN_NAME", "MyNutriApp").strip()
     SECRET_KEY = _get_required_env("SECRET_KEY", "chiave segreta Flask")
     
     # ========================================
