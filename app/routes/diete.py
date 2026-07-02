@@ -189,5 +189,19 @@ def lista_diete_user():
     
     paziente = Patient.query.get_or_404(user_id)
     diete = Dieta.query.filter_by(patient_id=user_id).order_by(Dieta.created_at.desc()).all()
-    
-    return render_template('user/diete_lista.html', paziente=paziente, diete=diete, now=datetime.now().date())
+
+    # Piani alimentari strutturati (nuovo flusso)
+    from app.models.models import DietPlan
+    diet_plans = (
+        DietPlan.query.filter_by(patient_id=user_id)
+        .order_by(DietPlan.created_at.desc())
+        .all()
+    )
+
+    return render_template(
+        'user/diete_lista.html',
+        paziente=paziente,
+        diete=diete,
+        diet_plans=diet_plans,
+        now=datetime.now().date(),
+    )

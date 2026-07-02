@@ -1,0 +1,104 @@
+{% extends 'base_admin.html' %}
+{% block title %}Crea dieta{% endblock %}
+{% block content %}
+
+<div class="adm-hero" style="margin-bottom:1.5rem;">
+  <h2 style="margin:0;">Crea dieta per {{ paziente.nome }} {{ paziente.cognome }}</h2>
+  <p style="margin:.35rem 0 0 0;">Nuovo piano alimentare strutturato: dopo la creazione potrai aggiungere pasti e alimenti con calcolo automatico di kcal e macro.</p>
+</div>
+
+<div style="display:flex;gap:.5rem;margin-bottom:1.5rem;flex-wrap:wrap;">
+  <a href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id) }}" class="btn btn-secondary btn-small">{{ icon('user', 14) }} Torna alla scheda paziente</a>
+</div>
+
+<div class="management-card" style="max-width:640px;background:rgba(13,51,28,0.4);border:1px solid rgba(255,117,31,0.3);border-radius:12px;padding:1.5rem;">
+  <form id="plan-create-form"
+        data-patient-id="{{ paziente.id }}"
+        data-create-url="{{ url_for('admin_diets.create_diet_plan') }}"
+        data-detail-base="/admin/diet-plans/">
+    <div style="margin-bottom:1rem;">
+      <label style="display:block;color:#b6b1a9;font-size:.85rem;margin-bottom:.35rem;">Titolo dieta *</label>
+      <input type="text" name="title" required placeholder="Es. Dieta dimagrimento" style="width:100%;">
+    </div>
+    <div style="margin-bottom:1rem;">
+      <label style="display:block;color:#b6b1a9;font-size:.85rem;margin-bottom:.35rem;">Obiettivo</label>
+      <input type="text" name="goal" placeholder="Es. -5 kg in 3 mesi" style="width:100%;">
+    </div>
+    <div style="margin-bottom:1rem;">
+      <label style="display:block;color:#b6b1a9;font-size:.85rem;margin-bottom:.35rem;">Note</label>
+      <textarea name="notes" rows="3" placeholder="Indicazioni generali, preferenze, ecc." style="width:100%;"></textarea>
+    </div>
+    <div style="margin-bottom:1.25rem;">
+      <label style="display:block;color:#b6b1a9;font-size:.85rem;margin-bottom:.35rem;">Stato</label>
+      <select name="status" style="width:100%;">
+        <option value="draft">Bozza</option>
+        <option value="published">Pubblicata</option>
+      </select>
+    </div>
+
+    <div id="plan-msg" class="diet-msg" style="display:none;margin-bottom:1rem;"></div>
+
+    <button type="submit" class="btn btn-primary" style="display:inline-flex;align-items:center;gap:.5rem;">
+      {{ icon('plus', 16) }} Crea dieta e aggiungi pasti
+    </button>
+  </form>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function () {
+  var form = document.getElementById('plan-create-form');
+  if (!form) return;
+  var msg = document.getElementById('plan-msg');
+
+  function showError(text) {
+    msg.textContent = text;
+    msg.style.display = 'block';
+    msg.style.color = '#e2725b';
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var btn = form.querySelector('button[type="submit"]');
+    btn.disabled = true;
+
+    var payload = {
+      patient_id: parseInt(form.dataset.patientId, 10),
+      title: form.title.value.trim(),
+      goal: form.goal.value.trim() || null,
+      notes: form.notes.value.trim() || null,
+      status: form.status.value
+    };
+
+    if (!payload.title) {
+      showError('Inserisci un titolo per la dieta.');
+      btn.disabled = false;
+      return;
+    }
+
+    fetch(form.dataset.createUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify(payload)
+    })
+      .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
+      .then(function (res) {
+        if (!res.ok) {
+          showError(res.data.error || 'Errore durante la creazione della dieta.');
+          btn.disabled = false;
+          return;
+        }
+        var id = res.data.diet_plan.id;
+        window.location = form.dataset.detailBase + id;
+      })
+      .catch(function () {
+        showError('Errore di rete. Riprova.');
+        btn.disabled = false;
+      });
+  });
+})();
+</script>
+{% endblock %}

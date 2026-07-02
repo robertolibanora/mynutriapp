@@ -115,6 +115,18 @@ else:
 ensure_upload_dirs()
 
 # ===========================================
+# 🍎 SCHEMA MODULO NUTRIZIONE (idempotente)
+# Crea le tabelle foods/diet_plans/diet_meals/diet_meal_items se mancanti,
+# così le pagine admin/paziente possono leggerle anche prima di usare le API.
+# ===========================================
+with app.app_context():
+    try:
+        from app.utils.db_schema import ensure_nutrition_schema
+        ensure_nutrition_schema()
+    except Exception as e:
+        logger.warning(f"⚠️  Impossibile verificare lo schema nutrizione al boot: {e}")
+
+# ===========================================
 # 🛡️ SECURITY HEADERS (zero overhead RAM)
 # ===========================================
 @app.after_request
@@ -172,6 +184,20 @@ try:
         logger.info("✅ Webhook Vapi esente da CSRF e rate limiting")
 except Exception as e:
     logger.warning(f"⚠️  Impossibile esentare il webhook Vapi: {e}")
+
+# ===========================================
+# 🍎 API NUTRIZIONE/DIETE: esenti da CSRF
+# Sono API JSON protette da sessione admin, consumate via fetch/client.
+# ===========================================
+try:
+    from app.routes.admin_nutrition import admin_nutrition_bp
+    from app.routes.admin_diets import admin_diets_bp
+
+    csrf.exempt(admin_nutrition_bp)
+    csrf.exempt(admin_diets_bp)
+    logger.info("✅ API nutrizione/diete esenti da CSRF")
+except Exception as e:
+    logger.warning(f"⚠️  Impossibile esentare le API nutrizione/diete: {e}")
 
 # Rende disponibile csrf_token() in tutte le template
 @app.context_processor
@@ -321,7 +347,8 @@ def init_db_command():
             Patient, Dieta, Allenamento, Progresso, 
             MisureAntropometriche, ComposizioneCorporea,
             Documento, Appuntamento, Listino, Vendita, SlotDisponibilita,
-            SegretarioConfig, ChiamataInbound
+            SegretarioConfig, ChiamataInbound,
+            Food, DietPlan, DietMeal, DietMealItem
         )
         
         # Crea tutte le tabelle

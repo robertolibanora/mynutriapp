@@ -164,6 +164,20 @@ class Config:
     AUDIT_LOG_RETENTION_DAYS = int(os.getenv("AUDIT_LOG_RETENTION_DAYS", "730"))
     
     # ========================================
+    # 🍎 NUTRIZIONE - PROVIDER ALIMENTI ESTERNO
+    # ========================================
+    # Provider attivo per la ricerca alimenti. Non hardcodare nei router:
+    # la factory get_nutrition_provider() legge questo valore.
+    NUTRITION_PROVIDER = os.getenv("NUTRITION_PROVIDER", "openfoodfacts").strip().lower()
+    NUTRITION_HTTP_TIMEOUT = float(os.getenv("NUTRITION_HTTP_TIMEOUT", "8"))
+    OPENFOODFACTS_BASE_URL = os.getenv(
+        "OPENFOODFACTS_BASE_URL", "https://world.openfoodfacts.org"
+    ).rstrip("/")
+    OPENFOODFACTS_USER_AGENT = os.getenv(
+        "OPENFOODFACTS_USER_AGENT", "MyNutriApp/1.0 (nutrition module)"
+    )
+
+    # ========================================
     # 📱 WHATSAPP - Evolution API (opzionale)
     # ========================================
     WHATSAPP_ENABLED = os.getenv("WHATSAPP_ENABLED", "False").lower() in ("true", "1", "yes")

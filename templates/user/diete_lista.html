@@ -4,7 +4,41 @@
 
 <h1 class="page-title-user">{{ icon('diet', 22, 'usr-icon') }} Le Mie Diete</h1>
 
+{% if diet_plans %}
+    {% for dp in diet_plans %}
+    <div class="card-user">
+        <div class="card-header">
+            <div style="display: flex; align-items: center;">
+                <span class="card-icon">{{ icon('diet', 24, 'usr-icon') }}</span>
+                <span class="card-title">{{ dp.title }}</span>
+            </div>
+            <span class="status-badge {{ 'status-active' if dp.status == 'published' else 'status-expired' }}">
+                {{ 'Attiva' if dp.status == 'published' else 'Bozza' }}
+            </span>
+        </div>
+        <div class="card-body">
+            {% if dp.goal %}
+            <div class="card-info-row">
+                <span class="card-label">Obiettivo</span>
+                <span class="card-value">{{ dp.goal }}</span>
+            </div>
+            {% endif %}
+            <div class="card-info-row">
+                <span class="card-label">Pasti</span>
+                <span class="card-value">{{ dp.meals|length }}</span>
+            </div>
+        </div>
+        <a href="{{ url_for('diete_plans.user_diet_plan', diet_plan_id=dp.id) }}" class="btn-user mt-2">
+            {{ icon('diet', 16, 'usr-icon') }} Visualizza dieta
+        </a>
+    </div>
+    {% endfor %}
+{% endif %}
+
 {% if diete %}
+    {% if diet_plans %}
+    <h2 style="color:#666;font-size:1rem;margin:1.5rem 0 .8rem;">Diete caricate come PDF</h2>
+    {% endif %}
     {% for dieta in diete %}
     <div class="card-user">
         <div class="card-header">
@@ -71,7 +105,9 @@
         {% endif %}
     </div>
     {% endfor %}
-{% else %}
+{% endif %}
+
+{% if not diet_plans and not diete %}
 <div class="empty-state">
     <div class="empty-icon">{{ icon('diet', 48, 'usr-icon usr-icon--lg') }}</div>
     <p class="empty-text">Non hai ancora nessuna dieta assegnata.<br>Il tuo nutrizionista ti assegnerà presto un piano alimentare personalizzato!</p>

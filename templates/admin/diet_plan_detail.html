@@ -1,0 +1,185 @@
+{% extends 'base_admin.html' %}
+{% block title %}{{ plan.title }}{% endblock %}
+
+{% block extra_head %}
+<style>
+  .diet-msg { padding:.7rem 1rem; border-radius:8px; background:rgba(226,114,91,.12); border:1px solid rgba(226,114,91,.35); color:#e2725b; font-size:.9rem; }
+  .diet-summary { display:flex; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem; }
+  .diet-kpi { flex:1; min-width:120px; background:rgba(13,51,28,.5); border:1px solid rgba(182,177,169,.2); border-radius:12px; padding:1rem 1.1rem; }
+  .diet-kpi b { display:block; font-size:1.6rem; font-weight:800; line-height:1; }
+  .diet-kpi span { color:#b6b1a9; font-size:.8rem; text-transform:uppercase; letter-spacing:.4px; }
+  .diet-meal { background:rgba(13,51,28,.4); border:1px solid rgba(182,177,169,.2); border-radius:14px; padding:1.2rem; margin-bottom:1.2rem; }
+  .diet-meal-head { display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; flex-wrap:wrap; margin-bottom:.8rem; }
+  .diet-meal-title { font-weight:700; color:#fff; font-size:1.05rem; }
+  .diet-meal-sub { color:#b6b1a9; font-size:.82rem; }
+  .dm-total { color:#b6b1a9; font-size:.85rem; text-align:right; }
+  .dm-total b { color:#FF9800; }
+  .diet-items { display:flex; flex-direction:column; gap:.4rem; margin-bottom:.9rem; }
+  .diet-item { display:flex; justify-content:space-between; align-items:center; gap:.8rem; padding:.55rem .7rem; background:rgba(0,0,0,.18); border-radius:8px; flex-wrap:wrap; }
+  .di-name { color:#fff; font-weight:600; font-size:.9rem; }
+  .di-qty { color:#4CAF50; font-weight:600; font-size:.85rem; }
+  .di-macros { color:#b6b1a9; font-size:.8rem; }
+  .diet-empty-items { color:#b6b1a9; font-size:.85rem; font-style:italic; padding:.3rem 0; }
+  .food-adder { border-top:1px dashed rgba(182,177,169,.25); padding-top:.8rem; }
+  .food-adder .row { display:flex; gap:.5rem; flex-wrap:wrap; align-items:center; position:relative; }
+  .food-search { flex:1; min-width:200px; }
+  .food-grams { width:110px; }
+  .food-results { position:absolute; top:100%; left:0; right:0; z-index:20; background:#0d331c; border:1px solid rgba(182,177,169,.3); border-radius:8px; margin-top:2px; max-height:280px; overflow-y:auto; display:none; }
+  .food-results.open { display:block; }
+  .food-res-item { padding:.55rem .7rem; cursor:pointer; border-bottom:1px solid rgba(182,177,169,.12); }
+  .food-res-item:hover { background:rgba(255,117,31,.12); }
+  .food-res-name { color:#fff; font-size:.88rem; font-weight:600; }
+  .food-res-meta { color:#b6b1a9; font-size:.76rem; }
+  .food-selected { color:#4CAF50; font-size:.82rem; margin-top:.4rem; min-height:1rem; }
+  .food-loading { color:#b6b1a9; font-size:.8rem; padding:.5rem .7rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div style="display:flex;gap:.5rem;margin-bottom:1.2rem;flex-wrap:wrap;">
+  <a href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id) }}" class="btn btn-secondary btn-small">{{ icon('user', 14) }} Scheda paziente</a>
+  <a href="{{ url_for('diete_plans.user_diet_plan', diet_plan_id=plan.id) }}" target="_blank" class="btn btn-white btn-small">{{ icon('eye', 14) }} Anteprima paziente</a>
+</div>
+
+<div class="adm-hero" style="margin-bottom:1.2rem;">
+  <h2 style="margin:0;">{{ plan.title }}</h2>
+  <p style="margin:.35rem 0 0 0;">
+    Paziente: <strong>{{ paziente.nome }} {{ paziente.cognome }}</strong>
+    {% if plan.goal %} · Obiettivo: {{ plan.goal }}{% endif %}
+    · Stato: {{ 'Pubblicata' if plan.status == 'published' else 'Bozza' }}
+  </p>
+  {% if plan.notes %}<p style="margin:.5rem 0 0 0;color:#b6b1a9;">{{ plan.notes }}</p>{% endif %}
+</div>
+
+<!-- TOTALI DIETA -->
+<div class="diet-summary" data-plan-total>
+  <div class="diet-kpi"><b style="color:#FF9800;" data-k="kcal">{{ "%.0f"|format(totals.plan.total.kcal) }}</b><span>kcal totali</span></div>
+  <div class="diet-kpi"><b style="color:#2196F3;" data-k="protein">{{ "%.1f"|format(totals.plan.total.protein) }}</b><span>proteine (g)</span></div>
+  <div class="diet-kpi"><b style="color:#4CAF50;" data-k="carbs">{{ "%.1f"|format(totals.plan.total.carbs) }}</b><span>carboidrati (g)</span></div>
+  <div class="diet-kpi"><b style="color:#FFC107;" data-k="fat">{{ "%.1f"|format(totals.plan.total.fat) }}</b><span>grassi (g)</span></div>
+  <div class="diet-kpi"><b style="color:#9CCC65;" data-k="fiber">{{ "%.1f"|format(totals.plan.total.fiber) }}</b><span>fibre (g)</span></div>
+</div>
+
+<div id="diet-msg" class="diet-msg" style="display:none;margin-bottom:1rem;"></div>
+
+<!-- CONTENITORE PASTI -->
+<div id="diet-builder"
+     data-plan-id="{{ plan.id }}"
+     data-search-url="{{ url_for('admin_nutrition.search_foods') }}"
+     data-import-url="{{ url_for('admin_nutrition.import_food') }}"
+     data-meals-url="{{ url_for('admin_diets.add_meal', diet_plan_id=plan.id) }}"
+     data-plan-totals-url="{{ url_for('admin_diets.diet_plan_totals', diet_plan_id=plan.id) }}"
+     data-meal-item-base="/api/admin/diet-meals/"
+     data-meal-total-base="/api/admin/diet-meals/">
+
+  <div id="meals-container">
+    {% for meal in plan.meals %}
+    {% set mt = totals.meals[meal.id] %}
+    <div class="diet-meal" data-meal-id="{{ meal.id }}">
+      <div class="diet-meal-head">
+        <div>
+          <div class="diet-meal-title">{{ meal.meal_name }}</div>
+          <div class="diet-meal-sub">Giorno {{ meal.day_index + 1 }}{% if meal.meal_time %} · {{ meal.meal_time.strftime('%H:%M') }}{% endif %}{% if meal.notes %} · {{ meal.notes }}{% endif %}</div>
+        </div>
+        <div class="dm-total" data-meal-total="{{ meal.id }}">
+          <b data-k="kcal">{{ "%.0f"|format(mt.kcal) }}</b> kcal ·
+          P <span data-k="protein">{{ "%.1f"|format(mt.protein) }}</span> ·
+          C <span data-k="carbs">{{ "%.1f"|format(mt.carbs) }}</span> ·
+          G <span data-k="fat">{{ "%.1f"|format(mt.fat) }}</span> ·
+          Fib <span data-k="fiber">{{ "%.1f"|format(mt.fiber) }}</span>
+        </div>
+      </div>
+
+      <div class="diet-items" data-items="{{ meal.id }}">
+        {% for item in meal.items %}
+        {% set it = totals.items[item.id] %}
+        <div class="diet-item" data-item-id="{{ item.id }}">
+          <span class="di-name">{{ item.food.name }}{% if item.food.brand %} <span style="color:#b6b1a9;font-weight:400;">· {{ item.food.brand }}</span>{% endif %}</span>
+          <span class="di-qty">{{ item.quantity_g|round(0) }} g</span>
+          <span class="di-macros">{{ "%.0f"|format(it.kcal) }} kcal · P {{ "%.1f"|format(it.protein) }} · C {{ "%.1f"|format(it.carbs) }} · G {{ "%.1f"|format(it.fat) }} · Fib {{ "%.1f"|format(it.fiber) }}</span>
+        </div>
+        {% else %}
+        <div class="diet-empty-items">Nessun alimento in questo pasto.</div>
+        {% endfor %}
+      </div>
+
+      <div class="food-adder">
+        <div class="row">
+          <input type="text" class="food-search" data-meal="{{ meal.id }}" placeholder="Cerca alimento (es. yogurt greco)" autocomplete="off">
+          <input type="number" class="food-grams" data-grams="{{ meal.id }}" placeholder="grammi" min="1" step="1">
+          <button class="btn btn-primary btn-small" data-add-item="{{ meal.id }}">{{ icon('plus', 14) }} Aggiungi</button>
+          <div class="food-results" data-results="{{ meal.id }}"></div>
+        </div>
+        <div class="food-selected" data-selected="{{ meal.id }}"></div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- FORM NUOVO PASTO -->
+  <div class="management-card" style="background:rgba(13,51,28,.4);border:1px solid rgba(255,117,31,.3);border-radius:12px;padding:1.2rem;">
+    <h3 style="color:#ff751f;margin:0 0 .9rem 0;">Aggiungi pasto</h3>
+    <form id="meal-form" style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:flex-end;">
+      <div style="flex:1;min-width:180px;">
+        <label style="display:block;color:#b6b1a9;font-size:.8rem;margin-bottom:.3rem;">Nome pasto *</label>
+        <input type="text" name="meal_name" required placeholder="Es. Colazione" style="width:100%;">
+      </div>
+      <div style="width:120px;">
+        <label style="display:block;color:#b6b1a9;font-size:.8rem;margin-bottom:.3rem;">Giorno</label>
+        <input type="number" name="day_index" value="1" min="1" step="1" style="width:100%;">
+      </div>
+      <div style="width:130px;">
+        <label style="display:block;color:#b6b1a9;font-size:.8rem;margin-bottom:.3rem;">Orario</label>
+        <input type="time" name="meal_time" style="width:100%;">
+      </div>
+      <button type="submit" class="btn btn-primary">{{ icon('plus', 16) }} Aggiungi pasto</button>
+    </form>
+  </div>
+</div>
+
+<!-- TEMPLATE JS: pasto -->
+<template id="meal-tpl">
+  <div class="diet-meal" data-meal-id="__MEAL_ID__">
+    <div class="diet-meal-head">
+      <div>
+        <div class="diet-meal-title">__MEAL_NAME__</div>
+        <div class="diet-meal-sub">__MEAL_SUB__</div>
+      </div>
+      <div class="dm-total" data-meal-total="__MEAL_ID__">
+        <b data-k="kcal">0</b> kcal ·
+        P <span data-k="protein">0.0</span> ·
+        C <span data-k="carbs">0.0</span> ·
+        G <span data-k="fat">0.0</span> ·
+        Fib <span data-k="fiber">0.0</span>
+      </div>
+    </div>
+    <div class="diet-items" data-items="__MEAL_ID__">
+      <div class="diet-empty-items">Nessun alimento in questo pasto.</div>
+    </div>
+    <div class="food-adder">
+      <div class="row">
+        <input type="text" class="food-search" data-meal="__MEAL_ID__" placeholder="Cerca alimento (es. yogurt greco)" autocomplete="off">
+        <input type="number" class="food-grams" data-grams="__MEAL_ID__" placeholder="grammi" min="1" step="1">
+        <button class="btn btn-primary btn-small" data-add-item="__MEAL_ID__">Aggiungi</button>
+        <div class="food-results" data-results="__MEAL_ID__"></div>
+      </div>
+      <div class="food-selected" data-selected="__MEAL_ID__"></div>
+    </div>
+  </div>
+</template>
+
+<!-- TEMPLATE JS: item -->
+<template id="item-tpl">
+  <div class="diet-item" data-item-id="__ITEM_ID__">
+    <span class="di-name">__NAME__</span>
+    <span class="di-qty">__QTY__ g</span>
+    <span class="di-macros">__MACROS__</span>
+  </div>
+</template>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/diet_builder.js') }}"></script>
+{% endblock %}

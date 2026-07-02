@@ -1,0 +1,80 @@
+{% extends 'base_user.html' %}
+{% block title %}{{ plan.title }} - NutriApp{% endblock %}
+{% block content %}
+
+<style>
+  .dp-meal { background:#fff; border:1px solid #eee; border-radius:14px; padding:1rem 1.1rem; margin-bottom:1rem; box-shadow:0 2px 8px rgba(0,0,0,.05); }
+  .dp-meal-head { display:flex; justify-content:space-between; align-items:baseline; gap:.5rem; margin-bottom:.6rem; }
+  .dp-meal-name { font-weight:700; color:#0d331c; font-size:1.05rem; }
+  .dp-meal-time { color:#ff751f; font-size:.85rem; font-weight:600; }
+  .dp-item { display:flex; justify-content:space-between; gap:.6rem; padding:.5rem 0; border-top:1px solid #f2f2f2; }
+  .dp-item:first-child { border-top:0; }
+  .dp-item-name { color:#333; font-size:.92rem; font-weight:600; }
+  .dp-item-note { color:#999; font-size:.78rem; }
+  .dp-item-qty { color:#4CAF50; font-weight:700; font-size:.9rem; white-space:nowrap; }
+  .dp-item-macros { color:#999; font-size:.75rem; }
+  .dp-meal-total { margin-top:.5rem; text-align:right; color:#666; font-size:.8rem; }
+  .dp-meal-total b { color:#ff751f; }
+  .dp-summary { display:flex; flex-wrap:wrap; gap:.5rem; margin-bottom:1.2rem; }
+  .dp-kpi { flex:1; min-width:80px; background:#0d331c; color:#fff; border-radius:12px; padding:.7rem; text-align:center; }
+  .dp-kpi b { display:block; font-size:1.25rem; }
+  .dp-kpi span { font-size:.68rem; opacity:.8; text-transform:uppercase; }
+  .dp-preview-banner { background:#fff3e6; border:1px solid #ffd0a3; color:#b35900; padding:.6rem .9rem; border-radius:10px; font-size:.85rem; margin-bottom:1rem; }
+</style>
+
+{% if is_preview %}
+<div class="dp-preview-banner">Anteprima nutrizionista · così vede la dieta {{ paziente.nome }}.</div>
+{% endif %}
+
+<h1 class="page-title-user">{{ icon('diet', 22, 'usr-icon') }} {{ plan.title }}</h1>
+
+{% if plan.goal %}<p style="color:#ff751f;font-weight:600;margin:.2rem 0 .6rem;">Obiettivo: {{ plan.goal }}</p>{% endif %}
+{% if plan.notes %}<p style="color:#666;margin:0 0 1rem;">{{ plan.notes }}</p>{% endif %}
+
+<!-- TOTALI -->
+<div class="dp-summary">
+  <div class="dp-kpi"><b>{{ "%.0f"|format(totals.plan.total.kcal) }}</b><span>kcal</span></div>
+  <div class="dp-kpi"><b>{{ "%.0f"|format(totals.plan.total.protein) }}</b><span>prot (g)</span></div>
+  <div class="dp-kpi"><b>{{ "%.0f"|format(totals.plan.total.carbs) }}</b><span>carbo (g)</span></div>
+  <div class="dp-kpi"><b>{{ "%.0f"|format(totals.plan.total.fat) }}</b><span>grassi (g)</span></div>
+</div>
+
+{% if plan.meals %}
+  {% for meal in plan.meals %}
+  {% set mt = totals.meals[meal.id] %}
+  <div class="dp-meal">
+    <div class="dp-meal-head">
+      <span class="dp-meal-name">{{ meal.meal_name }}</span>
+      <span class="dp-meal-time">Giorno {{ meal.day_index + 1 }}{% if meal.meal_time %} · {{ meal.meal_time.strftime('%H:%M') }}{% endif %}</span>
+    </div>
+
+    {% if meal.items %}
+      {% for item in meal.items %}
+      {% set it = totals.items[item.id] %}
+      <div class="dp-item">
+        <div>
+          <div class="dp-item-name">{{ item.food.name }}{% if item.food.brand %} · <span style="color:#999;font-weight:400;">{{ item.food.brand }}</span>{% endif %}</div>
+          {% if item.notes %}<div class="dp-item-note">{{ item.notes }}</div>{% endif %}
+          {% if it.kcal or it.protein %}<div class="dp-item-macros">{{ "%.0f"|format(it.kcal) }} kcal · P {{ "%.1f"|format(it.protein) }} · C {{ "%.1f"|format(it.carbs) }} · G {{ "%.1f"|format(it.fat) }}</div>{% endif %}
+        </div>
+        <div class="dp-item-qty">{{ item.quantity_g|round(0) }} g</div>
+      </div>
+      {% endfor %}
+      <div class="dp-meal-total"><b>{{ "%.0f"|format(mt.kcal) }} kcal</b> · P {{ "%.0f"|format(mt.protein) }} · C {{ "%.0f"|format(mt.carbs) }} · G {{ "%.0f"|format(mt.fat) }}</div>
+    {% else %}
+      <div class="dp-item-note">Nessun alimento in questo pasto.</div>
+    {% endif %}
+  </div>
+  {% endfor %}
+{% else %}
+<div class="empty-state">
+  <div class="empty-icon">{{ icon('diet', 48, 'usr-icon usr-icon--lg') }}</div>
+  <p class="empty-text">Questa dieta non contiene ancora pasti.</p>
+</div>
+{% endif %}
+
+<div style="margin:1.2rem 0;">
+  <a href="{{ url_for('diete.lista_diete_user') if not is_preview else url_for('patients.dettaglio_paziente', patient_id=paziente.id) }}" class="btn-user btn-user-small">← Indietro</a>
+</div>
+
+{% endblock %}

@@ -11,14 +11,28 @@
   </p>
 </div>
 
-<!-- ULTIMA DIETA -->
+<!-- DIETA ATTUALE -->
 <div class="summary-card">
     <div class="summary-header">
         <span class="summary-icon">{{ icon('diet', 22, 'usr-icon') }}</span>
         <span class="summary-title">Dieta Attuale</span>
     </div>
     <div class="summary-content">
-        {% if ultima_dieta %}
+        {% if ultimo_diet_plan %}
+        <div class="summary-row">
+            <span class="summary-label">Piano:</span>
+            <span class="summary-value">{{ ultimo_diet_plan.title }}</span>
+        </div>
+        {% if ultimo_diet_plan.goal %}
+        <div class="summary-row">
+            <span class="summary-label">Obiettivo:</span>
+            <span class="summary-value">{{ ultimo_diet_plan.goal }}</span>
+        </div>
+        {% endif %}
+        <a href="{{ url_for('diete_plans.user_diet_plan', diet_plan_id=ultimo_diet_plan.id) }}" class="btn-user btn-user-small mt-2">
+            {{ icon('diet', 16, 'usr-icon') }} Visualizza dieta
+        </a>
+        {% elif ultima_dieta %}
         <div class="summary-row">
             <span class="summary-label">Periodo:</span>
             <span class="summary-value">{{ ultima_dieta.data_inizio.strftime('%d/%m/%Y') }} - {{ ultima_dieta.data_fine.strftime('%d/%m/%Y') }}</span>

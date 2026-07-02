@@ -101,8 +101,16 @@ def user_dashboard():
     # Recupera dati paziente
     paziente = Patient.query.get_or_404(user_id)
     
-    # Ultima dieta
+    # Ultima dieta (PDF legacy)
     ultima_dieta = Dieta.query.filter_by(patient_id=user_id).order_by(Dieta.created_at.desc()).first()
+
+    # Ultimo piano alimentare strutturato (nuovo flusso)
+    from app.models.models import DietPlan
+    ultimo_diet_plan = (
+        DietPlan.query.filter_by(patient_id=user_id)
+        .order_by(DietPlan.created_at.desc())
+        .first()
+    )
     
     # Ultimo allenamento
     ultimo_allenamento = Allenamento.query.filter_by(patient_id=user_id).order_by(Allenamento.created_at.desc()).first()
@@ -121,6 +129,7 @@ def user_dashboard():
         'user/dashboard.html',
         paziente=paziente,
         ultima_dieta=ultima_dieta,
+        ultimo_diet_plan=ultimo_diet_plan,
         ultimo_allenamento=ultimo_allenamento,
         ultimo_progresso=ultimo_progresso,
         prossimo_appuntamento=prossimo_appuntamento

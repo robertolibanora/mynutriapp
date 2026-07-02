@@ -9,6 +9,28 @@ from app.models.models import db
 logger = logging.getLogger(__name__)
 
 _SEGRETARIO_DEVIAZIONE_OK = False
+_NUTRITION_SCHEMA_OK = False
+
+
+def ensure_nutrition_schema() -> None:
+    """Crea le tabelle del modulo nutrizione se mancanti.
+
+    Usa ``create_all`` limitato alle sole tabelle nuove: è idempotente e
+    non tocca le tabelle esistenti. Coerente con l'approccio senza Alembic
+    già usato nel progetto.
+    """
+    global _NUTRITION_SCHEMA_OK
+    if _NUTRITION_SCHEMA_OK:
+        return
+    try:
+        from app.models.models import DietMeal, DietMealItem, DietPlan, Food
+
+        tables = [m.__table__ for m in (Food, DietPlan, DietMeal, DietMealItem)]
+        db.metadata.create_all(bind=db.engine, tables=tables, checkfirst=True)
+        _NUTRITION_SCHEMA_OK = True
+        logger.info("Schema modulo nutrizione verificato (foods, diet_plans, diet_meals, diet_meal_items)")
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Impossibile creare lo schema nutrizione: %s", exc)
 
 
 def ensure_segretario_deviazione_schema() -> None:

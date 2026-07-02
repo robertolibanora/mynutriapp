@@ -297,21 +297,56 @@ document.addEventListener('keydown', function(e) {
 </script>
 {% endif %}
 
+<!-- PIANI ALIMENTARI (NUOVO FLUSSO STRUTTURATO) -->
+<div class="management-card" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(255, 117, 31, 0.3); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.8rem;margin-bottom:1rem;">
+    <h3 style="color: #ff751f; margin:0; display: flex; align-items: center; gap: 0.5rem;">
+      {{ icon('diet', 18) }} Piani alimentari
+    </h3>
+    <a href="{{ url_for('diete_plans.new_diet_plan', patient_id=paziente.id) }}" class="btn btn-primary btn-small" style="display:inline-flex;align-items:center;gap:.4rem;">{{ icon('plus', 16) }} Crea dieta</a>
+  </div>
+
+  {% if paziente.diet_plans %}
+  <div style="display:flex;flex-direction:column;gap:.5rem;">
+    {% for dp in paziente.diet_plans %}
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:.8rem;padding:.7rem .9rem;background:rgba(0,0,0,.18);border-radius:8px;flex-wrap:wrap;">
+      <div>
+        <div style="color:#fff;font-weight:600;">{{ dp.title }}</div>
+        <div style="color:#b6b1a9;font-size:.82rem;">
+          {% if dp.goal %}{{ dp.goal }} · {% endif %}{{ dp.meals|length }} pasti ·
+          <span style="color:{{ '#4CAF50' if dp.status == 'published' else '#FFC107' }};">{{ 'Pubblicata' if dp.status == 'published' else 'Bozza' }}</span>
+        </div>
+      </div>
+      <a href="{{ url_for('diete_plans.diet_plan_detail', diet_plan_id=dp.id) }}" class="btn btn-white btn-small">{{ icon('eye', 14) }} Visualizza / Modifica</a>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p style="color:#b6b1a9;font-size:.9rem;margin:0;">Nessun piano alimentare strutturato. Clicca <strong>Crea dieta</strong> per iniziare con ricerca alimenti e calcolo automatico dei macro.</p>
+  {% endif %}
+
+  <!-- DIETE PDF LEGACY -->
+  {% if paziente.diete %}
+  <div style="margin-top:1.3rem;border-top:1px dashed rgba(182,177,169,.25);padding-top:1rem;">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.6rem;margin-bottom:.6rem;">
+      <h4 style="color:#b6b1a9;margin:0;font-size:.9rem;">Diete caricate come PDF (archivio)</h4>
+      <a href="{{ url_for('diete.nuova_dieta', patient_id=paziente.id) }}" class="btn btn-secondary btn-small">{{ icon('file', 14) }} Carica PDF</a>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.4rem;">
+      {% for d in paziente.diete %}
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:.8rem;padding:.5rem .8rem;background:rgba(0,0,0,.12);border-radius:8px;flex-wrap:wrap;">
+        <span style="color:#d9d4cc;font-size:.85rem;">{{ d.data_inizio.strftime('%d/%m/%Y') }} → {{ d.data_fine.strftime('%d/%m/%Y') }} · {{ d.kcal }} kcal</span>
+        {% if d.pdf_path %}<a href="{{ url_for('diete.serve_file', dieta_id=d.id) }}" target="_blank" class="btn btn-white btn-small">{{ icon('file', 14) }} PDF</a>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
 <!-- GESTIONE CONTENUTI -->
 <div class="management-section" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
   
-  <!-- DIETE -->
-  <div class="management-card" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(255, 117, 31, 0.3); border-radius: 12px; padding: 1.5rem;">
-    <h3 style="color: #ff751f; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-      {{ icon('diet', 18) }} Diete
-    </h3>
-    <p style="color: #b6b1a9; margin-bottom: 1rem; font-size: 0.9rem;">Gestisci i piani nutrizionali</p>
-    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-      <a href="{{ url_for('diete.nuova_dieta', patient_id=paziente.id) }}" class="btn btn-primary btn-small">{{ icon('plus', 16) }} Nuova</a>
-      <a href="{{ url_for('diete.diete_paziente', patient_id=paziente.id) }}" class="btn btn-white btn-small adm-icon-btn">{{ icon('eye', 14) }} Tutte</a>
-    </div>
-  </div>
-
   <!-- ALLENAMENTI -->
   <div class="management-card" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(33, 150, 243, 0.3); border-radius: 12px; padding: 1.5rem;">
     <h3 style="color: #ff751f; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">

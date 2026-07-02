@@ -143,6 +143,154 @@ class Dieta(db.Model):
         return f"<Dieta {self.id} - Paziente {self.patient_id}>"
 
 # ========================
+#   MODEL: Food (alimento locale, importato da provider o custom)
+# ========================
+#
+# Copia locale di un alimento. Può provenire da un provider esterno
+# (Open Food Facts, FatSecret, ...) oppure essere un alimento custom
+# creato manualmente dal professionista. La dieta referenzia SEMPRE
+# questa tabella, mai direttamente l'API esterna.
+
+class Food(db.Model):
+    __tablename__ = "foods"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    # Professionista proprietario (per alimenti custom). Nullable perché
+    # non esiste ancora una tabella "professionals": è un intero libero
+    # forward-compatible (in futuro potrà diventare una FK).
+    professional_id = db.Column(db.Integer, nullable=True, index=True)
+
+    # Provenienza dal provider esterno (NULL per alimenti custom)
+    provider = db.Column(db.String(50), nullable=True, index=True)
+    external_id = db.Column(db.String(100), nullable=True, index=True)
+
+    # Dati descrittivi
+    name = db.Column(db.String(255), nullable=False)
+    brand = db.Column(db.String(255), nullable=True)
+    category = db.Column(db.String(255), nullable=True)
+
+    # Porzione suggerita
+    serving_size = db.Column(db.Numeric(8, 2), nullable=True)
+    serving_unit = db.Column(db.String(20), nullable=True)
+
+    # Valori nutrizionali per 100 g (tutti nullable: possono mancare dall'API)
+    kcal_per_100g = db.Column(db.Numeric(8, 2), nullable=True)
+    protein_per_100g = db.Column(db.Numeric(8, 2), nullable=True)
+    carbs_per_100g = db.Column(db.Numeric(8, 2), nullable=True)
+    sugars_per_100g = db.Column(db.Numeric(8, 2), nullable=True)
+    fat_per_100g = db.Column(db.Numeric(8, 2), nullable=True)
+    saturated_fat_per_100g = db.Column(db.Numeric(8, 2), nullable=True)
+    fiber_per_100g = db.Column(db.Numeric(8, 2), nullable=True)
+    salt_per_100g = db.Column(db.Numeric(8, 2), nullable=True)
+    sodium_per_100g = db.Column(db.Numeric(8, 2), nullable=True)
+
+    # Payload grezzo del provider (per audit/riuso futuro)
+    source_payload_json = db.Column(db.JSON, nullable=True)
+
+    is_custom = db.Column(db.Boolean, nullable=False, server_default="0")
+
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
+    updated_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
+
+    # Evita duplicati dello stesso alimento importato dallo stesso provider
+    __table_args__ = (
+        db.UniqueConstraint("provider", "external_id", name="uq_food_provider_external"),
+        db.Index("idx_food_name", "name"),
+    )
+
+    def __repr__(self):
+        return f"<Food {self.id} - {self.name}>"
+
+
+# ========================
+#   MODEL: DietPlan (piano alimentare strutturato)
+# ========================
+
+class DietPlan(db.Model):
+    __tablename__ = "diet_plans"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    patient_id = db.Column(db.Integer, db.ForeignKey("patients.id", ondelete="CASCADE"), nullable=False, index=True)
+    professional_id = db.Column(db.Integer, nullable=True, index=True)
+
+    title = db.Column(db.String(255), nullable=False)
+    goal = db.Column(db.String(255), nullable=True)
+    notes = db.Column(db.Text, nullable=True)
+    status = db.Column(db.String(20), nullable=False, server_default="draft")
+
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
+    updated_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
+
+    patient = db.relationship("Patient", backref=db.backref("diet_plans", lazy=True, cascade="all, delete-orphan"))
+    meals = db.relationship(
+        "DietMeal",
+        backref="diet_plan",
+        lazy=True,
+        cascade="all, delete-orphan",
+        order_by="DietMeal.day_index",
+    )
+
+    def __repr__(self):
+        return f"<DietPlan {self.id} - Paziente {self.patient_id}>"
+
+
+# ========================
+#   MODEL: DietMeal (pasto di un piano)
+# ========================
+
+class DietMeal(db.Model):
+    __tablename__ = "diet_meals"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    diet_plan_id = db.Column(db.Integer, db.ForeignKey("diet_plans.id", ondelete="CASCADE"), nullable=False, index=True)
+
+    day_index = db.Column(db.Integer, nullable=False, server_default="0")
+    meal_name = db.Column(db.String(100), nullable=False)
+    meal_time = db.Column(db.Time, nullable=True)
+    notes = db.Column(db.Text, nullable=True)
+
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
+    updated_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
+
+    items = db.relationship(
+        "DietMealItem",
+        backref="diet_meal",
+        lazy=True,
+        cascade="all, delete-orphan",
+    )
+
+    def __repr__(self):
+        return f"<DietMeal {self.id} - Piano {self.diet_plan_id}>"
+
+
+# ========================
+#   MODEL: DietMealItem (alimento + quantità in un pasto)
+# ========================
+
+class DietMealItem(db.Model):
+    __tablename__ = "diet_meal_items"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    diet_meal_id = db.Column(db.Integer, db.ForeignKey("diet_meals.id", ondelete="CASCADE"), nullable=False, index=True)
+    food_id = db.Column(db.Integer, db.ForeignKey("foods.id", ondelete="RESTRICT"), nullable=False, index=True)
+
+    quantity_g = db.Column(db.Numeric(8, 2), nullable=False)
+    notes = db.Column(db.Text, nullable=True)
+
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
+    updated_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
+
+    food = db.relationship("Food", lazy="joined")
+
+    def __repr__(self):
+        return f"<DietMealItem {self.id} - Food {self.food_id} ({self.quantity_g}g)>"
+
+
+# ========================
 #   MODEL: Allenamento
 # ========================
 
