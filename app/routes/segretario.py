@@ -77,7 +77,7 @@ def get_config() -> SegretarioConfig:
         cfg = SegretarioConfig(
             attivo=False,
             nome_studio=Config.WHATSAPP_FROM_NAME or "MyNutriApp",
-            nome_assistente="Sara",
+            nome_assistente="Mario",
             numero_nutrizionista=None,
         )
         db.session.add(cfg)
@@ -177,7 +177,7 @@ def salva_config():
     try:
         cfg.numero_nutrizionista = (request.form.get("numero_nutrizionista") or "").strip() or None
         cfg.nome_studio = (request.form.get("nome_studio") or "").strip() or "MyNutriApp"
-        cfg.nome_assistente = (request.form.get("nome_assistente") or "").strip() or "Sara"
+        cfg.nome_assistente = (request.form.get("nome_assistente") or "").strip() or "Mario"
         cfg.messaggio_benvenuto = (request.form.get("messaggio_benvenuto") or "").strip() or None
         cfg.istruzioni_ai = (request.form.get("istruzioni_ai") or "").strip() or None
         cfg.inoltra_a_nutrizionista = bool(request.form.get("inoltra_a_nutrizionista"))

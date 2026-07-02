@@ -2,11 +2,11 @@
 {% block title %}Dashboard{% endblock %}
 {% block content %}
 
-{% set primo_nome = session.get('name', 'Admin').split()[0] %}
+{% set admin_nome = session.get('name', 'Admin') %}
 
 <div class="adm-hero">
   <div>
-    <h2>Bentornato, {{ primo_nome }}</h2>
+    <h2>Bentornato, {{ admin_nome }}</h2>
     <p>Ecco cosa succede oggi nel tuo studio nutrizionale.</p>
     <p class="adm-hero-quote">"Non diamo pillole, non diamo consigli — diamo risultati."</p>
   </div>
