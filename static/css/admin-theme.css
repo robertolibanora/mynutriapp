@@ -574,6 +574,8 @@
   border: 1px solid var(--adm-border) !important;
   border-radius: 10px !important;
   font-family: var(--adm-font) !important;
+  padding: 10px 12px;
+  box-sizing: border-box;
 }
 
 .admin-app .table {
@@ -708,6 +710,7 @@
 .admin-app input[type="password"],
 .admin-app input[type="tel"],
 .admin-app input[type="number"],
+.admin-app input[type="time"],
 .admin-app textarea,
 .admin-app select {
   font-size: 16px !important;
@@ -1075,4 +1078,249 @@
 
 @media (max-width: 480px) {
   .admin-app .quick-stats { grid-template-columns: 1fr; }
+}
+
+/* === DIET BUILDER (piani alimentari) === */
+.admin-app .diet-msg {
+  padding: 0.7rem 1rem;
+  border-radius: 10px;
+  background: rgba(226, 114, 91, 0.12);
+  border: 1px solid rgba(226, 114, 91, 0.35);
+  color: var(--adm-danger);
+  font-size: 0.9rem;
+}
+
+.admin-app .diet-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.admin-app .diet-kpi {
+  flex: 1;
+  min-width: 120px;
+  background: var(--adm-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
+}
+
+.admin-app .diet-kpi b {
+  display: block;
+  font-size: 1.6rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.admin-app .diet-kpi span {
+  color: var(--adm-text-muted);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.admin-app .diet-meal {
+  background: var(--adm-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: 14px;
+  padding: 1.2rem;
+  margin-bottom: 1.2rem;
+}
+
+.admin-app .diet-meal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.8rem;
+}
+
+.admin-app .diet-meal-title {
+  font-weight: 700;
+  color: var(--adm-text);
+  font-size: 1.05rem;
+}
+
+.admin-app .diet-meal-sub {
+  color: var(--adm-text-muted);
+  font-size: 0.82rem;
+}
+
+.admin-app .dm-total {
+  color: var(--adm-text-muted);
+  font-size: 0.85rem;
+  text-align: right;
+}
+
+.admin-app .dm-total b {
+  color: var(--adm-orange);
+}
+
+.admin-app .diet-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 0.9rem;
+}
+
+.admin-app .diet-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.55rem 0.7rem;
+  background: rgba(0, 0, 0, 0.18);
+  border-radius: 10px;
+  flex-wrap: wrap;
+}
+
+.admin-app .di-name {
+  color: var(--adm-text);
+  font-weight: 600;
+  font-size: 0.9rem;
+  flex: 1;
+  min-width: 140px;
+}
+
+.admin-app .di-qty {
+  color: #4caf50;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.admin-app .di-macros {
+  color: var(--adm-text-muted);
+  font-size: 0.8rem;
+}
+
+.admin-app .diet-empty-items {
+  color: var(--adm-text-muted);
+  font-size: 0.85rem;
+  font-style: italic;
+  padding: 0.3rem 0;
+}
+
+.admin-app .food-adder {
+  border-top: 1px dashed var(--adm-border);
+  padding-top: 0.8rem;
+}
+
+.admin-app .food-adder-row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: stretch;
+}
+
+.admin-app .food-search-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+}
+
+.admin-app .food-search-wrap .input-text {
+  width: 100%;
+}
+
+.admin-app .food-grams {
+  width: 110px;
+}
+
+.admin-app .food-results {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  background: var(--adm-bg);
+  border: 1px solid var(--adm-border);
+  border-radius: 10px;
+  max-height: 280px;
+  overflow-y: auto;
+  display: none;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.admin-app .food-results.open {
+  display: block;
+}
+
+.admin-app .food-res-item {
+  padding: 0.55rem 0.7rem;
+  cursor: pointer;
+  border-bottom: 1px solid var(--adm-border-soft);
+}
+
+.admin-app .food-res-item:hover {
+  background: rgba(255, 117, 31, 0.1);
+}
+
+.admin-app .food-res-name {
+  color: var(--adm-text);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.admin-app .food-res-meta {
+  color: var(--adm-text-muted);
+  font-size: 0.76rem;
+}
+
+.admin-app .food-res-badge {
+  display: inline-block;
+  font-size: 0.68rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  background: rgba(76, 175, 80, 0.15);
+  color: #4caf50;
+  margin-left: 0.35rem;
+}
+
+.admin-app .food-selected {
+  color: #4caf50;
+  font-size: 0.82rem;
+  margin-top: 0.4rem;
+  min-height: 1rem;
+}
+
+.admin-app .food-loading {
+  color: var(--adm-text-muted);
+  font-size: 0.8rem;
+  padding: 0.5rem 0.7rem;
+}
+
+.admin-app .diet-form-grid {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.admin-app .diet-form-field {
+  flex: 1;
+  min-width: 160px;
+}
+
+.admin-app .diet-form-field--sm {
+  width: 120px;
+  flex: 0 0 auto;
+}
+
+.admin-app .diet-form-label {
+  display: block;
+  color: var(--adm-text-muted);
+  font-size: 0.8rem;
+  margin-bottom: 0.3rem;
+}
+
+.admin-app input[type="time"].input-text {
+  color-scheme: dark;
+}
+
+.admin-app .btn-icon-danger {
+  padding: 0.35rem 0.55rem;
+  font-size: 0.78rem;
+  line-height: 1;
 }

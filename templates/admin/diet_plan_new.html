@@ -17,20 +17,20 @@
         data-create-url="{{ url_for('admin_diets.create_diet_plan') }}"
         data-detail-base="/admin/diet-plans/">
     <div style="margin-bottom:1rem;">
-      <label style="display:block;color:#b6b1a9;font-size:.85rem;margin-bottom:.35rem;">Titolo dieta *</label>
-      <input type="text" name="title" required placeholder="Es. Dieta dimagrimento" style="width:100%;">
+      <label class="diet-form-label">Titolo dieta *</label>
+      <input type="text" class="input-text" name="title" required placeholder="Es. Dieta dimagrimento">
     </div>
     <div style="margin-bottom:1rem;">
-      <label style="display:block;color:#b6b1a9;font-size:.85rem;margin-bottom:.35rem;">Obiettivo</label>
-      <input type="text" name="goal" placeholder="Es. -5 kg in 3 mesi" style="width:100%;">
+      <label class="diet-form-label">Obiettivo</label>
+      <input type="text" class="input-text" name="goal" placeholder="Es. -5 kg in 3 mesi">
     </div>
     <div style="margin-bottom:1rem;">
-      <label style="display:block;color:#b6b1a9;font-size:.85rem;margin-bottom:.35rem;">Note</label>
-      <textarea name="notes" rows="3" placeholder="Indicazioni generali, preferenze, ecc." style="width:100%;"></textarea>
+      <label class="diet-form-label">Note</label>
+      <textarea class="input-text" name="notes" rows="3" placeholder="Indicazioni generali, preferenze, ecc."></textarea>
     </div>
     <div style="margin-bottom:1.25rem;">
-      <label style="display:block;color:#b6b1a9;font-size:.85rem;margin-bottom:.35rem;">Stato</label>
-      <select name="status" style="width:100%;">
+      <label class="diet-form-label">Stato</label>
+      <select class="input-text" name="status">
         <option value="draft">Bozza</option>
         <option value="published">Pubblicata</option>
       </select>
@@ -56,7 +56,6 @@
   function showError(text) {
     msg.textContent = text;
     msg.style.display = 'block';
-    msg.style.color = '#e2725b';
   }
 
   form.addEventListener('submit', function (e) {
@@ -91,8 +90,7 @@
           btn.disabled = false;
           return;
         }
-        var id = res.data.diet_plan.id;
-        window.location = form.dataset.detailBase + id;
+        window.location = form.dataset.detailBase + res.data.diet_plan.id;
       })
       .catch(function () {
         showError('Errore di rete. Riprova.');

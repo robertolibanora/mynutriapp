@@ -54,9 +54,57 @@ class NutritionService:
     # RICERCA (provider esterno)
     # ==================================================================
     def search_foods(self, query: str, limit: int = 10) -> List[Dict[str, Any]]:
-        """Cerca alimenti tramite il provider e ritorna risultati normalizzati."""
-        results = self.provider.search_foods(query, limit=limit)
-        return [food.to_dict() for food in results]
+        """Cerca alimenti: prima nel DB locale, poi sul provider esterno."""
+        query = (query or "").strip()
+        if not query:
+            return []
+
+        limit = max(1, min(int(limit or 10), 50))
+        merged: List[Dict[str, Any]] = []
+        seen: set = set()
+
+        for item in self._search_local_foods(query, limit):
+            key = ("local", item.get("local_food_id"))
+            if key not in seen:
+                seen.add(key)
+                merged.append(item)
+
+        try:
+            external = self.provider.search_foods(query, limit=limit)
+            for food in external:
+                key = (food.provider, food.external_id)
+                if key not in seen:
+                    seen.add(key)
+                    merged.append(food.to_dict())
+        except Exception:
+            # Se il provider esterno fallisce, restituiamo comunque i risultati locali.
+            pass
+
+        return merged[:limit]
+
+    def _search_local_foods(self, query: str, limit: int) -> List[Dict[str, Any]]:
+        """Alimenti già salvati in DB (custom o importati in precedenza)."""
+        pattern = f"%{query}%"
+        foods = (
+            Food.query.filter(
+                db.or_(
+                    Food.name.ilike(pattern),
+                    Food.brand.ilike(pattern),
+                )
+            )
+            .order_by(Food.is_custom.desc(), Food.name.asc())
+            .limit(limit)
+            .all()
+        )
+        out: List[Dict[str, Any]] = []
+        for food in foods:
+            d = food_to_dict(food)
+            d["provider"] = food.provider or "local"
+            d["external_id"] = str(food.id)
+            d["local_food_id"] = food.id
+            d["source"] = "local"
+            out.append(d)
+        return out
 
     # ==================================================================
     # IMPORT / RIUSO ALIMENTO LOCALE
@@ -72,6 +120,13 @@ class NutritionService:
         external_id = (external_id or "").strip()
         if not provider_name or not external_id:
             raise NutritionServiceError("provider ed external_id sono obbligatori")
+
+        # Alimento già locale (ricerca DB o custom): riusa per id.
+        if provider_name == "local":
+            food = db.session.get(Food, int(external_id))
+            if food is None:
+                raise ResourceNotFoundError(f"Alimento locale {external_id} inesistente")
+            return food
 
         existing = Food.query.filter_by(
             provider=provider_name, external_id=external_id
@@ -222,6 +277,39 @@ class NutritionService:
         if plan is None:
             raise ResourceNotFoundError(f"Piano dieta {diet_plan_id} inesistente")
         return NutritionCalculatorService.compute_plan(plan.meals)
+
+    # ==================================================================
+    # ELIMINAZIONE
+    # ==================================================================
+    def delete_diet_plan(self, diet_plan_id: int) -> int:
+        """Elimina un piano alimentare e tutti i pasti/item collegati."""
+        plan = db.session.get(DietPlan, diet_plan_id)
+        if plan is None:
+            raise ResourceNotFoundError(f"Piano dieta {diet_plan_id} inesistente")
+        patient_id = plan.patient_id
+        db.session.delete(plan)
+        db.session.commit()
+        return patient_id
+
+    def delete_meal(self, meal_id: int) -> int:
+        """Elimina un pasto e i suoi item."""
+        meal = db.session.get(DietMeal, meal_id)
+        if meal is None:
+            raise ResourceNotFoundError(f"Pasto {meal_id} inesistente")
+        plan_id = meal.diet_plan_id
+        db.session.delete(meal)
+        db.session.commit()
+        return plan_id
+
+    def delete_meal_item(self, item_id: int) -> int:
+        """Elimina un alimento da un pasto."""
+        item = db.session.get(DietMealItem, item_id)
+        if item is None:
+            raise ResourceNotFoundError(f"Alimento nel pasto {item_id} inesistente")
+        meal_id = item.diet_meal_id
+        db.session.delete(item)
+        db.session.commit()
+        return meal_id
 
     # ==================================================================
     # Helper

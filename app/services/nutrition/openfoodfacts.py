@@ -74,23 +74,126 @@ class OpenFoodFactsProvider(NutritionProvider):
             return []
 
         limit = max(1, min(int(limit or 10), 50))
-        url = f"{self.base_url}/cgi/search.pl"
+        fetch_size = min(limit * 3, 30)
+
+        results = self._search_v2(query, fetch_size)
+        if not results:
+            results = self._search_legacy(query, fetch_size)
+
+        results = self._filter_by_query(query, results)
+        results = self._rank_results(query, results)
+        return results[:limit]
+
+    def _search_v2(self, query: str, fetch_size: int) -> List[NormalizedFood]:
+        """API v2 (più stabile del vecchio cgi/search.pl)."""
+        params = {
+            "q": query,
+            "page_size": fetch_size,
+            "fields": self._FIELDS,
+            "sort_by": "unique_scans_n",
+            "lc": "it",
+        }
+        # Preferisci il dominio italiano per risultati più pertinenti.
+        urls = ["https://it.openfoodfacts.org", self.base_url, "https://world.openfoodfacts.org"]
+        seen_bases = set()
+        for base in urls:
+            base = base.rstrip("/")
+            if base in seen_bases:
+                continue
+            seen_bases.add(base)
+            try:
+                data = self._get(f"{base}/api/v2/search", params)
+                products = data.get("products") or []
+                out: List[NormalizedFood] = []
+                for product in products:
+                    normalized = self._normalize(product)
+                    if normalized is not None:
+                        out.append(normalized)
+                if out:
+                    return out
+            except (ProviderTimeoutError, ProviderUnavailableError) as exc:
+                logger.warning("Ricerca OFF v2 fallita su %s: %s", base, exc)
+        return []
+
+    def _search_legacy(self, query: str, fetch_size: int) -> List[NormalizedFood]:
         params = {
             "search_terms": query,
             "search_simple": 1,
             "action": "process",
             "json": 1,
-            "page_size": limit,
+            "page_size": fetch_size,
             "fields": self._FIELDS,
+            "sort_by": "unique_scans_n",
+            "lc": "it",
+            "countries": "Italy",
+            "tagtype_0": "countries",
+            "tag_contains_0": "contains",
+            "tag_0": "italy",
         }
-        data = self._get(url, params)
+        data = self._search_with_fallback(params)
         products = data.get("products") or []
         results: List[NormalizedFood] = []
         for product in products:
             normalized = self._normalize(product)
             if normalized is not None:
                 results.append(normalized)
-        return results[:limit]
+        return results
+
+    def _search_with_fallback(self, params: dict) -> dict:
+        """Prova il dominio IT, poi world, con filtro paese."""
+        urls = [self.base_url]
+        if "it.openfoodfacts" not in self.base_url:
+            urls.append("https://it.openfoodfacts.org")
+        if "world.openfoodfacts" not in self.base_url:
+            urls.append("https://world.openfoodfacts.org")
+
+        last_error: Optional[Exception] = None
+        for base in urls:
+            try:
+                return self._get(f"{base.rstrip('/')}/cgi/search.pl", params)
+            except (ProviderTimeoutError, ProviderUnavailableError) as exc:
+                last_error = exc
+                logger.warning("Ricerca OFF fallita su %s: %s", base, exc)
+        if last_error:
+            raise last_error
+        return {}
+
+    @staticmethod
+    def _filter_by_query(query: str, items: List[NormalizedFood]) -> List[NormalizedFood]:
+        """Tieni solo risultati il cui nome contiene almeno una parola della query."""
+        words = [w for w in query.lower().split() if len(w) >= 2]
+        if not words:
+            return items
+        filtered = [
+            item for item in items
+            if any(w in (item.name or "").lower() for w in words)
+        ]
+        return filtered if filtered else items
+
+    @staticmethod
+    def _rank_results(query: str, items: List[NormalizedFood]) -> List[NormalizedFood]:
+        """Ordina per rilevanza: match nome, presenza kcal, popolarità implicita."""
+        q = query.lower()
+
+        def score(food: NormalizedFood) -> tuple:
+            name = (food.name or "").lower()
+            brand = (food.brand or "").lower()
+            name_hit = q in name
+            brand_hit = q in brand
+            starts = name.startswith(q)
+            has_kcal = food.kcal_per_100g is not None
+            # Preferisci nomi italiani / generici (petto di pollo vs prodotti brand stranieri)
+            italian_hint = any(w in name for w in ("pollo", "manzo", "riso", "pasta", "yogurt", "uova", "pesce"))
+            return (
+                1 if starts else 0,
+                1 if name_hit else 0,
+                1 if brand_hit else 0,
+                1 if has_kcal else 0,
+                1 if italian_hint else 0,
+                name,
+            )
+
+        return sorted(items, key=score, reverse=True)
 
     def get_food_details(self, external_id: str) -> NormalizedFood:
         external_id = (external_id or "").strip()

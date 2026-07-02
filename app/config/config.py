@@ -171,7 +171,7 @@ class Config:
     NUTRITION_PROVIDER = os.getenv("NUTRITION_PROVIDER", "openfoodfacts").strip().lower()
     NUTRITION_HTTP_TIMEOUT = float(os.getenv("NUTRITION_HTTP_TIMEOUT", "8"))
     OPENFOODFACTS_BASE_URL = os.getenv(
-        "OPENFOODFACTS_BASE_URL", "https://world.openfoodfacts.org"
+        "OPENFOODFACTS_BASE_URL", "https://it.openfoodfacts.org"
     ).rstrip("/")
     OPENFOODFACTS_USER_AGENT = os.getenv(
         "OPENFOODFACTS_USER_AGENT", "MyNutriApp/1.0 (nutrition module)"

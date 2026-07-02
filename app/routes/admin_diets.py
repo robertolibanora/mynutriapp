@@ -65,6 +65,33 @@ def add_meal_item(meal_id):
     return jsonify({"item": diet_meal_item_to_dict(item)}), 201
 
 
+@admin_diets_bp.route("/diet-plans/<int:diet_plan_id>", methods=["DELETE"])
+@api_admin_required
+@handle_service_errors
+def delete_diet_plan(diet_plan_id):
+    """DELETE /api/admin/diet-plans/{id} — elimina piano alimentare."""
+    patient_id = NutritionService().delete_diet_plan(diet_plan_id)
+    return jsonify({"deleted": True, "patient_id": patient_id})
+
+
+@admin_diets_bp.route("/diet-meals/<int:meal_id>", methods=["DELETE"])
+@api_admin_required
+@handle_service_errors
+def delete_meal(meal_id):
+    """DELETE /api/admin/diet-meals/{id} — elimina pasto."""
+    plan_id = NutritionService().delete_meal(meal_id)
+    return jsonify({"deleted": True, "diet_plan_id": plan_id})
+
+
+@admin_diets_bp.route("/diet-meal-items/<int:item_id>", methods=["DELETE"])
+@api_admin_required
+@handle_service_errors
+def delete_meal_item(item_id):
+    """DELETE /api/admin/diet-meal-items/{id} — rimuove alimento dal pasto."""
+    meal_id = NutritionService().delete_meal_item(item_id)
+    return jsonify({"deleted": True, "meal_id": meal_id})
+
+
 # ========================
 # TOTALI AGGREGATI
 # ========================
