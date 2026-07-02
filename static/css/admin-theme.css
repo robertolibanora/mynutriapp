@@ -1298,13 +1298,29 @@
 }
 
 .admin-app .diet-meal-form {
-  display: grid;
-  grid-template-columns: minmax(160px, 1fr) 88px 118px auto;
-  gap: 0.55rem 0.75rem;
-  align-items: end;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+
+.admin-app .diet-meal-form > .diet-form-field:first-child {
+  flex: 1 1 200px;
+  min-width: 160px;
+}
+
+.admin-app .diet-meal-form > .diet-form-field--day {
+  flex: 0 0 92px;
+  width: 92px;
+}
+
+.admin-app .diet-meal-form > .diet-form-field--time {
+  flex: 0 0 140px;
+  width: 140px;
 }
 
 .admin-app .diet-meal-form .btn-primary {
+  flex: 0 0 auto;
   height: 42px;
   padding-left: 1.1rem;
   padding-right: 1.1rem;
@@ -1320,6 +1336,11 @@
 
 .admin-app .diet-form-field {
   min-width: 0;
+}
+
+.admin-app .diet-form-field .input-text {
+  width: 100%;
+  max-width: 100%;
 }
 
 .admin-app .diet-form-field--sm {
@@ -1363,16 +1384,19 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .admin-app .diet-meal-form {
-    grid-template-columns: 1fr 1fr;
+  .admin-app .diet-meal-form > .diet-form-field:first-child {
+    flex: 1 1 100%;
+    min-width: 0;
   }
 
-  .admin-app .diet-meal-form .diet-form-field:first-child {
-    grid-column: 1 / -1;
+  .admin-app .diet-meal-form > .diet-form-field--day,
+  .admin-app .diet-meal-form > .diet-form-field--time {
+    flex: 1 1 calc(50% - 0.4rem);
+    width: auto;
   }
 
   .admin-app .diet-meal-form .btn-primary {
-    grid-column: 1 / -1;
+    flex: 1 1 100%;
     width: 100%;
   }
 
