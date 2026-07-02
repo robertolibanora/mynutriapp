@@ -178,7 +178,7 @@ def build_tools() -> list[dict]:
 # ============================================================
 
 def default_first_message(config) -> str:
-    nome = (getattr(config, "nome_assistente", None) or "Sofia").strip()
+    nome = (getattr(config, "nome_assistente", None) or "Sara").strip()
     studio = (getattr(config, "nome_studio", None) or "lo studio").strip()
     if config and config.messaggio_benvenuto:
         return config.messaggio_benvenuto.strip()
@@ -190,7 +190,7 @@ def default_first_message(config) -> str:
 
 
 def build_system_prompt(config) -> str:
-    nome = (getattr(config, "nome_assistente", None) or "Sofia").strip()
+    nome = (getattr(config, "nome_assistente", None) or "Sara").strip()
     studio = (getattr(config, "nome_studio", None) or "lo studio nutrizionale").strip()
     extra = (config.istruzioni_ai or "").strip() if config else ""
 

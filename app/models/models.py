@@ -506,7 +506,7 @@ class SegretarioConfig(db.Model):
 
     # 🏷️ Identità dell'assistente
     nome_studio = db.Column(db.String(120), server_default="MyNutriApp")
-    nome_assistente = db.Column(db.String(80), server_default="Sofia")
+    nome_assistente = db.Column(db.String(80), server_default="Sara")
 
     # 💬 Comportamento dell'AI
     messaggio_benvenuto = db.Column(db.Text)

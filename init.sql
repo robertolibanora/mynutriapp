@@ -252,7 +252,7 @@ CREATE TABLE IF NOT EXISTS segretario_config (
     deviazione_aggiornata_at DATETIME,
     numero_nutrizionista VARCHAR(30),
     nome_studio VARCHAR(120) DEFAULT 'MyNutriApp',
-    nome_assistente VARCHAR(80) DEFAULT 'Sofia',
+    nome_assistente VARCHAR(80) DEFAULT 'Sara',
     messaggio_benvenuto TEXT,
     istruzioni_ai TEXT,
     inoltra_a_nutrizionista BOOLEAN NOT NULL DEFAULT TRUE,
