@@ -108,12 +108,21 @@
   }
 
   // -------------------- ricerca --------------------
-  function renderResults(mealId, results) {
+  function renderResults(mealId, results, warning) {
     var box = root.querySelector('[data-results="' + mealId + '"]');
     if (!box) return;
     box.innerHTML = "";
+    if (warning && results.length) {
+      var warnEl = document.createElement("div");
+      warnEl.className = "food-loading food-loading--warn";
+      warnEl.textContent = warning;
+      box.appendChild(warnEl);
+    }
     if (!results.length) {
-      box.innerHTML = '<div class="food-loading">Nessun risultato. Prova un termine più specifico (es. "petto di pollo").</div>';
+      var emptyMsg = warning
+        ? warning
+        : 'Nessun risultato. Prova in italiano (es. "petto di pollo", "riso") o in inglese ("chicken breast", "rice").';
+      box.innerHTML = '<div class="food-loading food-loading--warn">' + emptyMsg + '</div>';
       box.classList.add("open");
       return;
     }
@@ -169,7 +178,7 @@
         if (box) box.classList.remove("open");
         return;
       }
-      renderResults(mealId, res.data.results || []);
+      renderResults(mealId, res.data.results || [], res.data.warning || null);
     }).catch(function () {
       showMsg("Errore di rete durante la ricerca.");
     });

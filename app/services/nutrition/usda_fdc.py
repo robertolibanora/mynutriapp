@@ -37,10 +37,30 @@ _NUTRIENT_MAP = {
     "307": "sodium_per_100g",
 }
 
-# Traduzione minima IT -> EN per ricerche comuni in app dietetica italiana.
+# Traduzione IT -> EN per ricerche comuni in app dietetica italiana.
+# Le frasi intere hanno priorità sulle singole parole.
 _IT_EN_FOOD_TERMS = {
+    "petto di pollo": "chicken breast raw skinless",
+    "coscia di pollo": "chicken thigh",
+    "ala di pollo": "chicken wing",
+    "pollo arrosto": "chicken roasted",
+    "carne macinata": "ground beef",
+    "carne di manzo": "beef",
+    "bistecca di manzo": "beef steak",
+    "filetto di manzo": "beef tenderloin",
+    "riso integrale": "brown rice cooked",
+    "riso basmati": "rice basmati cooked",
+    "pasta integrale": "whole wheat pasta cooked",
+    "pasta di semola": "pasta cooked",
+    "olio d'oliva": "olive oil",
+    "olio extravergine": "olive oil",
+    "latte scremato": "milk skim",
+    "latte intero": "milk whole",
+    "yogurt greco": "greek yogurt",
+    "tonno in scatola": "tuna canned",
+    "prosciutto crudo": "ham",
+    "prosciutto cotto": "ham cooked",
     "pollo": "chicken",
-    "petto di pollo": "chicken breast",
     "manzo": "beef",
     "vitello": "veal",
     "maiale": "pork",
@@ -55,8 +75,9 @@ _IT_EN_FOOD_TERMS = {
     "formaggio": "cheese",
     "mozzarella": "mozzarella",
     "parmigiano": "parmesan cheese",
-    "riso": "rice",
-    "pasta": "pasta",
+    "ricotta": "ricotta cheese",
+    "riso": "rice cooked",
+    "pasta": "pasta cooked",
     "pane": "bread",
     "farina": "flour",
     "patate": "potatoes",
@@ -64,15 +85,18 @@ _IT_EN_FOOD_TERMS = {
     "pomodoro": "tomato",
     "pomodori": "tomatoes",
     "zucchine": "zucchini",
+    "melanzane": "eggplant",
+    "melanzana": "eggplant",
     "broccoli": "broccoli",
     "spinaci": "spinach",
     "insalata": "lettuce",
+    "carote": "carrots",
+    "carota": "carrot",
     "mela": "apple",
     "banana": "banana",
     "arancia": "orange",
     "avena": "oats",
     "olio": "oil",
-    "olio d'oliva": "olive oil",
     "burro": "butter",
     "zucchero": "sugar",
     "miele": "honey",
@@ -83,7 +107,17 @@ _IT_EN_FOOD_TERMS = {
     "lenticchie": "lentils",
     "ceci": "chickpeas",
     "tofu": "tofu",
+    "petto": "breast",
+    "coscia": "thigh",
+    "di": "",
+    "crudo": "raw",
+    "cotto": "cooked",
+    "al": "",
+    "vapore": "steamed",
 }
+
+# Termini generici che non devono influenzare il ranking.
+_QUERY_STOPWORDS = frozenset({"di", "al", "con", "e", "in", "da", "del", "della", "the", "and", "or"})
 
 
 class UsdaFdcProvider(NutritionProvider):
@@ -145,10 +179,8 @@ class UsdaFdcProvider(NutritionProvider):
 
         payload = {
             "query": search_query,
-            "pageSize": min(limit * 2, 50),
+            "pageSize": min(max(limit * 4, 20), 50),
             "dataType": self.data_types,
-            "sortBy": "dataType.keyword",
-            "sortOrder": "asc",
         }
         data = self._post(f"{self.base_url}/foods/search", payload)
         foods = data.get("foods") or []
@@ -160,6 +192,9 @@ class UsdaFdcProvider(NutritionProvider):
                 results.append(normalized)
 
         results = self._rank_results(query, search_query, results)
+        with_kcal = [item for item in results if item.kcal_per_100g is not None]
+        if len(with_kcal) >= max(3, limit // 2):
+            results = with_kcal + [item for item in results if item.kcal_per_100g is None]
         return results[:limit]
 
     def get_food_details(self, external_id: str) -> NormalizedFood:
@@ -328,28 +363,62 @@ class UsdaFdcProvider(NutritionProvider):
     def _translate_query(cls, query: str) -> str:
         lowered = query.lower().strip()
         if lowered in _IT_EN_FOOD_TERMS:
-            return _IT_EN_FOOD_TERMS[lowered]
+            translated = _IT_EN_FOOD_TERMS[lowered]
+            return translated or lowered
+
+        # Prova match delle frasi più lunghe prima (es. "petto di pollo").
+        for phrase, english in sorted(_IT_EN_FOOD_TERMS.items(), key=lambda x: len(x[0]), reverse=True):
+            if not phrase or " " not in phrase:
+                continue
+            if phrase in lowered:
+                return english or lowered
 
         translated_words = []
         for word in lowered.split():
-            translated_words.append(_IT_EN_FOOD_TERMS.get(word, word))
-        return " ".join(translated_words)
+            mapped = _IT_EN_FOOD_TERMS.get(word, word)
+            if mapped:
+                translated_words.append(mapped)
+        return " ".join(translated_words) if translated_words else lowered
 
     @staticmethod
+    def _query_tokens(*queries: str) -> List[str]:
+        tokens: List[str] = []
+        seen = set()
+        for query in queries:
+            for word in (query or "").lower().replace(",", " ").split():
+                word = word.strip()
+                if len(word) < 2 or word in _QUERY_STOPWORDS:
+                    continue
+                if word not in seen:
+                    seen.add(word)
+                    tokens.append(word)
+        return tokens
+
+    @classmethod
     def _rank_results(
+        cls,
         original_query: str,
         search_query: str,
         items: List[NormalizedFood],
     ) -> List[NormalizedFood]:
-        q_orig = original_query.lower()
-        q_search = search_query.lower()
+        tokens = cls._query_tokens(original_query, search_query)
 
         def score(food: NormalizedFood) -> tuple:
             name = (food.name or "").lower()
+            token_hits = sum(1 for token in tokens if token in name)
+            token_ratio = token_hits / max(len(tokens), 1)
             has_kcal = food.kcal_per_100g is not None
-            starts = name.startswith(q_search) or name.startswith(q_orig)
-            contains = q_search in name or q_orig in name
             raw_bonus = 1 if "raw" in name else 0
-            return (1 if starts else 0, 1 if contains else 0, 1 if has_kcal else 0, raw_bonus, name)
+            cooked_penalty = 1 if any(x in name for x in ("fried", "breaded", "coated")) else 0
+            generic_penalty = 1 if any(x in name for x in ("lunchmeat", "soup", "sopa")) else 0
+            return (
+                token_hits,
+                token_ratio,
+                1 if has_kcal else 0,
+                raw_bonus,
+                -cooked_penalty,
+                -generic_penalty,
+                name,
+            )
 
         return sorted(items, key=score, reverse=True)

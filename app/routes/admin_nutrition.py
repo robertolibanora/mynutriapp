@@ -98,8 +98,12 @@ def search_foods():
         limit = 10
     limit = max(1, min(limit, 50))
 
-    results = NutritionService().search_foods(query, limit=limit)
-    return jsonify({"query": query, "count": len(results), "results": results})
+    payload = NutritionService().search_foods(query, limit=limit)
+    results = payload.get("results") or []
+    response = {"query": query, "count": len(results), "results": results}
+    if payload.get("warning"):
+        response["warning"] = payload["warning"]
+    return jsonify(response)
 
 
 @admin_nutrition_bp.route("/foods/import", methods=["POST"])

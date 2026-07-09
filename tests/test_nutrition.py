@@ -189,8 +189,8 @@ class UsdaFdcNormalizationTest(unittest.TestCase):
     def test_usda_fdc_translate_query(self):
         provider = UsdaFdcProvider(api_key="test-key")
         self.assertEqual(provider._translate_query("pollo"), "chicken")
-        self.assertEqual(provider._translate_query("petto di pollo"), "chicken breast")
-        self.assertEqual(provider._translate_query("riso integrale"), "rice integrale")
+        self.assertEqual(provider._translate_query("petto di pollo"), "chicken breast raw skinless")
+        self.assertEqual(provider._translate_query("riso integrale"), "brown rice cooked")
 
     def test_usda_fdc_provider_registered(self):
         self.assertIn("usda_fdc", get_available_providers())

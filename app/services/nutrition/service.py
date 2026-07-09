@@ -22,6 +22,7 @@ from app.models.models import (
 from .calculator import NUTRIENTS, NutritionCalculatorService
 from .providers import (
     NutritionProvider,
+    NutritionProviderError,
     get_nutrition_provider,
 )
 from .schemas import NormalizedFood
@@ -53,15 +54,16 @@ class NutritionService:
     # ==================================================================
     # RICERCA (provider esterno)
     # ==================================================================
-    def search_foods(self, query: str, limit: int = 10) -> List[Dict[str, Any]]:
+    def search_foods(self, query: str, limit: int = 10) -> Dict[str, Any]:
         """Cerca alimenti: prima nel DB locale, poi sul provider esterno."""
         query = (query or "").strip()
         if not query:
-            return []
+            return {"results": [], "warning": None}
 
         limit = max(1, min(int(limit or 10), 50))
         merged: List[Dict[str, Any]] = []
         seen: set = set()
+        warning: Optional[str] = None
 
         for item in self._search_local_foods(query, limit):
             key = ("local", item.get("local_food_id"))
@@ -76,11 +78,18 @@ class NutritionService:
                 if key not in seen:
                     seen.add(key)
                     merged.append(food.to_dict())
-        except Exception:
-            # Se il provider esterno fallisce, restituiamo comunque i risultati locali.
-            pass
+        except NutritionProviderError as exc:
+            warning = str(exc)
+            if not merged:
+                raise
+        except Exception as exc:
+            warning = "Ricerca alimenti temporaneamente non disponibile."
+            logger = __import__("logging").getLogger(__name__)
+            logger.warning("Errore provider nutrizionale durante search: %s", exc)
+            if not merged:
+                raise NutritionServiceError(warning) from exc
 
-        return merged[:limit]
+        return {"results": merged[:limit], "warning": warning}
 
     def _search_local_foods(self, query: str, limit: int) -> List[Dict[str, Any]]:
         """Alimenti già salvati in DB (custom o importati in precedenza)."""

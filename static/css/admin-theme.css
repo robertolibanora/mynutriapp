@@ -1526,6 +1526,10 @@
   padding: 0.5rem 0.7rem;
 }
 
+.admin-app .food-loading--warn {
+  color: #f0a060;
+}
+
 .admin-app input[type="time"].input-text {
   color-scheme: dark;
   min-height: 42px;
