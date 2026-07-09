@@ -33,7 +33,8 @@ from app.services.nutrition import (
     NutritionServiceError,
 )
 from app.services.nutrition.openfoodfacts import OpenFoodFactsProvider
-from app.services.nutrition.providers import NutritionProvider
+from app.services.nutrition.usda_fdc import UsdaFdcProvider
+from app.services.nutrition.providers import NutritionProvider, get_available_providers
 
 
 # --------------------------------------------------------------------------
@@ -112,6 +113,87 @@ class NormalizationTest(unittest.TestCase):
             {"code": "1", "product_name": "Test", "nutriments": {"energy_100g": 418.4}}
         )
         self.assertEqual(food.kcal_per_100g, 100.0)
+
+
+class UsdaFdcNormalizationTest(unittest.TestCase):
+    """Normalizzazione risposta USDA FoodData Central."""
+
+    def test_usda_fdc_detail_normalization(self):
+        provider = UsdaFdcProvider(api_key="test-key")
+        raw_food = {
+            "fdcId": 171077,
+            "description": "Chicken, breast, raw",
+            "foodCategory": {"description": "Poultry Products"},
+            "foodNutrients": [
+                {
+                    "nutrient": {"number": "208", "name": "Energy", "unitName": "kcal"},
+                    "amount": 120.0,
+                },
+                {
+                    "nutrient": {"number": "203", "name": "Protein", "unitName": "g"},
+                    "amount": 22.5,
+                },
+                {
+                    "nutrient": {"number": "204", "name": "Total lipid (fat)", "unitName": "g"},
+                    "amount": 2.62,
+                },
+                {
+                    "nutrient": {"number": "606", "name": "Fatty acids, total saturated", "unitName": "g"},
+                    "amount": 0.563,
+                },
+                {
+                    "nutrient": {"number": "307", "name": "Sodium, Na", "unitName": "mg"},
+                    "amount": 45.0,
+                },
+            ],
+        }
+        food = provider._normalize(raw_food)
+
+        self.assertIsNotNone(food)
+        self.assertEqual(food.provider, "usda_fdc")
+        self.assertEqual(food.external_id, "171077")
+        self.assertEqual(food.name, "Chicken, breast, raw")
+        self.assertEqual(food.category, "Poultry Products")
+        self.assertEqual(food.kcal_per_100g, 120.0)
+        self.assertEqual(food.protein_per_100g, 22.5)
+        self.assertEqual(food.fat_per_100g, 2.62)
+        self.assertEqual(food.saturated_fat_per_100g, 0.563)
+        self.assertEqual(food.sodium_per_100g, 45.0)
+        self.assertEqual(food.salt_per_100g, 0.1125)
+
+    def test_usda_fdc_search_format_normalization(self):
+        provider = UsdaFdcProvider(api_key="test-key")
+        raw_food = {
+            "fdcId": 2705964,
+            "description": "Chicken breast, rotisserie",
+            "dataType": "Survey (FNDDS)",
+            "foodCategory": "Poultry Products",
+            "brandOwner": "Generic",
+            "foodNutrients": [
+                {"nutrientNumber": "208", "nutrientName": "Energy", "value": 184, "unitName": "KCAL"},
+                {"nutrientNumber": "203", "nutrientName": "Protein", "value": 26.4, "unitName": "G"},
+                {"nutrientNumber": "205", "nutrientName": "Carbohydrate", "value": 0.0, "unitName": "G"},
+            ],
+            "servingSize": 85.0,
+            "servingSizeUnit": "g",
+        }
+        food = provider._normalize(raw_food)
+
+        self.assertIsNotNone(food)
+        self.assertEqual(food.kcal_per_100g, 184.0)
+        self.assertEqual(food.protein_per_100g, 26.4)
+        self.assertEqual(food.carbs_per_100g, 0.0)
+        self.assertEqual(food.serving_size, 85.0)
+        self.assertEqual(food.serving_unit, "g")
+
+    def test_usda_fdc_translate_query(self):
+        provider = UsdaFdcProvider(api_key="test-key")
+        self.assertEqual(provider._translate_query("pollo"), "chicken")
+        self.assertEqual(provider._translate_query("petto di pollo"), "chicken breast")
+        self.assertEqual(provider._translate_query("riso integrale"), "rice integrale")
+
+    def test_usda_fdc_provider_registered(self):
+        self.assertIn("usda_fdc", get_available_providers())
 
 
 class CalculatorTest(unittest.TestCase):

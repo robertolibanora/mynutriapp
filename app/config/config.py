@@ -168,8 +168,15 @@ class Config:
     # ========================================
     # Provider attivo per la ricerca alimenti. Non hardcodare nei router:
     # la factory get_nutrition_provider() legge questo valore.
-    NUTRITION_PROVIDER = os.getenv("NUTRITION_PROVIDER", "openfoodfacts").strip().lower()
+    NUTRITION_PROVIDER = os.getenv("NUTRITION_PROVIDER", "usda_fdc").strip().lower()
     NUTRITION_HTTP_TIMEOUT = float(os.getenv("NUTRITION_HTTP_TIMEOUT", "8"))
+    USDA_FDC_API_KEY = os.getenv("USDA_FDC_API_KEY", "").strip()
+    USDA_FDC_BASE_URL = os.getenv(
+        "USDA_FDC_BASE_URL", "https://api.nal.usda.gov/fdc/v1"
+    ).rstrip("/")
+    USDA_FDC_DATA_TYPES = os.getenv(
+        "USDA_FDC_DATA_TYPES", "Foundation,SR Legacy,Survey (FNDDS)"
+    )
     OPENFOODFACTS_BASE_URL = os.getenv(
         "OPENFOODFACTS_BASE_URL", "https://it.openfoodfacts.org"
     ).rstrip("/")

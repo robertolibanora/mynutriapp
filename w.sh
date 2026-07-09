@@ -1,1 +1,1 @@
-/var/www/mynutriapp/.w.sh
+.w.sh

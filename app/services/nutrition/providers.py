@@ -76,9 +76,11 @@ def _build_registry() -> dict:
     dipendenze di rete se un provider non viene usato.
     """
     from .openfoodfacts import OpenFoodFactsProvider
+    from .usda_fdc import UsdaFdcProvider
 
     return {
         OpenFoodFactsProvider.name: OpenFoodFactsProvider,
+        UsdaFdcProvider.name: UsdaFdcProvider,
         # Provider futuri (nessuna modifica ai router necessaria):
         # FatSecretProvider.name: FatSecretProvider,
         # EdamamProvider.name: EdamamProvider,
@@ -94,7 +96,7 @@ def get_nutrition_provider(name: Optional[str] = None) -> NutritionProvider:
     """Factory: ritorna l'istanza del provider configurato.
 
     Se ``name`` è ``None`` viene letto ``NUTRITION_PROVIDER`` dalla config
-    (default: ``openfoodfacts``). Solleva :class:`UnsupportedProviderError`
+    (default: ``usda_fdc``). Solleva :class:`UnsupportedProviderError`
     se il provider non è registrato.
     """
     if name is None:
@@ -107,7 +109,7 @@ def get_nutrition_provider(name: Optional[str] = None) -> NutritionProvider:
     if not name:
         import os
 
-        name = os.getenv("NUTRITION_PROVIDER", "openfoodfacts")
+        name = os.getenv("NUTRITION_PROVIDER", "usda_fdc")
 
     name = str(name).strip().lower()
     registry = _build_registry()
