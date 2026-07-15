@@ -3,10 +3,10 @@
 {% block content %}
 
 <!-- HEADER -->
-<div class="header-section" style="background: linear-gradient(135deg, rgba(255, 117, 31, 0.1) 0%, rgba(13, 51, 28, 0.3) 100%); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; border: 1px solid rgba(255, 117, 31, 0.2);">
+<div class="header-section" style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.3) 100%); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; border: 1px solid rgba(255, 255, 255, 0.2);">
   <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
     <div>
-      <h1 style="color: #ff751f; margin: 0; font-size: 2.2rem; font-weight: 700;">{{ icon('clock', 16) }} Scadenze</h1>
+      <h1 style="color: #d4d4d4; margin: 0; font-size: 2.2rem; font-weight: 700;">{{ icon('clock', 16) }} Scadenze</h1>
       <p style="color: #b6b1a9; margin: 0.5rem 0 0 0; font-size: 1.1rem;">Monitora tutte le scadenze di diete, allenamenti e check</p>
     </div>
     <div style="text-align: right;">
@@ -18,34 +18,34 @@
 
 <!-- STATISTICHE -->
 <div class="stats-section" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-  <div style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(244, 67, 54, 0.3); border-radius: 12px; padding: 1.5rem; text-align: center;">
+  <div style="background: rgba(255, 255, 255, 0.4); border: 1px solid rgba(244, 67, 54, 0.3); border-radius: 12px; padding: 1.5rem; text-align: center;">
     <div style="color: #F44336; font-size: 2rem; font-weight: 700;">{{ stats.urgenti }}</div>
     <div style="color: #F44336; font-size: 1rem; font-weight: 600; margin: 0.5rem 0;">Urgenti</div>
     <div style="color: #b6b1a9; font-size: 0.8rem;">≤ 7 giorni</div>
   </div>
   
-  <div style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(255, 152, 0, 0.3); border-radius: 12px; padding: 1.5rem; text-align: center;">
+  <div style="background: rgba(255, 255, 255, 0.4); border: 1px solid rgba(255, 152, 0, 0.3); border-radius: 12px; padding: 1.5rem; text-align: center;">
     <div style="color: #FF9800; font-size: 2rem; font-weight: 700;">{{ stats.diete }}</div>
     <div style="color: #FF9800; font-size: 1rem; font-weight: 600; margin: 0.5rem 0;">Diete</div>
     <div style="color: #b6b1a9; font-size: 0.8rem;">In scadenza</div>
   </div>
   
-  <div style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(33, 150, 243, 0.3); border-radius: 12px; padding: 1.5rem; text-align: center;">
-    <div style="color: #2196F3; font-size: 2rem; font-weight: 700;">{{ stats.allenamenti }}</div>
-    <div style="color: #2196F3; font-size: 1rem; font-weight: 600; margin: 0.5rem 0;">Allenamenti</div>
+  <div style="background: rgba(255, 255, 255, 0.4); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 12px; padding: 1.5rem; text-align: center;">
+    <div style="color: #a8a8a8; font-size: 2rem; font-weight: 700;">{{ stats.allenamenti }}</div>
+    <div style="color: #a8a8a8; font-size: 1rem; font-weight: 600; margin: 0.5rem 0;">Allenamenti</div>
     <div style="color: #b6b1a9; font-size: 0.8rem;">In scadenza</div>
   </div>
   
-  <div style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(156, 39, 176, 0.3); border-radius: 12px; padding: 1.5rem; text-align: center;">
-    <div style="color: #9C27B0; font-size: 2rem; font-weight: 700;">{{ stats.check }}</div>
-    <div style="color: #9C27B0; font-size: 1rem; font-weight: 600; margin: 0.5rem 0;">Check</div>
+  <div style="background: rgba(255, 255, 255, 0.4); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 12px; padding: 1.5rem; text-align: center;">
+    <div style="color: #909090; font-size: 2rem; font-weight: 700;">{{ stats.check }}</div>
+    <div style="color: #909090; font-size: 1rem; font-weight: 600; margin: 0.5rem 0;">Check</div>
     <div style="color: #b6b1a9; font-size: 0.8rem;">Mancanti</div>
   </div>
 </div>
 
 <!-- FILTRI -->
-<div class="filters-section" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem;">
-  <h3 style="color: #ff751f; margin: 0 0 1rem 0; display: flex; align-items: center; gap: 0.5rem;">
+<div class="filters-section" style="background: rgba(255, 255, 255, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem;">
+  <h3 style="color: #d4d4d4; margin: 0 0 1rem 0; display: flex; align-items: center; gap: 0.5rem;">
     {{ icon('filter', 16) }} Filtri
   </h3>
   
@@ -81,14 +81,14 @@
 
 <!-- LISTA SCADENZE -->
 {% if scadenze %}
-<div class="scadenze-list" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px; padding: 1.5rem;">
-  <h3 style="color: #ff751f; margin: 0 0 1.5rem 0; display: flex; align-items: center; gap: 0.5rem;">
+<div class="scadenze-list" style="background: rgba(255, 255, 255, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px; padding: 1.5rem;">
+  <h3 style="color: #d4d4d4; margin: 0 0 1.5rem 0; display: flex; align-items: center; gap: 0.5rem;">
     {{ icon('clipboard', 16) }} Scadenze ({{ scadenze|length }})
   </h3>
   
   <div style="display: flex; flex-direction: column; gap: 1rem;">
     {% for scadenza in scadenze %}
-    <div class="scadenza-card scadenza-{{ scadenza.tipo }}" style="background: rgba(13, 51, 28, 0.6); border-radius: 12px; padding: 1.5rem; transition: all 0.3s ease;">
+    <div class="scadenza-card scadenza-{{ scadenza.tipo }}" style="background: rgba(255, 255, 255, 0.6); border-radius: 12px; padding: 1.5rem; transition: all 0.3s ease;">
       <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
         <div style="flex: 1; min-width: 300px;">
           <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
@@ -144,9 +144,9 @@
   </div>
 </div>
 {% else %}
-<div class="empty-state" style="text-align: center; padding: 3rem; background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px;">
+<div class="empty-state" style="text-align: center; padding: 3rem; background: rgba(255, 255, 255, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px;">
   <div class="adm-empty-icon">{{ icon('check-circle', 48) }}</div>
-  <h3 style="color: #4CAF50; margin: 0 0 1rem 0; font-size: 1.5rem;">Nessuna Scadenza</h3>
+  <h3 style="color: #c8c8c8; margin: 0 0 1rem 0; font-size: 1.5rem;">Nessuna Scadenza</h3>
   <p style="color: #b6b1a9; margin: 0; font-size: 1rem;">
     Non ci sono scadenze nei prossimi {{ giorni_filtro }} giorni per il tipo selezionato.
   </p>

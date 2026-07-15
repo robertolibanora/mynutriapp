@@ -389,7 +389,7 @@ def scadenze():
                 'data_scadenza': dieta.data_fine,
                 'giorni_rimanenti': giorni_alla_scadenza,
                 'urgenza': 'alta' if giorni_alla_scadenza <= 7 else 'media' if giorni_alla_scadenza <= 14 else 'bassa',
-                'colore': '#F44336' if giorni_alla_scadenza <= 7 else '#FF9800' if giorni_alla_scadenza <= 14 else '#4CAF50',
+                'colore': '#F44336' if giorni_alla_scadenza <= 7 else '#FF9800' if giorni_alla_scadenza <= 14 else '#c8c8c8',
                 'link': url_for('patients.dettaglio_paziente', patient_id=paziente.id)
             })
     
@@ -410,7 +410,7 @@ def scadenze():
                 'data_scadenza': allenamento.data_fine,
                 'giorni_rimanenti': giorni_alla_scadenza,
                 'urgenza': 'alta' if giorni_alla_scadenza <= 7 else 'media' if giorni_alla_scadenza <= 14 else 'bassa',
-                'colore': '#F44336' if giorni_alla_scadenza <= 7 else '#FF9800' if giorni_alla_scadenza <= 14 else '#4CAF50',
+                'colore': '#F44336' if giorni_alla_scadenza <= 7 else '#FF9800' if giorni_alla_scadenza <= 14 else '#c8c8c8',
                 'link': url_for('patients.dettaglio_paziente', patient_id=paziente.id)
             })
     

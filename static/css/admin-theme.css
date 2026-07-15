@@ -1,4 +1,4 @@
-/* MyNutriAPP Admin — tema v2 */
+/* Admin — tema white-label neutro */
 
 :root {
   --adm-bg: #111111;
@@ -12,10 +12,9 @@
   --adm-label: #5a5a5a;
   --adm-accent: #d4d4d4;
   --adm-accent-hover: #ffffff;
-  --adm-orange: #b8b8b8;
-  --adm-orange-soft: #d0d0d0;
-  --adm-green: #a8a8a8;
-  --adm-green-solid: #8f8f8f;
+  --adm-accent-soft: #b8b8b8;
+  --adm-accent-muted: #8f8f8f;
+  --adm-positive: #c8c8c8;
   --adm-danger: #c47070;
   --adm-font: "Manrope", system-ui, sans-serif;
   --adm-serif: "Manrope", system-ui, sans-serif;
@@ -124,14 +123,14 @@
   color: var(--adm-text);
 }
 
-.admin-brand-title .orange { color: var(--adm-text); }
+.admin-brand-title .orange,
 .admin-brand-title .green { color: var(--adm-text-muted); }
 
 .admin-brand-sub {
   font: 600 9.5px var(--adm-font);
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: #6f8475;
+  color: #6e6e6e;
   margin-top: 2px;
 }
 
@@ -139,7 +138,7 @@
   font: 700 10.5px var(--adm-font);
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: #5f7567;
+  color: #5a5a5a;
   padding: 6px 10px 8px;
 }
 
@@ -157,7 +156,7 @@
   border-radius: 12px;
   text-decoration: none;
   font: 600 14px var(--adm-font);
-  color: #c9d2cb;
+  color: var(--adm-text-muted);
   transition: background 0.15s, color 0.15s;
 }
 
@@ -170,8 +169,8 @@
 
 .admin-nav-link.is-active {
   color: #fff;
-  background: rgba(255, 117, 31, 0.14);
-  box-shadow: inset 0 0 0 1px rgba(255, 117, 31, 0.22);
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22);
 }
 
 .admin-sidebar-footer {
@@ -198,8 +197,8 @@
   border-radius: 11px;
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, #4caf50, #2f7a36);
-  color: #06210d;
+  background: linear-gradient(135deg, #c8c8c8, #8f8f8f);
+  color: var(--adm-text);
   font: 800 14px var(--adm-font);
 }
 
@@ -212,7 +211,7 @@
 
 .admin-user-role {
   font: 500 11px var(--adm-font);
-  color: #7f9384;
+  color: #7a7a7a;
 }
 
 .admin-logout {
@@ -249,7 +248,7 @@
   justify-content: space-between;
   gap: 20px;
   padding: 16px 36px;
-  background: rgba(8, 31, 18, 0.82);
+  background: rgba(0, 0, 0, 0.82);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--adm-border-soft);
 }
@@ -278,12 +277,12 @@
 
 .admin-topbar-date {
   font: 700 13px var(--adm-font);
-  color: var(--adm-green);
+  color: var(--adm-text-muted);
 }
 
 .admin-topbar-time {
   font: 600 12px var(--adm-font);
-  color: #8a9b8e;
+  color: #8a8a8a;
 }
 
 .admin-content {
@@ -297,12 +296,12 @@
   padding: 14px 36px 20px;
   text-align: center;
   font: 500 12.5px var(--adm-font);
-  color: #6f8475;
+  color: #6e6e6e;
   border-top: 1px solid var(--adm-border-soft);
 }
 
 .admin-footer a {
-  color: var(--adm-orange);
+  color: var(--adm-text-muted);
   text-decoration: none;
 }
 
@@ -323,10 +322,10 @@
   background: var(--adm-surface);
 }
 
-.adm-flash--success { border-color: rgba(76, 175, 80, 0.35); color: var(--adm-green); }
+.adm-flash--success { border-color: rgba(255, 255, 255, 0.35); color: var(--adm-positive); }
 .adm-flash--danger { border-color: rgba(226, 114, 91, 0.35); color: var(--adm-danger); }
-.adm-flash--warning { border-color: rgba(255, 193, 7, 0.35); color: #ffca28; }
-.adm-flash--info { border-color: rgba(255, 117, 31, 0.35); color: var(--adm-orange-soft); }
+.adm-flash--warning { border-color: rgba(255, 255, 255, 0.35); color: #b0b0b0; }
+.adm-flash--info { border-color: rgba(255, 255, 255, 0.35); color: var(--adm-accent-soft); }
 
 /* === DASHBOARD & PANELS === */
 .adm-hero {
@@ -338,8 +337,8 @@
   margin-bottom: 24px;
   padding: 24px 26px;
   border-radius: 18px;
-  background: linear-gradient(120deg, rgba(255, 117, 31, 0.12), rgba(76, 175, 80, 0.06) 60%, transparent);
-  border: 1px solid rgba(255, 117, 31, 0.16);
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.06) 60%, transparent);
+  border: 1px solid rgba(255, 255, 255, 0.16);
 }
 
 .adm-hero h2 {
@@ -358,7 +357,7 @@
   margin: 12px 0 0;
   font: 500 17px var(--adm-serif);
   font-style: italic;
-  color: var(--adm-orange-soft);
+  color: var(--adm-accent-soft);
 }
 
 .adm-stat-grid {
@@ -383,10 +382,10 @@
   background: rgba(255, 255, 255, 0.05);
 }
 
-.adm-stat-card--green:hover { border-color: rgba(76, 175, 80, 0.4); }
-.adm-stat-card--blue:hover { border-color: rgba(33, 150, 243, 0.4); }
-.adm-stat-card--purple:hover { border-color: rgba(156, 39, 176, 0.4); }
-.adm-stat-card--yellow:hover { border-color: rgba(255, 193, 7, 0.4); }
+.adm-stat-card--green:hover,
+.adm-stat-card--blue:hover,
+.adm-stat-card--purple:hover,
+.adm-stat-card--yellow:hover { border-color: rgba(255, 255, 255, 0.22); }
 
 .adm-stat-head {
   display: flex;
@@ -403,10 +402,10 @@
   place-items: center;
 }
 
-.adm-stat-icon--green { background: rgba(76, 175, 80, 0.14); color: #4caf50; }
-.adm-stat-icon--blue { background: rgba(33, 150, 243, 0.14); color: #42a5f5; }
-.adm-stat-icon--purple { background: rgba(186, 104, 200, 0.16); color: #ba68c8; }
-.adm-stat-icon--yellow { background: rgba(255, 193, 7, 0.14); color: #ffca28; }
+.adm-stat-icon--green,
+.adm-stat-icon--blue,
+.adm-stat-icon--purple,
+.adm-stat-icon--yellow { background: rgba(255, 255, 255, 0.1); color: var(--adm-accent); }
 
 .adm-stat-badge {
   font: 700 11.5px var(--adm-font);
@@ -414,10 +413,10 @@
   border-radius: 999px;
 }
 
-.adm-stat-badge--green { color: #4caf50; background: rgba(76, 175, 80, 0.12); }
-.adm-stat-badge--blue { color: #42a5f5; background: rgba(33, 150, 243, 0.12); }
-.adm-stat-badge--purple { color: #ba68c8; background: rgba(186, 104, 200, 0.14); }
-.adm-stat-badge--yellow { color: #ffca28; background: rgba(255, 193, 7, 0.12); }
+.adm-stat-badge--green,
+.adm-stat-badge--blue,
+.adm-stat-badge--purple,
+.adm-stat-badge--yellow { color: var(--adm-text-muted); background: rgba(255, 255, 255, 0.08); }
 
 .adm-stat-value {
   font: 600 32px/1 var(--adm-serif);
@@ -439,10 +438,10 @@
   text-decoration: none;
 }
 
-.adm-stat-link--green { color: #4caf50; }
-.adm-stat-link--blue { color: #42a5f5; }
-.adm-stat-link--purple { color: #ba68c8; }
-.adm-stat-link--yellow { color: #ffca28; }
+.adm-stat-link--green,
+.adm-stat-link--blue,
+.adm-stat-link--purple,
+.adm-stat-link--yellow { color: var(--adm-text-muted); }
 
 .adm-split-grid {
   display: grid;
@@ -472,7 +471,7 @@
 
 .adm-panel-link {
   font: 600 12.5px var(--adm-font);
-  color: var(--adm-orange);
+  color: var(--adm-accent);
   text-decoration: none;
 }
 
@@ -488,24 +487,15 @@
   border: 1px solid var(--adm-border-soft);
 }
 
-.adm-appt-item--done {
-  background: rgba(76, 175, 80, 0.07);
-  border-color: rgba(76, 175, 80, 0.18);
-}
-
+.adm-appt-item--done,
 .adm-appt-item--soon {
-  background: rgba(33, 150, 243, 0.06);
-  border-color: rgba(33, 150, 243, 0.18);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--adm-border-soft);
 }
 
-.adm-appt-time {
-  font: 700 14px var(--adm-font);
-  min-width: 46px;
-}
-
-.adm-appt-time--green { color: var(--adm-green); }
-.adm-appt-time--blue { color: #42a5f5; }
-.adm-appt-time--muted { color: #c9d2cb; }
+.adm-appt-time--green,
+.adm-appt-time--blue { color: var(--adm-text-muted); }
+.adm-appt-time--muted { color: var(--adm-text-dim); }
 
 .adm-appt-name { font: 700 14px var(--adm-font); }
 .adm-appt-type { font-size: 12.5px; color: var(--adm-text-dim); }
@@ -521,10 +511,15 @@
   border-radius: 999px;
 }
 
-.adm-status-pill--done { color: #4caf50; background: rgba(76, 175, 80, 0.14); }
-.adm-status-pill--soon { color: #42a5f5; background: rgba(33, 150, 243, 0.14); }
-.adm-status-pill--wait { color: #ffca28; background: rgba(255, 193, 7, 0.12); }
-.adm-status-pill--confirmed { color: #4caf50; background: rgba(76, 175, 80, 0.14); }
+.adm-appt-time {
+  font: 700 14px var(--adm-font);
+  min-width: 46px;
+}
+
+.adm-status-pill--done,
+.adm-status-pill--confirmed { color: var(--adm-text-muted); background: rgba(255, 255, 255, 0.1); }
+.adm-status-pill--soon { color: var(--adm-text-muted); background: rgba(255, 255, 255, 0.08); }
+.adm-status-pill--wait { color: var(--adm-text-dim); background: rgba(255, 255, 255, 0.06); }
 
 .adm-empty {
   color: var(--adm-text-dim);
@@ -614,10 +609,10 @@
 }
 
 .admin-app .table tbody tr:hover {
-  background: rgba(255, 117, 31, 0.04);
+  background: rgba(255, 255, 255, 0.04);
 }
 
-.admin-app .info-label { color: var(--adm-orange-soft); font-family: var(--adm-font); }
+.admin-app .info-label { color: var(--adm-accent-soft); font-family: var(--adm-font); }
 
 .admin-app .badge {
   font-family: var(--adm-font);
@@ -631,18 +626,18 @@
   gap: 8px;
   padding: 12px 18px;
   border-radius: 12px;
-  background: var(--adm-orange);
+  background: var(--adm-accent);
   color: #1a1208;
   font: 700 13.5px var(--adm-font);
   text-decoration: none;
-  box-shadow: 0 6px 18px rgba(255, 117, 31, 0.28);
+  box-shadow: 0 6px 18px rgba(255, 255, 255, 0.28);
   border: none;
   cursor: pointer;
   transition: background 0.15s;
 }
 
 .adm-btn-cta:hover {
-  background: #ff8534;
+  background: #e0e0e0;
   color: #1a1208;
 }
 
@@ -711,8 +706,8 @@
 }
 
 .admin-app .tab-btn.active {
-  background: rgba(255, 117, 31, 0.2);
-  color: var(--adm-orange);
+  background: rgba(255, 255, 255, 0.2);
+  color: var(--adm-accent);
 }
 
 .admin-app .tab-panel {
@@ -755,10 +750,10 @@
 .admin-app .info-grid { display: grid; gap: 15px; }
 .admin-app .info-item { display: flex; flex-direction: column; gap: 5px; }
 .admin-app .info-value.has-data {
-  background: rgba(255, 117, 31, 0.1);
+  background: rgba(255, 255, 255, 0.1);
   padding: 8px 12px;
   border-radius: 6px;
-  border-left: 3px solid var(--adm-orange);
+  border-left: 3px solid var(--adm-accent);
 }
 .admin-app .info-value.no-data { color: var(--adm-text-muted); font-style: italic; opacity: 0.8; }
 
@@ -771,8 +766,8 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
-.admin-app .status-badge.complete { background: rgba(76, 175, 80, 0.14); color: #4caf50; }
-.admin-app .status-badge.incomplete { background: rgba(255, 193, 7, 0.12); color: #ffca28; }
+.admin-app .status-badge.complete { background: rgba(255, 255, 255, 0.14); color: #c8c8c8; }
+.admin-app .status-badge.incomplete { background: rgba(255, 255, 255, 0.12); color: #b0b0b0; }
 .admin-app .status-text { color: var(--adm-text-muted); margin: 0; }
 
 .admin-app .action-buttons {
@@ -818,8 +813,8 @@
 
 .admin-app .patient-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 30px rgba(76, 175, 80, 0.15);
-  border-color: rgba(76, 175, 80, 0.35);
+  box-shadow: 0 12px 30px rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.35);
 }
 
 .admin-app .stat-card {
@@ -885,7 +880,7 @@
 .admin-app .input-text:focus,
 .admin-app .input-select:focus,
 .admin-app textarea:focus {
-  border-color: var(--adm-orange) !important;
+  border-color: var(--adm-accent) !important;
   outline: none;
 }
 
@@ -904,7 +899,7 @@
 
 .admin-app .btn-small { padding: 0.45rem 0.9rem; font-size: 0.85rem; }
 .admin-app .btn-lg { padding: 0.9rem 1.6rem; font-size: 1.05rem; }
-.admin-app .btn-outline { background: transparent; color: var(--adm-orange); border: 1px solid rgba(255, 117, 31, 0.45); }
+.admin-app .btn-outline { background: transparent; color: var(--adm-accent); border: 1px solid rgba(255, 255, 255, 0.45); }
 .admin-app .btn-ghost { background: rgba(255, 255, 255, 0.04); color: var(--adm-text); border: 1px solid var(--adm-border); }
 .admin-app .btn-secondary { background: rgba(255, 255, 255, 0.08); color: var(--adm-text); border: 1px solid var(--adm-border); }
 
@@ -932,8 +927,8 @@
   font-weight: 600;
   color: #fff;
 }
-.admin-app .badge-success { background: rgba(76, 175, 80, 0.85); }
-.admin-app .badge-warning { background: rgba(255, 193, 7, 0.85); color: #1a1208; }
+.admin-app .badge-success { background: rgba(255, 255, 255, 0.85); }
+.admin-app .badge-warning { background: rgba(255, 255, 255, 0.85); color: #1a1208; }
 .admin-app .badge-danger { background: rgba(226, 114, 91, 0.85); }
 
 .admin-app .calendar-grid {
@@ -954,13 +949,13 @@
 .admin-app .calendar-date {
   font-weight: 700;
   font-size: 0.95em;
-  color: var(--adm-orange);
+  color: var(--adm-accent);
   margin-bottom: 8px;
 }
 
 .admin-app .calendar-event {
   background: rgba(255, 255, 255, 0.03);
-  border-left: 4px solid var(--adm-orange);
+  border-left: 4px solid var(--adm-accent);
   padding: 8px 12px;
   border-radius: 8px;
   margin-bottom: 8px;
@@ -970,10 +965,10 @@
   align-items: center;
 }
 
-.admin-app .calendar-event.in_attesa { border-color: #ffca28; }
-.admin-app .calendar-event.confermato { border-color: #4caf50; }
+.admin-app .calendar-event.in_attesa { border-color: #b0b0b0; }
+.admin-app .calendar-event.confermato { border-color: #c8c8c8; }
 .admin-app .calendar-event.annullato { border-color: var(--adm-danger); }
-.admin-app .today { background: rgba(255, 117, 31, 0.08); border-color: rgba(255, 117, 31, 0.35); }
+.admin-app .today { background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.35); }
 
 .admin-app .btn-toggle {
   padding: 6px 12px;
@@ -1030,13 +1025,13 @@
 .admin-app .no-data { color: var(--adm-text-muted); font-style: italic; font-size: 0.9em; }
 
 .admin-app .password-display {
-  background: rgba(255, 117, 31, 0.12);
-  color: var(--adm-orange);
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--adm-accent);
   padding: 4px 8px;
   border-radius: 6px;
   font-family: ui-monospace, monospace;
   font-weight: 600;
-  border: 1px solid rgba(255, 117, 31, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.25);
 }
 
 .admin-app .data-icon {
@@ -1047,7 +1042,7 @@
   height: 40px;
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.05);
-  color: var(--adm-green);
+  color: var(--adm-positive);
   margin-bottom: 8px;
 }
 
@@ -1112,9 +1107,9 @@
 }
 
 .admin-app .diet-msg.is-success {
-  background: rgba(76, 175, 80, 0.12);
-  border-color: rgba(76, 175, 80, 0.35);
-  color: #4caf50;
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.35);
+  color: #c8c8c8;
 }
 
 .admin-app .diet-page-toolbar {
@@ -1189,10 +1184,10 @@
   margin-bottom: 0.15rem;
 }
 
-.admin-app .diet-kpi--kcal b { color: var(--adm-orange); }
-.admin-app .diet-kpi--protein b { color: #42a5f5; }
-.admin-app .diet-kpi--carbs b { color: #4caf50; }
-.admin-app .diet-kpi--fat b { color: #ffca28; }
+.admin-app .diet-kpi--kcal b { color: var(--adm-accent); }
+.admin-app .diet-kpi--protein b { color: #a8a8a8; }
+.admin-app .diet-kpi--carbs b { color: #c8c8c8; }
+.admin-app .diet-kpi--fat b { color: #b0b0b0; }
 .admin-app .diet-kpi--fiber b { color: #9ccc65; }
 
 .admin-app .diet-kpi span {
@@ -1244,7 +1239,7 @@
 }
 
 .admin-app .dm-total b {
-  color: var(--adm-orange);
+  color: var(--adm-accent);
 }
 
 .admin-app .diet-items {
@@ -1272,7 +1267,7 @@
 }
 
 .admin-app .di-qty {
-  color: #4caf50;
+  color: #c8c8c8;
   font-weight: 600;
   font-size: 0.85rem;
   white-space: nowrap;
@@ -1324,15 +1319,15 @@
 }
 
 .admin-app .diet-add-meal-panel {
-  background: rgba(13, 51, 28, 0.4);
-  border: 1px solid rgba(255, 117, 31, 0.3);
+  background: rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 12px;
   padding: 1.1rem 1.2rem;
   margin-top: 0.5rem;
 }
 
 .admin-app .diet-add-meal-panel h3 {
-  color: var(--adm-orange);
+  color: var(--adm-accent);
   margin: 0 0 0.85rem;
   font-size: 1rem;
 }
@@ -1415,8 +1410,8 @@
 .admin-app select.input-text:focus,
 .admin-app textarea.input-text:focus {
   outline: none;
-  border-color: rgba(255, 117, 31, 0.45) !important;
-  box-shadow: 0 0 0 2px rgba(255, 117, 31, 0.12);
+  border-color: rgba(255, 255, 255, 0.45) !important;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.12);
 }
 
 @media (max-width: 900px) {
@@ -1510,7 +1505,7 @@
 }
 
 .admin-app .food-res-item:hover {
-  background: rgba(255, 117, 31, 0.1);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .admin-app .food-res-name {
@@ -1529,13 +1524,13 @@
   font-size: 0.68rem;
   padding: 0.1rem 0.4rem;
   border-radius: 999px;
-  background: rgba(76, 175, 80, 0.15);
-  color: #4caf50;
+  background: rgba(255, 255, 255, 0.15);
+  color: #c8c8c8;
   margin-left: 0.35rem;
 }
 
 .admin-app .food-selected {
-  color: #4caf50;
+  color: #c8c8c8;
   font-size: 0.82rem;
   margin-top: 0.4rem;
   min-height: 1rem;

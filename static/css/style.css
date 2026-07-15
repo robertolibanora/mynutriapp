@@ -37,7 +37,7 @@ html {
 body {
     margin: 0;
     font-family: 'Inter', sans-serif;
-    background-color: #0d331c;
+    background-color: #1a1a1a;
     color: #ffffff;
     overflow-x: hidden;
     max-width: 100vw;
@@ -55,12 +55,12 @@ body {
 .toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
 .toolbar .spacer { flex: 1; }
 .filters { display: flex; align-items: center; gap: 10px; }
-.input { background: rgba(13,51,28,0.2); color: #ffffff; border: 1px solid rgba(182,177,169,0.25); border-radius: 6px; padding: 8px 10px; }
+.input { background: rgba(255, 255, 255, 0.2); color: #ffffff; border: 1px solid rgba(182,177,169,0.25); border-radius: 6px; padding: 8px 10px; }
 .totals { text-align: right; color: #ffffff; }
 
 /* === CARD === */
 .card {
-    background: rgba(13, 51, 28, 0.4);
+    background: rgba(255, 255, 255, 0.4);
     border: 1px solid rgba(182, 177, 169, 0.2);
     border-radius: 12px;
     padding: 20px 25px;
@@ -74,7 +74,7 @@ body {
 .card:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-    border-color: rgba(255, 117, 31, 0.3);
+    border-color: rgba(255, 255, 255, 0.3);
 }
 
 /* Info grid per dati medici */
@@ -91,7 +91,7 @@ body {
 
 .info-label {
     font-weight: 600;
-    color: #ff751f;
+    color: #d4d4d4;
     font-size: 0.9em;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -105,10 +105,10 @@ body {
 
 .info-value.has-data {
     color: #ffffff;
-    background: rgba(255, 117, 31, 0.1);
+    background: rgba(255, 255, 255, 0.1);
     padding: 8px 12px;
     border-radius: 6px;
-    border-left: 3px solid #ff751f;
+    border-left: 3px solid #d4d4d4;
 }
 
 .info-value.no-data {
@@ -119,7 +119,7 @@ body {
 
 /* Status card */
 .status-card {
-    background: rgba(13, 51, 28, 0.6);
+    background: rgba(255, 255, 255, 0.6);
     border: 1px solid rgba(182, 177, 169, 0.3);
     border-radius: 12px;
     padding: 20px;
@@ -138,7 +138,7 @@ body {
 
 .status-header h3 {
     margin: 0;
-    color: #ff751f;
+    color: #d4d4d4;
     font-size: 1.1em;
 }
 
@@ -158,9 +158,9 @@ body {
 }
 
 .status-badge.incomplete {
-    background: rgba(255, 193, 7, 0.2);
-    color: #ffc107;
-    border: 1px solid rgba(255, 193, 7, 0.3);
+    background: rgba(255, 255, 255, 0.2);
+    color: #b0b0b0;
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .status-text {
@@ -254,28 +254,28 @@ body {
 
 /* Password display styling */
 .password-display {
-    background: rgba(255, 117, 31, 0.15);
-    color: #ff751f;
+    background: rgba(255, 255, 255, 0.15);
+    color: #d4d4d4;
     padding: 4px 8px;
     border-radius: 4px;
     font-family: 'Courier New', monospace;
     font-weight: 600;
     font-size: 0.9em;
-    border: 1px solid rgba(255, 117, 31, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 /* Readonly input styling */
 .input-text[readonly] {
-    background: rgba(255, 117, 31, 0.1);
-    color: #ff751f;
-    border-color: rgba(255, 117, 31, 0.3);
+    background: rgba(255, 255, 255, 0.1);
+    color: #d4d4d4;
+    border-color: rgba(255, 255, 255, 0.3);
     cursor: not-allowed;
 }
 
 .input-text.password-display[readonly] {
-    background: rgba(255, 117, 31, 0.15);
-    color: #ff751f;
-    border: 1px solid rgba(255, 117, 31, 0.3);
+    background: rgba(255, 255, 255, 0.15);
+    color: #d4d4d4;
+    border: 1px solid rgba(255, 255, 255, 0.3);
     font-family: 'Courier New', monospace;
     font-weight: 600;
 }
@@ -312,13 +312,13 @@ body {
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    background: rgba(255,117,31,0.15);
-    color: #ff751f;
+    background: rgba(255, 255, 255, 0.15);
+    color: #d4d4d4;
     font-weight: 700;
 }
 .stat-label {
     font-family: 'Agrandir', sans-serif;
-    color: #ff751f;
+    color: #d4d4d4;
     letter-spacing: 0.5px;
 }
 .stat-body {
@@ -375,7 +375,7 @@ body {
 .table {
     width: 100%;
     border-collapse: collapse;
-    background: rgba(13, 51, 28, 0.3);
+    background: rgba(255, 255, 255, 0.3);
     border-radius: 12px;
     overflow: hidden;
     border: 1px solid rgba(182, 177, 169, 0.2);
@@ -394,16 +394,16 @@ body {
     text-align: center;
 }
 .table th {
-    background: rgba(13, 51, 28, 0.6);
+    background: rgba(255, 255, 255, 0.6);
     font-weight: 600;
-    color: #ff751f;
+    color: #d4d4d4;
     font-family: 'Agrandir', sans-serif;
     text-transform: uppercase;
     font-size: 0.9em;
     letter-spacing: 0.5px;
 }
 .table tbody tr:hover {
-    background: rgba(255, 117, 31, 0.05);
+    background: rgba(255, 255, 255, 0.05);
 }
 
 /* === LOGIN === */
@@ -412,10 +412,10 @@ body {
     justify-content: center;
     align-items: center;
     height: 100vh;
-    background: #0d331c;
+    background: #1a1a1a;
 }
 .login-container {
-    background: rgba(13, 51, 28, 0.6);
+    background: rgba(255, 255, 255, 0.6);
     border: 1px solid rgba(182, 177, 169, 0.3);
     padding: 40px;
     border-radius: 16px;
@@ -555,7 +555,7 @@ body {
 }
 
 .calendar-day {
-    background: rgba(13, 51, 28, 0.3);
+    background: rgba(255, 255, 255, 0.3);
     border: 1px solid rgba(182, 177, 169, 0.2);
     border-radius: 12px;
     padding: 15px;
@@ -570,20 +570,20 @@ body {
 .calendar-day:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-    border-color: rgba(255, 117, 31, 0.3);
+    border-color: rgba(255, 255, 255, 0.3);
 }
 
 .calendar-date {
     font-weight: 600;
     font-size: 0.95em;
-    color: #ff751f;
+    color: #d4d4d4;
     margin-bottom: 8px;
     font-family: 'Agrandir', sans-serif;
 }
 
 .calendar-event {
-    background: rgba(13, 51, 28, 0.4);
-    border-left: 4px solid #ff751f;
+    background: rgba(255, 255, 255, 0.4);
+    border-left: 4px solid #d4d4d4;
     padding: 8px 12px;
     border-radius: 8px;
     margin-bottom: 8px;
@@ -595,7 +595,7 @@ body {
     transition: all 0.2s ease;
 }
 .calendar-event:hover {
-    background: rgba(255, 117, 31, 0.1);
+    background: rgba(255, 255, 255, 0.1);
     transform: translateX(2px);
 }
 .calendar-event.in_attesa {
@@ -625,7 +625,7 @@ body {
 .form-container {
     width: 100%;
     max-width: 800px;
-    background: rgba(13, 51, 28, 0.4);
+    background: rgba(255, 255, 255, 0.4);
     border: 1px solid rgba(182, 177, 169, 0.2);
     padding: 2rem;
     border-radius: 16px;
@@ -691,7 +691,7 @@ body {
     padding: 0.6rem;
     font-size: 1rem;
     transition: border 0.2s;
-    background: rgba(13, 51, 28, 0.2);
+    background: rgba(255, 255, 255, 0.2);
     color: #ffffff;
     font-family: 'Inter', sans-serif;
   }
@@ -704,7 +704,7 @@ body {
   .input-text:focus,
   .input-select:focus,
   textarea:focus {
-    border-color: #ff751f;
+    border-color: #d4d4d4;
     outline: none;
   }
   
@@ -733,33 +733,33 @@ body {
   }
   
   .btn-primary {
-    background: #ff751f;
+    background: #d4d4d4;
     color: white;
   }
   
   .btn-primary:hover {
-    background: #ff751f;
+    background: #d4d4d4;
     opacity: 0.9;
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(255, 117, 31, 0.3);
+    box-shadow: 0 6px 20px rgba(255, 255, 255, 0.3);
   }
 
 /* Varianti bottoni per toolbar */
 .btn-lg { padding: 0.9rem 1.6rem; font-size: 1.05rem; border-radius: 10px; }
-.btn-outline { background: transparent; color: #ff751f; border: 1px solid rgba(255,117,31,0.5); }
-.btn-outline:hover { background: rgba(255,117,31,0.1); box-shadow: 0 6px 20px rgba(255,117,31,0.2); }
-.btn-ghost { background: rgba(13,51,28,0.5); color: #ffffff; border: 1px solid rgba(182,177,169,0.25); }
-.btn-ghost:hover { background: rgba(13,51,28,0.65); }
+.btn-outline { background: transparent; color: #d4d4d4; border: 1px solid rgba(255, 255, 255, 0.5); }
+.btn-outline:hover { background: rgba(255, 255, 255, 0.1); box-shadow: 0 6px 20px rgba(255, 255, 255, 0.2); }
+.btn-ghost { background: rgba(255, 255, 255, 0.5); color: #ffffff; border: 1px solid rgba(182,177,169,0.25); }
+.btn-ghost:hover { background: rgba(255, 255, 255, 0.65); }
 
   .btn-white {
     background: #ffffff;
-    color: #0d331c;
+    color: #1a1a1a;
     border: 1px solid rgba(255, 255, 255, 0.3);
   }
   
   .btn-white:hover {
     background: #f8f9fa;
-    color: #0d331c;
+    color: #1a1a1a;
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(255, 255, 255, 0.3);
   }
@@ -795,7 +795,7 @@ body {
     position: relative;
     width: 120px;
     height: 36px;
-    background: rgba(13,51,28,0.65);
+    background: rgba(255, 255, 255, 0.65);
     border: 1px solid rgba(182,177,169,0.25);
     border-radius: 999px;
     display: inline-flex;
@@ -838,11 +838,11 @@ body {
     padding: 6px 10px;
     border-radius: 8px;
     border: 1px solid rgba(182,177,169,0.25);
-    background: rgba(13,51,28,0.6);
+    background: rgba(255, 255, 255, 0.6);
     color: #ffffff;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 .icon-btn:hover { opacity: 0.9; transform: translateY(-1px); }
-.icon-btn.primary { border-color: rgba(255,117,31,0.4); background: rgba(255,117,31,0.15); color: #ff751f; }
+.icon-btn.primary { border-color: rgba(255, 255, 255, 0.4); background: rgba(255, 255, 255, 0.15); color: #d4d4d4; }

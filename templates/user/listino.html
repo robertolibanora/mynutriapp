@@ -15,7 +15,7 @@
       <span class="card-title">{{ p.nome_prodotto }}</span>
     </div>
     {% if 'PIÙ SCELTO' in p.nome_prodotto.upper() or 'IL PIU' in p.nome_prodotto.upper() %}
-    <span class="card-badge" style="background: #ff751f; color: white;">{{ icon('star', 14, 'usr-icon') }} PIÙ SCELTO</span>
+    <span class="card-badge" style="background: #d4d4d4; color: white;">{{ icon('star', 14, 'usr-icon') }} PIÙ SCELTO</span>
     {% endif %}
   </div>
   
@@ -40,7 +40,7 @@
     {% endif %}
     
     <div style="text-align: center; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(182, 177, 169, 0.2);">
-      <span style="font-size: 2rem; font-weight: 700; color: #ff751f;">{{ "%.0f"|format(p.prezzo) }}€</span>
+      <span style="font-size: 2rem; font-weight: 700; color: #d4d4d4;">{{ "%.0f"|format(p.prezzo) }}€</span>
     </div>
   </div>
 </div>
@@ -59,7 +59,7 @@
       <span class="card-title">{{ p.nome_prodotto }}</span>
     </div>
     {% if 'PIÙ SCELTO' in p.nome_prodotto.upper() or 'IL PIU' in p.nome_prodotto.upper() %}
-    <span class="card-badge" style="background: #ff751f; color: white;">{{ icon('star', 14, 'usr-icon') }} PIÙ SCELTO</span>
+    <span class="card-badge" style="background: #d4d4d4; color: white;">{{ icon('star', 14, 'usr-icon') }} PIÙ SCELTO</span>
     {% endif %}
   </div>
   
@@ -84,7 +84,7 @@
     {% endif %}
     
     <div style="text-align: center; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(182, 177, 169, 0.2);">
-      <span style="font-size: 2rem; font-weight: 700; color: #ff751f;">{{ "%.0f"|format(p.prezzo) }}€</span>
+      <span style="font-size: 2rem; font-weight: 700; color: #d4d4d4;">{{ "%.0f"|format(p.prezzo) }}€</span>
     </div>
   </div>
 </div>
@@ -96,14 +96,14 @@
 <div class="divider"></div>
 <h2 class="section-title">{{ icon('star', 18, 'usr-icon') }} Piano Completo</h2>
 {% for p in completo %}
-<div class="card-user" style="border: 2px solid #ff751f;">
+<div class="card-user" style="border: 2px solid #d4d4d4;">
   <div class="card-header">
     <div style="display: flex; align-items: center;">
       <span class="card-icon">{{ icon('star', 24, 'usr-icon') }}</span>
       <span class="card-title">{{ p.nome_prodotto }}</span>
     </div>
     {% if 'PIÙ SCELTO' in p.nome_prodotto.upper() or 'IL PIU' in p.nome_prodotto.upper() %}
-    <span class="card-badge" style="background: #ff751f; color: white;">{{ icon('star', 14, 'usr-icon') }} PIÙ SCELTO</span>
+    <span class="card-badge" style="background: #d4d4d4; color: white;">{{ icon('star', 14, 'usr-icon') }} PIÙ SCELTO</span>
     {% endif %}
   </div>
   
@@ -128,7 +128,7 @@
     {% endif %}
     
     <div style="text-align: center; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(182, 177, 169, 0.2);">
-      <span style="font-size: 2rem; font-weight: 700; color: #ff751f;">{{ "%.0f"|format(p.prezzo) }}€</span>
+      <span style="font-size: 2rem; font-weight: 700; color: #d4d4d4;">{{ "%.0f"|format(p.prezzo) }}€</span>
     </div>
   </div>
 </div>
@@ -147,7 +147,7 @@
       <span class="card-title">{{ p.nome_prodotto }}</span>
     </div>
     {% if 'PIÙ SCELTO' in p.nome_prodotto.upper() or 'IL PIU' in p.nome_prodotto.upper() %}
-    <span class="card-badge" style="background: #ff751f; color: white;">{{ icon('star', 14, 'usr-icon') }} PIÙ SCELTO</span>
+    <span class="card-badge" style="background: #d4d4d4; color: white;">{{ icon('star', 14, 'usr-icon') }} PIÙ SCELTO</span>
     {% endif %}
   </div>
   
@@ -165,7 +165,7 @@
     {% endif %}
     
     <div style="text-align: center; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(182, 177, 169, 0.2);">
-      <span style="font-size: 2rem; font-weight: 700; color: #ff751f;">{{ "%.0f"|format(p.prezzo) }}€</span>
+      <span style="font-size: 2rem; font-weight: 700; color: #d4d4d4;">{{ "%.0f"|format(p.prezzo) }}€</span>
     </div>
   </div>
 </div>
@@ -173,9 +173,9 @@
 {% endif %}
 
 <!-- SERVIZI INCLUSI -->
-<div class="card-user" style="margin-top: 2rem; background: rgba(255, 117, 31, 0.1);">
+<div class="card-user" style="margin-top: 2rem; background: rgba(255, 255, 255, 0.1);">
   <div class="card-body">
-    <p class="card-label card-label--icon" style="margin-bottom: 0.75rem; font-size: 1rem; color: #ff751f;">{{ icon('star', 16, 'usr-icon') }} Tutti i piani includono:</p>
+    <p class="card-label card-label--icon" style="margin-bottom: 0.75rem; font-size: 1rem; color: #d4d4d4;">{{ icon('star', 16, 'usr-icon') }} Tutti i piani includono:</p>
     <div style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.9rem;">
       <div style="display: flex; align-items: center; gap: 0.5rem;">
         <span>{{ icon('message', 16, 'usr-icon') }}</span>
@@ -203,7 +203,7 @@
 <!-- LINK PRESENTAZIONE ROBERTO -->
 <div style="text-align: center; margin: 1rem 0;">
     <span style="color: #b6b1a9; font-size: 0.9rem;">
-        Powered by <a href="{{ url_for('presentazione_roberto') }}" style="color: #ff751f; text-decoration: none;">Roberto Libanora</a>
+        Powered by <a href="{{ url_for('presentazione_roberto') }}" style="color: #d4d4d4; text-decoration: none;">Roberto Libanora</a>
     </span>
 </div>
 

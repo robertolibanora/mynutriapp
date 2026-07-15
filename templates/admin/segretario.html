@@ -3,10 +3,10 @@
 {% block content %}
 
 <!-- STATO + ATTIVAZIONE -->
-<div style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+<div style="background: rgba(255, 255, 255, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
   <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
     <div>
-      <h3 style="color: #ff751f; margin: 0 0 0.35rem 0;">{{ icon('phone', 18) }} Segretario AI inbound</h3>
+      <h3 style="color: #d4d4d4; margin: 0 0 0.35rem 0;">{{ icon('phone', 18) }} Segretario AI inbound</h3>
       <div style="color: #b6b1a9; font-size: 0.9rem;">
         Risponde alle chiamate dei pazienti quando non sei disponibile: fissa appuntamenti e fa customer care.
       </div>
@@ -26,7 +26,7 @@
 
 <!-- STATO CONNESSIONE VAPI -->
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
-  <div style="background: rgba(13, 51, 28, 0.6); border: 1px solid rgba(182, 177, 169, 0.25); border-radius: 10px; padding: 1rem;">
+  <div style="background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(182, 177, 169, 0.25); border-radius: 10px; padding: 1rem;">
     <div style="color: #b6b1a9; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em;">Connessione Vapi</div>
     <div style="color: {{ '#25D366' if stato_vapi.configured else '#ff6b6b' }}; font-weight: 700; font-size: 1.1rem; margin-top: 0.3rem;">
       {{ 'Configurata ✓' if stato_vapi.configured else 'Mancante ✕' }}
@@ -35,12 +35,12 @@
     <div style="color: #b6b1a9; font-size: 0.78rem; margin-top: 0.3rem;">Imposta VAPI_API_KEY e VAPI_ASSISTANT_ID nel .env</div>
     {% endif %}
   </div>
-  <div style="background: rgba(13, 51, 28, 0.6); border: 1px solid rgba(182, 177, 169, 0.25); border-radius: 10px; padding: 1rem;">
+  <div style="background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(182, 177, 169, 0.25); border-radius: 10px; padding: 1rem;">
     <div style="color: #b6b1a9; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em;">Numero da chiamare</div>
     <div style="color: #ffffff; font-weight: 700; font-size: 1.1rem; margin-top: 0.3rem;">{{ numero_inbound or '—' }}</div>
     <div style="color: #b6b1a9; font-size: 0.78rem; margin-top: 0.3rem;">I pazienti chiamano questo numero Vapi</div>
   </div>
-  <div style="background: rgba(13, 51, 28, 0.6); border: 1px solid rgba(182, 177, 169, 0.25); border-radius: 10px; padding: 1rem;">
+  <div style="background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(182, 177, 169, 0.25); border-radius: 10px; padding: 1rem;">
     <div style="color: #b6b1a9; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em;">Chiamate gestite</div>
     <div style="color: #ffffff; font-weight: 700; font-size: 1.4rem; margin-top: 0.3rem;">{{ stats.totale }}</div>
     <div style="color: #b6b1a9; font-size: 0.78rem; margin-top: 0.3rem;">{{ stats.con_appuntamento }} con appuntamento fissato</div>
@@ -48,14 +48,14 @@
 </div>
 
 {% if not stato_vapi.public_url_set %}
-<div style="background: rgba(255, 117, 31, 0.12); border: 1px solid rgba(255, 117, 31, 0.4); border-radius: 10px; padding: 1rem; margin-bottom: 1.5rem; color: #ffcd9e; font-size: 0.88rem;">
+<div style="background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 10px; padding: 1rem; margin-bottom: 1.5rem; color: #c8c8c8; font-size: 0.88rem;">
   {{ icon('alert', 16) }} Imposta <code>VAPI_PUBLIC_URL</code> nel <code>.env</code> con l'URL pubblico HTTPS dell'app, altrimenti Vapi non potrà chiamare il webhook per prenotare appuntamenti.
   {% if stato_vapi.webhook_url %}<br>Webhook attuale: <code>{{ stato_vapi.webhook_url }}</code>{% endif %}
 </div>
 {% endif %}
 
 <!-- CONFIGURAZIONE -->
-<form method="POST" action="{{ url_for('segretario.salva_config') }}" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(37, 211, 102, 0.3); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+<form method="POST" action="{{ url_for('segretario.salva_config') }}" style="background: rgba(255, 255, 255, 0.4); border: 1px solid rgba(37, 211, 102, 0.3); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
   <h3 style="color: #25D366; margin: 0 0 1.2rem 0;">{{ icon('settings', 16) }} Configurazione assistente</h3>
 
@@ -120,8 +120,8 @@
 </div>
 
 <!-- LOG CHIAMATE -->
-<div style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 12px; padding: 1.5rem;">
-  <h3 style="color: #ff751f; margin: 0 0 1rem 0;">{{ icon('history', 16) }} Ultime chiamate</h3>
+<div style="background: rgba(255, 255, 255, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 12px; padding: 1.5rem;">
+  <h3 style="color: #d4d4d4; margin: 0 0 1rem 0;">{{ icon('history', 16) }} Ultime chiamate</h3>
 
   {% if chiamate %}
   <div style="overflow-x:auto;">

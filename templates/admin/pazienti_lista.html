@@ -6,13 +6,13 @@
 <div class="quick-stats">
   <div class="stat-card">
     <div class="adm-icon--lg">{{ icon('users', 28) }}</div>
-    <div style="font-size: 1.5rem; font-weight: 700; color: #4CAF50; margin-bottom: 0.25rem;">{{ pazienti|length }}</div>
+    <div style="font-size: 1.5rem; font-weight: 700; color: #c8c8c8; margin-bottom: 0.25rem;">{{ pazienti|length }}</div>
     <div style="color: #b6b1a9; font-size: 0.9rem;">Pazienti Totali</div>
   </div>
   
   <div class="stat-card">
     <div class="adm-icon--lg">{{ icon('diet', 28) }}</div>
-    <div style="font-size: 1.5rem; font-weight: 700; color: #2196F3; margin-bottom: 0.25rem;">
+    <div style="font-size: 1.5rem; font-weight: 700; color: #a8a8a8; margin-bottom: 0.25rem;">
       {{ pazienti|map(attribute='diete')|map('length')|sum }}
     </div>
     <div style="color: #b6b1a9; font-size: 0.9rem;">Diete Totali</div>
@@ -20,7 +20,7 @@
   
   <div class="stat-card">
     <div class="adm-icon--lg">{{ icon('dumbbell', 28) }}</div>
-    <div style="font-size: 1.5rem; font-weight: 700; color: #FFC107; margin-bottom: 0.25rem;">
+    <div style="font-size: 1.5rem; font-weight: 700; color: #b0b0b0; margin-bottom: 0.25rem;">
       {{ pazienti|map(attribute='allenamenti')|map('length')|sum }}
     </div>
     <div style="color: #b6b1a9; font-size: 0.9rem;">Allenamenti Totali</div>
@@ -28,7 +28,7 @@
   
   <div class="stat-card">
     <div class="adm-icon--lg">{{ icon('trending', 28) }}</div>
-    <div style="font-size: 1.5rem; font-weight: 700; color: #9C27B0; margin-bottom: 0.25rem;">
+    <div style="font-size: 1.5rem; font-weight: 700; color: #909090; margin-bottom: 0.25rem;">
       {{ pazienti|map(attribute='progressi')|map('length')|sum }}
     </div>
     <div style="color: #b6b1a9; font-size: 0.9rem;">Progressi Totali</div>
@@ -66,7 +66,7 @@
     
     <!-- AVATAR E INFO PRINCIPALE -->
     <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
-      <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #4CAF50, #45a049); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: white; font-weight: 700; flex-shrink: 0;">
+      <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #c8c8c8, #a8a8a8); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: white; font-weight: 700; flex-shrink: 0;">
         {{ p.nome[0] }}{{ p.cognome[0] }}
       </div>
       <div style="flex: 1; min-width: 0;">
@@ -81,12 +81,12 @@
     </div>
     
     <!-- INFORMAZIONI AGGIUNTIVE -->
-    <div style="background: rgba(13, 51, 28, 0.6); border-radius: 12px; padding: 1rem; margin-bottom: 1rem;">
+    <div style="background: rgba(255, 255, 255, 0.6); border-radius: 12px; padding: 1rem; margin-bottom: 1rem;">
       <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem;">
         {% if p.eta %}
         <div>
           <div style="color: #b6b1a9; font-size: 0.75rem; margin-bottom: 0.25rem;">Età</div>
-          <div style="color: #4CAF50; font-size: 0.85rem; font-weight: 600;">{{ p.eta }} anni</div>
+          <div style="color: #c8c8c8; font-size: 0.85rem; font-weight: 600;">{{ p.eta }} anni</div>
         </div>
         {% endif %}
         
@@ -110,18 +110,18 @@
     
     <!-- STATISTICHE PAZIENTE -->
     <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-bottom: 1rem;">
-      <div style="background: rgba(33, 150, 243, 0.2); border: 1px solid rgba(33, 150, 243, 0.3); border-radius: 8px; padding: 0.5rem; text-align: center;">
-        <div style="color: #2196F3; font-size: 1.1rem; font-weight: 700;">{{ p.diete|length }}</div>
+      <div style="background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; padding: 0.5rem; text-align: center;">
+        <div style="color: #a8a8a8; font-size: 1.1rem; font-weight: 700;">{{ p.diete|length }}</div>
         <div style="color: #b6b1a9; font-size: 0.7rem;">Diete</div>
       </div>
       
-      <div style="background: rgba(255, 193, 7, 0.2); border: 1px solid rgba(255, 193, 7, 0.3); border-radius: 8px; padding: 0.5rem; text-align: center;">
-        <div style="color: #FFC107; font-size: 1.1rem; font-weight: 700;">{{ p.allenamenti|length }}</div>
+      <div style="background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; padding: 0.5rem; text-align: center;">
+        <div style="color: #b0b0b0; font-size: 1.1rem; font-weight: 700;">{{ p.allenamenti|length }}</div>
         <div style="color: #b6b1a9; font-size: 0.7rem;">Allenamenti</div>
       </div>
       
-      <div style="background: rgba(156, 39, 176, 0.2); border: 1px solid rgba(156, 39, 176, 0.3); border-radius: 8px; padding: 0.5rem; text-align: center;">
-        <div style="color: #9C27B0; font-size: 1.1rem; font-weight: 700;">{{ p.progressi|length }}</div>
+      <div style="background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; padding: 0.5rem; text-align: center;">
+        <div style="color: #909090; font-size: 1.1rem; font-weight: 700;">{{ p.progressi|length }}</div>
         <div style="color: #b6b1a9; font-size: 0.7rem;">Progressi</div>
       </div>
     </div>
@@ -147,9 +147,9 @@
 
 {% else %}
 <!-- EMPTY STATE -->
-<div class="empty-state" style="text-align: center; padding: 4rem 2rem; background: rgba(13, 51, 28, 0.2); border: 2px dashed rgba(182, 177, 169, 0.3); border-radius: 16px;">
+<div class="empty-state" style="text-align: center; padding: 4rem 2rem; background: rgba(255, 255, 255, 0.2); border: 2px dashed rgba(182, 177, 169, 0.3); border-radius: 16px;">
   <div class="adm-empty-icon">{{ icon('users', 48) }}</div>
-  <h3 style="color: #4CAF50; margin-bottom: 1rem;">
+  <h3 style="color: #c8c8c8; margin-bottom: 1rem;">
     {% if request.args.get('search') %}
     Nessun paziente trovato
     {% else %}

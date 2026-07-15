@@ -3,12 +3,12 @@
 {% block content %}
 
 <!-- GESTIONE TRIGGER -->
-<div class="triggers-section" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
-  <h3 style="color: #ff751f; margin-bottom: 1rem;">{{ icon('settings', 16) }} Gestione trigger automatici</h3>
+<div class="triggers-section" style="background: rgba(255, 255, 255, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
+  <h3 style="color: #d4d4d4; margin-bottom: 1rem;">{{ icon('settings', 16) }} Gestione trigger automatici</h3>
   <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
     
     <!-- TRIGGER APPUNTAMENTI -->
-    <div class="trigger-card" style="background: rgba(13, 51, 28, 0.6); border: 1px solid rgba(182, 177, 169, 0.3); border-radius: 8px; padding: 1rem;">
+    <div class="trigger-card" style="background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(182, 177, 169, 0.3); border-radius: 8px; padding: 1rem;">
       <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 0.75rem;">
         <h4 style="color: #ffffff; margin: 0;">{{ icon('calendar', 18) }} Appuntamenti</h4>
         <form method="POST" action="{{ url_for('broadcast.toggle_trigger', trigger_name='appuntamenti') }}" style="display: inline;">
@@ -22,7 +22,7 @@
     </div>
     
     <!-- TRIGGER DIETE -->
-    <div class="trigger-card" style="background: rgba(13, 51, 28, 0.6); border: 1px solid rgba(182, 177, 169, 0.3); border-radius: 8px; padding: 1rem;">
+    <div class="trigger-card" style="background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(182, 177, 169, 0.3); border-radius: 8px; padding: 1rem;">
       <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 0.75rem;">
         <h4 style="color: #ffffff; margin: 0;">Diete</h4>
         <form method="POST" action="{{ url_for('broadcast.toggle_trigger', trigger_name='diete') }}" style="display: inline;">
@@ -36,7 +36,7 @@
     </div>
     
     <!-- TRIGGER ALLENAMENTI -->
-    <div class="trigger-card" style="background: rgba(13, 51, 28, 0.6); border: 1px solid rgba(182, 177, 169, 0.3); border-radius: 8px; padding: 1rem;">
+    <div class="trigger-card" style="background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(182, 177, 169, 0.3); border-radius: 8px; padding: 1rem;">
       <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 0.75rem;">
         <h4 style="color: #ffffff; margin: 0;">{{ icon('dumbbell', 18) }} Allenamenti</h4>
         <form method="POST" action="{{ url_for('broadcast.toggle_trigger', trigger_name='allenamenti') }}" style="display: inline;">
@@ -50,7 +50,7 @@
     </div>
     
     <!-- TRIGGER SCADENZE -->
-    <div class="trigger-card" style="background: rgba(13, 51, 28, 0.6); border: 1px solid rgba(182, 177, 169, 0.3); border-radius: 8px; padding: 1rem;">
+    <div class="trigger-card" style="background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(182, 177, 169, 0.3); border-radius: 8px; padding: 1rem;">
       <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 0.75rem;">
         <h4 style="color: #ffffff; margin: 0;">{{ icon('clock', 16) }} Scadenze</h4>
         <form method="POST" action="{{ url_for('broadcast.toggle_trigger', trigger_name='scadenze') }}" style="display: inline;">
@@ -76,7 +76,7 @@
 </div>
 
 <!-- GUIDA VARIABILI -->
-<div class="guide-section" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(37, 211, 102, 0.3); border-radius: 12px; padding: 1.5rem;">
+<div class="guide-section" style="background: rgba(255, 255, 255, 0.4); border: 1px solid rgba(37, 211, 102, 0.3); border-radius: 12px; padding: 1.5rem;">
   <h3 style="color: #25D366; margin-bottom: 1rem;">{{ icon('edit', 16) }} Variabili per messaggi personalizzati</h3>
   <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
     <div>
@@ -100,7 +100,7 @@
     </div>
   </div>
   
-  <div style="margin-top: 1rem; padding: 1rem; background: rgba(13, 51, 28, 0.6); border-radius: 8px; border-left: 3px solid #25D366;">
+  <div style="margin-top: 1rem; padding: 1rem; background: rgba(255, 255, 255, 0.6); border-radius: 8px; border-left: 3px solid #25D366;">
     <div style="color: #b6b1a9; font-size: 0.85rem; margin-bottom: 0.5rem;">Esempio:</div>
     <div style="color: #ffffff; font-family: monospace; font-size: 0.9rem;">
       Ciao {nome}! Come stai? Continua a seguire il tuo percorso!

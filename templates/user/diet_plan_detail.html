@@ -5,18 +5,18 @@
 <style>
   .dp-meal { background:#fff; border:1px solid #eee; border-radius:14px; padding:1rem 1.1rem; margin-bottom:1rem; box-shadow:0 2px 8px rgba(0,0,0,.05); }
   .dp-meal-head { display:flex; justify-content:space-between; align-items:baseline; gap:.5rem; margin-bottom:.6rem; }
-  .dp-meal-name { font-weight:700; color:#0d331c; font-size:1.05rem; }
-  .dp-meal-time { color:#ff751f; font-size:.85rem; font-weight:600; }
+  .dp-meal-name { font-weight:700; color:#1a1a1a; font-size:1.05rem; }
+  .dp-meal-time { color:#d4d4d4; font-size:.85rem; font-weight:600; }
   .dp-item { display:flex; justify-content:space-between; gap:.6rem; padding:.5rem 0; border-top:1px solid #f2f2f2; }
   .dp-item:first-child { border-top:0; }
   .dp-item-name { color:#333; font-size:.92rem; font-weight:600; }
   .dp-item-note { color:#999; font-size:.78rem; }
-  .dp-item-qty { color:#4CAF50; font-weight:700; font-size:.9rem; white-space:nowrap; }
+  .dp-item-qty { color:#c8c8c8; font-weight:700; font-size:.9rem; white-space:nowrap; }
   .dp-item-macros { color:#999; font-size:.75rem; }
   .dp-meal-total { margin-top:.5rem; text-align:right; color:#666; font-size:.8rem; }
-  .dp-meal-total b { color:#ff751f; }
+  .dp-meal-total b { color:#d4d4d4; }
   .dp-summary { display:flex; flex-wrap:wrap; gap:.5rem; margin-bottom:1.2rem; }
-  .dp-kpi { flex:1; min-width:80px; background:#0d331c; color:#fff; border-radius:12px; padding:.7rem; text-align:center; }
+  .dp-kpi { flex:1; min-width:80px; background:#1a1a1a; color:#fff; border-radius:12px; padding:.7rem; text-align:center; }
   .dp-kpi b { display:block; font-size:1.25rem; }
   .dp-kpi span { font-size:.68rem; opacity:.8; text-transform:uppercase; }
   .dp-preview-banner { background:#fff3e6; border:1px solid #ffd0a3; color:#b35900; padding:.6rem .9rem; border-radius:10px; font-size:.85rem; margin-bottom:1rem; }
@@ -28,7 +28,7 @@
 
 <h1 class="page-title-user">{{ icon('diet', 22, 'usr-icon') }} {{ plan.title }}</h1>
 
-{% if plan.goal %}<p style="color:#ff751f;font-weight:600;margin:.2rem 0 .6rem;">Obiettivo: {{ plan.goal }}</p>{% endif %}
+{% if plan.goal %}<p style="color:#d4d4d4;font-weight:600;margin:.2rem 0 .6rem;">Obiettivo: {{ plan.goal }}</p>{% endif %}
 {% if plan.notes %}<p style="color:#666;margin:0 0 1rem;">{{ plan.notes }}</p>{% endif %}
 
 <!-- TOTALI -->

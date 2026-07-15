@@ -61,7 +61,7 @@
       <label>Stato</label>
       <div class="info-display">
         <strong style="color: 
-          {% if vendita.stato == 'pagato' %}#4CAF50
+          {% if vendita.stato == 'pagato' %}#c8c8c8
           {% elif vendita.stato == 'in_attesa' %}#FF9800
           {% elif vendita.stato == 'rimborsato' %}#F44336
           {% else %}#b6b1a9
@@ -88,15 +88,15 @@
     <div class="form-group">
       <label>Sconto Applicato</label>
       <div class="info-display">
-        <strong style="color: #4CAF50;">-{{ "%.2f"|format(vendita.sconto) }}€</strong>
+        <strong style="color: #c8c8c8;">-{{ "%.2f"|format(vendita.sconto) }}€</strong>
       </div>
     </div>
   </div>
 
   <div class="form-group">
     <label>Importo Finale</label>
-    <div class="info-display" style="background: rgba(76, 175, 80, 0.1); padding: 1rem; border-radius: 8px; border-left: 4px solid #4CAF50;">
-      <strong style="font-size: 1.2rem; color: #4CAF50;">{{ "%.2f"|format(vendita.importo_finale) }}€</strong>
+    <div class="info-display" style="background: rgba(255, 255, 255, 0.1); padding: 1rem; border-radius: 8px; border-left: 4px solid #c8c8c8;">
+      <strong style="font-size: 1.2rem; color: #c8c8c8;">{{ "%.2f"|format(vendita.importo_finale) }}€</strong>
     </div>
   </div>
 

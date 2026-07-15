@@ -6,7 +6,7 @@
 
 <!-- MOTTO -->
 <div style="text-align: center; margin-bottom: 2rem; padding: 1.5rem 1rem;">
-  <p style="color: #ff751f; margin: 0; font-size: 1.3rem; font-weight: 600; font-family: 'Adam Script', cursive; line-height: 1.6;">
+  <p style="color: #d4d4d4; margin: 0; font-size: 1.3rem; font-weight: 600; font-family: 'Adam Script', cursive; line-height: 1.6;">
     Non Diamo Pillole, Non Diamo Consigli, Diamo Risultati
   </p>
 </div>
@@ -118,7 +118,7 @@
         </div>
         <div class="summary-row">
             <span class="summary-label">Differenza:</span>
-            <span class="summary-value" style="color: {% if ultimo_progresso.peso_settimanale < paziente.peso_iniziale %}#4caf50{% else %}#ff751f{% endif %}">
+            <span class="summary-value" style="color: {% if ultimo_progresso.peso_settimanale < paziente.peso_iniziale %}#c8c8c8{% else %}#d4d4d4{% endif %}">
                 {{ "%.1f"|format(ultimo_progresso.peso_settimanale - paziente.peso_iniziale) }} kg
             </span>
         </div>
@@ -165,7 +165,7 @@
 <!-- LINK PRESENTAZIONE ROBERTO -->
 <div style="text-align: center; margin: 1rem 0;">
     <span style="color: #b6b1a9; font-size: 0.9rem;">
-        Powered by <a href="{{ url_for('presentazione_roberto') }}" style="color: #ff751f; text-decoration: none;">Roberto Libanora</a>
+        Powered by <a href="{{ url_for('presentazione_roberto') }}" style="color: #d4d4d4; text-decoration: none;">Roberto Libanora</a>
     </span>
 </div>
 

@@ -3,10 +3,10 @@
 {% block content %}
 
 <!-- HEADER -->
-<div class="check-header" style="background: linear-gradient(135deg, rgba(255, 117, 31, 0.1) 0%, rgba(13, 51, 28, 0.3) 100%); border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid rgba(255, 117, 31, 0.2);">
+<div class="check-header" style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.3) 100%); border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid rgba(255, 255, 255, 0.2);">
   <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
     <div>
-      <h1 style="color: #ff751f; margin: 0; font-size: 1.8rem; font-weight: 700;">
+      <h1 style="color: #d4d4d4; margin: 0; font-size: 1.8rem; font-weight: 700;">
         {% if progresso.tipo_check == 'nutrizionista' %}
           Check Nutrizionista
         {% else %}
@@ -393,15 +393,15 @@
 
 <style>
 .check-header {
-  background: linear-gradient(135deg, rgba(255, 117, 31, 0.1) 0%, rgba(13, 51, 28, 0.3) 100%);
-  border: 1px solid rgba(255, 117, 31, 0.2);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.3) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 16px;
   padding: 1.5rem;
   margin-bottom: 1.5rem;
 }
 
 .check-section {
-  background: rgba(13, 51, 28, 0.6);
+  background: rgba(255, 255, 255, 0.6);
   border: 1px solid rgba(182, 177, 169, 0.1);
   border-radius: 12px;
   padding: 1.5rem;
@@ -409,11 +409,11 @@
 }
 
 .section-title {
-  color: #ff751f;
+  color: #d4d4d4;
   font-size: 1.3rem;
   font-weight: 600;
   margin-bottom: 1rem;
-  border-bottom: 1px solid rgba(255, 117, 31, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
   padding-bottom: 0.5rem;
 }
 
@@ -424,7 +424,7 @@
 }
 
 .data-card {
-  background: rgba(13, 51, 28, 0.8);
+  background: rgba(255, 255, 255, 0.8);
   border: 1px solid rgba(182, 177, 169, 0.1);
   border-radius: 8px;
   padding: 1rem;
@@ -435,8 +435,8 @@
 }
 
 .data-card:hover {
-  background: rgba(13, 51, 28, 0.9);
-  border-color: rgba(255, 117, 31, 0.3);
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(255, 255, 255, 0.3);
   transform: translateY(-2px);
 }
 
@@ -444,7 +444,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #ff751f;
+  color: #d4d4d4;
   min-width: 2rem;
   flex-shrink: 0;
 }
@@ -467,15 +467,15 @@
 }
 
 .note-section {
-  background: rgba(13, 51, 28, 0.3);
+  background: rgba(255, 255, 255, 0.3);
   border-radius: 8px;
   padding: 1rem;
   margin-top: 1rem;
-  border-left: 3px solid #ff751f;
+  border-left: 3px solid #d4d4d4;
 }
 
 .note-title {
-  color: #ff751f;
+  color: #d4d4d4;
   font-size: 1rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
@@ -491,9 +491,9 @@
 .btn-user-small {
   font-size: 0.8rem;
   padding: 0.4rem 0.8rem;
-  background: rgba(255, 117, 31, 0.2);
-  border: 1px solid rgba(255, 117, 31, 0.3);
-  color: #ff751f;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #d4d4d4;
   text-decoration: none;
   border-radius: 6px;
   display: inline-block;
@@ -501,8 +501,8 @@
 }
 
 .btn-user-small:hover {
-  background: rgba(255, 117, 31, 0.3);
-  border-color: rgba(255, 117, 31, 0.5);
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
   color: #ffffff;
 }
 
@@ -524,7 +524,7 @@
 <!-- LINK PRESENTAZIONE ROBERTO -->
 <div style="text-align: center; margin: 1rem 0;">
     <span style="color: #b6b1a9; font-size: 0.9rem;">
-        Powered by <a href="{{ url_for('presentazione_roberto') }}" style="color: #ff751f; text-decoration: none;">Roberto Libanora</a>
+        Powered by <a href="{{ url_for('presentazione_roberto') }}" style="color: #d4d4d4; text-decoration: none;">Roberto Libanora</a>
     </span>
 </div>
 

@@ -8,11 +8,11 @@
     
     <!-- 📱 PWA METATAGS -->
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
-    <meta name="theme-color" content="#ff751f">
+    <meta name="theme-color" content="#d4d4d4">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="NutriApp">
     <meta name="application-name" content="NutriApp">
-    <meta name="msapplication-TileColor" content="#ff751f">
+    <meta name="msapplication-TileColor" content="#d4d4d4">
     <meta name="msapplication-tap-highlight" content="no">
     
     <!-- 🔧 PWA FORCE INSTALL -->
@@ -107,13 +107,13 @@
                 // Crea un banner di installazione personalizzato
                 const installBanner = document.createElement('div');
                 installBanner.innerHTML = `
-                    <div style="position: fixed; bottom: 80px; left: 10px; right: 10px; background: #ff751f; color: white; padding: 15px; border-radius: 10px; z-index: 1000; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+                    <div style="position: fixed; bottom: 80px; left: 10px; right: 10px; background: #d4d4d4; color: white; padding: 15px; border-radius: 10px; z-index: 1000; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
                         <div style="display: flex; align-items: center; justify-content: space-between;">
                             <div>
                                 <strong>Installa NutriApp</strong><br>
                                 <small>Aggiungi alla schermata home per un accesso rapido</small>
                             </div>
-                            <button onclick="installApp()" style="background: white; color: #ff751f; border: none; padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: pointer;">
+                            <button onclick="installApp()" style="background: white; color: #d4d4d4; border: none; padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: pointer;">
                                 Installa
                             </button>
                         </div>

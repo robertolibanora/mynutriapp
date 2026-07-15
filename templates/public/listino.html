@@ -7,7 +7,7 @@
   
   <!-- 📱 PWA META TAGS -->
   <meta name="description" content="Listino prezzi MyNutriApp - Piani nutrizionali e di allenamento personalizzati">
-  <meta name="theme-color" content="#ff751f">
+  <meta name="theme-color" content="#d4d4d4">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
@@ -17,7 +17,7 @@
   
   <style>
     body {
-      background: linear-gradient(135deg, #0d331c 0%, #1a5c2e 50%, #0d331c 100%);
+      background: linear-gradient(135deg, #1a1a1a 0%, #1a5c2e 50%, #1a1a1a 100%);
       background-size: 200% 200%;
       animation: gradientShift 15s ease infinite;
       color: #ffffff;
@@ -34,8 +34,8 @@
     }
 
     header {
-      background: rgba(13, 51, 28, 0.9);
-      border-bottom: 1px solid rgba(255, 117, 31, 0.2);
+      background: rgba(255, 255, 255, 0.9);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
       padding: 1rem;
       backdrop-filter: blur(10px);
     }
@@ -51,7 +51,7 @@
     .logo {
       font-size: 1.5rem;
       font-weight: 700;
-      color: #ff751f;
+      color: #d4d4d4;
       text-decoration: none;
     }
 
@@ -62,14 +62,14 @@
     }
 
     h1 {
-      color: #ff751f;
+      color: #d4d4d4;
       font-size: 2rem;
       margin-bottom: 2rem;
       text-align: center;
     }
 
     .section-title {
-      color: #ff751f;
+      color: #d4d4d4;
       font-size: 1.5rem;
       margin: 2rem 0 1rem 0;
       font-weight: 600;
@@ -77,12 +77,12 @@
 
     .divider {
       height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(255, 117, 31, 0.3), transparent);
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
       margin: 2rem 0;
     }
 
     .card-user {
-      background: rgba(13, 51, 28, 0.6);
+      background: rgba(255, 255, 255, 0.6);
       border: 1px solid rgba(182, 177, 169, 0.2);
       border-radius: 12px;
       padding: 1.5rem;
@@ -93,7 +93,7 @@
     .card-user:hover {
       transform: translateY(-2px);
       box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-      border-color: rgba(255, 117, 31, 0.4);
+      border-color: rgba(255, 255, 255, 0.4);
     }
 
     .card-header {
@@ -171,7 +171,7 @@
           <span class="card-title">{{ p.nome_prodotto }}</span>
         </div>
         {% if 'PIÙ SCELTO' in p.nome_prodotto.upper() or 'IL PIU' in p.nome_prodotto.upper() %}
-        <span class="card-badge" style="background: #ff751f; color: white;">⭐ PIÙ SCELTO</span>
+        <span class="card-badge" style="background: #d4d4d4; color: white;">⭐ PIÙ SCELTO</span>
         {% endif %}
       </div>
       
@@ -196,7 +196,7 @@
         {% endif %}
         
         <div style="text-align: center; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(182, 177, 169, 0.2);">
-          <span style="font-size: 2rem; font-weight: 700; color: #ff751f;">{{ "%.0f"|format(p.prezzo) }}€</span>
+          <span style="font-size: 2rem; font-weight: 700; color: #d4d4d4;">{{ "%.0f"|format(p.prezzo) }}€</span>
         </div>
       </div>
     </div>
@@ -215,7 +215,7 @@
           <span class="card-title">{{ p.nome_prodotto }}</span>
         </div>
         {% if 'PIÙ SCELTO' in p.nome_prodotto.upper() or 'IL PIU' in p.nome_prodotto.upper() %}
-        <span class="card-badge" style="background: #ff751f; color: white;">⭐ PIÙ SCELTO</span>
+        <span class="card-badge" style="background: #d4d4d4; color: white;">⭐ PIÙ SCELTO</span>
         {% endif %}
       </div>
       
@@ -240,7 +240,7 @@
         {% endif %}
         
         <div style="text-align: center; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(182, 177, 169, 0.2);">
-          <span style="font-size: 2rem; font-weight: 700; color: #ff751f;">{{ "%.0f"|format(p.prezzo) }}€</span>
+          <span style="font-size: 2rem; font-weight: 700; color: #d4d4d4;">{{ "%.0f"|format(p.prezzo) }}€</span>
         </div>
       </div>
     </div>
@@ -252,14 +252,14 @@
     <div class="divider"></div>
     <h2 class="section-title">🌟 Piano Completo</h2>
     {% for p in completo %}
-    <div class="card-user" style="border: 2px solid #ff751f;">
+    <div class="card-user" style="border: 2px solid #d4d4d4;">
       <div class="card-header">
         <div style="display: flex; align-items: center;">
           <span class="card-icon">🌟</span>
           <span class="card-title">{{ p.nome_prodotto }}</span>
         </div>
         {% if 'PIÙ SCELTO' in p.nome_prodotto.upper() or 'IL PIU' in p.nome_prodotto.upper() %}
-        <span class="card-badge" style="background: #ff751f; color: white;">⭐ PIÙ SCELTO</span>
+        <span class="card-badge" style="background: #d4d4d4; color: white;">⭐ PIÙ SCELTO</span>
         {% endif %}
       </div>
       
@@ -284,7 +284,7 @@
         {% endif %}
         
         <div style="text-align: center; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(182, 177, 169, 0.2);">
-          <span style="font-size: 2rem; font-weight: 700; color: #ff751f;">{{ "%.0f"|format(p.prezzo) }}€</span>
+          <span style="font-size: 2rem; font-weight: 700; color: #d4d4d4;">{{ "%.0f"|format(p.prezzo) }}€</span>
         </div>
       </div>
     </div>
@@ -303,7 +303,7 @@
           <span class="card-title">{{ p.nome_prodotto }}</span>
         </div>
         {% if 'PIÙ SCELTO' in p.nome_prodotto.upper() or 'IL PIU' in p.nome_prodotto.upper() %}
-        <span class="card-badge" style="background: #ff751f; color: white;">⭐ PIÙ SCELTO</span>
+        <span class="card-badge" style="background: #d4d4d4; color: white;">⭐ PIÙ SCELTO</span>
         {% endif %}
       </div>
       
@@ -321,7 +321,7 @@
         {% endif %}
         
         <div style="text-align: center; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(182, 177, 169, 0.2);">
-          <span style="font-size: 2rem; font-weight: 700; color: #ff751f;">{{ "%.0f"|format(p.prezzo) }}€</span>
+          <span style="font-size: 2rem; font-weight: 700; color: #d4d4d4;">{{ "%.0f"|format(p.prezzo) }}€</span>
         </div>
       </div>
     </div>
@@ -329,9 +329,9 @@
     {% endif %}
 
     <!-- SERVIZI INCLUSI -->
-    <div class="card-user" style="margin-top: 2rem; background: rgba(255, 117, 31, 0.1);">
+    <div class="card-user" style="margin-top: 2rem; background: rgba(255, 255, 255, 0.1);">
       <div class="card-body">
-        <p class="card-label" style="margin-bottom: 0.75rem; font-size: 1rem; color: #ff751f;">✨ Tutti i piani includono:</p>
+        <p class="card-label" style="margin-bottom: 0.75rem; font-size: 1rem; color: #d4d4d4;">✨ Tutti i piani includono:</p>
         <div style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.9rem;">
           <div style="display: flex; align-items: center; gap: 0.5rem;">
             <span>💬</span>
@@ -359,7 +359,7 @@
     <!-- LINK PRESENTAZIONE ROBERTO -->
     <div style="text-align: center; margin: 2rem 0;">
       <span style="color: #b6b1a9; font-size: 0.9rem;">
-        Powered by <a href="{{ url_for('presentazione_roberto') }}" style="color: #ff751f; text-decoration: none;">Roberto Libanora</a>
+        Powered by <a href="{{ url_for('presentazione_roberto') }}" style="color: #d4d4d4; text-decoration: none;">Roberto Libanora</a>
       </span>
     </div>
   </div>

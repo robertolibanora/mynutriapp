@@ -16,25 +16,25 @@
 <div class="stats-overview" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
   <div class="stat-card">
     <div class="adm-icon--lg">{{ icon('wallet', 32) }}</div>
-    <div style="color: #4CAF50; font-size: 1.8rem; font-weight: 700; margin-bottom: 0.25rem;">{{ "%.2f"|format(totale_speso) }}€</div>
+    <div style="color: #c8c8c8; font-size: 1.8rem; font-weight: 700; margin-bottom: 0.25rem;">{{ "%.2f"|format(totale_speso) }}€</div>
     <div style="color: #b6b1a9; font-size: 0.9rem; font-weight: 600;">Totale Speso</div>
   </div>
   
   <div class="stat-card">
     <div class="adm-icon--lg">{{ icon('package', 32) }}</div>
-    <div style="color: #2196F3; font-size: 1.8rem; font-weight: 700; margin-bottom: 0.25rem;">{{ totale_vendite }}</div>
+    <div style="color: #a8a8a8; font-size: 1.8rem; font-weight: 700; margin-bottom: 0.25rem;">{{ totale_vendite }}</div>
     <div style="color: #b6b1a9; font-size: 0.9rem; font-weight: 600;">Pacchetti Acquistati</div>
   </div>
   
   <div class="stat-card">
     <div class="adm-icon--lg">{{ icon('check-circle', 32) }}</div>
-    <div style="color: #FFC107; font-size: 1.8rem; font-weight: 700; margin-bottom: 0.25rem;">{{ vendite_pagate }}</div>
+    <div style="color: #b0b0b0; font-size: 1.8rem; font-weight: 700; margin-bottom: 0.25rem;">{{ vendite_pagate }}</div>
     <div style="color: #b6b1a9; font-size: 0.9rem; font-weight: 600;">Pagamenti Completati</div>
   </div>
   
   <div class="stat-card">
     <div class="adm-icon--lg">{{ icon('chart', 32) }}</div>
-    <div style="color: #9C27B0; font-size: 1.8rem; font-weight: 700; margin-bottom: 0.25rem;">{{ "%.2f"|format(totale_speso / totale_vendite if totale_vendite > 0 else 0) }}€</div>
+    <div style="color: #909090; font-size: 1.8rem; font-weight: 700; margin-bottom: 0.25rem;">{{ "%.2f"|format(totale_speso / totale_vendite if totale_vendite > 0 else 0) }}€</div>
     <div style="color: #b6b1a9; font-size: 0.9rem; font-weight: 600;">Spesa Media per Pacchetto</div>
   </div>
 </div>
@@ -43,27 +43,27 @@
 
 <!-- GRAFICO SPESE PER MESE -->
 {% if date_labels and (importi_nutrizione|sum + importi_allenamento|sum + importi_completo|sum + importi_1to1|sum > 0) %}
-<div class="chart-section" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem;">
+<div class="chart-section" style="background: rgba(255, 255, 255, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem;">
   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
-    <h3 style="color: #ff751f; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+    <h3 style="color: #d4d4d4; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
       {{ icon('chart', 16) }} Spese ultimi 12 mesi
     </h3>
-    <div style="color: #ff751f; font-size: 1.2rem; font-weight: 600;">
+    <div style="color: #d4d4d4; font-size: 1.2rem; font-weight: 600;">
       Totale: {{ "%.2f"|format(importi_nutrizione|sum + importi_allenamento|sum + importi_completo|sum + importi_1to1|sum) }}€
     </div>
   </div>
   
   <!-- CANVAS GRAFICO -->
-  <div style="position: relative; height: 350px; background: rgba(13, 51, 28, 0.6); border-radius: 12px; padding: 1rem;">
+  <div style="position: relative; height: 350px; background: rgba(255, 255, 255, 0.6); border-radius: 12px; padding: 1rem;">
     <canvas id="spendingChart"></canvas>
   </div>
 </div>
 {% endif %}
 
 <!-- LISTA DETTAGLIATA PACCHETTI -->
-<div class="packages-section" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px; padding: 1.5rem;">
+<div class="packages-section" style="background: rgba(255, 255, 255, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px; padding: 1.5rem;">
   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-    <h3 style="color: #ff751f; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+    <h3 style="color: #d4d4d4; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
       {{ icon('package', 16) }} Pacchetti acquistati
     </h3>
     <span style="color: #b6b1a9; font-size: 0.9rem;">{{ vendite_paziente|length }} pacchetti totali</span>
@@ -72,13 +72,13 @@
   {% if vendite_paziente %}
   <div class="packages-grid" style="display: grid; gap: 1rem;">
     {% for v in vendite_paziente %}
-    <div class="package-card package-{{ v.stato }}" style="background: rgba(13, 51, 28, 0.6); border-radius: 12px; padding: 1.5rem; transition: all 0.3s ease; border: 1px solid rgba(182, 177, 169, 0.1);">
+    <div class="package-card package-{{ v.stato }}" style="background: rgba(255, 255, 255, 0.6); border-radius: 12px; padding: 1.5rem; transition: all 0.3s ease; border: 1px solid rgba(182, 177, 169, 0.1);">
       
       <div style="display: grid; grid-template-columns: auto 1fr auto; gap: 1.5rem; align-items: center;">
         
         <!-- ICONA E DATA -->
         <div style="text-align: center;">
-          <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #9C27B0, #7B1FA2); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;">
+          <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #909090, #7a7a7a); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;">
             <div style="font-size: 1.5rem; font-weight: 700;">{{ v.data_inizio.strftime('%d') }}</div>
             <div style="font-size: 0.75rem; text-transform: uppercase;">{{ v.data_inizio.strftime('%b') }}</div>
           </div>
@@ -108,7 +108,7 @@
             </div>
             
             {% if v.sconto > 0 %}
-            <div style="display: flex; align-items: center; gap: 0.5rem; color: #FFC107; font-size: 0.9rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; color: #b0b0b0; font-size: 0.9rem;">
               {{ icon('target', 16) }}
               <span>Sconto: {{ "%.2f"|format(v.sconto) }}€</span>
             </div>
@@ -116,7 +116,7 @@
           </div>
           
             <div style="display: flex; align-items: center; gap: 1rem; margin-top: 1rem;">
-              <div style="display: flex; align-items: center; gap: 0.5rem; color: #9C27B0; font-size: 1.2rem; font-weight: 600;">
+              <div style="display: flex; align-items: center; gap: 0.5rem; color: #909090; font-size: 1.2rem; font-weight: 600;">
                 {{ icon('wallet', 16) }}
                 <span>{{ "%.2f"|format(v.importo_finale) }}€</span>
               </div>
@@ -130,7 +130,7 @@
             </div>
           
           {% if v.note %}
-          <div style="margin-top: 1rem; padding: 0.75rem; background: rgba(13, 51, 28, 0.8); border-radius: 8px;">
+          <div style="margin-top: 1rem; padding: 0.75rem; background: rgba(255, 255, 255, 0.8); border-radius: 8px;">
             <div style="color: #b6b1a9; font-size: 0.9rem;">{{ icon('message', 14) }} {{ v.note }}</div>
           </div>
           {% endif %}
@@ -153,9 +153,9 @@
 
   {% else %}
   <!-- EMPTY STATE -->
-  <div class="empty-state" style="text-align: center; padding: 4rem 2rem; background: rgba(13, 51, 28, 0.2); border: 2px dashed rgba(182, 177, 169, 0.3); border-radius: 12px;">
+  <div class="empty-state" style="text-align: center; padding: 4rem 2rem; background: rgba(255, 255, 255, 0.2); border: 2px dashed rgba(182, 177, 169, 0.3); border-radius: 12px;">
     <div class="adm-empty-icon">{{ icon('package', 48) }}</div>
-    <h3 style="color: #ff751f; margin-bottom: 2rem;">Nessun pacchetto acquistato</h3>
+    <h3 style="color: #d4d4d4; margin-bottom: 2rem;">Nessun pacchetto acquistato</h3>
     <a href="{{ url_for('vendite.nuova_vendita') }}" class="btn btn-primary" style="font-size: 1.1rem; padding: 1rem 2rem;">
       {{ icon('plus', 16) }} Registra prima vendita
     </a>
@@ -189,56 +189,56 @@ document.addEventListener('DOMContentLoaded', function() {
             datasets: [{
                 label: 'Dieta',
                 data: spending_nutrizione,
-                borderColor: '#4CAF50',
-                backgroundColor: 'rgba(76, 175, 80, 0.15)',
+                borderColor: '#c8c8c8',
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
                 borderWidth: 3,
                 tension: 0.4,
                 fill: true,
                 pointRadius: 6,
                 pointHoverRadius: 8,
-                pointBackgroundColor: '#4CAF50',
+                pointBackgroundColor: '#c8c8c8',
                 pointBorderColor: '#ffffff',
                 pointBorderWidth: 2,
                 pointHoverBorderWidth: 3
             }, {
                 label: 'Allenamento',
                 data: spending_allenamento,
-                borderColor: '#2196F3',
-                backgroundColor: 'rgba(33, 150, 243, 0.15)',
+                borderColor: '#a8a8a8',
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
                 borderWidth: 3,
                 tension: 0.4,
                 fill: true,
                 pointRadius: 6,
                 pointHoverRadius: 8,
-                pointBackgroundColor: '#2196F3',
+                pointBackgroundColor: '#a8a8a8',
                 pointBorderColor: '#ffffff',
                 pointBorderWidth: 2,
                 pointHoverBorderWidth: 3
             }, {
                 label: 'Completo',
                 data: spending_completo,
-                borderColor: '#FFC107',
-                backgroundColor: 'rgba(255, 193, 7, 0.15)',
+                borderColor: '#b0b0b0',
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
                 borderWidth: 3,
                 tension: 0.4,
                 fill: true,
                 pointRadius: 6,
                 pointHoverRadius: 8,
-                pointBackgroundColor: '#FFC107',
+                pointBackgroundColor: '#b0b0b0',
                 pointBorderColor: '#ffffff',
                 pointBorderWidth: 2,
                 pointHoverBorderWidth: 3
             }, {
                 label: 'Allenamento 1-to-1',
                 data: spending_1to1,
-                borderColor: '#9C27B0',
-                backgroundColor: 'rgba(156, 39, 176, 0.15)',
+                borderColor: '#909090',
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
                 borderWidth: 3,
                 tension: 0.4,
                 fill: true,
                 pointRadius: 6,
                 pointHoverRadius: 8,
-                pointBackgroundColor: '#9C27B0',
+                pointBackgroundColor: '#909090',
                 pointBorderColor: '#ffffff',
                 pointBorderWidth: 2,
                 pointHoverBorderWidth: 3
@@ -259,10 +259,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 },
                 tooltip: {
-                    backgroundColor: 'rgba(255, 117, 31, 0.95)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
                     titleColor: '#ffffff',
                     bodyColor: '#ffffff',
-                    borderColor: '#ff751f',
+                    borderColor: '#d4d4d4',
                     borderWidth: 2,
                     padding: 12,
                     displayColors: true,
@@ -277,10 +277,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 y: {
                     beginAtZero: true,
                     grid: {
-                        color: 'rgba(255, 117, 31, 0.1)'
+                        color: 'rgba(255, 255, 255, 0.1)'
                     },
                     ticks: {
-                        color: '#ff751f',
+                        color: '#d4d4d4',
                         font: {
                             size: 12,
                             weight: '600'
@@ -292,10 +292,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 },
                 x: {
                     grid: {
-                        color: 'rgba(255, 117, 31, 0.1)'
+                        color: 'rgba(255, 255, 255, 0.1)'
                     },
                     ticks: {
-                        color: '#ff751f',
+                        color: '#d4d4d4',
                         font: {
                             size: 10,
                             weight: '600'

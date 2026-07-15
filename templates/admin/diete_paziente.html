@@ -3,10 +3,10 @@
 {% block content %}
 
 <!-- HEADER PAZIENTE -->
-<div class="patient-header" style="background: linear-gradient(135deg, rgba(255, 117, 31, 0.1) 0%, rgba(13, 51, 28, 0.3) 100%); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; border: 1px solid rgba(255, 117, 31, 0.2);">
+<div class="patient-header" style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.3) 100%); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; border: 1px solid rgba(255, 255, 255, 0.2);">
   <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
     <div>
-      <h1 style="color: #ff751f; margin: 0; font-size: 2.2rem; font-weight: 700;">Diete di {{ paziente.nome }} {{ paziente.cognome }}</h1>
+      <h1 style="color: #d4d4d4; margin: 0; font-size: 2.2rem; font-weight: 700;">Diete di {{ paziente.nome }} {{ paziente.cognome }}</h1>
       <p style="color: #b6b1a9; margin: 0.5rem 0 0 0; font-size: 1.1rem;">Piani nutrizionali personalizzati per il paziente</p>
     </div>
     <div style="text-align: right;">
@@ -33,17 +33,17 @@
 
 {% if diete %}
 <!-- TABELLA DIETE -->
-<div class="diete-table-container" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem;">
+<div class="diete-table-container" style="background: rgba(255, 255, 255, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem;">
   <div style="overflow-x: auto;">
     <table class="diete-table" style="width: 100%; border-collapse: collapse;">
       <thead>
-        <tr style="border-bottom: 2px solid rgba(255, 117, 31, 0.3);">
-          <th style="padding: 1rem; text-align: left; color: #ff751f; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">Data inizio</th>
-          <th style="padding: 1rem; text-align: left; color: #ff751f; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">Data fine</th>
-          <th style="padding: 1rem; text-align: left; color: #ff751f; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">Durata</th>
-          <th style="padding: 1rem; text-align: left; color: #ff751f; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">Kcal</th>
-          <th style="padding: 1rem; text-align: left; color: #ff751f; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">Macro</th>
-          <th style="padding: 1rem; text-align: left; color: #ff751f; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">PDF</th>
+        <tr style="border-bottom: 2px solid rgba(255, 255, 255, 0.3);">
+          <th style="padding: 1rem; text-align: left; color: #d4d4d4; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">Data inizio</th>
+          <th style="padding: 1rem; text-align: left; color: #d4d4d4; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">Data fine</th>
+          <th style="padding: 1rem; text-align: left; color: #d4d4d4; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">Durata</th>
+          <th style="padding: 1rem; text-align: left; color: #d4d4d4; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">Kcal</th>
+          <th style="padding: 1rem; text-align: left; color: #d4d4d4; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">Macro</th>
+          <th style="padding: 1rem; text-align: left; color: #d4d4d4; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">PDF</th>
         </tr>
       </thead>
       <tbody>
@@ -55,7 +55,7 @@
           <td style="padding: 1rem; color: #ffffff; font-weight: 500;">
             {{ d.data_fine.strftime('%d/%m/%Y') }}
           </td>
-          <td style="padding: 1rem; color: #4CAF50; font-weight: 600;">
+          <td style="padding: 1rem; color: #c8c8c8; font-weight: 600;">
             {% set durata_giorni = (d.data_fine - d.data_inizio).days + 1 %}
             {{ durata_giorni }} {{ 'giorno' if durata_giorni == 1 else 'giorni' }}
           </td>
@@ -66,12 +66,12 @@
             {% if d.carbo or d.proteine or d.grassi %}
               <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                 {% if d.carbo %}
-                  <span style="color: #4CAF50; font-size: 0.8rem; background: rgba(76, 175, 80, 0.2); padding: 0.2rem 0.4rem; border-radius: 4px;">
+                  <span style="color: #c8c8c8; font-size: 0.8rem; background: rgba(255, 255, 255, 0.2); padding: 0.2rem 0.4rem; border-radius: 4px;">
                     C: {{ d.carbo }}%
                   </span>
                 {% endif %}
                 {% if d.proteine %}
-                  <span style="color: #2196F3; font-size: 0.8rem; background: rgba(33, 150, 243, 0.2); padding: 0.2rem 0.4rem; border-radius: 4px;">
+                  <span style="color: #a8a8a8; font-size: 0.8rem; background: rgba(255, 255, 255, 0.2); padding: 0.2rem 0.4rem; border-radius: 4px;">
                     P: {{ d.proteine }}%
                   </span>
                 {% endif %}
@@ -110,7 +110,7 @@
   
   <div class="stat-card">
     <div class="adm-icon--lg">{{ icon('diet', 28) }}</div>
-    <div style="font-size: 1.5rem; font-weight: 700; color: #4CAF50; margin-bottom: 0.25rem;">{{ diete|length }}</div>
+    <div style="font-size: 1.5rem; font-weight: 700; color: #c8c8c8; margin-bottom: 0.25rem;">{{ diete|length }}</div>
     <div style="color: #b6b1a9; font-size: 0.9rem;">Diete Totali</div>
   </div>
   
@@ -122,13 +122,13 @@
   
   <div class="stat-card">
     <div class="adm-icon--lg">{{ icon('chart', 28) }}</div>
-    <div style="font-size: 1.5rem; font-weight: 700; color: #2196F3; margin-bottom: 0.25rem;">{{ pdf_totali }}</div>
+    <div style="font-size: 1.5rem; font-weight: 700; color: #a8a8a8; margin-bottom: 0.25rem;">{{ pdf_totali }}</div>
     <div style="color: #b6b1a9; font-size: 0.9rem;">PDF Disponibili</div>
   </div>
   
   <div class="stat-card">
     <div class="adm-icon--lg">{{ icon('clock', 28) }}</div>
-    <div style="font-size: 1.5rem; font-weight: 700; color: #FFC107; margin-bottom: 0.25rem;">
+    <div style="font-size: 1.5rem; font-weight: 700; color: #b0b0b0; margin-bottom: 0.25rem;">
       {% if dieta_attiva %}
         Attiva
       {% else %}
@@ -141,9 +141,9 @@
 
 {% else %}
 <!-- NESSUNA DIETA -->
-<div class="no-diete" style="text-align: center; padding: 4rem 2rem; background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px;">
+<div class="no-diete" style="text-align: center; padding: 4rem 2rem; background: rgba(255, 255, 255, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px;">
   <div class="adm-empty-icon">{{ icon('diet', 48) }}</div>
-  <h3 style="color: #4CAF50; margin-bottom: 1rem;">Nessuna Dieta Registrata</h3>
+  <h3 style="color: #c8c8c8; margin-bottom: 1rem;">Nessuna Dieta Registrata</h3>
   <p style="color: #b6b1a9; margin-bottom: 2rem; font-size: 1.1rem;">
     {{ paziente.nome }} non ha ancora ricevuto alcun piano nutrizionale.
   </p>
