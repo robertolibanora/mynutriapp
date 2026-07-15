@@ -49,13 +49,13 @@
   <article class="adm-stat-card adm-stat-card--purple">
     <div class="adm-stat-head">
       <span class="adm-stat-icon adm-stat-icon--purple">
-        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10h18M16 14.5h2.5"/></svg>
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19h16M7 16V8l5-3 5 3v8M9 16v-4h6v4"/></svg>
       </span>
     </div>
-    <div class="adm-stat-value">{{ totale_mese }}&thinsp;€</div>
-    <div class="adm-stat-label">Entrate del mese</div>
-    <a href="{{ url_for('vendite.dashboard_economia') }}" class="adm-stat-link adm-stat-link--purple">
-      Dettagli vendite
+    <div class="adm-stat-value">{{ n_diete_attive }}</div>
+    <div class="adm-stat-label">Diete attive</div>
+    <a href="{{ url_for('patients.lista_pazienti') }}" class="adm-stat-link adm-stat-link--purple">
+      Vai ai pazienti
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
     </a>
   </article>
@@ -127,22 +127,26 @@
   </section>
 
   <section class="adm-panel">
-    <h3 class="adm-panel-title" style="margin-bottom:18px">Prodotti più venduti</h3>
-    {% if prodotti_top %}
-    <div class="adm-appt-list">
-      {% for prodotto in prodotti_top %}
-      <div class="adm-appt-item">
-        <div style="flex:1">
-          <div class="adm-appt-name">{{ prodotto.nome_prodotto }}</div>
-          <div class="adm-appt-type">{{ prodotto.vendite_count }} vendite · {{ "%.0f"|format(prodotto.totale_importo) }}&thinsp;€</div>
-        </div>
-        <span class="adm-status-pill adm-status-pill--confirmed">#{{ loop.index }}</span>
-      </div>
-      {% endfor %}
+    <div class="adm-panel-head">
+      <h3 class="adm-panel-title">Prossimi 7 giorni</h3>
+      <a href="{{ url_for('agenda.agenda_unificata') }}" class="adm-panel-link">Apri agenda {{ icon('arrow-right', 14) }}</a>
     </div>
-    {% else %}
-    <p class="adm-empty">Nessuna vendita registrata questo mese.</p>
-    {% endif %}
+    <div class="adm-appt-list">
+      {% if prossimi_appuntamenti %}
+        {% for appt in prossimi_appuntamenti %}
+        {% set paziente = appt.patient %}
+        <div class="adm-appt-item">
+          <span class="adm-appt-time adm-appt-time--blue">{{ appt.data_appuntamento.strftime('%d/%m') }}</span>
+          <div style="flex:1">
+            <div class="adm-appt-name">{{ paziente.nome }} {{ paziente.cognome }}</div>
+            <div class="adm-appt-type">{{ appt.data_appuntamento.strftime('%H:%M') }} · {{ appt.tipo|replace('_', ' ') }}</div>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <p class="adm-empty">Nessun appuntamento nei prossimi 7 giorni.</p>
+      {% endif %}
+    </div>
   </section>
 </div>
 

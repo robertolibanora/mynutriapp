@@ -19,8 +19,6 @@
   {% set auto_nav_label = 'Segretario AI' %}
 {% elif 'broadcast' in ep %}
   {% set auto_nav_label = 'Messaggi' %}
-{% elif 'vendite' in ep or 'listino' in ep %}
-  {% set auto_nav_label = 'Economia' %}
 {% elif 'agenda' in ep or 'slot' in ep or 'appuntament' in ep or 'prenota' in ep %}
   {% set auto_nav_label = 'Agenda' %}
 {% elif 'patients' in ep or 'progressi' in ep or 'diete' in ep or 'allenamenti' in ep or 'documenti' in ep %}
@@ -52,10 +50,6 @@
             <a href="{{ url_for('agenda.agenda_unificata') }}" class="admin-nav-link{% if 'agenda' in ep or 'slot' in ep or 'appuntament' in ep %} is-active{% endif %}">
                 <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="16" rx="2.5"/><path d="M3.5 9h17M8 3v4M16 3v4"/></svg>
                 <span>Agenda</span>
-            </a>
-            <a href="{{ url_for('vendite.dashboard_economia') }}" class="admin-nav-link{% if 'vendite' in ep or 'listino' in ep %} is-active{% endif %}">
-                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10h18M16 14.5h2.5"/></svg>
-                <span>Economia</span>
             </a>
             <a href="{{ url_for('broadcast.dashboard') }}" class="admin-nav-link{% if 'broadcast' in ep %} is-active{% endif %}">
                 <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a7.5 7.5 0 0 1-11 6.6L4 20l1.4-5.3A7.5 7.5 0 1 1 21 11.5z"/></svg>

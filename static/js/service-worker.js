@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nutriapp-v3';
+const CACHE_NAME = 'nutriapp-v4';
 const urlsToCache = [
   '/',
   '/login',
@@ -7,7 +7,6 @@ const urlsToCache = [
   '/user/documenti',
   '/user/appuntamenti',
   '/user/profilo',
-  '/user/listino',
   '/static/css/style_user.css',
   '/static/css/style.css',
   '/static/icons/icon-192.png',

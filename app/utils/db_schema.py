@@ -10,10 +10,43 @@ logger = logging.getLogger(__name__)
 
 _SEGRETARIO_DEVIAZIONE_OK = False
 _NUTRITION_SCHEMA_OK = False
-
+_FINANCE_REMOVED_OK = False
 
 _AGENDA_SCHEMA_OK = False
 _RICHIESTE_SCHEMA_OK = False
+
+
+def ensure_finance_removed() -> None:
+    """Rimuove tabelle/colonne del modulo finanziario (listino, vendite)."""
+    global _FINANCE_REMOVED_OK
+    if _FINANCE_REMOVED_OK:
+        return
+    try:
+        insp = inspect(db.engine)
+        tables = set(insp.get_table_names())
+        with db.engine.begin() as conn:
+            if "appuntamenti" in tables:
+                cols = {c["name"] for c in insp.get_columns("appuntamenti")}
+                if "vendita_id" in cols:
+                    # MySQL: drop FK se presente, poi colonna
+                    fks = insp.get_foreign_keys("appuntamenti")
+                    for fk in fks:
+                        if "vendita_id" in (fk.get("constrained_columns") or []):
+                            name = fk.get("name")
+                            if name:
+                                conn.execute(text(f"ALTER TABLE appuntamenti DROP FOREIGN KEY `{name}`"))
+                    conn.execute(text("ALTER TABLE appuntamenti DROP COLUMN vendita_id"))
+                    logger.info("Rimossa colonna appuntamenti.vendita_id")
+            if "vendite" in tables:
+                conn.execute(text("DROP TABLE IF EXISTS vendite"))
+                logger.info("Rimossa tabella vendite")
+            if "listino" in tables:
+                conn.execute(text("DROP TABLE IF EXISTS listino"))
+                logger.info("Rimossa tabella listino")
+        _FINANCE_REMOVED_OK = True
+    except Exception as exc:  # noqa: BLE001
+        db.session.rollback()
+        logger.warning("Impossibile rimuovere lo schema finanziario: %s", exc)
 
 
 def ensure_richieste_appuntamento_schema() -> None:

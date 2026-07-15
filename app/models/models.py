@@ -42,7 +42,6 @@ class Patient(db.Model):
     progressi = db.relationship('Progresso', backref='patient', lazy=True, cascade="all, delete-orphan")
     documenti = db.relationship('Documento', backref='patient', lazy=True, cascade="all, delete-orphan")
     appuntamenti = db.relationship('Appuntamento', backref='patient', lazy=True, cascade="all, delete-orphan")
-    vendite = db.relationship('Vendita', backref='patient', lazy=True, cascade="all, delete-orphan")
     misure_antropometriche = db.relationship('MisureAntropometriche', backref='patient', lazy=True, cascade="all, delete-orphan")
     composizione_corporea = db.relationship('ComposizioneCorporea', backref='patient', lazy=True, cascade="all, delete-orphan")
 
@@ -489,7 +488,6 @@ class Appuntamento(db.Model):
 
     # 🔗 Relazioni esterne
     patient_id = db.Column(db.Integer, db.ForeignKey("patients.id"), nullable=False)
-    vendita_id = db.Column(db.Integer, db.ForeignKey("vendite.id"), nullable=True)
 
     # 🧑‍⚕️ Creatore dell'appuntamento
     created_by = db.Column(db.Enum("Enrico", "user"), nullable=False)
@@ -516,9 +514,6 @@ class Appuntamento(db.Model):
 
     # 🕒 Timestamp automatico
     created_at = db.Column(db.DateTime, server_default=db.func.now())
-
-    # 🔗 Relazione con Vendita (una vendita può avere più appuntamenti)
-    vendita = db.relationship("Vendita", back_populates="appuntamenti", lazy=True)
 
     def __repr__(self):
         return f"<Appuntamento {self.id} - Paziente {self.patient_id}>"
@@ -565,91 +560,6 @@ class RichiestaAppuntamento(db.Model):
     def __repr__(self):
         return f"<RichiestaAppuntamento {self.id} {self.nome} {self.cognome}>"
 
-
-# ========================
-#   MODEL: Listino
-# ========================
-
-class Listino(db.Model):
-    __tablename__ = "listino"
-
-    # 🔑 Chiave primaria
-    id = db.Column(db.Integer, primary_key=True)
-
-    # 📦 Dati principali
-    nome_prodotto = db.Column(db.String(100), nullable=False)
-    categoria = db.Column(
-        db.Enum("nutrizione", "allenamento", "completo", "1to1"),
-        nullable=False
-    )
-    durata_mesi = db.Column(db.Integer, nullable=False)
-
-    # 📅 Dati accessori
-    check_inclusi = db.Column(db.Integer, server_default="0")
-    prezzo = db.Column(db.Numeric(8, 2), nullable=False)
-    
-    
-    note = db.Column(db.Text)
-
-    # ⚙️ Attivazione prodotto
-    attivo = db.Column(db.Boolean, nullable=False, server_default="1")
-
-    # 🕒 Timestamp automatico
-    created_at = db.Column(db.DateTime, server_default=db.func.now())
-
-    # 🔗 Relazione con Vendite (1:N)
-    vendite = db.relationship("Vendita", backref="listino", lazy=True)
-
-    def __repr__(self):
-        return f"<Listino {self.nome_prodotto} - {self.categoria}>"
-    
-
-# ========================
-#   MODEL: Vendita
-# ========================
-
-class Vendita(db.Model):
-    __tablename__ = "vendite"
-
-    # 🔑 Chiave primaria
-    id = db.Column(db.Integer, primary_key=True)
-
-    # 🔗 Relazioni con altre tabelle
-    patient_id = db.Column(db.Integer, db.ForeignKey("patients.id"), nullable=False)
-    listino_id = db.Column(db.Integer, db.ForeignKey("listino.id"), nullable=False)
-
-    # 💰 Dati principali della transazione
-    data_acquisto = db.Column(db.DateTime, nullable=False, server_default=db.func.now())
-    data_inizio = db.Column(db.Date, nullable=False)
-
-    metodo_pagamento = db.Column(
-        db.Enum("contanti", "bonifico", "carta", "altro"),
-        nullable=False,
-        server_default="contanti"
-    )
-
-    sconto = db.Column(db.Numeric(6, 2), server_default="0.00")
-    
-    # 💰 Importo finale
-    importo_finale = db.Column(db.Numeric(8, 2), nullable=False)
-
-    stato = db.Column(
-        db.Enum("pagato", "in_attesa", "rimborsato"),
-        nullable=False,
-        server_default="pagato"
-    )
-
-    # 📝 Note o memo contabili
-    note = db.Column(db.Text)
-
-    # 🕒 Timestamp
-    created_at = db.Column(db.DateTime, server_default=db.func.now())
-
-    # 🔗 Relazioni inverse
-    appuntamenti = db.relationship("Appuntamento", back_populates="vendita", lazy=True)
-
-    def __repr__(self):
-        return f"<Vendita {self.id} - Paziente {self.patient_id} - Importo {self.importo_finale}€>"
 
 # ========================
 #   MODEL: SlotDisponibilita

@@ -168,52 +168,11 @@ CREATE TABLE IF NOT EXISTS documents (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ========================================
--- 📋 TABELLA: listino
--- ========================================
-CREATE TABLE IF NOT EXISTS listino (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nome_prodotto VARCHAR(100) NOT NULL,
-    categoria ENUM('nutrizione', 'allenamento', 'completo', '1to1') NOT NULL,
-    durata_mesi INT NOT NULL,
-    check_inclusi INT DEFAULT 0,
-    prezzo DECIMAL(8, 2) NOT NULL,
-    note TEXT,
-    attivo BOOLEAN NOT NULL DEFAULT TRUE,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_categoria (categoria),
-    INDEX idx_attivo (attivo)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- ========================================
--- 📋 TABELLA: vendite
--- ========================================
-CREATE TABLE IF NOT EXISTS vendite (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    patient_id INT NOT NULL,
-    listino_id INT NOT NULL,
-    data_acquisto DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    data_inizio DATE NOT NULL,
-    metodo_pagamento ENUM('contanti', 'bonifico', 'carta', 'altro') NOT NULL DEFAULT 'contanti',
-    sconto DECIMAL(6, 2) DEFAULT 0.00,
-    importo_finale DECIMAL(8, 2) NOT NULL,
-    stato ENUM('pagato', 'in_attesa', 'rimborsato') NOT NULL DEFAULT 'pagato',
-    note TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
-    FOREIGN KEY (listino_id) REFERENCES listino(id) ON DELETE RESTRICT,
-    INDEX idx_patient_id (patient_id),
-    INDEX idx_listino_id (listino_id),
-    INDEX idx_data_acquisto (data_acquisto),
-    INDEX idx_stato (stato)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- ========================================
 -- 📋 TABELLA: appuntamenti
 -- ========================================
 CREATE TABLE IF NOT EXISTS appuntamenti (
     id INT AUTO_INCREMENT PRIMARY KEY,
     patient_id INT NOT NULL,
-    vendita_id INT,
     created_by ENUM('Enrico', 'user') NOT NULL,
     data_appuntamento DATETIME NOT NULL,
     tipo ENUM('allenamento_1to1', 'rinnovo_dieta', 'rinnovo_allenamento', 'check', 'altro') NOT NULL,
@@ -222,9 +181,7 @@ CREATE TABLE IF NOT EXISTS appuntamenti (
     promemoria_inviato BOOLEAN NOT NULL DEFAULT FALSE,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
-    FOREIGN KEY (vendita_id) REFERENCES vendite(id) ON DELETE SET NULL,
     INDEX idx_patient_id (patient_id),
-    INDEX idx_vendita_id (vendita_id),
     INDEX idx_data_appuntamento (data_appuntamento),
     INDEX idx_stato (stato)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

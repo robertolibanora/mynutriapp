@@ -29,12 +29,10 @@ from app.models.models import (
     ComposizioneCorporea,
     Dieta,
     Documento,
-    Listino,
     MisureAntropometriche,
     Patient,
     Progresso,
     SlotDisponibilita,
-    Vendita,
     db,
 )
 from app.utils.encryption import encrypt_field
@@ -45,7 +43,6 @@ TEST_PASSWORD = "test123"
 def clear_test_data() -> None:
     for model in (
         Appuntamento,
-        Vendita,
         MisureAntropometriche,
         ComposizioneCorporea,
         Progresso,
@@ -54,7 +51,6 @@ def clear_test_data() -> None:
         Allenamento,
         Patient,
         SlotDisponibilita,
-        Listino,
     ):
         db.session.query(model).delete()
     db.session.commit()
@@ -63,47 +59,6 @@ def clear_test_data() -> None:
 def seed() -> None:
     today = date.today()
     now = datetime.now()
-
-    listino_items = [
-        Listino(
-            nome_prodotto="Dieta personalizzata 3 mesi",
-            categoria="nutrizione",
-            durata_mesi=3,
-            check_inclusi=2,
-            prezzo=249.00,
-            note="Include 2 controlli nutrizionista",
-            attivo=True,
-        ),
-        Listino(
-            nome_prodotto="Piano allenamento 3 mesi",
-            categoria="allenamento",
-            durata_mesi=3,
-            check_inclusi=1,
-            prezzo=199.00,
-            note="Programma strength + cardio",
-            attivo=True,
-        ),
-        Listino(
-            nome_prodotto="Pacchetto completo 6 mesi",
-            categoria="completo",
-            durata_mesi=6,
-            check_inclusi=4,
-            prezzo=699.00,
-            note="Dieta + allenamento + check mensili",
-            attivo=True,
-        ),
-        Listino(
-            nome_prodotto="Sessione 1-to-1",
-            categoria="1to1",
-            durata_mesi=1,
-            check_inclusi=0,
-            prezzo=60.00,
-            note="Singola seduta in studio",
-            attivo=True,
-        ),
-    ]
-    db.session.add_all(listino_items)
-    db.session.flush()
 
     patients_data = [
         {
@@ -188,30 +143,6 @@ def seed() -> None:
 
     db.session.flush()
 
-    vendite: list[Vendita] = []
-    vendite_specs = [
-        (0, 0, 0, "carta", 249.00),
-        (1, 1, -15, "bonifico", 169.15),
-        (2, 2, 0, "contanti", 699.00),
-        (3, 0, 10, "carta", 224.10),
-    ]
-    for i, (p_idx, l_idx, sconto, metodo, importo) in enumerate(vendite_specs):
-        v = Vendita(
-            patient_id=patients[p_idx].id,
-            listino_id=listino_items[l_idx].id,
-            data_acquisto=now - timedelta(days=30 * (i + 1)),
-            data_inizio=today - timedelta(days=25 * (i + 1)),
-            metodo_pagamento=metodo,
-            sconto=sconto,
-            importo_finale=importo,
-            stato="pagato",
-            note="Vendita test seed",
-        )
-        db.session.add(v)
-        vendite.append(v)
-
-    db.session.flush()
-
     for i, p in enumerate(patients):
         db.session.add(
             Dieta(
@@ -237,17 +168,16 @@ def seed() -> None:
         )
 
     appuntamenti_specs = [
-        (0, 0, "check", "confermato", 3),
-        (1, 1, "rinnovo_dieta", "completato", -7),
-        (2, 2, "allenamento_1to1", "in_attesa", 5),
-        (3, 3, "check", "confermato", 10),
-        (0, None, "altro", "in_attesa", 14),
+        (0, "check", "confermato", 3),
+        (1, "rinnovo_dieta", "completato", -7),
+        (2, "allenamento_1to1", "in_attesa", 5),
+        (3, "check", "confermato", 10),
+        (0, "altro", "in_attesa", 14),
     ]
-    for p_idx, v_idx, tipo, stato, days_ahead in appuntamenti_specs:
+    for p_idx, tipo, stato, days_ahead in appuntamenti_specs:
         db.session.add(
             Appuntamento(
                 patient_id=patients[p_idx].id,
-                vendita_id=vendite[v_idx].id if v_idx is not None else None,
                 created_by="Enrico",
                 data_appuntamento=now + timedelta(days=days_ahead, hours=10),
                 tipo=tipo,
@@ -331,8 +261,6 @@ def seed() -> None:
 
     print("✅ Database popolato con dati di test")
     print(f"   Pazienti: {len(patients)}")
-    print(f"   Listino: {len(listino_items)} prodotti")
-    print(f"   Vendite: {len(vendite)}")
     print(f"   Password pazienti: {TEST_PASSWORD}")
     print()
     print("   Account pazienti (telefono / password):")

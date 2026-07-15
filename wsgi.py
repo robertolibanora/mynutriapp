@@ -121,8 +121,9 @@ ensure_upload_dirs()
 # ===========================================
 with app.app_context():
     try:
-        from app.utils.db_schema import ensure_nutrition_schema
+        from app.utils.db_schema import ensure_nutrition_schema, ensure_finance_removed
         ensure_nutrition_schema()
+        ensure_finance_removed()
     except Exception as e:
         logger.warning(f"⚠️  Impossibile verificare lo schema nutrizione al boot: {e}")
 
@@ -345,7 +346,7 @@ def init_db_command():
         from app.models.models import (
             Patient, Dieta, Allenamento, Progresso, 
             MisureAntropometriche, ComposizioneCorporea,
-            Documento, Appuntamento, Listino, Vendita, SlotDisponibilita,
+            Documento, Appuntamento, SlotDisponibilita,
             SegretarioConfig, ChiamataInbound,
             Food, DietPlan, DietMeal, DietMealItem
         )

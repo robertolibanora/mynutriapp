@@ -144,7 +144,7 @@ python run.py          # http://127.0.0.1:9091
 ### Per amministratori
 - Dashboard con statistiche
 - Gestione pazienti e appuntamenti
-- Diete, allenamenti, fatturazione
+- Diete, allenamenti, progressi
 - Integrazione WhatsApp
 
 ### Per pazienti

@@ -1,9 +1,9 @@
 from flask import Blueprint, render_template, session, redirect, url_for, flash
-from app.models.models import db, Patient, Dieta, Allenamento, Progresso, Appuntamento, Listino, Vendita, SegretarioConfig
+from app.models.models import db, Patient, Dieta, Allenamento, Progresso, Appuntamento, SegretarioConfig
 from app.services.agenda_service import AgendaService
 from app.services import call_forwarding_service
-from app.utils.db_schema import ensure_segretario_deviazione_schema, ensure_agenda_schema
-from datetime import datetime, date, timedelta
+from app.utils.db_schema import ensure_segretario_deviazione_schema, ensure_agenda_schema, ensure_finance_removed
+from datetime import datetime, timedelta
 
 dashboard_bp = Blueprint('dashboard', __name__)
 
@@ -16,14 +16,13 @@ def admin_dashboard():
         flash("Accesso non autorizzato", "danger")
         return redirect(url_for('auth.login'))
 
+    ensure_finance_removed()
     ensure_segretario_deviazione_schema()
     ensure_agenda_schema()
     
     # Calcola statistiche
     oggi = datetime.now()
     oggi_data = oggi.date()
-    inizio_mese = oggi_data.replace(day=1)
-    fine_mese = (inizio_mese + timedelta(days=32)).replace(day=1) - timedelta(days=1)
     
     # Statistiche principali
     n_pazienti = Patient.query.count()
@@ -35,12 +34,6 @@ def admin_dashboard():
         Dieta.data_inizio <= oggi_data,
         Dieta.data_fine >= oggi_data
     ).count()
-    
-    # Entrate del mese corrente
-    entrate_mese = db.session.query(db.func.sum(Vendita.importo_finale)).filter(
-        db.func.date(Vendita.data_acquisto) >= inizio_mese,
-        db.func.date(Vendita.data_acquisto) <= fine_mese
-    ).scalar() or 0
     
     # Statistiche aggiuntive
     n_slot_futuri = len(AgendaService.slot_liberi())
@@ -54,17 +47,10 @@ def admin_dashboard():
         db.func.date(Appuntamento.data_appuntamento) == oggi_data
     ).order_by(Appuntamento.data_appuntamento.asc()).all()
 
-    # Prodotti più venduti questo mese
-    prodotti_top = db.session.query(
-        Listino.nome_prodotto,
-        db.func.count(Vendita.id).label('vendite_count'),
-        db.func.sum(Vendita.importo_finale).label('totale_importo')
-    ).join(Vendita).filter(
-        db.func.date(Vendita.data_acquisto) >= inizio_mese,
-        db.func.date(Vendita.data_acquisto) <= fine_mese
-    ).group_by(Listino.id, Listino.nome_prodotto).order_by(
-        db.func.count(Vendita.id).desc()
-    ).limit(3).all()
+    prossimi_appuntamenti = Appuntamento.query.filter(
+        Appuntamento.data_appuntamento > oggi,
+        Appuntamento.data_appuntamento <= oggi + timedelta(days=7)
+    ).order_by(Appuntamento.data_appuntamento.asc()).limit(5).all()
 
     segretario_cfg = SegretarioConfig.query.first()
     deviazione_attiva = bool(segretario_cfg and segretario_cfg.deviazione_attiva)
@@ -76,10 +62,10 @@ def admin_dashboard():
                          n_pazienti=n_pazienti,
                          n_appuntamenti_oggi=n_appuntamenti_oggi,
                          appuntamenti_oggi=appuntamenti_oggi,
-                         totale_mese=int(entrate_mese),
+                         n_diete_attive=n_diete_attive,
                          n_slot_futuri=n_slot_futuri,
                          n_appuntamenti_settimana=n_appuntamenti_settimana,
-                         prodotti_top=prodotti_top,
+                         prossimi_appuntamenti=prossimi_appuntamenti,
                          deviazione=deviazione,
                          oggi=oggi)
 
