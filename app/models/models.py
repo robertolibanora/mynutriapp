@@ -633,6 +633,51 @@ class SlotDisponibilita(db.Model):
     def __repr__(self):
         return f"<SlotDisponibilita {self.data_ora.strftime('%d/%m/%Y %H:%M')}>"
 
+
+# ========================
+#   MODEL: OrarioSettimanale (slot ordinari)
+# ========================
+
+class OrarioSettimanale(db.Model):
+    """Orario ricorrente settimanale — validità infinita finché attivo."""
+
+    __tablename__ = "orari_settimanali"
+
+    id = db.Column(db.Integer, primary_key=True)
+    giorno_settimana = db.Column(db.Integer, nullable=False)  # 0=lunedì … 6=domenica
+    ora = db.Column(db.Time, nullable=False)
+    attivo = db.Column(db.Boolean, default=True, nullable=False)
+    note = db.Column(db.String(255))
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
+
+    __table_args__ = (
+        db.UniqueConstraint("giorno_settimana", "ora", name="uq_orario_settimanale_giorno_ora"),
+    )
+
+    def __repr__(self):
+        return f"<OrarioSettimanale giorno={self.giorno_settimana} ora={self.ora}>"
+
+
+# ========================
+#   MODEL: AgendaEccezione (ferie / chiusure)
+# ========================
+
+class AgendaEccezione(db.Model):
+    """Modifica temporanea: chiude uno o più giorni (ferie, festività)."""
+
+    __tablename__ = "agenda_eccezioni"
+
+    id = db.Column(db.Integer, primary_key=True)
+    data_inizio = db.Column(db.Date, nullable=False)
+    data_fine = db.Column(db.Date, nullable=False)
+    tipo = db.Column(db.String(20), nullable=False, default="chiusura")
+    note = db.Column(db.String(255))
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
+
+    def __repr__(self):
+        return f"<AgendaEccezione {self.data_inizio}–{self.data_fine} {self.tipo}>"
+
+
 # ========================
 #   MODEL: SegretarioConfig
 # ========================

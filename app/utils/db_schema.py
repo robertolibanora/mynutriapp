@@ -12,6 +12,49 @@ _SEGRETARIO_DEVIAZIONE_OK = False
 _NUTRITION_SCHEMA_OK = False
 
 
+_AGENDA_SCHEMA_OK = False
+
+
+def ensure_agenda_schema() -> None:
+    """Crea tabelle orari settimanali ed eccezioni agenda se mancanti."""
+    global _AGENDA_SCHEMA_OK
+    if _AGENDA_SCHEMA_OK:
+        return
+    try:
+        from app.models.models import AgendaEccezione, OrarioSettimanale, SlotDisponibilita
+
+        tables = [m.__table__ for m in (OrarioSettimanale, AgendaEccezione)]
+        db.metadata.create_all(bind=db.engine, tables=tables, checkfirst=True)
+
+        # Migrazione una tantum: slot puntuali → orari settimanali ricorrenti.
+        if OrarioSettimanale.query.count() == 0:
+            visti: set = set()
+            for slot in SlotDisponibilita.query.all():
+                if not slot.data_ora:
+                    continue
+                chiave = (slot.data_ora.weekday(), slot.data_ora.time().replace(second=0, microsecond=0))
+                if chiave in visti:
+                    continue
+                visti.add(chiave)
+                db.session.add(
+                    OrarioSettimanale(
+                        giorno_settimana=chiave[0],
+                        ora=chiave[1],
+                        attivo=True,
+                        note=slot.note,
+                    )
+                )
+            if visti:
+                db.session.commit()
+                logger.info("Migrati %d orari settimanali da slot_disponibilita", len(visti))
+
+        _AGENDA_SCHEMA_OK = True
+        logger.info("Schema agenda verificato (orari_settimanali, agenda_eccezioni)")
+    except Exception as exc:  # noqa: BLE001
+        db.session.rollback()
+        logger.warning("Impossibile creare lo schema agenda: %s", exc)
+
+
 def ensure_nutrition_schema() -> None:
     """Crea le tabelle del modulo nutrizione se mancanti.
 

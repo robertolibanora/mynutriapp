@@ -1,0 +1,66 @@
+{% extends 'base_admin.html' %}
+{% block title %}Orari settimanali{% endblock %}
+{% block content %}
+
+<div class="agenda-page-header">
+  <div>
+    <h1 class="agenda-title">Orari settimanali</h1>
+    <p class="agenda-sub">Giorni e orari di lavoro ricorrenti. Valgono ogni settimana finché non li modifichi o non registri ferie.</p>
+  </div>
+  <a href="{{ url_for('agenda.agenda_unificata') }}" class="btn btn-ghost btn-sm">← Agenda</a>
+</div>
+
+<div class="agenda-grid-2">
+  <section class="panel">
+    <h2 class="panel-title">Aggiungi orario</h2>
+    <form method="POST" class="form-stack">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+      <input type="hidden" name="action" value="aggiungi"/>
+      <label class="field">
+        <span>Giorno</span>
+        <select name="giorno_settimana" class="input-text" required>
+          {% for i in range(7) %}
+          <option value="{{ i }}">{{ giorni[i] }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label class="field">
+        <span>Orario</span>
+        <input type="time" name="ora" class="input-text" required>
+      </label>
+      <label class="field">
+        <span>Nota (opzionale)</span>
+        <input type="text" name="note" class="input-text" placeholder="es. Solo visite">
+      </label>
+      <button type="submit" class="btn btn-primary btn-lg">Aggiungi orario</button>
+    </form>
+  </section>
+
+  <section class="panel">
+    <h2 class="panel-title">Settimana tipo</h2>
+    {% for i in range(7) %}
+    <div class="weekday-block">
+      <div class="weekday-label">{{ giorni[i] }}</div>
+      {% if orari_per_giorno[i] %}
+      <ul class="weekday-times">
+        {% for orario in orari_per_giorno[i] %}
+        <li>
+          <span>{{ orario.ora.strftime('%H:%M') }}{% if orario.note %} — {{ orario.note }}{% endif %}</span>
+          <form method="POST" class="inline-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <input type="hidden" name="action" value="elimina"/>
+            <input type="hidden" name="orario_id" value="{{ orario.id }}"/>
+            <button type="submit" class="btn btn-ghost btn-xs" onclick="return confirm('Rimuovere questo orario?')">Rimuovi</button>
+          </form>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="text-muted text-sm">Chiuso</p>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </section>
+</div>
+
+{% endblock %}

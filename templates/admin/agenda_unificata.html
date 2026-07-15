@@ -1,382 +1,159 @@
 {% extends 'base_admin.html' %}
-{% block title %}Agenda Unificata{% endblock %}
+{% block title %}Agenda{% endblock %}
 {% block content %}
 
-<!-- STATISTICHE RAPIDE -->
-<div class="quick-stats">
-  <div class="stat-card">
-    <div class="adm-icon--lg">{{ icon('calendar', 28) }}</div>
-    <div style="font-size: 1.5rem; font-weight: 700; color: #4CAF50; margin-bottom: 0.25rem;">{{ slot_futuri|length }}</div>
-    <div style="color: #b6b1a9; font-size: 0.9rem;">Slot Disponibili</div>
+<header class="agenda-top">
+  <div class="agenda-top-main">
+    <h1 class="agenda-title">Agenda</h1>
+    <p class="agenda-meta">{{ oggi.strftime('%A %d %B %Y')|replace('Monday','lunedì')|replace('Tuesday','martedì')|replace('Wednesday','mercoledì')|replace('Thursday','giovedì')|replace('Friday','venerdì')|replace('Saturday','sabato')|replace('Sunday','domenica') }}</p>
   </div>
-  
-  <div class="stat-card">
-    <div class="adm-icon--lg">{{ icon('clipboard', 28) }}</div>
-    <div style="font-size: 1.5rem; font-weight: 700; color: #2196F3; margin-bottom: 0.25rem;">{{ appuntamenti_oggi|length }}</div>
-    <div style="color: #b6b1a9; font-size: 0.9rem;">Appuntamenti Oggi</div>
+  <div class="agenda-actions">
+    <a href="{{ url_for('slot.orari_settimanali') }}" class="btn btn-primary btn-xl">Orari settimanali</a>
+    <a href="{{ url_for('appuntamenti.nuovo_admin') }}" class="btn btn-secondary btn-md">Nuovo appuntamento</a>
+    <a href="{{ url_for('slot.eccezione_agenda') }}" class="btn btn-ghost btn-sm">Ferie</a>
   </div>
-  
-  <div class="stat-card" style="cursor: pointer;" onclick="window.location.href='{{ url_for('agenda.agenda_unificata', tab='appuntamenti', filtro='da_confermare') }}'">
-    <div class="adm-icon--lg">{{ icon('hourglass', 28) }}</div>
-    <div style="font-size: 1.5rem; font-weight: 700; color: #FFC107; margin-bottom: 0.25rem;">{{ appuntamenti_in_attesa|length }}</div>
-    <div style="color: #b6b1a9; font-size: 0.9rem;">In Attesa</div>
+</header>
+
+<div class="agenda-stats">
+  <div class="agenda-stat">
+    <span class="agenda-stat-n">{{ slot_liberi_count }}</span>
+    <span class="agenda-stat-l">Slot liberi (mese)</span>
   </div>
-  
-  <div class="stat-card">
-    <div class="adm-icon--lg">{{ icon('check-circle', 28) }}</div>
-    <div style="font-size: 1.5rem; font-weight: 700; color: #9C27B0; margin-bottom: 0.25rem;">{{ appuntamenti_confermati|length }}</div>
-    <div style="color: #b6b1a9; font-size: 0.9rem;">Confermati</div>
+  <div class="agenda-stat">
+    <span class="agenda-stat-n">{{ appuntamenti_oggi|length }}</span>
+    <span class="agenda-stat-l">Oggi</span>
+  </div>
+  <div class="agenda-stat agenda-stat--highlight" {% if appuntamenti_in_attesa|length %}onclick="location.href='{{ url_for('agenda.agenda_unificata', tab='appuntamenti', filtro='da_confermare') }}'"{% endif %}>
+    <span class="agenda-stat-n">{{ appuntamenti_in_attesa|length }}</span>
+    <span class="agenda-stat-l">Da confermare</span>
+  </div>
+  <div class="agenda-stat">
+    <span class="agenda-stat-n">{{ orari_settimanali_count }}</span>
+    <span class="agenda-stat-l">Orari settimanali</span>
   </div>
 </div>
 
-<!-- TOOLBAR PRINCIPALE -->
-<div class="main-toolbar">
-  <div style="display: flex; gap: 2.5rem; flex-wrap: wrap; justify-content: center;">
-    <a href="{{ url_for('slot.nuovo_slot') }}" class="btn btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; background: rgba(255, 117, 31, 0.2); color: #ff751f; border: 1px solid rgba(255, 117, 31, 0.3); min-width: 200px; padding: 0.75rem 1.5rem;">
-      {{ icon('plus', 16) }} Nuovo slot
-    </a>
-    <a href="{{ url_for('slot.genera_slot') }}" class="btn btn-secondary" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; background: rgba(255, 117, 31, 0.2); color: #ff751f; border: 1px solid rgba(255, 117, 31, 0.3); min-width: 200px; padding: 0.75rem 1.5rem;">
-      {{ icon('zap', 16) }} Genera multipli
-    </a>
-    <a href="{{ url_for('appuntamenti.nuovo_admin') }}" class="btn btn-white" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; background: rgba(255, 117, 31, 0.2); color: #ff751f; border: 1px solid rgba(255, 117, 31, 0.3); min-width: 200px; padding: 0.75rem 1.5rem;">
-      {{ icon('clipboard', 16) }} Nuovo appuntamento
-    </a>
-  </div>
-  
+{% if not orari_settimanali_count %}
+<div class="banner banner-warn">
+  Configura prima gli <a href="{{ url_for('slot.orari_settimanali') }}">orari settimanali</a> per aprire la prenotazione ai pazienti.
+</div>
+{% endif %}
+
+<div class="tabs-minimal">
+  <button type="button" class="tab-min {% if tab != 'appuntamenti' %}is-active{% endif %}" data-tab="calendario">Calendario</button>
+  <button type="button" class="tab-min {% if tab == 'appuntamenti' %}is-active{% endif %}" data-tab="appuntamenti">
+    Appuntamenti{% if appuntamenti_in_attesa|length %} <span class="tab-badge">{{ appuntamenti_in_attesa|length }}</span>{% endif %}
+  </button>
 </div>
 
-<!-- TABS NAVIGATION -->
-<div class="tabs-container" style="margin-bottom: 2rem;">
-  <div class="tabs" role="tablist">
-    <button type="button" class="tab-btn active" data-tab="calendario" aria-selected="true">
-      {{ icon('calendar', 18) }} Calendario
-    </button>
-    <button type="button" class="tab-btn" data-tab="slot" aria-selected="false">
-      {{ icon('clock', 18) }} Slot disponibili
-    </button>
-    <button type="button" class="tab-btn" data-tab="appuntamenti" aria-selected="false">
-      {{ icon('clipboard', 18) }} Appuntamenti
-    </button>
+<!-- CALENDARIO -->
+<section id="calendario-tab" class="agenda-panel {% if tab != 'appuntamenti' %}is-active{% endif %}">
+  <div class="cal-nav">
+    <a href="{{ url_for('agenda.agenda_unificata', mese=mese_precedente) }}" class="btn btn-ghost btn-xs">‹</a>
+    <span class="cal-month">{{ mese_corrente_display }}</span>
+    <a href="{{ url_for('agenda.agenda_unificata', mese=mese_successivo) }}" class="btn btn-ghost btn-xs">›</a>
   </div>
-</div>
 
-<!-- TAB CONTENT -->
-<div class="tab-content">
-  
-  <!-- CALENDARIO TAB -->
-  <div id="calendario-tab" class="tab-panel active">
-    <div class="calendar-section">
-      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
-        <h3 style="margin: 0; color: #4CAF50; font-size: 1.5rem;">{{ icon('calendar', 18) }} Calendario</h3>
-        <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
-          <!-- Navigazione Mese per Mese -->
-          <div style="display: flex; gap: 0.5rem; align-items: center; background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 12px; padding: 0.5rem;">
-            <a href="{{ url_for('agenda.agenda_unificata', mese=mese_precedente) }}" 
-               class="nav-month-btn" style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: rgba(76, 175, 80, 0.2); color: #4CAF50; border: 1px solid rgba(76, 175, 80, 0.3); border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.2s ease;" 
-               title="Mese precedente">
-              {{ icon('arrow-left', 16) }}
-            </a>
-            <span style="color: #b6b1a9; font-size: 0.9rem; font-weight: 500; min-width: 120px; text-align: center;">
-              {{ mese_corrente_display }}
-            </span>
-            <a href="{{ url_for('agenda.agenda_unificata', mese=mese_successivo) }}" 
-               class="nav-month-btn" style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: rgba(76, 175, 80, 0.2); color: #4CAF50; border: 1px solid rgba(76, 175, 80, 0.3); border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.2s ease;" 
-               title="Mese successivo">
-              {{ icon('arrow-right', 16) }}
-            </a>
-          </div>
-        </div>
-      </div>
-      
-      <div class="calendar-container" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px; padding: 1.5rem;">
-      
-      <!-- HEADER GIORNI SETTIMANA -->
-      <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.5rem; margin-bottom: 1rem;">
-        <div style="text-align: center; color: #ff751f; font-weight: 600; padding: 0.75rem; background: rgba(255, 117, 31, 0.1); border-radius: 8px;">Lun</div>
-        <div style="text-align: center; color: #ff751f; font-weight: 600; padding: 0.75rem; background: rgba(255, 117, 31, 0.1); border-radius: 8px;">Mar</div>
-        <div style="text-align: center; color: #ff751f; font-weight: 600; padding: 0.75rem; background: rgba(255, 117, 31, 0.1); border-radius: 8px;">Mer</div>
-        <div style="text-align: center; color: #ff751f; font-weight: 600; padding: 0.75rem; background: rgba(255, 117, 31, 0.1); border-radius: 8px;">Gio</div>
-        <div style="text-align: center; color: #ff751f; font-weight: 600; padding: 0.75rem; background: rgba(255, 117, 31, 0.1); border-radius: 8px;">Ven</div>
-        <div style="text-align: center; color: #ff751f; font-weight: 600; padding: 0.75rem; background: rgba(255, 117, 31, 0.1); border-radius: 8px;">Sab</div>
-        <div style="text-align: center; color: #ff751f; font-weight: 600; padding: 0.75rem; background: rgba(255, 117, 31, 0.1); border-radius: 8px;">Dom</div>
-      </div>
-      
-      <!-- GRIGLIA CALENDARIO -->
-      <div class="calendar-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.5rem;">
-        {% for giorno in giorni_calendario %}
-        <div class="calendar-day {% if giorno.data == oggi.date() %}calendar-day-today{% else %}calendar-day-normal{% endif %}" style="min-height: 120px; padding: 0.75rem; border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 8px; position: relative;">
-          
-          <!-- NUMERO GIORNO -->
-          <div class="{% if giorno.data == oggi.date() %}calendar-day-number-today{% else %}calendar-day-number-normal{% endif %}" style="font-weight: 600; margin-bottom: 0.5rem;">
-            {{ giorno.data.day }}
-          </div>
-          
-          <!-- APPUNTAMENTI DEL GIORNO -->
-          <div class="appointments-list" style="font-size: 0.8rem;">
-            {% for app in giorno.appuntamenti %}
-            <div class="{% if app.stato == 'confermato' %}appointment-confermato{% elif app.stato == 'in_attesa' %}appointment-in-attesa{% else %}appointment-altro{% endif %}" style="padding: 0.25rem 0.5rem; border-radius: 4px; margin-bottom: 0.25rem;">
-              <div style="font-weight: 600;">{{ app.data_appuntamento.strftime('%H:%M') }}</div>
-              <div style="font-size: 0.7rem; opacity: 0.8;">{{ app.patient.nome }} {{ app.patient.cognome }}</div>
-              <div style="font-size: 0.6rem; opacity: 0.7; text-transform: uppercase; font-weight: 600;">
-                {% if app.stato == 'confermato' %}Confermato{% elif app.stato == 'in_attesa' %}In attesa{% else %}{{ app.stato|title }}{% endif %}
-              </div>
-            </div>
-            {% endfor %}
-            
-            <!-- SLOT DISPONIBILI -->
-            {% for slot in giorno.slot %}
-            <div style="background: rgba(76, 175, 80, 0.3); color: #4CAF50; padding: 0.25rem 0.5rem; border-radius: 4px; margin-bottom: 0.25rem; border-left: 3px solid #4CAF50;">
-              <div style="font-weight: 600;">{{ slot.data_ora.strftime('%H:%M') }}</div>
-              <div style="font-size: 0.7rem; opacity: 0.8;">Slot Libero</div>
-            </div>
-            {% endfor %}
-          </div>
-        </div>
+  <div class="cal-weekdays">
+    <span>Lun</span><span>Mar</span><span>Mer</span><span>Gio</span><span>Ven</span><span>Sab</span><span>Dom</span>
+  </div>
+
+  <div class="cal-grid">
+    {% for giorno in giorni_calendario %}
+    <a href="{{ url_for('agenda.agenda_unificata', tab='appuntamenti', filtro_giorno=giorno.data.strftime('%Y-%m-%d')) }}"
+       class="cal-day {% if not giorno.nel_mese %}is-outside{% endif %} {% if giorno.data == oggi.date() %}is-today{% endif %} {% if giorno.chiuso %}is-closed{% endif %}">
+      <span class="cal-day-n">{{ giorno.data.day }}</span>
+      <div class="cal-day-events">
+        {% for app in giorno.appuntamenti[:3] %}
+        <span class="cal-ev cal-ev--{{ app.stato }}">{{ app.data_appuntamento.strftime('%H:%M') }} {{ app.patient.cognome }}</span>
         {% endfor %}
+        {% if giorno.chiuso and giorno.nel_mese %}
+        <span class="cal-ev cal-ev--closed">Chiuso</span>
+        {% elif giorno.slot and giorno.nel_mese and not giorno.appuntamenti %}
+        <span class="cal-ev cal-ev--free">{{ giorno.slot|length }} liberi</span>
+        {% endif %}
       </div>
-      </div>
-    </div>
+    </a>
+    {% endfor %}
   </div>
-  
-  <!-- SLOT TAB -->
-  <div id="slot-tab" class="tab-panel">
-    <div class="slots-section">
-      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
-        <h3 style="margin: 0; color: #4CAF50; font-size: 1.5rem;">{{ icon('clock', 18) }} Slot disponibili</h3>
-        <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
-          <span class="badge" style="background: rgba(76, 175, 80, 0.2); color: #4CAF50; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem;">{{ slot_futuri|length }} slot</span>
-        </div>
-      </div>
-      
-      {% if slot_futuri %}
-      <div class="slots-container" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px; padding: 1.5rem;">
-        <div class="slots-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
-        {% for slot in slot_futuri %}
-        <div class="slot-card {% if slot.attivo %}slot-active{% else %}slot-inactive{% endif %}" style="background: rgba(13, 51, 28, 0.6); border-radius: 12px; padding: 1.5rem; position: relative; border: 1px solid rgba(182, 177, 169, 0.1);">
-          
-          <!-- STATUS INDICATOR -->
-          <div style="position: absolute; top: 1rem; right: 1rem;">
-            {% if slot.attivo %}
-            <span style="background: rgba(255, 117, 31, 0.2); color: #ff751f; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem; font-weight: 600;">Attivo</span>
-            {% else %}
-            <span style="background: rgba(244, 67, 54, 0.2); color: #F44336; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem; font-weight: 600;">Disattivato</span>
-            {% endif %}
-          </div>
-          
-          <!-- SLOT INFO -->
-          <div style="margin-bottom: 1rem;">
-            <div style="font-size: 1.2rem; font-weight: 600; margin-bottom: 0.5rem; color: #ffffff;">
-              {{ slot.data_ora.strftime('%d/%m/%Y') }}
-            </div>
-            <div style="color: #b6b1a9; margin-bottom: 0.5rem;">
-              <span style="font-size: 1.1rem;">{{ icon('clock', 14) }} {{ slot.data_ora.strftime('%H:%M') }}</span>
-              <span style="margin-left: 1rem; font-size: 0.9rem;">{{ icon('calendar', 14) }} {{ slot.data_ora.strftime('%A') }}</span>
-            </div>
-            {% if slot.note %}
-            <div style="color: #ff751f; font-size: 0.9rem; font-style: italic;">
-              {{ icon('message', 14) }} {{ slot.note }}
-            </div>
-            {% endif %}
-          </div>
-          
-          <!-- ACTIONS -->
-          <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-            <form method="POST" action="{{ url_for('slot.toggle_slot', slot_id=slot.id) }}" style="flex: 1;">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-              <button type="submit" class="btn {% if slot.attivo %}btn-warning{% else %}btn-success{% endif %} btn-small" style="width: 100%; font-size: 0.85rem;">
-                {% if slot.attivo %}Disattiva{% else %}Attiva{% endif %}
-              </button>
-            </form>
-            <form method="POST" action="{{ url_for('slot.elimina_slot', slot_id=slot.id) }}" style="flex: 1;">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-              <button type="submit" class="btn btn-danger btn-small" style="width: 100%; font-size: 0.85rem;" onclick="return confirm('Eliminare lo slot?')">
-                {{ icon('trash', 16) }} Elimina
-              </button>
-            </form>
-          </div>
-        </div>
-        {% endfor %}
-        </div>
-      </div>
-      {% else %}
-      <div class="empty-state" style="text-align: center; padding: 3rem 2rem; background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px;">
-        <div class="adm-empty-icon">{{ icon('clock', 48) }}</div>
-        <h3 style="color: #4CAF50; margin-bottom: 1rem;">Nessuno slot disponibile</h3>
-        <p style="color: #b6b1a9; margin-bottom: 2rem;">Crea nuovi slot per permettere ai pazienti di prenotare appuntamenti.</p>
-        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-          <a href="{{ url_for('slot.nuovo_slot') }}" class="btn btn-primary">{{ icon('plus', 16) }} Crea slot</a>
-          <a href="{{ url_for('slot.genera_slot') }}" class="btn btn-secondary">{{ icon('zap', 16) }} Genera multipli</a>
-        </div>
-      </div>
+</section>
+
+<!-- APPUNTAMENTI -->
+<section id="appuntamenti-tab" class="agenda-panel {% if tab == 'appuntamenti' %}is-active{% endif %}">
+  <div class="appt-toolbar">
+    <h2 class="panel-title">{{ vista_appuntamenti }}</h2>
+    <div class="appt-filters">
+      <a href="{{ url_for('agenda.agenda_unificata', tab='appuntamenti', filtro='da_confermare') }}" class="btn btn-xs {% if filtro_vista == 'da_confermare' %}btn-primary{% else %}btn-ghost{% endif %}">Da confermare</a>
+      <a href="{{ url_for('agenda.agenda_unificata', tab='appuntamenti', filtro='oggi') }}" class="btn btn-xs {% if filtro_vista == 'oggi' %}btn-primary{% else %}btn-ghost{% endif %}">Oggi</a>
+      <a href="{{ url_for('agenda.agenda_unificata', tab='appuntamenti', filtro='mese') }}" class="btn btn-xs {% if filtro_vista == 'mese' %}btn-primary{% else %}btn-ghost{% endif %}">Mese</a>
+      {% if filtro_vista == 'giorno' %}
+      <a href="{{ url_for('agenda.agenda_unificata', tab='appuntamenti', filtro_giorno=giorno_precedente) }}" class="btn btn-ghost btn-xs">‹</a>
+      <a href="{{ url_for('agenda.agenda_unificata', tab='appuntamenti', filtro_giorno=giorno_successivo) }}" class="btn btn-ghost btn-xs">›</a>
       {% endif %}
     </div>
   </div>
-  
-  <!-- APPUNTAMENTI TAB -->
-  <div id="appuntamenti-tab" class="tab-panel">
-    <div class="appuntamenti-section">
-      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
-        <h3 style="margin: 0; color: #4CAF50; font-size: 1.5rem;">{{ icon('clipboard', 18) }} Appuntamenti — {{ vista_appuntamenti }}</h3>
-        <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
-          <a href="{{ url_for('agenda.agenda_unificata', tab='appuntamenti', filtro='da_confermare') }}"
-             class="btn btn-small {% if filtro_vista == 'da_confermare' %}btn-primary{% else %}btn-secondary{% endif %}"
-             style="font-size: 0.85rem; padding: 0.5rem 0.75rem;">
-            Da confermare ({{ appuntamenti_in_attesa|length }})
-          </a>
-          <a href="{{ url_for('agenda.agenda_unificata', tab='appuntamenti', filtro='oggi') }}"
-             class="btn btn-small {% if filtro_vista == 'oggi' %}btn-primary{% else %}btn-secondary{% endif %}"
-             style="font-size: 0.85rem; padding: 0.5rem 0.75rem;">
-            Oggi
-          </a>
-          <a href="{{ url_for('agenda.agenda_unificata', tab='appuntamenti', filtro='mese') }}"
-             class="btn btn-small {% if filtro_vista == 'mese' %}btn-primary{% else %}btn-secondary{% endif %}"
-             style="font-size: 0.85rem; padding: 0.5rem 0.75rem;">
-            Mese
-          </a>
-          {% if filtro_vista == 'giorno' %}
-          <!-- Navigazione Giorno per Giorno -->
-          <div style="display: flex; gap: 0.5rem; align-items: center; background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 12px; padding: 0.5rem;">
-            <a href="{{ url_for('agenda.agenda_unificata', tab='appuntamenti', filtro_giorno=giorno_precedente) }}" 
-               class="nav-day-btn" style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: rgba(76, 175, 80, 0.2); color: #4CAF50; border: 1px solid rgba(76, 175, 80, 0.3); border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.2s ease;" 
-               title="Giorno precedente">
-              {{ icon('arrow-left', 16) }}
-            </a>
-            <span style="color: #b6b1a9; font-size: 0.9rem; font-weight: 500; min-width: 120px; text-align: center;">
-              {{ filtro_giorno_display }}
-            </span>
-            <a href="{{ url_for('agenda.agenda_unificata', tab='appuntamenti', filtro_giorno=giorno_successivo) }}" 
-               class="nav-day-btn" style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: rgba(76, 175, 80, 0.2); color: #4CAF50; border: 1px solid rgba(76, 175, 80, 0.3); border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.2s ease;" 
-               title="Giorno successivo">
-              {{ icon('arrow-right', 16) }}
-            </a>
-          </div>
-          {% endif %}
+
+  {% if appuntamenti %}
+  <div class="appt-list">
+    {% for a in appuntamenti %}
+    <article class="appt-card">
+      <div class="appt-card-main">
+        <time class="appt-time">{{ a.data_appuntamento.strftime('%d/%m %H:%M') }}</time>
+        <div>
+          <div class="appt-name">{{ a.patient.nome }} {{ a.patient.cognome }}</div>
+          <div class="appt-type">{{ a.tipo.replace('_', ' ') }}</div>
         </div>
+        <span class="appt-status appt-status--{{ a.stato }}">{{ a.stato.replace('_', ' ') }}</span>
       </div>
-      
-      {% if appuntamenti %}
-      <div class="appuntamenti-container" style="background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px; padding: 1.5rem;">
-        <div class="appuntamenti-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1.5rem;">
-        {% for a in appuntamenti %}
-        <div class="appuntamento-card" style="background: rgba(13, 51, 28, 0.6); border-radius: 12px; padding: 1.5rem; position: relative; border: 1px solid rgba(182, 177, 169, 0.1);">
-          
-          <!-- STATUS INDICATOR -->
-          <div style="position: absolute; top: 1rem; right: 1rem;">
-            {% if a.stato == 'confermato' %}
-            <span style="background: rgba(76, 175, 80, 0.2); color: #4CAF50; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem; font-weight: 600;">{{ icon('check', 16) }} Confermato</span>
-            {% elif a.stato == 'in_attesa' %}
-            <span style="background: rgba(255, 117, 31, 0.2); color: #ff751f; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem; font-weight: 600;">In attesa</span>
-            {% elif a.stato == 'completato' %}
-            <span style="background: rgba(255, 117, 31, 0.2); color: #ff751f; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem; font-weight: 600;">{{ icon('check', 16) }} Completato</span>
-            {% elif a.stato == 'annullato' %}
-            <span style="background: rgba(244, 67, 54, 0.2); color: #F44336; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem; font-weight: 600;">{{ icon('x-circle', 16) }} Annullato</span>
-            {% endif %}
-          </div>
-          
-          <!-- APPUNTAMENTO INFO -->
-          <div style="margin-bottom: 1rem;">
-            <div style="font-size: 1.2rem; font-weight: 600; margin-bottom: 0.5rem; color: #ffffff;">
-              {{ a.data_appuntamento.strftime('%d/%m/%Y') }}
-            </div>
-            <div style="color: #b6b1a9; margin-bottom: 0.5rem;">
-              <span style="font-size: 1.1rem;">{{ icon('clock', 14) }} {{ a.data_appuntamento.strftime('%H:%M') }}</span>
-              <span style="margin-left: 1rem; font-size: 0.9rem;">{{ icon('user', 14) }} {{ a.patient.nome }} {{ a.patient.cognome }}</span>
-            </div>
-            <div style="color: #ff751f; font-size: 0.9rem; font-weight: 600; margin-bottom: 0.5rem;">
-              {{ icon('clipboard', 14) }} {{ a.tipo.replace('_', ' ').title() }}
-            </div>
-            {% if a.note %}
-            <div style="color: #b6b1a9; font-size: 0.9rem; font-style: italic; padding: 0.5rem; background: rgba(13, 51, 28, 0.3); border-radius: 6px; border-left: 3px solid #ff751f;">
-              {{ icon('message', 14) }} {{ a.note }}
-            </div>
-            {% endif %}
-          </div>
-          
-          <!-- ACTIONS -->
-          <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-            {% if a.stato == 'in_attesa' %}
-            <form method="POST" action="{{ url_for('appuntamenti.cambia_stato_admin', id=a.id, nuovo_stato='confermato') }}" style="flex: 1;">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-              <button type="submit" class="btn btn-success btn-small" style="width: 100%; font-size: 0.85rem;">{{ icon('check', 16) }} Conferma</button>
-            </form>
-            {% elif a.stato == 'confermato' %}
-            <form method="POST" action="{{ url_for('appuntamenti.cambia_stato_admin', id=a.id, nuovo_stato='completato') }}" style="flex: 1;">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-              <button type="submit" class="btn btn-primary btn-small" style="width: 100%; font-size: 0.85rem;">{{ icon('check', 16) }} Completa</button>
-            </form>
-            {% endif %}
-            {% if a.stato not in ['completato', 'annullato'] %}
-            <form method="POST" action="{{ url_for('appuntamenti.cambia_stato_admin', id=a.id, nuovo_stato='annullato') }}" style="flex: 1;">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-              <button type="submit" class="btn btn-danger btn-small" style="width: 100%; font-size: 0.85rem;" onclick="return confirm('Annullare appuntamento?')">{{ icon('x-circle', 16) }} Annulla</button>
-            </form>
-            {% endif %}
-            <form method="POST" action="{{ url_for('appuntamenti.elimina_admin', id=a.id) }}" style="flex: 1;">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-              <button type="submit" class="btn btn-secondary btn-small" style="width: 100%; font-size: 0.85rem;" onclick="return confirm('Eliminare appuntamento?')">{{ icon('trash', 16) }} Elimina</button>
-            </form>
-          </div>
-        </div>
-        {% endfor %}
-        </div>
+      {% if a.note %}<p class="appt-note">{{ a.note }}</p>{% endif %}
+      <div class="appt-actions">
+        {% if a.stato == 'in_attesa' %}
+        <form method="POST" action="{{ url_for('appuntamenti.cambia_stato_admin', id=a.id, nuovo_stato='confermato') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <button type="submit" class="btn btn-primary btn-sm">Conferma</button>
+        </form>
+        {% elif a.stato == 'confermato' %}
+        <form method="POST" action="{{ url_for('appuntamenti.cambia_stato_admin', id=a.id, nuovo_stato='completato') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <button type="submit" class="btn btn-secondary btn-sm">Completa</button>
+        </form>
+        {% endif %}
+        {% if a.stato not in ['completato', 'annullato'] %}
+        <form method="POST" action="{{ url_for('appuntamenti.cambia_stato_admin', id=a.id, nuovo_stato='annullato') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <button type="submit" class="btn btn-ghost btn-xs" onclick="return confirm('Annullare?')">Annulla</button>
+        </form>
+        {% endif %}
       </div>
-      {% else %}
-      <div class="empty-state" style="text-align: center; padding: 3rem 2rem; background: rgba(13, 51, 28, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px;">
-        <div class="adm-empty-icon">{{ icon('clipboard', 48) }}</div>
-        <h3 style="color: #4CAF50; margin-bottom: 1rem;">Nessun appuntamento</h3>
-        <p style="color: #b6b1a9; margin-bottom: 2rem;">
-          {% if filtro_vista == 'da_confermare' %}
-            Non ci sono richieste in attesa di conferma.
-          {% else %}
-            Non ci sono appuntamenti per il periodo selezionato.
-          {% endif %}
-        </p>
-        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-          {% if filtro_vista != 'da_confermare' %}
-          <a href="{{ url_for('agenda.agenda_unificata', tab='appuntamenti', filtro='da_confermare') }}" class="btn btn-primary">{{ icon('hourglass', 16) }} Da confermare</a>
-          {% endif %}
-          <a href="{{ url_for('appuntamenti.nuovo_admin') }}" class="btn btn-secondary">{{ icon('plus', 16) }} Nuovo appuntamento</a>
-        </div>
-      </div>
-      {% endif %}
-    </div>
+    </article>
+    {% endfor %}
   </div>
-</div>
+  {% else %}
+  <p class="text-muted" style="padding: 2rem 0;">Nessun appuntamento per questo filtro.</p>
+  {% endif %}
+</section>
 
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
 (function () {
-  function showTab(tabName, clickedButton) {
-    document.querySelectorAll('.tab-panel').forEach(function (panel) {
-      panel.classList.toggle('active', panel.id === tabName + '-tab');
+  function showTab(name) {
+    document.querySelectorAll('.agenda-panel').forEach(function (p) {
+      p.classList.toggle('is-active', p.id === name + '-tab');
     });
-
-    document.querySelectorAll('.tab-btn').forEach(function (button) {
-      var isActive = button === clickedButton;
-      button.classList.toggle('active', isActive);
-      button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    document.querySelectorAll('.tab-min').forEach(function (b) {
+      b.classList.toggle('is-active', b.getAttribute('data-tab') === name);
     });
   }
-
-  document.querySelectorAll('.tab-btn[data-tab]').forEach(function (button) {
-    button.addEventListener('click', function () {
-      showTab(button.getAttribute('data-tab'), button);
-    });
+  document.querySelectorAll('.tab-min[data-tab]').forEach(function (btn) {
+    btn.addEventListener('click', function () { showTab(btn.getAttribute('data-tab')); });
   });
-
-  var urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get('filtro_giorno') || urlParams.get('tutti_giorni') || urlParams.get('filtro') || urlParams.get('tab') === 'appuntamenti') {
-    var appuntamentiButton = document.querySelector('.tab-btn[data-tab="appuntamenti"]');
-    if (appuntamentiButton) {
-      showTab('appuntamenti', appuntamentiButton);
-    }
+  var params = new URLSearchParams(location.search);
+  if (params.get('tab') === 'appuntamenti' || params.get('filtro') || params.get('filtro_giorno')) {
+    showTab('appuntamenti');
   } else if ({{ appuntamenti_in_attesa|length }} > 0) {
-    var pendingButton = document.querySelector('.tab-btn[data-tab="appuntamenti"]');
-    if (pendingButton) {
-      showTab('appuntamenti', pendingButton);
-    }
+    showTab('appuntamenti');
   }
 })();
 </script>

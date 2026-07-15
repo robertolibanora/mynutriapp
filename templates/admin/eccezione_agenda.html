@@ -1,0 +1,57 @@
+{% extends 'base_admin.html' %}
+{% block title %}Ferie e chiusure{% endblock %}
+{% block content %}
+
+<div class="agenda-page-header">
+  <div>
+    <h1 class="agenda-title">Ferie e chiusure</h1>
+    <p class="agenda-sub">Blocca uno o più giorni: le ferie e le occasioni speciali annullano gli orari ordinari in quel periodo.</p>
+  </div>
+  <a href="{{ url_for('agenda.agenda_unificata') }}" class="btn btn-ghost btn-sm">← Agenda</a>
+</div>
+
+<div class="agenda-grid-2">
+  <section class="panel">
+    <h2 class="panel-title">Nuova chiusura</h2>
+    <form method="POST" class="form-stack">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+      <label class="field">
+        <span>Dal</span>
+        <input type="date" name="data_inizio" class="input-text" required>
+      </label>
+      <label class="field">
+        <span>Al</span>
+        <input type="date" name="data_fine" class="input-text" required>
+      </label>
+      <label class="field">
+        <span>Motivo (opzionale)</span>
+        <input type="text" name="note" class="input-text" placeholder="es. Ferie agosto">
+      </label>
+      <button type="submit" class="btn btn-secondary">Registra chiusura</button>
+    </form>
+  </section>
+
+  <section class="panel">
+    <h2 class="panel-title">Chiusure programmate</h2>
+    {% if eccezioni %}
+    <ul class="exception-list">
+      {% for exc in eccezioni %}
+      <li>
+        <div>
+          <strong>{{ exc.data_inizio.strftime('%d/%m/%Y') }} – {{ exc.data_fine.strftime('%d/%m/%Y') }}</strong>
+          {% if exc.note %}<span class="text-muted"> — {{ exc.note }}</span>{% endif %}
+        </div>
+        <form method="POST" action="{{ url_for('slot.elimina_eccezione', eccezione_id=exc.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <button type="submit" class="btn btn-ghost btn-xs" onclick="return confirm('Rimuovere questa chiusura?')">Rimuovi</button>
+        </form>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="text-muted">Nessuna chiusura programmata.</p>
+    {% endif %}
+  </section>
+</div>
+
+{% endblock %}

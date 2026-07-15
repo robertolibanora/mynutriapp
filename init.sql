@@ -243,6 +243,34 @@ CREATE TABLE IF NOT EXISTS slot_disponibilita (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ========================================
+-- 📋 TABELLA: orari_settimanali (slot ordinari ricorrenti)
+-- ========================================
+CREATE TABLE IF NOT EXISTS orari_settimanali (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    giorno_settimana INT NOT NULL,
+    ora TIME NOT NULL,
+    attivo BOOLEAN NOT NULL DEFAULT TRUE,
+    note VARCHAR(255),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_orario_settimanale_giorno_ora (giorno_settimana, ora),
+    INDEX idx_giorno_settimana (giorno_settimana)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ========================================
+-- 📋 TABELLA: agenda_eccezioni (ferie / chiusure)
+-- ========================================
+CREATE TABLE IF NOT EXISTS agenda_eccezioni (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    data_inizio DATE NOT NULL,
+    data_fine DATE NOT NULL,
+    tipo VARCHAR(20) NOT NULL DEFAULT 'chiusura',
+    note VARCHAR(255),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_data_inizio (data_inizio),
+    INDEX idx_data_fine (data_fine)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ========================================
 -- 📋 TABELLA: segretario_config (Segretario AI inbound Vapi)
 -- ========================================
 CREATE TABLE IF NOT EXISTS segretario_config (

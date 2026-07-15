@@ -1,7 +1,8 @@
 from flask import Blueprint, render_template, session, redirect, url_for, flash
-from app.models.models import db, Patient, Dieta, Allenamento, Progresso, Appuntamento, SlotDisponibilita, Listino, Vendita, SegretarioConfig
+from app.models.models import db, Patient, Dieta, Allenamento, Progresso, Appuntamento, Listino, Vendita, SegretarioConfig
+from app.services.agenda_service import AgendaService
 from app.services import call_forwarding_service
-from app.utils.db_schema import ensure_segretario_deviazione_schema
+from app.utils.db_schema import ensure_segretario_deviazione_schema, ensure_agenda_schema
 from datetime import datetime, date, timedelta
 
 dashboard_bp = Blueprint('dashboard', __name__)
@@ -16,6 +17,7 @@ def admin_dashboard():
         return redirect(url_for('auth.login'))
 
     ensure_segretario_deviazione_schema()
+    ensure_agenda_schema()
     
     # Calcola statistiche
     oggi = datetime.now()
@@ -41,10 +43,7 @@ def admin_dashboard():
     ).scalar() or 0
     
     # Statistiche aggiuntive
-    n_slot_futuri = SlotDisponibilita.query.filter(
-        SlotDisponibilita.data_ora >= datetime.now(),
-        SlotDisponibilita.attivo == True
-    ).count()
+    n_slot_futuri = len(AgendaService.slot_liberi())
     
     n_appuntamenti_settimana = Appuntamento.query.filter(
         Appuntamento.data_appuntamento >= oggi,

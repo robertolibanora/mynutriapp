@@ -31,9 +31,9 @@ from app.models.models import (
     ChiamataInbound,
     Patient,
     SegretarioConfig,
-    SlotDisponibilita,
     db,
 )
+from app.services.agenda_service import AgendaService
 from app.services import vapi_service
 from app.services import call_forwarding_service
 from app.utils.helpers import normalize_phone
@@ -90,23 +90,12 @@ def _format_slot_it(dt: datetime) -> str:
 
 
 def _slot_liberi(giorni: int = 30, limite: int = 8) -> list[dict]:
-    """Slot futuri, attivi e non già prenotati."""
-    oggi = datetime.now()
+    """Slot futuri generati da orari settimanali, escluse ferie e prenotazioni."""
+    oggi = datetime.now().replace(second=0, microsecond=0)
     fine = oggi + timedelta(days=max(1, giorni))
-    slot_db = (
-        SlotDisponibilita.query.filter(
-            SlotDisponibilita.data_ora >= oggi,
-            SlotDisponibilita.data_ora <= fine,
-            SlotDisponibilita.attivo.is_(True),
-        )
-        .order_by(SlotDisponibilita.data_ora.asc())
-        .all()
-    )
+    slot_db = AgendaService.slot_liberi(oggi, fine)
     liberi = []
     for slot in slot_db:
-        occupato = Appuntamento.query.filter_by(data_appuntamento=slot.data_ora).first()
-        if occupato:
-            continue
         liberi.append({
             "data_ora": slot.data_ora.strftime("%Y-%m-%d %H:%M"),
             "label": _format_slot_it(slot.data_ora),
@@ -375,12 +364,9 @@ def _tool_prenota_appuntamento(args: dict, chiamata: ChiamataInbound, caller: st
     if dt is None:
         return "Data non valida: chiedi al paziente di indicare una delle date proposte."
 
-    slot = SlotDisponibilita.query.filter_by(data_ora=dt, attivo=True).first()
-    if slot is None:
+    if not AgendaService.is_slot_disponibile(dt):
         return ("Quella data non è più disponibile. Chiama di nuovo verifica_disponibilita "
                 "e proponi un altro orario.")
-    if Appuntamento.query.filter_by(data_appuntamento=dt).first():
-        return "Quello slot è appena stato occupato: proponi un altro orario disponibile."
 
     paziente = chiamata.patient or _match_patient(caller)
     note_parts = ["Prenotato dal Segretario AI"]
@@ -411,7 +397,6 @@ def _tool_prenota_appuntamento(args: dict, chiamata: ChiamataInbound, caller: st
         note=note_finale,
     )
     db.session.add(appuntamento)
-    slot.attivo = False
     db.session.flush()
 
     chiamata.patient_id = paziente.id

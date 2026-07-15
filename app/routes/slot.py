@@ -1,11 +1,19 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
-from app.models.models import db, SlotDisponibilita
-from datetime import datetime
+from datetime import datetime, time
+
+from app.models.models import db
+from app.services.agenda_service import AgendaService, GIORNI_SETTIMANA
+from app.utils.db_schema import ensure_agenda_schema
 
 # ========================
 # BLUEPRINT
 # ========================
 slot_bp = Blueprint('slot', __name__, url_prefix='/admin/slot')
+
+
+@slot_bp.before_request
+def _ensure_schema():
+    ensure_agenda_schema()
 
 
 # ========================
@@ -26,167 +34,89 @@ def admin_required(func):
 
 
 # ========================
-# ADMIN: LISTA SLOT DISPONIBILI
+# REDIRECT LEGACY
 # ========================
 @slot_bp.route('/')
 @admin_required
 def lista_slot():
-    """Redirect alla pagina agenda unificata"""
-    return redirect(url_for('agenda.agenda_unificata'))
+    return redirect(url_for('slot.orari_settimanali'))
 
 
-# ========================
-# ADMIN: AGGIUNGI NUOVO SLOT
-# ========================
-@slot_bp.route('/nuovo', methods=['GET', 'POST'])
+@slot_bp.route('/nuovo')
 @admin_required
 def nuovo_slot():
-    """Crea un nuovo slot disponibile"""
-    now = datetime.now()
-    
-    if request.method == 'POST':
-        try:
-            data_ora_str = request.form['data_ora']
-            note = request.form.get('note', '').strip()
-            
-            # Converte stringa in datetime
-            data_ora = datetime.strptime(data_ora_str, '%Y-%m-%dT%H:%M')
-            
-            # Verifica che lo slot non esista già
-            esistente = SlotDisponibilita.query.filter_by(data_ora=data_ora).first()
-            if esistente:
-                flash("Questo slot esiste già!", "warning")
-                return redirect(request.url)
-            
-            # Crea nuovo slot
-            nuovo = SlotDisponibilita(
-                data_ora=data_ora,
-                attivo=True,
-                note=note if note else None
-            )
-            
-            db.session.add(nuovo)
-            db.session.commit()
-            
-            flash("Slot aggiunto con successo ✅", "success")
-            return redirect(url_for('agenda.agenda_unificata'))
-        
-        except ValueError:
-            flash("Formato data non valido", "danger")
-        except Exception as e:
-            db.session.rollback()
-            flash(f"Errore durante la creazione: {e}", "danger")
-    
-    return render_template('admin/slot_nuovo.html', now=now)
+    return redirect(url_for('slot.orari_settimanali'))
 
 
-# ========================
-# ADMIN: ATTIVA/DISATTIVA SLOT
-# ========================
-@slot_bp.route('/toggle/<int:slot_id>', methods=['POST'])
-@admin_required
-def toggle_slot(slot_id):
-    """Attiva o disattiva uno slot"""
-    slot = SlotDisponibilita.query.get_or_404(slot_id)
-    
-    try:
-        slot.attivo = not slot.attivo
-        db.session.commit()
-        
-        stato = "attivato" if slot.attivo else "disattivato"
-        flash(f"Slot {stato} ✅", "success")
-    
-    except Exception as e:
-        db.session.rollback()
-        flash(f"Errore: {e}", "danger")
-    
-    return redirect(url_for('agenda.agenda_unificata'))
-
-
-# ========================
-# ADMIN: ELIMINA SLOT
-# ========================
-@slot_bp.route('/elimina/<int:slot_id>', methods=['POST'])
-@admin_required
-def elimina_slot(slot_id):
-    """Elimina uno slot"""
-    slot = SlotDisponibilita.query.get_or_404(slot_id)
-    
-    try:
-        db.session.delete(slot)
-        db.session.commit()
-        flash("Slot eliminato ✅", "success")
-    
-    except Exception as e:
-        db.session.rollback()
-        flash(f"Errore durante l'eliminazione: {e}", "danger")
-    
-    return redirect(url_for('agenda.agenda_unificata'))
-
-
-# ========================
-# ADMIN: AGGIUNGI MULTIPLI SLOT (HELPER)
-# ========================
-@slot_bp.route('/genera', methods=['GET', 'POST'])
+@slot_bp.route('/genera')
 @admin_required
 def genera_slot():
-    """Genera più slot in batch (es: tutti i lunedì e mercoledì ore 10-12)"""
+    return redirect(url_for('slot.orari_settimanali'))
+
+
+# ========================
+# ORARI SETTIMANALI (slot ordinari)
+# ========================
+@slot_bp.route('/settimanali', methods=['GET', 'POST'])
+@admin_required
+def orari_settimanali():
+    """Configura gli orari ricorrenti della settimana lavorativa."""
+    if request.method == 'POST':
+        action = request.form.get('action', 'aggiungi')
+        try:
+            if action == 'aggiungi':
+                giorno = int(request.form['giorno_settimana'])
+                ora_str = request.form['ora']
+                note = (request.form.get('note') or '').strip() or None
+                ora = datetime.strptime(ora_str, '%H:%M').time()
+                AgendaService.aggiungi_orario(giorno, ora, note=note)
+                flash("Orario aggiunto", "success")
+            elif action == 'elimina':
+                AgendaService.rimuovi_orario(int(request.form['orario_id']))
+                flash("Orario rimosso", "success")
+        except Exception as exc:
+            db.session.rollback()
+            flash(f"Errore: {exc}", "danger")
+        return redirect(url_for('slot.orari_settimanali'))
+
+    orari_per_giorno = AgendaService.get_orari_per_giorno()
+    return render_template(
+        'admin/orari_settimanali.html',
+        giorni=GIORNI_SETTIMANA,
+        orari_per_giorno=orari_per_giorno,
+    )
+
+
+# ========================
+# ECCEZIONI (ferie / chiusure)
+# ========================
+@slot_bp.route('/eccezione', methods=['GET', 'POST'])
+@admin_required
+def eccezione_agenda():
+    """Blocca uno o più giorni (ferie, festività, occasioni speciali)."""
     if request.method == 'POST':
         try:
-            data_inizio = request.form.get('data_inizio')
-            data_fine = request.form.get('data_fine')
-            giorni_settimana = request.form.getlist('giorni')  # es: ['0', '2'] per lunedì e mercoledì
-            orari = request.form.getlist('orari')  # es: ['10:00', '11:00', '12:00']
-            note = request.form.get('note', '')
-            
-            # Validazione
-            if not data_inizio or not data_fine:
-                flash("Inserisci data inizio e data fine", "danger")
-                return render_template('admin/slot_genera.html', now=datetime.now())
-            
-            if not giorni_settimana:
-                flash("Seleziona almeno un giorno della settimana", "danger")
-                return render_template('admin/slot_genera.html', now=datetime.now())
-            
-            if not orari:
-                flash("Seleziona almeno un orario", "danger")
-                return render_template('admin/slot_genera.html', now=datetime.now())
-            
-            from datetime import timedelta
-            
-            data_inizio_dt = datetime.strptime(data_inizio, '%Y-%m-%d')
-            data_fine_dt = datetime.strptime(data_fine, '%Y-%m-%d')
-            
-            slot_creati = 0
-            data_corrente = data_inizio_dt
-            
-            while data_corrente <= data_fine_dt:
-                # Controlla se il giorno della settimana è tra quelli selezionati
-                if str(data_corrente.weekday()) in giorni_settimana:
-                    for orario_str in orari:
-                        ora, minuti = map(int, orario_str.split(':'))
-                        data_ora = data_corrente.replace(hour=ora, minute=minuti, second=0, microsecond=0)
-                        
-                        # Verifica che lo slot non esista già
-                        esistente = SlotDisponibilita.query.filter_by(data_ora=data_ora).first()
-                        if not esistente:
-                            nuovo = SlotDisponibilita(
-                                data_ora=data_ora,
-                                attivo=True,
-                                note=note if note else None
-                            )
-                            db.session.add(nuovo)
-                            slot_creati += 1
-                
-                data_corrente += timedelta(days=1)
-            
-            db.session.commit()
-            flash(f"{slot_creati} slot creati con successo ✅", "success")
+            data_inizio = datetime.strptime(request.form['data_inizio'], '%Y-%m-%d').date()
+            data_fine = datetime.strptime(request.form['data_fine'], '%Y-%m-%d').date()
+            note = (request.form.get('note') or '').strip() or None
+            AgendaService.aggiungi_eccezione(data_inizio, data_fine, note=note)
+            flash("Periodo di chiusura registrato", "success")
             return redirect(url_for('agenda.agenda_unificata'))
-        
-        except Exception as e:
+        except Exception as exc:
             db.session.rollback()
-            flash(f"Errore durante la generazione: {e}", "danger")
-    
-    return render_template('admin/slot_genera.html', now=datetime.now())
+            flash(f"Errore: {exc}", "danger")
 
+    eccezioni = AgendaService.get_eccezioni(future_only=True)
+    return render_template('admin/eccezione_agenda.html', eccezioni=eccezioni)
+
+
+@slot_bp.route('/eccezione/<int:eccezione_id>/elimina', methods=['POST'])
+@admin_required
+def elimina_eccezione(eccezione_id):
+    try:
+        AgendaService.rimuovi_eccezione(eccezione_id)
+        flash("Eccezione rimossa", "success")
+    except Exception as exc:
+        db.session.rollback()
+        flash(f"Errore: {exc}", "danger")
+    return redirect(url_for('slot.eccezione_agenda'))
