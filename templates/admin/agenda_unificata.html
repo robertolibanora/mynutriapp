@@ -1,11 +1,72 @@
 {% extends 'base_admin.html' %}
 {% block title %}Agenda{% endblock %}
+{% block nav_label %}Agenda{% endblock %}
+
+{% block extra_head %}
+<style>
+  /* Critico: garantisce layout calendario anche con cache CSS vecchia */
+  .admin-app .agenda-stats {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+  .admin-app .agenda-stat {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    padding: 0.85rem 1rem;
+  }
+  .admin-app .agenda-stat-n { display: block; font-size: 1.35rem; font-weight: 600; color: #ececec; }
+  .admin-app .agenda-stat-l { font-size: 0.75rem; color: #9a9a9a; }
+  .admin-app .cal-weekdays {
+    display: grid !important;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 4px;
+    margin-bottom: 4px;
+    font-size: 0.72rem;
+    color: #6e6e6e;
+    text-align: center;
+  }
+  .admin-app .cal-grid {
+    display: grid !important;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 4px;
+  }
+  .admin-app a.cal-day {
+    display: block;
+    min-height: 88px;
+    padding: 6px;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.08);
+    text-decoration: none !important;
+    color: #ececec !important;
+    background: rgba(255,255,255,0.04);
+  }
+  .admin-app a.cal-day:visited { color: #ececec !important; }
+  .admin-app .cal-day-n { color: #ececec; font-weight: 600; }
+  .admin-app .cal-ev { color: #9a9a9a; font-size: 0.65rem; }
+  .admin-app .tabs-minimal { display: flex; gap: 0.25rem; margin-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.08); }
+  .admin-app .tab-min {
+    background: none; border: none; color: #9a9a9a;
+    padding: 0.6rem 1rem; cursor: pointer;
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
+  }
+  .admin-app .tab-min.is-active { color: #ececec; border-bottom-color: #d4d4d4; }
+  .admin-app .agenda-panel { display: none; }
+  .admin-app .agenda-panel.is-active { display: block; }
+  @media (max-width: 900px) {
+    .admin-app .agenda-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .admin-app .cal-grid, .admin-app .cal-weekdays { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 
 <header class="agenda-top">
   <div class="agenda-top-main">
-    <h1 class="agenda-title">Agenda</h1>
-    <p class="agenda-meta">{{ oggi.strftime('%A %d %B %Y')|replace('Monday','lunedì')|replace('Tuesday','martedì')|replace('Wednesday','mercoledì')|replace('Thursday','giovedì')|replace('Friday','venerdì')|replace('Saturday','sabato')|replace('Sunday','domenica') }}</p>
+    <p class="agenda-meta">{{ oggi.strftime('%A %d %B %Y')|replace('Monday','lunedì')|replace('Tuesday','martedì')|replace('Wednesday','mercoledì')|replace('Thursday','giovedì')|replace('Friday','venerdì')|replace('Saturday','sabato')|replace('Sunday','domenica')|replace('January','gennaio')|replace('February','febbraio')|replace('March','marzo')|replace('April','aprile')|replace('May','maggio')|replace('June','giugno')|replace('July','luglio')|replace('August','agosto')|replace('September','settembre')|replace('October','ottobre')|replace('November','novembre')|replace('December','dicembre') }}</p>
   </div>
   <div class="agenda-actions">
     <a href="{{ url_for('slot.orari_settimanali') }}" class="btn btn-primary btn-xl">Orari settimanali</a>
@@ -55,7 +116,13 @@
   </div>
 
   <div class="cal-weekdays">
-    <span>Lun</span><span>Mar</span><span>Mer</span><span>Gio</span><span>Ven</span><span>Sab</span><span>Dom</span>
+    <span>Lun</span>
+    <span>Mar</span>
+    <span>Mer</span>
+    <span>Gio</span>
+    <span>Ven</span>
+    <span>Sab</span>
+    <span>Dom</span>
   </div>
 
   <div class="cal-grid">
