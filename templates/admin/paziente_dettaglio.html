@@ -331,7 +331,10 @@ document.addEventListener('keydown', function(e) {
     <h3 style="color: #d4d4d4; margin:0; display: flex; align-items: center; gap: 0.5rem;">
       {{ icon('diet', 18) }} Piani alimentari
     </h3>
-    <a href="{{ url_for('diete_plans.new_diet_plan', patient_id=paziente.id) }}" class="btn btn-primary btn-small" style="display:inline-flex;align-items:center;gap:.4rem;">{{ icon('plus', 16) }} Crea dieta</a>
+    <div style="display:inline-flex;gap:.4rem;flex-wrap:wrap;">
+      <a href="{{ url_for('diete_plans.new_diet_plan_standalone') }}?patient_id={{ paziente.id }}" class="btn btn-primary btn-small" style="display:inline-flex;align-items:center;gap:.4rem;">{{ icon('plus', 16) }} Crea dieta</a>
+      <a href="{{ url_for('diete_plans.lista_diet_plans') }}" class="btn btn-secondary btn-small" style="display:inline-flex;align-items:center;gap:.4rem;">{{ icon('list', 14) }} Sezione diete</a>
+    </div>
   </div>
 
   {% if paziente.diet_plans %}

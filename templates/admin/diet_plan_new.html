@@ -3,19 +3,42 @@
 {% block content %}
 
 <div class="adm-hero" style="margin-bottom:1.5rem;">
-  <h2 style="margin:0;">Crea dieta per {{ paziente.nome }} {{ paziente.cognome }}</h2>
-  <p style="margin:.35rem 0 0 0;">Nuovo piano alimentare strutturato: dopo la creazione potrai aggiungere pasti e alimenti con calcolo automatico di kcal e macro.</p>
+  <h2 style="margin:0;">
+    {% if paziente %}
+      Crea dieta per {{ paziente.nome }} {{ paziente.cognome }}
+    {% else %}
+      Nuova dieta
+    {% endif %}
+  </h2>
+  <p style="margin:.35rem 0 0 0;">Associa il piano a un paziente, poi aggiungi pasti e alimenti con calcolo automatico di kcal e macro.</p>
 </div>
 
 <div style="display:flex;gap:.5rem;margin-bottom:1.5rem;flex-wrap:wrap;">
-  <a href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id) }}" class="btn btn-secondary btn-small">{{ icon('user', 14) }} Torna alla scheda paziente</a>
+  <a href="{{ url_for('diete_plans.lista_diet_plans') }}" class="btn btn-secondary btn-small">{{ icon('list', 14) }} Tutte le diete</a>
+  {% if paziente %}
+  <a href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id) }}" class="btn btn-secondary btn-small">{{ icon('user', 14) }} Scheda paziente</a>
+  {% endif %}
 </div>
 
 <div class="management-card" style="max-width:640px;background:rgba(255, 255, 255, 0.06);border:1px solid rgba(255, 255, 255, 0.3);border-radius:12px;padding:1.5rem;">
   <form id="plan-create-form"
-        data-patient-id="{{ paziente.id }}"
         data-create-url="{{ url_for('admin_diets.create_diet_plan') }}"
         data-detail-base="/admin/diet-plans/">
+    <div style="margin-bottom:1rem;">
+      <label class="diet-form-label" for="patient_id">Paziente *</label>
+      <select id="patient_id" name="patient_id" class="input-text input-select" required {% if paziente %}disabled{% endif %}>
+        <option value="">Seleziona un paziente…</option>
+        {% for p in pazienti %}
+        <option value="{{ p.id }}" {% if preselect_patient_id == p.id %}selected{% endif %}>
+          {{ p.cognome }} {{ p.nome }}{% if p.telefono %} · {{ p.telefono }}{% endif %}
+        </option>
+        {% endfor %}
+      </select>
+      {% if paziente %}
+      <input type="hidden" name="patient_id" value="{{ paziente.id }}">
+      {% endif %}
+      <p style="color:#b8b8b8;font-size:.82rem;margin:.4rem 0 0 0;">La dieta viene associata al paziente selezionato e sarà visibile nella sua area (se pubblicata).</p>
+    </div>
     <div style="margin-bottom:1rem;">
       <label class="diet-form-label">Titolo dieta *</label>
       <input type="text" class="input-text" name="title" required placeholder="Es. Dieta dimagrimento">
@@ -52,6 +75,7 @@
   var form = document.getElementById('plan-create-form');
   if (!form) return;
   var msg = document.getElementById('plan-msg');
+  var patientSelect = document.getElementById('patient_id');
 
   function showError(text) {
     msg.textContent = text;
@@ -63,13 +87,22 @@
     var btn = form.querySelector('button[type="submit"]');
     btn.disabled = true;
 
+    var patientField = form.querySelector('input[name="patient_id"]') || patientSelect;
+    var patientId = parseInt(patientField.value, 10);
+
     var payload = {
-      patient_id: parseInt(form.dataset.patientId, 10),
+      patient_id: patientId,
       title: form.title.value.trim(),
       goal: form.goal.value.trim() || null,
       notes: form.notes.value.trim() || null,
       status: form.status.value
     };
+
+    if (!payload.patient_id) {
+      showError('Seleziona il paziente a cui associare la dieta.');
+      btn.disabled = false;
+      return;
+    }
 
     if (!payload.title) {
       showError('Inserisci un titolo per la dieta.');

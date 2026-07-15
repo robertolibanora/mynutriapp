@@ -5,6 +5,7 @@
 
 <div class="diet-page-toolbar">
   <div class="diet-page-toolbar__left">
+    <a href="{{ url_for('diete_plans.lista_diet_plans') }}" class="btn btn-secondary btn-small">{{ icon('list', 14) }} Tutte le diete</a>
     <a href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id) }}" class="btn btn-secondary btn-small">{{ icon('user', 14) }} Scheda paziente</a>
     <a href="{{ url_for('diete_plans.user_diet_plan', diet_plan_id=plan.id) }}" target="_blank" class="btn btn-white btn-small">{{ icon('eye', 14) }} Anteprima paziente</a>
     <div class="diet-status-control">
@@ -18,7 +19,7 @@
   </div>
   <button type="button" class="btn btn-danger btn-small" id="delete-plan-btn"
           data-plan-id="{{ plan.id }}"
-          data-patient-url="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id) }}">
+          data-patient-url="{{ url_for('diete_plans.lista_diet_plans') }}">
     Elimina dieta
   </button>
 </div>

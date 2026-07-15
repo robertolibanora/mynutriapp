@@ -18,11 +18,12 @@ from flask import (
     flash,
     redirect,
     render_template,
+    request,
     session,
     url_for,
 )
 
-from app.models.models import DietPlan, Patient
+from app.models.models import DietPlan, Patient, db
 from app.services.nutrition import NutritionCalculatorService
 from app.utils.db_schema import ensure_nutrition_schema
 
@@ -84,15 +85,70 @@ def _build_totals(plan: DietPlan) -> dict:
 
 
 # ========================
+# ADMIN: LISTA DIETE
+# ========================
+
+@diete_plans_bp.route("/admin/diet-plans")
+@admin_required
+def lista_diet_plans():
+    """Elenco globale dei piani alimentari, con filtro opzionale per paziente."""
+    q = (request.args.get("q") or "").strip()
+    status = (request.args.get("status") or "").strip()
+
+    query = DietPlan.query.options(db.joinedload(DietPlan.patient)).order_by(
+        DietPlan.created_at.desc()
+    )
+    if q:
+        like = f"%{q}%"
+        query = query.join(Patient).filter(
+            db.or_(
+                DietPlan.title.ilike(like),
+                Patient.nome.ilike(like),
+                Patient.cognome.ilike(like),
+            )
+        )
+    if status in ("draft", "published"):
+        query = query.filter(DietPlan.status == status)
+
+    piani = query.all()
+    return render_template(
+        "admin/diet_plans_lista.html",
+        piani=piani,
+        q=q,
+        status=status,
+    )
+
+
+# ========================
 # ADMIN: CREA DIETA (pagina)
 # ========================
+
+@diete_plans_bp.route("/admin/diet-plans/new")
+@admin_required
+def new_diet_plan_standalone():
+    """Creazione dieta dalla sezione Diete: richiede selezione paziente."""
+    pazienti = Patient.query.order_by(Patient.cognome.asc(), Patient.nome.asc()).all()
+    preselect_id = request.args.get("patient_id", type=int)
+    return render_template(
+        "admin/diet_plan_new.html",
+        paziente=None,
+        pazienti=pazienti,
+        preselect_patient_id=preselect_id,
+    )
+
 
 @diete_plans_bp.route("/admin/pazienti/<int:patient_id>/diet-plans/new")
 @admin_required
 def new_diet_plan(patient_id):
     """Pagina di creazione di un nuovo piano alimentare per il paziente."""
     paziente = Patient.query.get_or_404(patient_id)
-    return render_template("admin/diet_plan_new.html", paziente=paziente)
+    pazienti = Patient.query.order_by(Patient.cognome.asc(), Patient.nome.asc()).all()
+    return render_template(
+        "admin/diet_plan_new.html",
+        paziente=paziente,
+        pazienti=pazienti,
+        preselect_patient_id=paziente.id,
+    )
 
 
 # ========================
