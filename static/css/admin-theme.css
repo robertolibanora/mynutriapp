@@ -1,21 +1,22 @@
 /* Admin — tema white-label neutro */
 
 :root {
-  --adm-bg: #111111;
-  --adm-bg-sidebar: #0d0d0d;
-  --adm-surface: rgba(255, 255, 255, 0.04);
-  --adm-border: rgba(255, 255, 255, 0.09);
-  --adm-border-soft: rgba(255, 255, 255, 0.06);
-  --adm-text: #ececec;
-  --adm-text-muted: #9a9a9a;
-  --adm-text-dim: #6e6e6e;
-  --adm-label: #5a5a5a;
-  --adm-accent: #d4d4d4;
+  --adm-bg: #0f0f0f;
+  --adm-bg-sidebar: #0a0a0a;
+  --adm-surface: rgba(255, 255, 255, 0.07);
+  --adm-surface-raised: rgba(255, 255, 255, 0.1);
+  --adm-border: rgba(255, 255, 255, 0.14);
+  --adm-border-soft: rgba(255, 255, 255, 0.09);
+  --adm-text: #f2f2f2;
+  --adm-text-muted: #c4c4c4;
+  --adm-text-dim: #a3a3a3;
+  --adm-label: #8f8f8f;
+  --adm-accent: #ffffff;
   --adm-accent-hover: #ffffff;
-  --adm-accent-soft: #b8b8b8;
-  --adm-accent-muted: #8f8f8f;
-  --adm-positive: #c8c8c8;
-  --adm-danger: #c47070;
+  --adm-accent-soft: #e0e0e0;
+  --adm-accent-muted: #b0b0b0;
+  --adm-positive: #d8d8d8;
+  --adm-danger: #e88a8a;
   --adm-font: "Manrope", system-ui, sans-serif;
   --adm-serif: "Manrope", system-ui, sans-serif;
   --adm-sidebar-w: 240px;
@@ -38,7 +39,7 @@
 .admin-app ::-webkit-scrollbar { width: 10px; height: 10px; }
 .admin-app ::-webkit-scrollbar-track { background: transparent; }
 .admin-app ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.08);
   border-radius: 10px;
   border: 2px solid var(--adm-bg);
 }
@@ -46,7 +47,7 @@
 
 .admin-app input::placeholder,
 .admin-app textarea::placeholder {
-  color: rgba(182, 177, 169, 0.55);
+  color: rgba(255, 255, 255, 0.45);
 }
 
 .admin-app h1,
@@ -197,7 +198,7 @@
   border-radius: 11px;
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, #c8c8c8, #8f8f8f);
+  background: linear-gradient(135deg, #d8d8d8, #8f8f8f);
   color: var(--adm-text);
   font: 800 14px var(--adm-font);
 }
@@ -282,7 +283,7 @@
 
 .admin-topbar-time {
   font: 600 12px var(--adm-font);
-  color: #8a8a8a;
+  color: var(--adm-text-muted);
 }
 
 .admin-content {
@@ -337,7 +338,7 @@
   margin-bottom: 24px;
   padding: 24px 26px;
   border-radius: 18px;
-  background: linear-gradient(120deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.06) 60%, transparent);
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.06) 60%, transparent);
   border: 1px solid rgba(255, 255, 255, 0.16);
 }
 
@@ -585,9 +586,9 @@
 .admin-app .input-text,
 .admin-app select,
 .admin-app textarea {
-  background: rgba(255, 255, 255, 0.04) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
   color: var(--adm-text) !important;
-  border: 1px solid var(--adm-border) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
   border-radius: 10px !important;
   font-family: var(--adm-font) !important;
   padding: 10px 12px;
@@ -601,8 +602,8 @@
 }
 
 .admin-app .table th {
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--adm-label);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--adm-text-muted);
   font-family: var(--adm-font);
   font-size: 11px;
   letter-spacing: 0.12em;
@@ -612,7 +613,23 @@
   background: rgba(255, 255, 255, 0.04);
 }
 
-.admin-app .info-label { color: var(--adm-accent-soft); font-family: var(--adm-font); }
+.admin-app .btn-toggle .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; background: currentColor; }
+
+/* Leggibilità: testo secondario e blocchi informativi */
+.admin-app .admin-content code {
+  color: #f0f0f0;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  font-size: 0.92em;
+}
+
+.admin-app .admin-content h3,
+.admin-app .admin-content h4 {
+  color: var(--adm-text);
+}
+
+.admin-app .info-label { color: var(--adm-text-muted); font-family: var(--adm-font); }
 
 .admin-app .badge {
   font-family: var(--adm-font);
@@ -766,8 +783,8 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
-.admin-app .status-badge.complete { background: rgba(255, 255, 255, 0.14); color: #c8c8c8; }
-.admin-app .status-badge.incomplete { background: rgba(255, 255, 255, 0.12); color: #b0b0b0; }
+.admin-app .status-badge.complete { background: rgba(255, 255, 255, 0.14); color: #d8d8d8; }
+.admin-app .status-badge.incomplete { background: rgba(255, 255, 255, 0.08); color: #b0b0b0; }
 .admin-app .status-text { color: var(--adm-text-muted); margin: 0; }
 
 .admin-app .action-buttons {
@@ -966,7 +983,7 @@
 }
 
 .admin-app .calendar-event.in_attesa { border-color: #b0b0b0; }
-.admin-app .calendar-event.confermato { border-color: #c8c8c8; }
+.admin-app .calendar-event.confermato { border-color: #d8d8d8; }
 .admin-app .calendar-event.annullato { border-color: var(--adm-danger); }
 .admin-app .today { background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.35); }
 
@@ -978,9 +995,9 @@
   border: 1px solid transparent;
   cursor: pointer;
 }
-.admin-app .btn-toggle.btn-on { background: rgba(37, 211, 102, 0.15); color: #25d366; border-color: rgba(37, 211, 102, 0.4); }
-.admin-app .btn-toggle.btn-off { background: rgba(255, 255, 255, 0.06); color: var(--adm-text-muted); border-color: var(--adm-border); }
-.admin-app .btn-toggle .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; background: currentColor; }
+.admin-app .btn-toggle.btn-on { background: rgba(255, 255, 255, 0.18); color: #ffffff; border-color: rgba(255, 255, 255, 0.45); }
+.admin-app .btn-toggle.btn-off { background: rgba(255, 255, 255, 0.1); color: #e0e0e0; border-color: rgba(255, 255, 255, 0.22); }
+.admin-app .btn-toggle.btn-off .dot { opacity: 0.75; }
 
 .admin-app .switch {
   position: relative;
@@ -1004,8 +1021,8 @@
   border-radius: 50%;
   transition: all 0.25s ease;
 }
-.admin-app .switch.enabled { border-color: rgba(37, 211, 102, 0.45); background: rgba(37, 211, 102, 0.12); }
-.admin-app .switch.enabled .thumb { left: calc(100% - 33px); background: #25d366; }
+.admin-app .switch.enabled { border-color: rgba(255, 255, 255, 0.45); background: rgba(255, 255, 255, 0.12); }
+.admin-app .switch.enabled .thumb { left: calc(100% - 33px); background: #e8e8e8; }
 
 .admin-app .icon-btn {
   display: inline-flex;
@@ -1025,7 +1042,7 @@
 .admin-app .no-data { color: var(--adm-text-muted); font-style: italic; font-size: 0.9em; }
 
 .admin-app .password-display {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.08);
   color: var(--adm-accent);
   padding: 4px 8px;
   border-radius: 6px;
@@ -1107,9 +1124,9 @@
 }
 
 .admin-app .diet-msg.is-success {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.35);
-  color: #c8c8c8;
+  color: #d8d8d8;
 }
 
 .admin-app .diet-page-toolbar {
@@ -1186,7 +1203,7 @@
 
 .admin-app .diet-kpi--kcal b { color: var(--adm-accent); }
 .admin-app .diet-kpi--protein b { color: #a8a8a8; }
-.admin-app .diet-kpi--carbs b { color: #c8c8c8; }
+.admin-app .diet-kpi--carbs b { color: #d8d8d8; }
 .admin-app .diet-kpi--fat b { color: #b0b0b0; }
 .admin-app .diet-kpi--fiber b { color: #9ccc65; }
 
@@ -1267,7 +1284,7 @@
 }
 
 .admin-app .di-qty {
-  color: #c8c8c8;
+  color: #d8d8d8;
   font-weight: 600;
   font-size: 0.85rem;
   white-space: nowrap;
@@ -1319,7 +1336,7 @@
 }
 
 .admin-app .diet-add-meal-panel {
-  background: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 12px;
   padding: 1.1rem 1.2rem;
@@ -1411,7 +1428,7 @@
 .admin-app textarea.input-text:focus {
   outline: none;
   border-color: rgba(255, 255, 255, 0.45) !important;
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.08);
 }
 
 @media (max-width: 900px) {
@@ -1525,12 +1542,12 @@
   padding: 0.1rem 0.4rem;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.15);
-  color: #c8c8c8;
+  color: #d8d8d8;
   margin-left: 0.35rem;
 }
 
 .admin-app .food-selected {
-  color: #c8c8c8;
+  color: #d8d8d8;
   font-size: 0.82rem;
   margin-top: 0.4rem;
   min-height: 1rem;

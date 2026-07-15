@@ -11,7 +11,7 @@
   <a href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id) }}" class="btn btn-secondary btn-small">{{ icon('user', 14) }} Torna alla scheda paziente</a>
 </div>
 
-<div class="management-card" style="max-width:640px;background:rgba(255, 255, 255, 0.4);border:1px solid rgba(255, 255, 255, 0.3);border-radius:12px;padding:1.5rem;">
+<div class="management-card" style="max-width:640px;background:rgba(255, 255, 255, 0.06);border:1px solid rgba(255, 255, 255, 0.3);border-radius:12px;padding:1.5rem;">
   <form id="plan-create-form"
         data-patient-id="{{ paziente.id }}"
         data-create-url="{{ url_for('admin_diets.create_diet_plan') }}"

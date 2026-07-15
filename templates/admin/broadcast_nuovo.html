@@ -16,15 +16,15 @@
       <button type="button" onclick="anteprimaMessaggio()" class="btn btn-secondary btn-small">
         {{ icon('eye', 16) }} Anteprima
       </button>
-      <span style="color: #b6b1a9; font-size: 0.85rem; margin-left: 1rem;">
+      <span style="color: #d8d8d8; font-size: 0.85rem; margin-left: 1rem;">
         Usa le variabili come {nome}, {cognome}, {eta}, etc.
       </span>
     </div>
   </div>
 
   <!-- ANTEPRIMA MESSAGGIO -->
-  <div id="anteprima" style="display: none; background: rgba(255, 255, 255, 0.6); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border-left: 3px solid #25D366;">
-    <div style="color: #b6b1a9; font-size: 0.85rem; margin-bottom: 0.5rem;">{{ icon('eye', 16) }} Anteprima per <span id="paziente_esempio"></span>:</div>
+  <div id="anteprima" style="display: none; background: rgba(255, 255, 255, 0.09); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border-left: 3px solid #e8e8e8;">
+    <div style="color: #d8d8d8; font-size: 0.85rem; margin-bottom: 0.5rem;">{{ icon('eye', 16) }} Anteprima per <span id="paziente_esempio"></span>:</div>
     <div id="messaggio_anteprima" style="color: #ffffff; font-family: monospace; white-space: pre-wrap;"></div>
   </div>
 
@@ -39,12 +39,12 @@
 </form>
 
 <!-- GUIDA RAPIDA -->
-<div style="background: rgba(255, 255, 255, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 12px; padding: 1.5rem; margin-top: 2rem;">
+<div style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 12px; padding: 1.5rem; margin-top: 2rem;">
   <h3 style="color: #d4d4d4; margin-bottom: 1rem;">{{ icon('help', 16) }} Variabili disponibili</h3>
   <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
     <div>
       <h4 style="color: #ffffff; margin-bottom: 0.5rem;">{{ icon('user', 18) }} Dati personali</h4>
-      <ul style="color: #b6b1a9; font-size: 0.85rem; margin: 0; padding-left: 1rem;">
+      <ul style="color: #d8d8d8; font-size: 0.85rem; margin: 0; padding-left: 1rem;">
         <li><code>{nome}</code> - Nome</li>
         <li><code>{cognome}</code> - Cognome</li>
         <li><code>{nome_completo}</code> - Nome completo</li>
@@ -53,7 +53,7 @@
     </div>
     <div>
       <h4 style="color: #ffffff; margin-bottom: 0.5rem;">{{ icon('ruler', 18) }} Dati fisici</h4>
-      <ul style="color: #b6b1a9; font-size: 0.85rem; margin: 0; padding-left: 1rem;">
+      <ul style="color: #d8d8d8; font-size: 0.85rem; margin: 0; padding-left: 1rem;">
         <li><code>{altezza}</code> - Altezza</li>
         <li><code>{peso_iniziale}</code> - Peso iniziale</li>
         <li><code>{data_nascita}</code> - Data nascita</li>

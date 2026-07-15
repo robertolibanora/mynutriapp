@@ -6,8 +6,8 @@
 <div class="quick-stats">
   <div class="stat-card">
     <div class="adm-icon--lg">{{ icon('users', 28) }}</div>
-    <div style="font-size: 1.5rem; font-weight: 700; color: #c8c8c8; margin-bottom: 0.25rem;">{{ pazienti|length }}</div>
-    <div style="color: #b6b1a9; font-size: 0.9rem;">Pazienti Totali</div>
+    <div style="font-size: 1.5rem; font-weight: 700; color: #d8d8d8; margin-bottom: 0.25rem;">{{ pazienti|length }}</div>
+    <div style="color: #d8d8d8; font-size: 0.9rem;">Pazienti Totali</div>
   </div>
   
   <div class="stat-card">
@@ -15,7 +15,7 @@
     <div style="font-size: 1.5rem; font-weight: 700; color: #a8a8a8; margin-bottom: 0.25rem;">
       {{ pazienti|map(attribute='diete')|map('length')|sum }}
     </div>
-    <div style="color: #b6b1a9; font-size: 0.9rem;">Diete Totali</div>
+    <div style="color: #d8d8d8; font-size: 0.9rem;">Diete Totali</div>
   </div>
   
   <div class="stat-card">
@@ -23,7 +23,7 @@
     <div style="font-size: 1.5rem; font-weight: 700; color: #b0b0b0; margin-bottom: 0.25rem;">
       {{ pazienti|map(attribute='allenamenti')|map('length')|sum }}
     </div>
-    <div style="color: #b6b1a9; font-size: 0.9rem;">Allenamenti Totali</div>
+    <div style="color: #d8d8d8; font-size: 0.9rem;">Allenamenti Totali</div>
   </div>
   
   <div class="stat-card">
@@ -31,7 +31,7 @@
     <div style="font-size: 1.5rem; font-weight: 700; color: #909090; margin-bottom: 0.25rem;">
       {{ pazienti|map(attribute='progressi')|map('length')|sum }}
     </div>
-    <div style="color: #b6b1a9; font-size: 0.9rem;">Progressi Totali</div>
+    <div style="color: #d8d8d8; font-size: 0.9rem;">Progressi Totali</div>
   </div>
 </div>
 
@@ -48,7 +48,7 @@
   
   <div style="display: flex; gap: 1rem; align-items: center;">
     <form method="get" style="display: flex; gap: 0.5rem; align-items: center;">
-      <label for="search" style="color: #b6b1a9; font-weight: 600; font-size: 0.9rem;">{{ icon('search', 16) }}</label>
+      <label for="search" style="color: #d8d8d8; font-weight: 600; font-size: 0.9rem;">{{ icon('search', 16) }}</label>
       <input type="text" name="search" id="search" placeholder="Cerca paziente..." class="input-text" style="width: 250px; font-size: 0.9rem;" value="{{ request.args.get('search', '') }}">
       <button type="submit" class="btn btn-white btn-small">Cerca</button>
       {% if request.args.get('search') %}
@@ -66,14 +66,14 @@
     
     <!-- AVATAR E INFO PRINCIPALE -->
     <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
-      <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #c8c8c8, #a8a8a8); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: white; font-weight: 700; flex-shrink: 0;">
+      <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #d8d8d8, #a8a8a8); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: white; font-weight: 700; flex-shrink: 0;">
         {{ p.nome[0] }}{{ p.cognome[0] }}
       </div>
       <div style="flex: 1; min-width: 0;">
         <div style="font-size: 1.3rem; font-weight: 600; color: #ffffff; margin-bottom: 0.25rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
           {{ p.nome }} {{ p.cognome }}
         </div>
-        <div style="color: #b6b1a9; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem;">
+        <div style="color: #d8d8d8; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem;">
           {{ icon('phone', 16) }}
           <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ p.telefono }}</span>
         </div>
@@ -81,18 +81,18 @@
     </div>
     
     <!-- INFORMAZIONI AGGIUNTIVE -->
-    <div style="background: rgba(255, 255, 255, 0.6); border-radius: 12px; padding: 1rem; margin-bottom: 1rem;">
+    <div style="background: rgba(255, 255, 255, 0.09); border-radius: 12px; padding: 1rem; margin-bottom: 1rem;">
       <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem;">
         {% if p.eta %}
         <div>
-          <div style="color: #b6b1a9; font-size: 0.75rem; margin-bottom: 0.25rem;">Età</div>
-          <div style="color: #c8c8c8; font-size: 0.85rem; font-weight: 600;">{{ p.eta }} anni</div>
+          <div style="color: #d8d8d8; font-size: 0.75rem; margin-bottom: 0.25rem;">Età</div>
+          <div style="color: #d8d8d8; font-size: 0.85rem; font-weight: 600;">{{ p.eta }} anni</div>
         </div>
         {% endif %}
         
         {% if p.peso_iniziale %}
         <div>
-          <div style="color: #b6b1a9; font-size: 0.75rem; margin-bottom: 0.25rem;">Peso</div>
+          <div style="color: #d8d8d8; font-size: 0.75rem; margin-bottom: 0.25rem;">Peso</div>
           <div style="color: #ffffff; font-size: 0.85rem; font-weight: 600;">{{ p.peso_iniziale }} kg</div>
         </div>
         {% endif %}
@@ -101,7 +101,7 @@
         
         {% if p.email %}
         <div>
-          <div style="color: #b6b1a9; font-size: 0.75rem; margin-bottom: 0.25rem;">Email</div>
+          <div style="color: #d8d8d8; font-size: 0.75rem; margin-bottom: 0.25rem;">Email</div>
           <div style="color: #ffffff; font-size: 0.85rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ p.email }}</div>
         </div>
         {% endif %}
@@ -112,17 +112,17 @@
     <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-bottom: 1rem;">
       <div style="background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; padding: 0.5rem; text-align: center;">
         <div style="color: #a8a8a8; font-size: 1.1rem; font-weight: 700;">{{ p.diete|length }}</div>
-        <div style="color: #b6b1a9; font-size: 0.7rem;">Diete</div>
+        <div style="color: #d8d8d8; font-size: 0.7rem;">Diete</div>
       </div>
       
       <div style="background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; padding: 0.5rem; text-align: center;">
         <div style="color: #b0b0b0; font-size: 1.1rem; font-weight: 700;">{{ p.allenamenti|length }}</div>
-        <div style="color: #b6b1a9; font-size: 0.7rem;">Allenamenti</div>
+        <div style="color: #d8d8d8; font-size: 0.7rem;">Allenamenti</div>
       </div>
       
       <div style="background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; padding: 0.5rem; text-align: center;">
         <div style="color: #909090; font-size: 1.1rem; font-weight: 700;">{{ p.progressi|length }}</div>
-        <div style="color: #b6b1a9; font-size: 0.7rem;">Progressi</div>
+        <div style="color: #d8d8d8; font-size: 0.7rem;">Progressi</div>
       </div>
     </div>
     
@@ -147,16 +147,16 @@
 
 {% else %}
 <!-- EMPTY STATE -->
-<div class="empty-state" style="text-align: center; padding: 4rem 2rem; background: rgba(255, 255, 255, 0.2); border: 2px dashed rgba(182, 177, 169, 0.3); border-radius: 16px;">
+<div class="empty-state" style="text-align: center; padding: 4rem 2rem; background: rgba(255, 255, 255, 0.2); border: 2px dashed rgba(255, 255, 255, 0.16); border-radius: 16px;">
   <div class="adm-empty-icon">{{ icon('users', 48) }}</div>
-  <h3 style="color: #c8c8c8; margin-bottom: 1rem;">
+  <h3 style="color: #d8d8d8; margin-bottom: 1rem;">
     {% if request.args.get('search') %}
     Nessun paziente trovato
     {% else %}
     Nessun paziente registrato
     {% endif %}
   </h3>
-  <p style="color: #b6b1a9; margin-bottom: 2rem; font-size: 1.1rem;">
+  <p style="color: #d8d8d8; margin-bottom: 2rem; font-size: 1.1rem;">
     {% if request.args.get('search') %}
     Prova a modificare i criteri di ricerca.
     {% else %}

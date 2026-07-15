@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from datetime import date, datetime, time, timedelta
 from typing import Iterable, List, Optional, Sequence
 
-from app.models.models import AgendaEccezione, Appuntamento, OrarioSettimanale, db
+from app.models.models import AgendaEccezione, Appuntamento, OrarioSettimanale, RichiestaAppuntamento, db
 
 GIORNI_SETTIMANA = (
     "Lunedì",
@@ -71,7 +71,18 @@ class AgendaService:
             Appuntamento.data_appuntamento <= a,
             Appuntamento.stato != "annullato",
         ).all()
-        return {row.data_appuntamento.replace(second=0, microsecond=0) for row in rows}
+        occupati = {row.data_appuntamento.replace(second=0, microsecond=0) for row in rows}
+
+        # Richieste pubbliche in attesa bloccano lo slot fino ad accettazione/rifiuto
+        richieste = RichiestaAppuntamento.query.filter(
+            RichiestaAppuntamento.data_richiesta >= da,
+            RichiestaAppuntamento.data_richiesta <= a,
+            RichiestaAppuntamento.stato == "in_attesa",
+        ).all()
+        for r in richieste:
+            if r.data_richiesta:
+                occupati.add(r.data_richiesta.replace(second=0, microsecond=0))
+        return occupati
 
     @classmethod
     def genera_slot(
@@ -128,7 +139,7 @@ class AgendaService:
         return cls.genera_slot(inizio, fine)
 
     @staticmethod
-    def is_slot_disponibile(data_ora: datetime) -> bool:
+    def is_slot_disponibile(data_ora: datetime, escludi_richiesta_id: Optional[int] = None) -> bool:
         data_ora = data_ora.replace(second=0, microsecond=0)
         giorno = data_ora.date()
         if AgendaService.is_giorno_chiuso(giorno):
@@ -146,7 +157,16 @@ class AgendaService:
             Appuntamento.data_appuntamento == data_ora,
             Appuntamento.stato != "annullato",
         ).first()
-        return esistente is None
+        if esistente is not None:
+            return False
+
+        q = RichiestaAppuntamento.query.filter(
+            RichiestaAppuntamento.data_richiesta == data_ora,
+            RichiestaAppuntamento.stato == "in_attesa",
+        )
+        if escludi_richiesta_id is not None:
+            q = q.filter(RichiestaAppuntamento.id != escludi_richiesta_id)
+        return q.first() is None
 
     @staticmethod
     def aggiungi_orario(giorno_settimana: int, ora: time, note: Optional[str] = None) -> OrarioSettimanale:

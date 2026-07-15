@@ -55,13 +55,13 @@ body {
 .toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
 .toolbar .spacer { flex: 1; }
 .filters { display: flex; align-items: center; gap: 10px; }
-.input { background: rgba(255, 255, 255, 0.2); color: #ffffff; border: 1px solid rgba(182,177,169,0.25); border-radius: 6px; padding: 8px 10px; }
+.input { background: rgba(255, 255, 255, 0.2); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 6px; padding: 8px 10px; }
 .totals { text-align: right; color: #ffffff; }
 
 /* === CARD === */
 .card {
-    background: rgba(255, 255, 255, 0.4);
-    border: 1px solid rgba(182, 177, 169, 0.2);
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 12px;
     padding: 20px 25px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.2);
@@ -112,15 +112,15 @@ body {
 }
 
 .info-value.no-data {
-    color: #b6b1a9;
+    color: #d8d8d8;
     font-style: italic;
     opacity: 0.8;
 }
 
 /* Status card */
 .status-card {
-    background: rgba(255, 255, 255, 0.6);
-    border: 1px solid rgba(182, 177, 169, 0.3);
+    background: rgba(255, 255, 255, 0.09);
+    border: 1px solid rgba(255, 255, 255, 0.16);
     border-radius: 12px;
     padding: 20px;
     margin-bottom: 20px;
@@ -164,7 +164,7 @@ body {
 }
 
 .status-text {
-    color: #b6b1a9;
+    color: #d8d8d8;
     margin: 0;
     font-size: 0.95em;
     line-height: 1.4;
@@ -246,7 +246,7 @@ body {
 }
 
 .no-data {
-    color: #b6b1a9;
+    color: #d8d8d8;
     font-style: italic;
     font-size: 0.9em;
     opacity: 0.8;
@@ -378,7 +378,7 @@ body {
     background: rgba(255, 255, 255, 0.3);
     border-radius: 12px;
     overflow: hidden;
-    border: 1px solid rgba(182, 177, 169, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     margin-bottom: 20px;
 }
@@ -394,7 +394,7 @@ body {
     text-align: center;
 }
 .table th {
-    background: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.09);
     font-weight: 600;
     color: #d4d4d4;
     font-family: 'Agrandir', sans-serif;
@@ -415,8 +415,8 @@ body {
     background: #1a1a1a;
 }
 .login-container {
-    background: rgba(255, 255, 255, 0.6);
-    border: 1px solid rgba(182, 177, 169, 0.3);
+    background: rgba(255, 255, 255, 0.09);
+    border: 1px solid rgba(255, 255, 255, 0.16);
     padding: 40px;
     border-radius: 16px;
     box-shadow: 0 8px 32px rgba(0,0,0,0.3);
@@ -556,7 +556,7 @@ body {
 
 .calendar-day {
     background: rgba(255, 255, 255, 0.3);
-    border: 1px solid rgba(182, 177, 169, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 12px;
     padding: 15px;
     min-height: 140px;
@@ -582,7 +582,7 @@ body {
 }
 
 .calendar-event {
-    background: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.06);
     border-left: 4px solid #d4d4d4;
     padding: 8px 12px;
     border-radius: 8px;
@@ -625,8 +625,8 @@ body {
 .form-container {
     width: 100%;
     max-width: 800px;
-    background: rgba(255, 255, 255, 0.4);
-    border: 1px solid rgba(182, 177, 169, 0.2);
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     padding: 2rem;
     border-radius: 16px;
     box-shadow: 0 8px 32px rgba(0,0,0,0.3);
@@ -686,7 +686,7 @@ body {
   .input-text,
   .input-select,
   textarea {
-    border: 1px solid rgba(182, 177, 169, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.16);
     border-radius: 6px;
     padding: 0.6rem;
     font-size: 1rem;
@@ -748,8 +748,8 @@ body {
 .btn-lg { padding: 0.9rem 1.6rem; font-size: 1.05rem; border-radius: 10px; }
 .btn-outline { background: transparent; color: #d4d4d4; border: 1px solid rgba(255, 255, 255, 0.5); }
 .btn-outline:hover { background: rgba(255, 255, 255, 0.1); box-shadow: 0 6px 20px rgba(255, 255, 255, 0.2); }
-.btn-ghost { background: rgba(255, 255, 255, 0.5); color: #ffffff; border: 1px solid rgba(182,177,169,0.25); }
-.btn-ghost:hover { background: rgba(255, 255, 255, 0.65); }
+.btn-ghost { background: rgba(255, 255, 255, 0.08); color: #e8e8e8; border: 1px solid rgba(255, 255, 255, 0.18); }
+.btn-ghost:hover { background: rgba(255, 255, 255, 0.12); }
 
   .btn-white {
     background: #ffffff;
@@ -783,8 +783,8 @@ body {
 /* === TOGGLE PILL (Broadcast) === */
 /* Nuovo switch animato */
 .btn-toggle { padding: 6px 12px; border-radius: 999px; font-weight: 700; font-size: 0.9rem; border: 1px solid transparent; cursor: pointer; }
-.btn-toggle.btn-on { background: rgba(37,211,102,0.15); color: #25D366; border-color: rgba(37,211,102,0.4); }
-.btn-toggle.btn-off { background: rgba(182,177,169,0.15); color: #b6b1a9; border-color: rgba(182,177,169,0.35); }
+.btn-toggle.btn-on { background: rgba(255, 255, 255, 0.18); color: #ffffff; border-color: rgba(255, 255, 255, 0.45); }
+.btn-toggle.btn-off { background: rgba(255, 255, 255, 0.1); color: #e0e0e0; border-color: rgba(255, 255, 255, 0.22); }
 .btn-toggle:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,0.2); }
 .btn-toggle:active { transform: translateY(0); box-shadow: none; }
 .btn-toggle .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; background: currentColor; }
@@ -796,7 +796,7 @@ body {
     width: 120px;
     height: 36px;
     background: rgba(255, 255, 255, 0.65);
-    border: 1px solid rgba(182,177,169,0.25);
+    border: 1px solid rgba(255, 255, 255, 0.14);
     border-radius: 999px;
     display: inline-flex;
     align-items: center;
@@ -811,7 +811,7 @@ body {
     left: 3px;
     width: 30px;
     height: 30px;
-    background: #b6b1a9;
+    background: #d8d8d8;
     border-radius: 50%;
     transition: all 0.25s ease;
     box-shadow: 0 2px 8px rgba(0,0,0,0.25);
@@ -822,13 +822,13 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 0 12px 0 46px;
-    color: #b6b1a9;
+    color: #d8d8d8;
     font-weight: 700;
     font-size: 0.9rem;
 }
-.switch.enabled { border-color: rgba(37,211,102,0.45); background: rgba(37,211,102,0.12); }
-.switch.enabled .thumb { left: calc(100% - 33px); background: #25D366; }
-.switch.enabled .label { color: #25D366; }
+.switch.enabled { border-color: rgba(255, 255, 255, 0.45); background: rgba(255, 255, 255, 0.12); }
+.switch.enabled .thumb { left: calc(100% - 33px); background: #e8e8e8; }
+.switch.enabled .label { color: #e8e8e8; }
 
 /* Icon button small for cards header */
 .icon-btn {
@@ -837,12 +837,12 @@ body {
     gap: 6px;
     padding: 6px 10px;
     border-radius: 8px;
-    border: 1px solid rgba(182,177,169,0.25);
-    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.09);
     color: #ffffff;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 .icon-btn:hover { opacity: 0.9; transform: translateY(-1px); }
-.icon-btn.primary { border-color: rgba(255, 255, 255, 0.4); background: rgba(255, 255, 255, 0.15); color: #d4d4d4; }
+.icon-btn.primary { border-color: rgba(255, 255, 255, 0.06); background: rgba(255, 255, 255, 0.15); color: #d4d4d4; }

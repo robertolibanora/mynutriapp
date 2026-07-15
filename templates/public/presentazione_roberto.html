@@ -284,6 +284,7 @@
       My<span>Nutri</span>App
     </a>
     <div style="display: flex; gap: 1rem; align-items: center;">
+      <a href="{{ url_for('prenota_public.prenota_landing') }}" class="btn-back" style="font-size: 0.9rem; padding: 0.6rem 1.2rem;">Prenota</a>
       <a href="{{ url_for('listino.lista_listino_public') }}" class="btn-back" style="font-size: 0.9rem; padding: 0.6rem 1.2rem;">💰 Listino Prezzi</a>
       <a href="{{ url_for('auth.login') if not session.get('user_id') else (url_for('dashboard.user_dashboard') if session.get('role') == 'user' else url_for('dashboard.admin_dashboard')) }}" class="btn-back">Torna all'App</a>
     </div>

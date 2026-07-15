@@ -4,34 +4,34 @@
 
 <!-- QUICK STATS LISTINO -->
   <div class="quick-stats">
-    <div style="background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; padding: 1rem; text-align: center;">
+    <div style="background: rgba(255, 255, 255, 0.09); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; padding: 1rem; text-align: center;">
       <div class="adm-icon--lg" style="font-weight:600">{{ icon('diet', 22) }}</div>
-      <div style="color: #c8c8c8; font-size: 1.1rem; font-weight: 600; margin: 0.25rem 0;">Nutrizione</div>
-      <div style="color: #b6b1a9; font-size: 0.8rem;">Piani alimentari</div>
+      <div style="color: #d8d8d8; font-size: 1.1rem; font-weight: 600; margin: 0.25rem 0;">Nutrizione</div>
+      <div style="color: #d8d8d8; font-size: 0.8rem;">Piani alimentari</div>
     </div>
     
-    <div style="background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; padding: 1rem; text-align: center;">
+    <div style="background: rgba(255, 255, 255, 0.09); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; padding: 1rem; text-align: center;">
       <div class="adm-icon--lg" style="font-weight:600">{{ icon('dumbbell', 22) }}</div>
       <div style="color: #a8a8a8; font-size: 1.1rem; font-weight: 600; margin: 0.25rem 0;">Allenamento</div>
-      <div style="color: #b6b1a9; font-size: 0.8rem;">Piani fitness</div>
+      <div style="color: #d8d8d8; font-size: 0.8rem;">Piani fitness</div>
     </div>
     
-    <div style="background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; padding: 1rem; text-align: center;">
+    <div style="background: rgba(255, 255, 255, 0.09); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; padding: 1rem; text-align: center;">
       <div class="adm-icon--lg" style="font-weight:600">{{ icon('target', 22) }}</div>
       <div style="color: #b0b0b0; font-size: 1.1rem; font-weight: 600; margin: 0.25rem 0;">Completo</div>
-      <div style="color: #b6b1a9; font-size: 0.8rem;">Pacchetti totali</div>
+      <div style="color: #d8d8d8; font-size: 0.8rem;">Pacchetti totali</div>
     </div>
     
-    <div style="background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; padding: 1rem; text-align: center;">
+    <div style="background: rgba(255, 255, 255, 0.09); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; padding: 1rem; text-align: center;">
       <div class="adm-icon--lg" style="font-weight:600">{{ icon('user', 22) }}</div>
       <div style="color: #909090; font-size: 1.1rem; font-weight: 600; margin: 0.25rem 0;">1-to-1</div>
-      <div style="color: #b6b1a9; font-size: 0.8rem;">Sessioni private</div>
+      <div style="color: #d8d8d8; font-size: 0.8rem;">Sessioni private</div>
     </div>
   </div>
 
 <!-- GRAFICO ENTRATE -->
 {% if date_labels and (importi_nutrizione|sum + importi_allenamento|sum + importi_completo|sum + importi_1to1|sum > 0) %}
-<div class="revenue-chart-section" style="background: rgba(255, 255, 255, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem;">
+<div class="revenue-chart-section" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem;">
   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
     <h3 style="color: #d4d4d4; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
       {{ icon('chart', 16) }} Entrate ultimi {{ periodo }} Giorni
@@ -59,7 +59,7 @@
   </div>
   
   <!-- CANVAS GRAFICO -->
-  <div style="position: relative; height: 300px; background: rgba(255, 255, 255, 0.6); border-radius: 12px; padding: 1rem;">
+  <div style="position: relative; height: 300px; background: rgba(255, 255, 255, 0.09); border-radius: 12px; padding: 1rem;">
     <canvas id="revenueChart"></canvas>
   </div>
 </div>
@@ -69,12 +69,12 @@
 <div class="toolbar" style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; align-items: center;">
   <form method="get" style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; flex: 1;">
     <div style="display: flex; align-items: center; gap: 0.5rem;">
-      <label for="cliente" style="color: #b6b1a9; font-weight: 600;">{{ icon('user', 16) }}</label>
+      <label for="cliente" style="color: #d8d8d8; font-weight: 600;">{{ icon('user', 16) }}</label>
       <input type="text" name="cliente" id="cliente" placeholder="Cerca paziente..." class="input-text" value="{{ request.args.get('cliente', '') }}" style="width: 200px;">
     </div>
     
     <div style="display: flex; align-items: center; gap: 0.5rem;">
-      <label for="stato" style="color: #b6b1a9; font-weight: 600;">{{ icon('chart', 16) }}</label>
+      <label for="stato" style="color: #d8d8d8; font-weight: 600;">{{ icon('chart', 16) }}</label>
       <select name="stato" id="stato" class="input-select" style="width: 150px;">
             <option value="">Tutti gli stati</option>
         <option value="pagato" {% if request.args.get('stato') == 'pagato' %}selected{% endif %}>Pagato</option>
@@ -111,7 +111,7 @@
     {% if vendite %}
 <div class="sales-grid" style="display: grid; gap: 1rem;">
             {% for v in vendite %}
-  <div class="sale-card sale-card-{{ v.stato }}" style="background: rgba(255, 255, 255, 0.4); border-radius: 12px; padding: 1.5rem; transition: all 0.3s ease;">
+  <div class="sale-card sale-card-{{ v.stato }}" style="background: rgba(255, 255, 255, 0.06); border-radius: 12px; padding: 1.5rem; transition: all 0.3s ease;">
     
     <div style="display: grid; grid-template-columns: auto 1fr auto; gap: 1.5rem; align-items: center;">
       
@@ -121,7 +121,7 @@
           <div style="font-size: 1.5rem; font-weight: 700;">{{ v.data_inizio.strftime('%d') }}</div>
           <div style="font-size: 0.75rem; text-transform: uppercase;">{{ v.data_inizio.strftime('%b') }}</div>
         </div>
-        <div style="color: #b6b1a9; font-size: 0.85rem; margin-top: 0.5rem;">{{ v.data_acquisto.strftime('%H:%M') if v.data_acquisto else '—' }}</div>
+        <div style="color: #d8d8d8; font-size: 0.85rem; margin-top: 0.5rem;">{{ v.data_acquisto.strftime('%H:%M') if v.data_acquisto else '—' }}</div>
       </div>
       
       <!-- INFORMAZIONI -->
@@ -136,12 +136,12 @@
         </div>
         
         <div style="display: flex; gap: 1.5rem; flex-wrap: wrap; margin-top: 0.75rem;">
-          <div style="display: flex; align-items: center; gap: 0.5rem; color: #b6b1a9; font-size: 0.9rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; color: #d8d8d8; font-size: 0.9rem;">
             {{ icon('package', 16) }}
             <span>{{ v.listino.nome_prodotto }}</span>
           </div>
           
-          <div style="display: flex; align-items: center; gap: 0.5rem; color: #b6b1a9; font-size: 0.9rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; color: #d8d8d8; font-size: 0.9rem;">
             {{ icon('card', 16) }}
             <span>{{ v.metodo_pagamento|capitalize }}</span>
           </div>
@@ -153,8 +153,8 @@
         </div>
         
         {% if v.note %}
-        <div style="margin-top: 0.5rem; padding: 0.5rem; background: rgba(255, 255, 255, 0.6); border-radius: 6px;">
-          <div style="color: #b6b1a9; font-size: 0.85rem;">{{ icon('message', 14) }} {{ v.note }}</div>
+        <div style="margin-top: 0.5rem; padding: 0.5rem; background: rgba(255, 255, 255, 0.09); border-radius: 6px;">
+          <div style="color: #d8d8d8; font-size: 0.85rem;">{{ icon('message', 14) }} {{ v.note }}</div>
         </div>
         {% endif %}
       </div>
@@ -184,13 +184,13 @@
 </div>
 
 <!-- SEZIONE LISTINO PREZZI -->
-<div class="listino-section" style="background: rgba(255, 255, 255, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem;">
+<div class="listino-section" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem;">
   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
     <div>
       <h3 style="color: #d4d4d4; margin: 0; font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
         {{ icon('wallet', 16) }} Listino prezzi
       </h3>
-      <p style="color: #b6b1a9; margin: 0.5rem 0 0 0; font-size: 0.9rem;">Gestisci i prezzi dei tuoi servizi e prodotti</p>
+      <p style="color: #d8d8d8; margin: 0.5rem 0 0 0; font-size: 0.9rem;">Gestisci i prezzi dei tuoi servizi e prodotti</p>
     </div>
     <div style="display: flex; gap: 0.5rem;">
       <a href="{{ url_for('listino.lista_listino_public') }}" target="_blank" class="btn btn-secondary" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem;">
@@ -204,35 +204,35 @@
   
   <!-- QUICK STATS LISTINO -->
   <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
-    <div style="background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; padding: 1rem; text-align: center;">
+    <div style="background: rgba(255, 255, 255, 0.09); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; padding: 1rem; text-align: center;">
       <div class="adm-icon--lg" style="font-weight:600">{{ icon('diet', 22) }}</div>
-      <div style="color: #c8c8c8; font-size: 1.1rem; font-weight: 600; margin: 0.25rem 0;">Nutrizione</div>
-      <div style="color: #b6b1a9; font-size: 0.8rem;">Piani alimentari</div>
+      <div style="color: #d8d8d8; font-size: 1.1rem; font-weight: 600; margin: 0.25rem 0;">Nutrizione</div>
+      <div style="color: #d8d8d8; font-size: 0.8rem;">Piani alimentari</div>
     </div>
     
-    <div style="background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; padding: 1rem; text-align: center;">
+    <div style="background: rgba(255, 255, 255, 0.09); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; padding: 1rem; text-align: center;">
       <div class="adm-icon--lg" style="font-weight:600">{{ icon('dumbbell', 22) }}</div>
       <div style="color: #a8a8a8; font-size: 1.1rem; font-weight: 600; margin: 0.25rem 0;">Allenamento</div>
-      <div style="color: #b6b1a9; font-size: 0.8rem;">Piani fitness</div>
+      <div style="color: #d8d8d8; font-size: 0.8rem;">Piani fitness</div>
     </div>
     
-    <div style="background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; padding: 1rem; text-align: center;">
+    <div style="background: rgba(255, 255, 255, 0.09); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; padding: 1rem; text-align: center;">
       <div class="adm-icon--lg" style="font-weight:600">{{ icon('target', 22) }}</div>
       <div style="color: #b0b0b0; font-size: 1.1rem; font-weight: 600; margin: 0.25rem 0;">Completo</div>
-      <div style="color: #b6b1a9; font-size: 0.8rem;">Pacchetti totali</div>
+      <div style="color: #d8d8d8; font-size: 0.8rem;">Pacchetti totali</div>
     </div>
     
-    <div style="background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; padding: 1rem; text-align: center;">
+    <div style="background: rgba(255, 255, 255, 0.09); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; padding: 1rem; text-align: center;">
       <div class="adm-icon--lg" style="font-weight:600">{{ icon('user', 22) }}</div>
       <div style="color: #909090; font-size: 1.1rem; font-weight: 600; margin: 0.25rem 0;">1-to-1</div>
-      <div style="color: #b6b1a9; font-size: 0.8rem;">Sessioni private</div>
+      <div style="color: #d8d8d8; font-size: 0.8rem;">Sessioni private</div>
     </div>
   </div>
 </div>
 
 {% else %}
 <!-- EMPTY STATE -->
-<div class="empty-state" style="text-align: center; padding: 4rem 2rem; background: rgba(255, 255, 255, 0.2); border: 2px dashed rgba(182, 177, 169, 0.3); border-radius: 12px;">
+<div class="empty-state" style="text-align: center; padding: 4rem 2rem; background: rgba(255, 255, 255, 0.2); border: 2px dashed rgba(255, 255, 255, 0.16); border-radius: 12px;">
   <div class="adm-empty-icon">{{ icon('wallet', 48) }}</div>
   <h3 style="color: #d4d4d4; margin-bottom: 2rem;">
     {% if request.args.get('cliente') or request.args.get('stato') %}
@@ -274,14 +274,14 @@ document.addEventListener('DOMContentLoaded', function() {
             datasets: [{
                 label: 'Dieta',
                 data: revenues_nutrizione,
-                borderColor: '#c8c8c8',
+                borderColor: '#d8d8d8',
                 backgroundColor: 'rgba(255, 255, 255, 0.15)',
                 borderWidth: 3,
                 tension: 0.4,
                 fill: true,
                 pointRadius: 6,
                 pointHoverRadius: 8,
-                pointBackgroundColor: '#c8c8c8',
+                pointBackgroundColor: '#d8d8d8',
                 pointBorderColor: '#ffffff',
                 pointBorderWidth: 2,
                 pointHoverBorderWidth: 3
@@ -336,7 +336,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 legend: {
                     display: true,
                     labels: {
-                        color: '#b6b1a9',
+                        color: '#d8d8d8',
                         font: {
                             size: 14,
                             weight: '600'

@@ -81,7 +81,7 @@
         {% for item in meal.items %}
         {% set it = totals.item[item.id] %}
         <div class="diet-item" data-item-id="{{ item.id }}">
-          <span class="di-name">{{ item.food.name }}{% if item.food.brand %} <span style="color:#b6b1a9;font-weight:400;">· {{ item.food.brand }}</span>{% endif %}</span>
+          <span class="di-name">{{ item.food.name }}{% if item.food.brand %} <span style="color:#d8d8d8;font-weight:400;">· {{ item.food.brand }}</span>{% endif %}</span>
           <span class="di-qty">{{ item.quantity_g|round(0) }} g</span>
           <span class="di-macros">{{ "%.0f"|format(it.kcal) }} kcal · P {{ "%.1f"|format(it.protein) }} · C {{ "%.1f"|format(it.carbs) }} · G {{ "%.1f"|format(it.fat) }}</span>
           <button type="button" class="btn btn-danger btn-small btn-icon-danger" data-delete-item="{{ item.id }}" title="Rimuovi alimento">×</button>

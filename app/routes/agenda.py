@@ -1,9 +1,9 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from datetime import datetime, date, timedelta
 
-from app.models.models import db, Appuntamento
+from app.models.models import db, Appuntamento, RichiestaAppuntamento
 from app.services.agenda_service import AgendaService
-from app.utils.db_schema import ensure_agenda_schema
+from app.utils.db_schema import ensure_agenda_schema, ensure_richieste_appuntamento_schema
 
 # ========================
 # BLUEPRINT
@@ -14,6 +14,7 @@ agenda_bp = Blueprint('agenda', __name__, url_prefix='/agenda')
 @agenda_bp.before_request
 def _ensure_schema():
     ensure_agenda_schema()
+    ensure_richieste_appuntamento_schema()
 
 
 # ========================
@@ -122,6 +123,12 @@ def agenda_unificata():
     ).order_by(Appuntamento.data_appuntamento.asc()).all()
     appuntamenti_confermati = [a for a in appuntamenti_oggi if a.stato == 'confermato']
 
+    richieste_in_attesa = (
+        RichiestaAppuntamento.query.filter_by(stato='in_attesa')
+        .order_by(RichiestaAppuntamento.data_richiesta.asc())
+        .all()
+    )
+
     if filtro_vista == 'giorno' and filtro_giorno:
         appuntamenti = [a for a in appuntamenti_mese if a.data_appuntamento.date() == filtro_giorno]
         vista_appuntamenti = filtro_giorno.strftime('%d/%m/%Y')
@@ -186,5 +193,6 @@ def agenda_unificata():
         appuntamenti_oggi=appuntamenti_oggi,
         appuntamenti_in_attesa=appuntamenti_in_attesa,
         appuntamenti_confermati=appuntamenti_confermati,
+        richieste_in_attesa=richieste_in_attesa,
         giorni_calendario=giorni_calendario,
     )

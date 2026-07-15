@@ -12,7 +12,7 @@
     <div class="info-display">
       <strong>{{ vendita.patient.nome }} {{ vendita.patient.cognome }}</strong>
       <br>
-      <small style="color: #b6b1a9;">{{ icon('phone', 14) }} {{ vendita.patient.telefono }}</small>
+      <small style="color: #d8d8d8;">{{ icon('phone', 14) }} {{ vendita.patient.telefono }}</small>
     </div>
   </div>
 
@@ -22,7 +22,7 @@
     <div class="info-display">
       <strong>{{ vendita.listino.nome_prodotto }}</strong>
       <br>
-      <small style="color: #b6b1a9;">{{ icon('clipboard', 14) }} {{ vendita.listino.categoria|title }} - {{ "%.2f"|format(vendita.listino.prezzo) }}€</small>
+      <small style="color: #d8d8d8;">{{ icon('clipboard', 14) }} {{ vendita.listino.categoria|title }} - {{ "%.2f"|format(vendita.listino.prezzo) }}€</small>
     </div>
   </div>
 
@@ -61,10 +61,10 @@
       <label>Stato</label>
       <div class="info-display">
         <strong style="color: 
-          {% if vendita.stato == 'pagato' %}#c8c8c8
+          {% if vendita.stato == 'pagato' %}#d8d8d8
           {% elif vendita.stato == 'in_attesa' %}#FF9800
           {% elif vendita.stato == 'rimborsato' %}#F44336
-          {% else %}#b6b1a9
+          {% else %}#d8d8d8
           {% endif %};">
           {% if vendita.stato == 'pagato' %}Pagato
           {% elif vendita.stato == 'in_attesa' %}In attesa
@@ -88,15 +88,15 @@
     <div class="form-group">
       <label>Sconto Applicato</label>
       <div class="info-display">
-        <strong style="color: #c8c8c8;">-{{ "%.2f"|format(vendita.sconto) }}€</strong>
+        <strong style="color: #d8d8d8;">-{{ "%.2f"|format(vendita.sconto) }}€</strong>
       </div>
     </div>
   </div>
 
   <div class="form-group">
     <label>Importo Finale</label>
-    <div class="info-display" style="background: rgba(255, 255, 255, 0.1); padding: 1rem; border-radius: 8px; border-left: 4px solid #c8c8c8;">
-      <strong style="font-size: 1.2rem; color: #c8c8c8;">{{ "%.2f"|format(vendita.importo_finale) }}€</strong>
+    <div class="info-display" style="background: rgba(255, 255, 255, 0.1); padding: 1rem; border-radius: 8px; border-left: 4px solid #d8d8d8;">
+      <strong style="font-size: 1.2rem; color: #d8d8d8;">{{ "%.2f"|format(vendita.importo_finale) }}€</strong>
     </div>
   </div>
 
@@ -114,7 +114,7 @@
   <div class="form-group">
     <label>Registrato il</label>
     <div class="info-display">
-      <small style="color: #b6b1a9;">{{ vendita.created_at.strftime('%d/%m/%Y alle %H:%M') }}</small>
+      <small style="color: #d8d8d8;">{{ vendita.created_at.strftime('%d/%m/%Y alle %H:%M') }}</small>
     </div>
   </div>
 

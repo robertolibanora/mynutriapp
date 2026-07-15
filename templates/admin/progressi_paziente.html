@@ -7,11 +7,11 @@
   <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
     <div>
       <h1 style="color: #d4d4d4; margin: 0; font-size: 2.2rem; font-weight: 700;">Progressi di {{ paziente.nome }} {{ paziente.cognome }}</h1>
-      <p style="color: #b6b1a9; margin: 0.5rem 0 0 0; font-size: 1.1rem;">Monitoraggio completo dei progressi del paziente</p>
+      <p style="color: #d8d8d8; margin: 0.5rem 0 0 0; font-size: 1.1rem;">Monitoraggio completo dei progressi del paziente</p>
     </div>
     <div style="text-align: right;">
       <div style="color: #ffffff; font-size: 1.1rem; font-weight: 600;">{{ paziente.telefono or 'N/A' }}</div>
-      <div style="color: #b6b1a9; font-size: 0.9rem;">{{ paziente.email or 'N/A' }}</div>
+      <div style="color: #d8d8d8; font-size: 0.9rem;">{{ paziente.email or 'N/A' }}</div>
     </div>
   </div>
 </div>
@@ -19,21 +19,21 @@
 <!-- TOOLBAR -->
 <div class="toolbar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
   <div>
-    <a href="{{ url_for('progressi.check_nutrizionista_completo', patient_id=paziente.id) }}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem; background: #c8c8c8; border-color: #c8c8c8;">
+    <a href="{{ url_for('progressi.check_nutrizionista_completo', patient_id=paziente.id) }}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem; background: #d8d8d8; border-color: #d8d8d8;">
       {{ icon('medical', 16) }} Check nutrizionista
     </a>
     <a href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id) }}" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 0.5rem; margin-left: 0.5rem;">
       {{ icon('user', 14) }} Dettaglio Paziente
     </a>
   </div>
-  <div style="color: #b6b1a9; font-size: 0.9rem;">
+  <div style="color: #d8d8d8; font-size: 0.9rem;">
     {{ progressi|length }} check totali
   </div>
 </div>
 
 {% if progressi %}
 <!-- TABELLA PROGRESSI -->
-<div class="progress-table-container" style="background: rgba(255, 255, 255, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem;">
+<div class="progress-table-container" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem;">
   <div style="overflow-x: auto;">
     <table class="progress-table" style="width: 100%; border-collapse: collapse;">
       <thead>
@@ -49,7 +49,7 @@
         <tr style="border-bottom: 1px solid rgba(182, 177, 169, 0.1); transition: background-color 0.2s ease;">
           <td style="padding: 1rem; color: #ffffff; font-weight: 500;">
             {{ p.data_check.strftime('%d/%m/%Y') }}
-            <br><small style="color: #b6b1a9; font-size: 0.8rem;">{{ p.created_at.strftime('%H:%M') }}</small>
+            <br><small style="color: #d8d8d8; font-size: 0.8rem;">{{ p.created_at.strftime('%H:%M') }}</small>
           </td>
           <td style="padding: 1rem;">
             {% if p.tipo_check == 'nutrizionista' %}
@@ -57,7 +57,7 @@
                 Nutrizionista
               </span>
             {% else %}
-              <span style="color: #c8c8c8; font-weight: 600; background: rgba(255, 255, 255, 0.2); padding: 0.25rem 0.5rem; border-radius: 6px; font-size: 0.85rem;">
+              <span style="color: #d8d8d8; font-weight: 600; background: rgba(255, 255, 255, 0.2); padding: 0.25rem 0.5rem; border-radius: 6px; font-size: 0.85rem;">
                 Paziente
               </span>
             {% endif %}
@@ -67,7 +67,7 @@
               <!-- Check Paziente -->
               <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                 {% if p.peso_settimanale %}
-                  <span style="color: #c8c8c8; font-size: 0.8rem; background: rgba(255, 255, 255, 0.2); padding: 0.2rem 0.4rem; border-radius: 4px;">
+                  <span style="color: #d8d8d8; font-size: 0.8rem; background: rgba(255, 255, 255, 0.2); padding: 0.2rem 0.4rem; border-radius: 4px;">
                     {{ p.peso_settimanale }} kgkg
                   </span>
                 {% endif %}
@@ -91,7 +91,7 @@
               <!-- Check Nutrizionista -->
               <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                 {% if p.misure_antropometriche_rel %}
-                  <span style="color: #c8c8c8; font-size: 0.8rem; background: rgba(255, 255, 255, 0.2); padding: 0.2rem 0.4rem; border-radius: 4px;">
+                  <span style="color: #d8d8d8; font-size: 0.8rem; background: rgba(255, 255, 255, 0.2); padding: 0.2rem 0.4rem; border-radius: 4px;">
                     Misure antropometriche
                   </span>
                 {% endif %}
@@ -101,7 +101,7 @@
                   </span>
                 {% endif %}
                 {% if not p.misure_antropometriche_rel and not p.composizione_corporea_rel %}
-                  <span style="color: #b6b1a9; font-size: 0.8rem;">Nessun dato aggiunto</span>
+                  <span style="color: #d8d8d8; font-size: 0.8rem;">Nessun dato aggiunto</span>
                 {% endif %}
               </div>
             {% endif %}
@@ -134,38 +134,38 @@
   {% set aderenza_media = (progressi_con_aderenza|map(attribute='aderenza')|list|sum / progressi_con_aderenza|length) if progressi_con_aderenza|length > 0 else 0 %}
   
   <div class="stat-card">
-    <div class="adm-icon--lg" style="color:#c8c8c8">{{ icon('scale', 28) }}</div>
-    <div style="font-size: 1.5rem; font-weight: 700; color: #c8c8c8; margin-bottom: 0.25rem;">{{ "%.1f"|format(variazione_peso) }} kg</div>
-    <div style="color: #b6b1a9; font-size: 0.9rem;">Variazione Peso</div>
+    <div class="adm-icon--lg" style="color:#d8d8d8">{{ icon('scale', 28) }}</div>
+    <div style="font-size: 1.5rem; font-weight: 700; color: #d8d8d8; margin-bottom: 0.25rem;">{{ "%.1f"|format(variazione_peso) }} kg</div>
+    <div style="color: #d8d8d8; font-size: 0.9rem;">Variazione Peso</div>
   </div>
   
   <div class="stat-card">
     <div style="font-size: 2rem; color: #b0b0b0; margin-bottom: 0.5rem;">⭐</div>
     <div style="font-size: 1.5rem; font-weight: 700; color: #b0b0b0; margin-bottom: 0.25rem;">{{ "%.1f"|format(aderenza_media) }}/10</div>
-    <div style="color: #b6b1a9; font-size: 0.9rem;">Aderenza Media</div>
-    <div style="color: #b6b1a9; font-size: 0.8rem; margin-top: 0.25rem;">paziente + nutrizionista</div>
+    <div style="color: #d8d8d8; font-size: 0.9rem;">Aderenza Media</div>
+    <div style="color: #d8d8d8; font-size: 0.8rem; margin-top: 0.25rem;">paziente + nutrizionista</div>
   </div>
   
   <div class="stat-card">
     <div class="adm-icon--lg">{{ icon('chart', 28) }}</div>
     <div style="font-size: 1.5rem; font-weight: 700; color: #a8a8a8; margin-bottom: 0.25rem;">{{ progressi|length }}</div>
-    <div style="color: #b6b1a9; font-size: 0.9rem;">Check Totali</div>
-    <div style="color: #b6b1a9; font-size: 0.8rem; margin-top: 0.25rem;">paziente + nutrizionista</div>
+    <div style="color: #d8d8d8; font-size: 0.9rem;">Check Totali</div>
+    <div style="color: #d8d8d8; font-size: 0.8rem; margin-top: 0.25rem;">paziente + nutrizionista</div>
   </div>
   
   <div class="stat-card">
     <div class="adm-icon--lg">{{ icon('camera', 28) }}</div>
     <div style="font-size: 1.5rem; font-weight: 700; color: #909090; margin-bottom: 0.25rem;">{{ progressi|selectattr('foto_path')|list|length }}</div>
-    <div style="color: #b6b1a9; font-size: 0.9rem;">Foto Inviate</div>
+    <div style="color: #d8d8d8; font-size: 0.9rem;">Foto Inviate</div>
   </div>
 </div>
 
 {% else %}
 <!-- NESSUN PROGRESSO -->
-<div class="no-progress" style="text-align: center; padding: 4rem 2rem; background: rgba(255, 255, 255, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px;">
+<div class="no-progress" style="text-align: center; padding: 4rem 2rem; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px;">
   <div class="adm-empty-icon">{{ icon('chart', 48) }}</div>
   <h3 style="color: #d4d4d4; margin-bottom: 1rem;">Nessun Progresso Registrato</h3>
-  <p style="color: #b6b1a9; margin-bottom: 2rem; font-size: 1.1rem;">
+  <p style="color: #d8d8d8; margin-bottom: 2rem; font-size: 1.1rem;">
     {{ paziente.nome }} non ha ancora registrato alcun check dei progressi.
   </p>
   <a href="{{ url_for('progressi.check_nutrizionista_completo', patient_id=paziente.id) }}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem;">

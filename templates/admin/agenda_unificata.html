@@ -70,6 +70,9 @@
   </div>
   <div class="agenda-actions">
     <a href="{{ url_for('slot.orari_settimanali') }}" class="btn btn-primary btn-xl">Orari settimanali</a>
+    <a href="{{ url_for('prenota_public.lista_richieste_admin') }}" class="btn btn-secondary btn-md">
+      Richieste{% if richieste_in_attesa %} ({{ richieste_in_attesa|length }}){% endif %}
+    </a>
     <a href="{{ url_for('appuntamenti.nuovo_admin') }}" class="btn btn-secondary btn-md">Nuovo appuntamento</a>
     <a href="{{ url_for('slot.eccezione_agenda') }}" class="btn btn-ghost btn-sm">Ferie</a>
   </div>
@@ -88,11 +91,18 @@
     <span class="agenda-stat-n">{{ appuntamenti_in_attesa|length }}</span>
     <span class="agenda-stat-l">Da confermare</span>
   </div>
-  <div class="agenda-stat">
-    <span class="agenda-stat-n">{{ orari_settimanali_count }}</span>
-    <span class="agenda-stat-l">Orari settimanali</span>
+  <div class="agenda-stat" {% if richieste_in_attesa|length %}onclick="location.href='{{ url_for('prenota_public.lista_richieste_admin') }}'" style="cursor:pointer;"{% endif %}>
+    <span class="agenda-stat-n">{{ richieste_in_attesa|length }}</span>
+    <span class="agenda-stat-l">Landing /prenota</span>
   </div>
 </div>
+
+{% if richieste_in_attesa %}
+<div class="banner banner-warn">
+  Ci sono <strong>{{ richieste_in_attesa|length }}</strong> richieste pubbliche da gestire.
+  <a href="{{ url_for('prenota_public.lista_richieste_admin') }}">Apri richieste</a>
+</div>
+{% endif %}
 
 {% if not orari_settimanali_count %}
 <div class="banner banner-warn">

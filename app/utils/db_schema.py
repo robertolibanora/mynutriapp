@@ -13,6 +13,27 @@ _NUTRITION_SCHEMA_OK = False
 
 
 _AGENDA_SCHEMA_OK = False
+_RICHIESTE_SCHEMA_OK = False
+
+
+def ensure_richieste_appuntamento_schema() -> None:
+    """Crea la tabella richieste_appuntamento (landing pubblica) se mancante."""
+    global _RICHIESTE_SCHEMA_OK
+    if _RICHIESTE_SCHEMA_OK:
+        return
+    try:
+        from app.models.models import RichiestaAppuntamento
+
+        db.metadata.create_all(
+            bind=db.engine,
+            tables=[RichiestaAppuntamento.__table__],
+            checkfirst=True,
+        )
+        _RICHIESTE_SCHEMA_OK = True
+        logger.info("Schema richieste_appuntamento verificato")
+    except Exception as exc:  # noqa: BLE001
+        db.session.rollback()
+        logger.warning("Impossibile creare lo schema richieste_appuntamento: %s", exc)
 
 
 def ensure_agenda_schema() -> None:
@@ -25,6 +46,7 @@ def ensure_agenda_schema() -> None:
 
         tables = [m.__table__ for m in (OrarioSettimanale, AgendaEccezione)]
         db.metadata.create_all(bind=db.engine, tables=tables, checkfirst=True)
+        ensure_richieste_appuntamento_schema()
 
         # Migrazione una tantum: slot puntuali → orari settimanali ricorrenti.
         if OrarioSettimanale.query.count() == 0:

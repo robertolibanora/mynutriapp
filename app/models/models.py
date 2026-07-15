@@ -523,6 +523,49 @@ class Appuntamento(db.Model):
     def __repr__(self):
         return f"<Appuntamento {self.id} - Paziente {self.patient_id}>"
 
+
+# ========================
+#   MODEL: RichiestaAppuntamento (lead pubblico)
+# ========================
+
+class RichiestaAppuntamento(db.Model):
+    """Richiesta appuntamento da landing pubblica (paziente non ancora in anagrafica)."""
+
+    __tablename__ = "richieste_appuntamento"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    nome = db.Column(db.String(100), nullable=False)
+    cognome = db.Column(db.String(100), nullable=False)
+    telefono = db.Column(db.String(20), nullable=False)
+    email = db.Column(db.String(120))
+
+    data_richiesta = db.Column(db.DateTime, nullable=False)
+    tipo = db.Column(
+        db.Enum("allenamento_1to1", "rinnovo_dieta", "rinnovo_allenamento", "check", "altro"),
+        nullable=False,
+        server_default="altro",
+    )
+    note = db.Column(db.Text)
+
+    stato = db.Column(
+        db.Enum("in_attesa", "accettata", "rifiutata"),
+        nullable=False,
+        server_default="in_attesa",
+    )
+
+    patient_id = db.Column(db.Integer, db.ForeignKey("patients.id"), nullable=True)
+    appuntamento_id = db.Column(db.Integer, db.ForeignKey("appuntamenti.id"), nullable=True)
+
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
+
+    patient = db.relationship("Patient", foreign_keys=[patient_id], lazy=True)
+    appuntamento = db.relationship("Appuntamento", foreign_keys=[appuntamento_id], lazy=True)
+
+    def __repr__(self):
+        return f"<RichiestaAppuntamento {self.id} {self.nome} {self.cognome}>"
+
+
 # ========================
 #   MODEL: Listino
 # ========================

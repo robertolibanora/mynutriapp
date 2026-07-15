@@ -6,19 +6,19 @@
 <div class="patient-header" style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.3) 100%); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; border: 1px solid rgba(255, 255, 255, 0.2);">
   <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
     <div style="display: flex; align-items: center; gap: 1.5rem;">
-      <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #c8c8c8, #a8a8a8); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: white; font-weight: 700;">
+      <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #d8d8d8, #a8a8a8); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: white; font-weight: 700;">
         {{ paziente.nome[0] }}{{ paziente.cognome[0] }}
       </div>
       <div>
         <h1 style="color: #ffffff; margin: 0; font-size: 2.5rem; font-weight: 700;">{{ paziente.nome }} {{ paziente.cognome }}</h1>
-        <p style="color: #b6b1a9; margin: 0.5rem 0 0 0; font-size: 1.1rem;">{{ icon('phone', 14) }} {{ paziente.telefono }}</p>
+        <p style="color: #d8d8d8; margin: 0.5rem 0 0 0; font-size: 1.1rem;">{{ icon('phone', 14) }} {{ paziente.telefono }}</p>
         {% if paziente.data_creazione %}
-        <p style="color: #c8c8c8; margin: 0.25rem 0 0 0; font-size: 0.9rem;">{{ icon('calendar', 14) }} Registrato il {{ paziente.data_creazione.strftime('%d/%m/%Y') }}</p>
+        <p style="color: #d8d8d8; margin: 0.25rem 0 0 0; font-size: 0.9rem;">{{ icon('calendar', 14) }} Registrato il {{ paziente.data_creazione.strftime('%d/%m/%Y') }}</p>
         {% endif %}
       </div>
     </div>
     <div class="header-actions" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-      <a href="{{ url_for('progressi.check_nutrizionista_completo', patient_id=paziente.id) }}" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem; background: #c8c8c8; border-color: #c8c8c8;">
+      <a href="{{ url_for('progressi.check_nutrizionista_completo', patient_id=paziente.id) }}" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem; background: #d8d8d8; border-color: #d8d8d8;">
         {{ icon('medical', 20) }}
         <span>Check Nutrizionista</span>
       </a>
@@ -43,7 +43,7 @@
         <h3 class="alert-title" style="margin: 0 0 0.5rem 0; font-size: 1.2rem; font-weight: 700;">
           {{ alert.titolo }}
         </h3>
-        <p style="color: #b6b1a9; margin: 0; font-size: 0.95rem; line-height: 1.4;">
+        <p style="color: #d8d8d8; margin: 0; font-size: 0.95rem; line-height: 1.4;">
           {{ alert.messaggio }}
         </p>
       </div>
@@ -65,7 +65,7 @@
 {% endif %}
 
 <!-- STATUS PROFILO -->
-<div class="status-card" style="background: rgba(255, 255, 255, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
+<div class="status-card" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
   <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
     <h3 style="color: #d4d4d4; margin: 0;">{{ icon('chart', 16) }} Stato profilo</h3>
     <span class="{% if paziente.intolleranze or paziente.patologie or paziente.allenamenti_descr %}status-complete{% else %}status-incomplete{% endif %}" style="padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">
@@ -77,7 +77,7 @@
     </span>
   </div>
   <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
-    <p style="color: #b6b1a9; margin: 0; flex: 1;">
+    <p style="color: #d8d8d8; margin: 0; flex: 1;">
       {% if paziente.intolleranze or paziente.patologie or paziente.allenamenti_descr %}
         Il profilo contiene informazioni mediche dettagliate per piani personalizzati.
       {% else %}
@@ -98,46 +98,46 @@
 <div class="main-content" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
   
   <!-- DATI ANAGRAFICI -->
-  <div class="content-card" style="background: rgba(255, 255, 255, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px; padding: 1.5rem;">
+  <div class="content-card" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 1.5rem;">
     <h3 style="color: #d4d4d4; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
       {{ icon('user', 16) }} Dati anagrafici
     </h3>
     
     <div class="info-list" style="display: flex; flex-direction: column; gap: 1rem;">
-      <div class="info-item" style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: rgba(255, 255, 255, 0.6); border-radius: 8px;">
-        <span style="color: #b6b1a9; font-size: 0.9rem;">Telefono</span>
+      <div class="info-item" style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: rgba(255, 255, 255, 0.09); border-radius: 8px;">
+        <span style="color: #d8d8d8; font-size: 0.9rem;">Telefono</span>
         <span style="color: #ffffff; font-weight: 600;">{{ paziente.telefono }}</span>
       </div>
       
-      <div class="info-item" style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: rgba(255, 255, 255, 0.6); border-radius: 8px;">
-        <span style="color: #b6b1a9; font-size: 0.9rem;">Password</span>
+      <div class="info-item" style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: rgba(255, 255, 255, 0.09); border-radius: 8px;">
+        <span style="color: #d8d8d8; font-size: 0.9rem;">Password</span>
         <span style="color: #ffffff; font-weight: 600; font-family: monospace;">{{ paziente.password_plain }}</span>
       </div>
       
-      <div class="info-item" style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: rgba(255, 255, 255, 0.6); border-radius: 8px;">
-        <span style="color: #b6b1a9; font-size: 0.9rem;">Data nascita</span>
+      <div class="info-item" style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: rgba(255, 255, 255, 0.09); border-radius: 8px;">
+        <span style="color: #d8d8d8; font-size: 0.9rem;">Data nascita</span>
         <span style="color: #ffffff; font-weight: 600;">{{ paziente.data_nascita.strftime('%d/%m/%Y') if paziente.data_nascita else '—' }}</span>
       </div>
       
-      <div class="info-item" style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: rgba(255, 255, 255, 0.6); border-radius: 8px;">
-        <span style="color: #b6b1a9; font-size: 0.9rem;">Sesso</span>
+      <div class="info-item" style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: rgba(255, 255, 255, 0.09); border-radius: 8px;">
+        <span style="color: #d8d8d8; font-size: 0.9rem;">Sesso</span>
         <span style="color: #ffffff; font-weight: 600;">{{ paziente.sesso }}</span>
       </div>
       
-      <div class="info-item" style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: rgba(255, 255, 255, 0.6); border-radius: 8px;">
-        <span style="color: #b6b1a9; font-size: 0.9rem;">Altezza</span>
+      <div class="info-item" style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: rgba(255, 255, 255, 0.09); border-radius: 8px;">
+        <span style="color: #d8d8d8; font-size: 0.9rem;">Altezza</span>
         <span style="color: #ffffff; font-weight: 600;">{{ paziente.altezza_cm }} cm</span>
       </div>
       
-      <div class="info-item" style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: rgba(255, 255, 255, 0.6); border-radius: 8px;">
-        <span style="color: #b6b1a9; font-size: 0.9rem;">Peso Iniziale</span>
+      <div class="info-item" style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: rgba(255, 255, 255, 0.09); border-radius: 8px;">
+        <span style="color: #d8d8d8; font-size: 0.9rem;">Peso Iniziale</span>
         <span style="color: #ffffff; font-weight: 600;">{{ paziente.peso_iniziale }} kg</span>
       </div>
     </div>
   </div>
 
   <!-- INFORMAZIONI MEDICHE -->
-  <div class="content-card" style="background: rgba(255, 255, 255, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px; padding: 1.5rem;">
+  <div class="content-card" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 1.5rem;">
     <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap;">
       <h3 style="color: #d4d4d4; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
         {{ icon('medical', 16) }} Informazioni mediche
@@ -153,29 +153,29 @@
     </div>
     
     <div class="medical-info" style="display: flex; flex-direction: column; gap: 1rem;">
-      <div class="medical-item {% if paziente.intolleranze %}medical-complete{% else %}medical-incomplete{% endif %}" style="padding: 1rem; background: rgba(255, 255, 255, 0.6); border-radius: 8px;">
-        <div style="color: #b6b1a9; font-size: 0.85rem; margin-bottom: 0.5rem;">Intolleranze</div>
+      <div class="medical-item {% if paziente.intolleranze %}medical-complete{% else %}medical-incomplete{% endif %}" style="padding: 1rem; background: rgba(255, 255, 255, 0.09); border-radius: 8px;">
+        <div style="color: #d8d8d8; font-size: 0.85rem; margin-bottom: 0.5rem;">Intolleranze</div>
         <div style="color: #ffffff; font-size: 0.9rem;">
           {{ paziente.intolleranze or 'Nessuna intolleranza registrata' }}
         </div>
       </div>
       
-      <div class="medical-item {% if paziente.cibi_da_ev %}medical-complete{% else %}medical-incomplete{% endif %}" style="padding: 1rem; background: rgba(255, 255, 255, 0.6); border-radius: 8px;">
-        <div style="color: #b6b1a9; font-size: 0.85rem; margin-bottom: 0.5rem;">Cibi da evitare</div>
+      <div class="medical-item {% if paziente.cibi_da_ev %}medical-complete{% else %}medical-incomplete{% endif %}" style="padding: 1rem; background: rgba(255, 255, 255, 0.09); border-radius: 8px;">
+        <div style="color: #d8d8d8; font-size: 0.85rem; margin-bottom: 0.5rem;">Cibi da evitare</div>
         <div style="color: #ffffff; font-size: 0.9rem;">
           {{ paziente.cibi_da_ev or 'Nessuna restrizione alimentare' }}
         </div>
       </div>
       
-      <div class="medical-item {% if paziente.patologie %}medical-complete{% else %}medical-incomplete{% endif %}" style="padding: 1rem; background: rgba(255, 255, 255, 0.6); border-radius: 8px;">
-        <div style="color: #b6b1a9; font-size: 0.85rem; margin-bottom: 0.5rem;">Patologie</div>
+      <div class="medical-item {% if paziente.patologie %}medical-complete{% else %}medical-incomplete{% endif %}" style="padding: 1rem; background: rgba(255, 255, 255, 0.09); border-radius: 8px;">
+        <div style="color: #d8d8d8; font-size: 0.85rem; margin-bottom: 0.5rem;">Patologie</div>
         <div style="color: #ffffff; font-size: 0.9rem;">
           {{ paziente.patologie or 'Nessuna patologia registrata' }}
         </div>
       </div>
       
-      <div class="medical-item {% if paziente.esami_biochimici %}medical-complete{% else %}medical-incomplete{% endif %}" style="padding: 1rem; background: rgba(255, 255, 255, 0.6); border-radius: 8px;">
-        <div style="color: #b6b1a9; font-size: 0.85rem; margin-bottom: 0.5rem;">Esami biochimici</div>
+      <div class="medical-item {% if paziente.esami_biochimici %}medical-complete{% else %}medical-incomplete{% endif %}" style="padding: 1rem; background: rgba(255, 255, 255, 0.09); border-radius: 8px;">
+        <div style="color: #d8d8d8; font-size: 0.85rem; margin-bottom: 0.5rem;">Esami biochimici</div>
         <div style="color: #ffffff; font-size: 0.9rem;">
           {{ paziente.esami_biochimici or 'Nessun esame registrato' }}
         </div>
@@ -185,7 +185,7 @@
 </div>
 
 <!-- ATTIVITÀ FISICA -->
-<div class="activity-card" style="background: rgba(255, 255, 255, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem;">
+<div class="activity-card" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem;">
   <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap;">
     <h3 style="color: #d4d4d4; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
       {{ icon('dumbbell', 16) }} Attività fisica
@@ -200,8 +200,8 @@
     </a>
   </div>
   
-  <div class="{% if paziente.allenamenti_descr %}medical-complete{% else %}medical-incomplete{% endif %}" style="padding: 1rem; background: rgba(255, 255, 255, 0.6); border-radius: 8px;">
-    <div style="color: #b6b1a9; font-size: 0.85rem; margin-bottom: 0.5rem;">Descrizione allenamenti</div>
+  <div class="{% if paziente.allenamenti_descr %}medical-complete{% else %}medical-incomplete{% endif %}" style="padding: 1rem; background: rgba(255, 255, 255, 0.09); border-radius: 8px;">
+    <div style="color: #d8d8d8; font-size: 0.85rem; margin-bottom: 0.5rem;">Descrizione allenamenti</div>
     <div style="color: #ffffff; font-size: 0.9rem;">
       {{ paziente.allenamenti_descr or 'Nessun allenamento personalizzato registrato' }}
     </div>
@@ -210,13 +210,13 @@
 
 <!-- GRAFICO PROGRESSI -->
 {% if progressi %}
-<div class="progress-chart-section" style="background: rgba(255, 255, 255, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem;">
+<div class="progress-chart-section" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem;">
   <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
     <div>
       <h3 style="color: #d4d4d4; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
         Andamento peso e aderenza
       </h3>
-      <p style="color: #b6b1a9; font-size: 0.9rem; margin: 0.25rem 0 0 0;">Include check paziente + nutrizionista</p>
+      <p style="color: #d8d8d8; font-size: 0.9rem; margin: 0.25rem 0 0 0;">Include check paziente + nutrizionista</p>
     </div>
     <div style="display: flex; gap: 0.5rem;">
       <a href="{{ url_for('progressi.check_nutrizionista_completo', patient_id=paziente.id) }}" class="btn btn-primary btn-small">{{ icon('plus', 16) }} Nuovo Check</a>
@@ -224,25 +224,25 @@
   </div>
   
   <!-- CANVAS GRAFICO -->
-  <div style="position: relative; height: 400px; background: rgba(255, 255, 255, 0.6); border-radius: 12px; padding: 1rem;">
+  <div style="position: relative; height: 400px; background: rgba(255, 255, 255, 0.09); border-radius: 12px; padding: 1rem;">
     <canvas id="progressChart"></canvas>
   </div>
   
   <!-- LEGENDA ADERENZA -->
-  <div style="margin-top: 1rem; padding: 1rem; background: rgba(255, 255, 255, 0.6); border-radius: 8px;">
-    <div style="color: #b6b1a9; font-size: 0.85rem; margin-bottom: 0.5rem;">Legenda aderenza:</div>
+  <div style="margin-top: 1rem; padding: 1rem; background: rgba(255, 255, 255, 0.09); border-radius: 8px;">
+    <div style="color: #d8d8d8; font-size: 0.85rem; margin-bottom: 0.5rem;">Legenda aderenza:</div>
     <div style="display: flex; gap: 1.5rem; flex-wrap: wrap;">
       <div style="display: flex; align-items: center; gap: 0.5rem;">
-        <div style="width: 12px; height: 12px; background: #c8c8c8; border-radius: 50%;"></div>
-        <span style="color: #b6b1a9; font-size: 0.85rem;">8-10 (Ottima)</span>
+        <div style="width: 12px; height: 12px; background: #d8d8d8; border-radius: 50%;"></div>
+        <span style="color: #d8d8d8; font-size: 0.85rem;">8-10 (Ottima)</span>
       </div>
       <div style="display: flex; align-items: center; gap: 0.5rem;">
         <div style="width: 12px; height: 12px; background: #b0b0b0; border-radius: 50%;"></div>
-        <span style="color: #b6b1a9; font-size: 0.85rem;">5-7 (Buona)</span>
+        <span style="color: #d8d8d8; font-size: 0.85rem;">5-7 (Buona)</span>
       </div>
       <div style="display: flex; align-items: center; gap: 0.5rem;">
         <div style="width: 12px; height: 12px; background: #F44336; border-radius: 50%;"></div>
-        <span style="color: #b6b1a9; font-size: 0.85rem;">1-4 (Scarsa)</span>
+        <span style="color: #d8d8d8; font-size: 0.85rem;">1-4 (Scarsa)</span>
       </div>
     </div>
   </div>
@@ -251,7 +251,7 @@
 
 <!-- FOTO PROGRESSI -->
 {% if foto_inviate > 0 %}
-<div class="photos-section" style="background: rgba(255, 255, 255, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem;">
+<div class="photos-section" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem;">
   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
     <h3 style="color: #d4d4d4; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
       Foto progressi
@@ -264,7 +264,7 @@
   <div class="photos-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem;">
     {% for progresso in progressi %}
       {% if progresso.foto_path %}
-      <div class="photo-card" style="background: rgba(255, 255, 255, 0.6); border-radius: 12px; padding: 1rem; border: 1px solid rgba(182, 177, 169, 0.1);">
+      <div class="photo-card" style="background: rgba(255, 255, 255, 0.09); border-radius: 12px; padding: 1rem; border: 1px solid rgba(182, 177, 169, 0.1);">
         <div style="position: relative; margin-bottom: 0.75rem;">
           <img src="{{ url_for('static', filename=progresso.foto_path) }}" 
                alt="Foto progresso {{ progresso.data_check.strftime('%d/%m/%Y') }}"
@@ -275,7 +275,7 @@
           <div style="color: #ffffff; font-size: 0.9rem; font-weight: 600; margin-bottom: 0.25rem;">
             {{ progresso.data_check.strftime('%d/%m/%Y') }}
           </div>
-          <div style="color: #b6b1a9; font-size: 0.8rem;">
+          <div style="color: #d8d8d8; font-size: 0.8rem;">
             {% if progresso.tipo_check == 'nutrizionista' %}
               {{ icon('medical', 16) }} Check nutrizionista
             {% else %}
@@ -283,7 +283,7 @@
             {% endif %}
           </div>
           {% if progresso.peso_settimanale %}
-          <div style="color: #c8c8c8; font-size: 0.8rem; font-weight: 600; margin-top: 0.25rem;">
+          <div style="color: #d8d8d8; font-size: 0.8rem; font-weight: 600; margin-top: 0.25rem;">
             {{ "%.1f"|format(progresso.peso_settimanale) }} kg
           </div>
           {% endif %}
@@ -326,7 +326,7 @@ document.addEventListener('keydown', function(e) {
 {% endif %}
 
 <!-- PIANI ALIMENTARI (NUOVO FLUSSO STRUTTURATO) -->
-<div class="management-card" style="background: rgba(255, 255, 255, 0.4); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
+<div class="management-card" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
   <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.8rem;margin-bottom:1rem;">
     <h3 style="color: #d4d4d4; margin:0; display: flex; align-items: center; gap: 0.5rem;">
       {{ icon('diet', 18) }} Piani alimentari
@@ -340,9 +340,9 @@ document.addEventListener('keydown', function(e) {
     <div style="display:flex;justify-content:space-between;align-items:center;gap:.8rem;padding:.7rem .9rem;background:rgba(0,0,0,.18);border-radius:8px;flex-wrap:wrap;">
       <div>
         <div style="color:#fff;font-weight:600;">{{ dp.title }}</div>
-        <div style="color:#b6b1a9;font-size:.82rem;">
+        <div style="color:#d8d8d8;font-size:.82rem;">
           {% if dp.goal %}{{ dp.goal }} · {% endif %}{{ dp.meals|length }} pasti ·
-          <span style="color:{{ '#c8c8c8' if dp.status == 'published' else '#b0b0b0' }};">{{ 'Pubblicata' if dp.status == 'published' else 'Bozza' }}</span>
+          <span style="color:{{ '#d8d8d8' if dp.status == 'published' else '#b0b0b0' }};">{{ 'Pubblicata' if dp.status == 'published' else 'Bozza' }}</span>
         </div>
       </div>
       <a href="{{ url_for('diete_plans.diet_plan_detail', diet_plan_id=dp.id) }}" class="btn btn-white btn-small">{{ icon('eye', 14) }} Visualizza / Modifica</a>
@@ -350,14 +350,14 @@ document.addEventListener('keydown', function(e) {
     {% endfor %}
   </div>
   {% else %}
-  <p style="color:#b6b1a9;font-size:.9rem;margin:0;">Nessun piano alimentare strutturato. Clicca <strong>Crea dieta</strong> per iniziare con ricerca alimenti e calcolo automatico dei macro.</p>
+  <p style="color:#d8d8d8;font-size:.9rem;margin:0;">Nessun piano alimentare strutturato. Clicca <strong>Crea dieta</strong> per iniziare con ricerca alimenti e calcolo automatico dei macro.</p>
   {% endif %}
 
   <!-- DIETE PDF LEGACY -->
   {% if paziente.diete %}
   <div style="margin-top:1.3rem;border-top:1px dashed rgba(182,177,169,.25);padding-top:1rem;">
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.6rem;margin-bottom:.6rem;">
-      <h4 style="color:#b6b1a9;margin:0;font-size:.9rem;">Diete caricate come PDF (archivio)</h4>
+      <h4 style="color:#d8d8d8;margin:0;font-size:.9rem;">Diete caricate come PDF (archivio)</h4>
       <a href="{{ url_for('diete.nuova_dieta', patient_id=paziente.id) }}" class="btn btn-secondary btn-small">{{ icon('file', 14) }} Carica PDF</a>
     </div>
     <div style="display:flex;flex-direction:column;gap:.4rem;">
@@ -376,11 +376,11 @@ document.addEventListener('keydown', function(e) {
 <div class="management-section" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
   
   <!-- ALLENAMENTI -->
-  <div class="management-card" style="background: rgba(255, 255, 255, 0.4); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 12px; padding: 1.5rem;">
+  <div class="management-card" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 12px; padding: 1.5rem;">
     <h3 style="color: #d4d4d4; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
       Allenamenti
     </h3>
-    <p style="color: #b6b1a9; margin-bottom: 1rem; font-size: 0.9rem;">Crea programmi di allenamento</p>
+    <p style="color: #d8d8d8; margin-bottom: 1rem; font-size: 0.9rem;">Crea programmi di allenamento</p>
     <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
       <a href="{{ url_for('allenamenti.nuovo_allenamento', patient_id=paziente.id) }}" class="btn btn-primary btn-small">{{ icon('plus', 16) }} Nuovo</a>
       <a href="{{ url_for('allenamenti.allenamenti_paziente', patient_id=paziente.id) }}" class="btn btn-white btn-small adm-icon-btn">{{ icon('eye', 14) }} Tutti</a>
@@ -388,11 +388,11 @@ document.addEventListener('keydown', function(e) {
   </div>
 
   <!-- PROGRESSI -->
-  <div class="management-card" style="background: rgba(255, 255, 255, 0.4); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 12px; padding: 1.5rem;">
+  <div class="management-card" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 12px; padding: 1.5rem;">
     <h3 style="color: #d4d4d4; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
       Progressi
     </h3>
-    <p style="color: #b6b1a9; margin-bottom: 1rem; font-size: 0.9rem;">Monitora i risultati</p>
+    <p style="color: #d8d8d8; margin-bottom: 1rem; font-size: 0.9rem;">Monitora i risultati</p>
     <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
       <a href="{{ url_for('progressi.check_nutrizionista_completo', patient_id=paziente.id) }}" class="btn btn-primary btn-small">{{ icon('plus', 16) }} Nuovo</a>
       <a href="{{ url_for('progressi.progressi_paziente_admin', patient_id=paziente.id) }}" class="btn btn-white btn-small adm-icon-btn">{{ icon('eye', 14) }} Tutti</a>
@@ -400,11 +400,11 @@ document.addEventListener('keydown', function(e) {
   </div>
 
   <!-- DOCUMENTI -->
-  <div class="management-card" style="background: rgba(255, 255, 255, 0.4); border: 1px solid rgba(255, 152, 0, 0.3); border-radius: 12px; padding: 1.5rem;">
+  <div class="management-card" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 152, 0, 0.3); border-radius: 12px; padding: 1.5rem;">
     <h3 style="color: #d4d4d4; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
       {{ icon('file', 16) }} Documenti
     </h3>
-    <p style="color: #b6b1a9; margin-bottom: 1rem; font-size: 0.9rem;">Documenti caricati dal paziente</p>
+    <p style="color: #d8d8d8; margin-bottom: 1rem; font-size: 0.9rem;">Documenti caricati dal paziente</p>
     <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
       <a href="{{ url_for('documenti.lista_documenti_admin', patient_id=paziente.id) }}" class="btn btn-primary btn-small">{{ icon('eye', 16) }} Visualizza ({{ documenti|length }})</a>
     </div>
@@ -426,7 +426,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Funzione per determinare il colore in base all'aderenza
     function getAdherenceColor(aderenza) {
-        if (aderenza >= 8) return '#c8c8c8';  // Verde (Ottima)
+        if (aderenza >= 8) return '#d8d8d8';  // Verde (Ottima)
         if (aderenza >= 5) return '#b0b0b0';  // Giallo (Buona)
         return '#F44336';                      // Rosso (Scarsa)
     }
@@ -461,7 +461,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 legend: {
                     display: true,
                     labels: {
-                        color: '#b6b1a9',
+                        color: '#d8d8d8',
                         font: {
                             size: 14,
                             weight: '600'
@@ -496,7 +496,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         color: 'rgba(182, 177, 169, 0.1)'
                     },
                     ticks: {
-                        color: '#b6b1a9',
+                        color: '#d8d8d8',
                         font: {
                             size: 12
                         },
@@ -510,7 +510,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         color: 'rgba(182, 177, 169, 0.1)'
                     },
                     ticks: {
-                        color: '#b6b1a9',
+                        color: '#d8d8d8',
                         font: {
                             size: 11
                         },

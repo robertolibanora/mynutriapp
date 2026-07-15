@@ -230,6 +230,29 @@ CREATE TABLE IF NOT EXISTS appuntamenti (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ========================================
+-- 📋 TABELLA: richieste_appuntamento (lead da landing pubblica)
+-- ========================================
+CREATE TABLE IF NOT EXISTS richieste_appuntamento (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    cognome VARCHAR(100) NOT NULL,
+    telefono VARCHAR(20) NOT NULL,
+    email VARCHAR(120),
+    data_richiesta DATETIME NOT NULL,
+    tipo ENUM('allenamento_1to1', 'rinnovo_dieta', 'rinnovo_allenamento', 'check', 'altro') NOT NULL DEFAULT 'altro',
+    note TEXT,
+    stato ENUM('in_attesa', 'accettata', 'rifiutata') NOT NULL DEFAULT 'in_attesa',
+    patient_id INT,
+    appuntamento_id INT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE SET NULL,
+    FOREIGN KEY (appuntamento_id) REFERENCES appuntamenti(id) ON DELETE SET NULL,
+    INDEX idx_richieste_stato (stato),
+    INDEX idx_richieste_data (data_richiesta),
+    INDEX idx_richieste_telefono (telefono)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ========================================
 -- 📋 TABELLA: slot_disponibilita
 -- ========================================
 CREATE TABLE IF NOT EXISTS slot_disponibilita (

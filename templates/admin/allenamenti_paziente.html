@@ -7,11 +7,11 @@
   <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
     <div>
       <h1 style="color: #d4d4d4; margin: 0; font-size: 2.2rem; font-weight: 700;">Allenamenti di {{ paziente.nome }} {{ paziente.cognome }}</h1>
-      <p style="color: #b6b1a9; margin: 0.5rem 0 0 0; font-size: 1.1rem;">Piani di allenamento personalizzati per il paziente</p>
+      <p style="color: #d8d8d8; margin: 0.5rem 0 0 0; font-size: 1.1rem;">Piani di allenamento personalizzati per il paziente</p>
     </div>
     <div style="text-align: right;">
       <div style="color: #ffffff; font-size: 1.1rem; font-weight: 600;">{{ paziente.telefono or 'N/A' }}</div>
-      <div style="color: #b6b1a9; font-size: 0.9rem;">{{ paziente.email or 'N/A' }}</div>
+      <div style="color: #d8d8d8; font-size: 0.9rem;">{{ paziente.email or 'N/A' }}</div>
     </div>
   </div>
 </div>
@@ -26,14 +26,14 @@
       {{ icon('user', 14) }} Dettaglio Paziente
     </a>
   </div>
-  <div style="color: #b6b1a9; font-size: 0.9rem;">
+  <div style="color: #d8d8d8; font-size: 0.9rem;">
     {{ allenamenti|length }} allenamenti totali
   </div>
 </div>
 
 {% if allenamenti %}
 <!-- TABELLA ALLENAMENTI -->
-<div class="allenamenti-table-container" style="background: rgba(255, 255, 255, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem;">
+<div class="allenamenti-table-container" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem;">
   <div style="overflow-x: auto;">
     <table class="allenamenti-table" style="width: 100%; border-collapse: collapse;">
       <thead>
@@ -54,11 +54,11 @@
           <td style="padding: 1rem; color: #ffffff; font-weight: 500;">
             {{ a.data_fine.strftime('%d/%m/%Y') }}
           </td>
-          <td style="padding: 1rem; color: #c8c8c8; font-weight: 600;">
+          <td style="padding: 1rem; color: #d8d8d8; font-weight: 600;">
             {% set durata_giorni = (a.data_fine - a.data_inizio).days + 1 %}
             {{ durata_giorni }} {{ 'giorno' if durata_giorni == 1 else 'giorni' }}
           </td>
-          <td style="padding: 1rem; color: #b6b1a9; max-width: 200px;">
+          <td style="padding: 1rem; color: #d8d8d8; max-width: 200px;">
             {% if a.note %}
               <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ a.note }}">
                 {{ a.note }}
@@ -73,7 +73,7 @@
                 {{ icon('file', 16) }} Visualizza
               </a>
             {% else %}
-              <span style="color: #b6b1a9; font-size: 0.85rem;">Nessun PDF</span>
+              <span style="color: #d8d8d8; font-size: 0.85rem;">Nessun PDF</span>
             {% endif %}
           </td>
         </tr>
@@ -92,13 +92,13 @@
   <div class="stat-card">
     <div class="adm-icon--lg">{{ icon('activity', 28) }}</div>
     <div style="font-size: 1.5rem; font-weight: 700; color: #a8a8a8; margin-bottom: 0.25rem;">{{ allenamenti|length }}</div>
-    <div style="color: #b6b1a9; font-size: 0.9rem;">Allenamenti Totali</div>
+    <div style="color: #d8d8d8; font-size: 0.9rem;">Allenamenti Totali</div>
   </div>
   
   <div class="stat-card">
     <div class="adm-icon--lg">{{ icon('chart', 28) }}</div>
-    <div style="font-size: 1.5rem; font-weight: 700; color: #c8c8c8; margin-bottom: 0.25rem;">{{ pdf_totali }}</div>
-    <div style="color: #b6b1a9; font-size: 0.9rem;">PDF Disponibili</div>
+    <div style="font-size: 1.5rem; font-weight: 700; color: #d8d8d8; margin-bottom: 0.25rem;">{{ pdf_totali }}</div>
+    <div style="color: #d8d8d8; font-size: 0.9rem;">PDF Disponibili</div>
   </div>
   
   <div class="stat-card">
@@ -110,7 +110,7 @@
         Nessuno
       {% endif %}
     </div>
-    <div style="color: #b6b1a9; font-size: 0.9rem;">Allenamento Attivo</div>
+    <div style="color: #d8d8d8; font-size: 0.9rem;">Allenamento Attivo</div>
   </div>
   
   <div class="stat-card">
@@ -122,16 +122,16 @@
         —
       {% endif %}
     </div>
-    <div style="color: #b6b1a9; font-size: 0.9rem;">Ultimo Allenamento</div>
+    <div style="color: #d8d8d8; font-size: 0.9rem;">Ultimo Allenamento</div>
   </div>
 </div>
 
 {% else %}
 <!-- NESSUN ALLENAMENTO -->
-<div class="no-allenamenti" style="text-align: center; padding: 4rem 2rem; background: rgba(255, 255, 255, 0.4); border: 1px solid rgba(182, 177, 169, 0.2); border-radius: 16px;">
+<div class="no-allenamenti" style="text-align: center; padding: 4rem 2rem; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px;">
   <div class="adm-empty-icon">{{ icon('dumbbell', 48) }}</div>
   <h3 style="color: #a8a8a8; margin-bottom: 1rem;">Nessun Allenamento Registrato</h3>
-  <p style="color: #b6b1a9; margin-bottom: 2rem; font-size: 1.1rem;">
+  <p style="color: #d8d8d8; margin-bottom: 2rem; font-size: 1.1rem;">
     {{ paziente.nome }} non ha ancora ricevuto alcun piano di allenamento.
   </p>
   <a href="{{ url_for('allenamenti.nuovo_allenamento', patient_id=paziente.id) }}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem;">

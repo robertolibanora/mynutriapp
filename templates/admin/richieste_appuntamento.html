@@ -1,0 +1,72 @@
+{% extends 'base_admin.html' %}
+{% block title %}Richieste appuntamento{% endblock %}
+{% block nav_label %}Richieste pubbliche{% endblock %}
+
+{% block content %}
+<header class="agenda-top">
+  <div class="agenda-top-main">
+    <h1 style="margin:0;font-size:1.25rem;">Richieste da landing</h1>
+    <p class="agenda-meta">Prenotazioni inviate da /prenota senza account</p>
+  </div>
+  <div class="agenda-actions">
+    <a href="{{ url_for('agenda.agenda_unificata', tab='appuntamenti', filtro='da_confermare') }}" class="btn btn-ghost btn-sm">Torna agenda</a>
+    <a href="{{ url_for('patients.nuovo_paziente') }}" class="btn btn-secondary btn-sm">Nuovo paziente</a>
+    <a href="{{ url_for('patients.lista_pazienti') }}" class="btn btn-ghost btn-sm">Anagrafica</a>
+  </div>
+</header>
+
+{% set in_attesa = richieste|selectattr('stato', 'equalto', 'in_attesa')|list %}
+
+{% if in_attesa %}
+<div class="banner banner-warn" style="margin-bottom:1rem;">
+  {{ in_attesa|length }} richiesta{{ 'e' if in_attesa|length != 1 else '' }} in attesa di gestione.
+  Per accettare, collega un paziente già in anagrafica (crealo prima se nuovo).
+</div>
+{% endif %}
+
+{% if richieste %}
+<div class="appt-list">
+  {% for r in richieste %}
+  <article class="appt-card">
+    <div class="appt-card-main">
+      <time class="appt-time">{{ r.data_richiesta.strftime('%d/%m %H:%M') }}</time>
+      <div>
+        <div class="appt-name">{{ r.nome }} {{ r.cognome }}</div>
+        <div class="appt-type">
+          {{ tipi_label.get(r.tipo, r.tipo.replace('_', ' ')) }}
+          · {{ r.telefono }}{% if r.email %} · {{ r.email }}{% endif %}
+        </div>
+      </div>
+      <span class="appt-status appt-status--{{ 'in_attesa' if r.stato == 'in_attesa' else ('confermato' if r.stato == 'accettata' else 'annullato') }}">
+        {{ r.stato.replace('_', ' ') }}
+      </span>
+    </div>
+    {% if r.note %}<p class="appt-note">{{ r.note }}</p>{% endif %}
+
+    {% if r.stato == 'in_attesa' %}
+    <div class="appt-actions" style="flex-wrap:wrap;gap:0.5rem;align-items:center;">
+      <form method="POST" action="{{ url_for('prenota_public.accetta_richiesta', id=r.id) }}" style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;flex:1;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <select name="patient_id" required class="btn btn-ghost btn-sm" style="min-width:180px;max-width:280px;">
+          <option value="">Collega paziente...</option>
+          {% for p in pazienti %}
+          <option value="{{ p.id }}" {% if p.telefono and r.telefono and p.telefono.replace(' ', '')[-9:] == r.telefono.replace(' ', '')[-9:] %}selected{% endif %}>{{ p.cognome }} {{ p.nome }} — {{ p.telefono }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-primary btn-sm">Accetta</button>
+      </form>
+      <form method="POST" action="{{ url_for('prenota_public.rifiuta_richiesta', id=r.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <button type="submit" class="btn btn-ghost btn-xs" onclick="return confirm('Rifiutare e liberare lo slot?')">Rifiuta</button>
+      </form>
+    </div>
+    {% elif r.appuntamento_id %}
+    <p class="appt-note" style="opacity:0.7;">Appuntamento #{{ r.appuntamento_id }}{% if r.patient %} · {{ r.patient.nome }} {{ r.patient.cognome }}{% endif %}</p>
+    {% endif %}
+  </article>
+  {% endfor %}
+</div>
+{% else %}
+<p class="text-muted" style="padding:2rem 0;">Nessuna richiesta pubblica al momento.</p>
+{% endif %}
+{% endblock %}

@@ -7,19 +7,19 @@
   <div class="stat-card">
     <div class="adm-icon--lg">{{ icon('calendar', 28) }}</div>
     <div style="font-size: 1.8rem; font-weight: 700; color: #d4d4d4;">{{ appuntamenti|length }}</div>
-    <div style="color: #b6b1a9; font-size: 0.9rem;">Appuntamenti Totali</div>
+    <div style="color: #d8d8d8; font-size: 0.9rem;">Appuntamenti Totali</div>
   </div>
   
   <div class="stat-card">
     <div class="adm-icon--lg">{{ icon('check-circle', 28) }}</div>
-    <div style="font-size: 1.8rem; font-weight: 700; color: #c8c8c8;">{{ appuntamenti|selectattr('stato', 'equalto', 'confermato')|list|length }}</div>
-    <div style="color: #b6b1a9; font-size: 0.9rem;">Confermati</div>
+    <div style="font-size: 1.8rem; font-weight: 700; color: #d8d8d8;">{{ appuntamenti|selectattr('stato', 'equalto', 'confermato')|list|length }}</div>
+    <div style="color: #d8d8d8; font-size: 0.9rem;">Confermati</div>
   </div>
   
   <div class="stat-card">
     <div class="adm-icon--lg">{{ icon('hourglass', 28) }}</div>
     <div style="font-size: 1.8rem; font-weight: 700; color: #b0b0b0;">{{ appuntamenti|selectattr('stato', 'equalto', 'in_attesa')|list|length }}</div>
-    <div style="color: #b6b1a9; font-size: 0.9rem;">In Attesa</div>
+    <div style="color: #d8d8d8; font-size: 0.9rem;">In Attesa</div>
   </div>
 </div>
 
@@ -42,7 +42,7 @@
 {% if appuntamenti %}
 <div class="appointments-grid" style="display: grid; gap: 1rem;">
   {% for a in appuntamenti %}
-  <div class="appointment-card" style="background: rgba(255, 255, 255, 0.4); border: 1px solid {% if a.stato == 'confermato' %}rgba(255, 255, 255, 0.3){% elif a.stato == 'in_attesa' %}rgba(255, 255, 255, 0.3){% else %}rgba(182, 177, 169, 0.3){% endif %}; border-radius: 12px; padding: 1.5rem; transition: all 0.3s ease;">
+  <div class="appointment-card" style="background: rgba(255, 255, 255, 0.06); border: 1px solid {% if a.stato == 'confermato' %}rgba(255, 255, 255, 0.3){% elif a.stato == 'in_attesa' %}rgba(255, 255, 255, 0.3){% else %}rgba(255, 255, 255, 0.16){% endif %}; border-radius: 12px; padding: 1.5rem; transition: all 0.3s ease;">
     
     <div style="display: grid; grid-template-columns: auto 1fr auto; gap: 1.5rem; align-items: center;">
       
@@ -52,7 +52,7 @@
           <div style="font-size: 1.5rem; font-weight: 700;">{{ a.data_appuntamento.strftime('%d') }}</div>
           <div style="font-size: 0.75rem; text-transform: uppercase;">{{ a.data_appuntamento.strftime('%b') }}</div>
         </div>
-        <div style="color: #b6b1a9; font-size: 0.85rem; margin-top: 0.5rem;">{{ a.data_appuntamento.strftime('%H:%M') }}</div>
+        <div style="color: #d8d8d8; font-size: 0.85rem; margin-top: 0.5rem;">{{ a.data_appuntamento.strftime('%H:%M') }}</div>
       </div>
       
       <!-- INFORMAZIONI -->
@@ -61,18 +61,18 @@
           <div style="font-size: 1.2rem; font-weight: 600; color: #ffffff;">
             {{ a.patient.nome }} {{ a.patient.cognome }}
           </div>
-          <span style="padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600; {% if a.stato == 'confermato' %}background: rgba(255, 255, 255, 0.2); color: #c8c8c8;{% elif a.stato == 'in_attesa' %}background: rgba(255, 255, 255, 0.2); color: #b0b0b0;{% else %}background: rgba(182, 177, 169, 0.2); color: #b6b1a9;{% endif %}">
+          <span style="padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600; {% if a.stato == 'confermato' %}background: rgba(255, 255, 255, 0.2); color: #d8d8d8;{% elif a.stato == 'in_attesa' %}background: rgba(255, 255, 255, 0.2); color: #b0b0b0;{% else %}background: rgba(255, 255, 255, 0.12); color: #d8d8d8;{% endif %}">
             {{ a.stato|upper }}
           </span>
         </div>
         
         <div style="display: flex; gap: 1.5rem; flex-wrap: wrap; margin-top: 0.75rem;">
-          <div style="display: flex; align-items: center; gap: 0.5rem; color: #b6b1a9; font-size: 0.9rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; color: #d8d8d8; font-size: 0.9rem;">
             {{ icon('clipboard', 16) }}
             <span>{{ a.tipo }}</span>
           </div>
           
-          <div style="display: flex; align-items: center; gap: 0.5rem; color: #b6b1a9; font-size: 0.9rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; color: #d8d8d8; font-size: 0.9rem;">
             {{ icon('user', 16) }}
             <span>Creato da: {{ a.created_by }}</span>
           </div>
@@ -125,7 +125,7 @@
 
 {% else %}
 <!-- EMPTY STATE -->
-<div class="empty-state" style="text-align: center; padding: 4rem 2rem; background: rgba(255, 255, 255, 0.2); border: 2px dashed rgba(182, 177, 169, 0.3); border-radius: 12px;">
+<div class="empty-state" style="text-align: center; padding: 4rem 2rem; background: rgba(255, 255, 255, 0.2); border: 2px dashed rgba(255, 255, 255, 0.16); border-radius: 12px;">
   <div class="adm-empty-icon">{{ icon('calendar', 48) }}</div>
   <h3 style="color: #d4d4d4; margin-bottom: 2rem;">Nessun appuntamento programmato</h3>
   <a href="{{ url_for('appuntamenti.nuovo_admin') }}" class="btn btn-primary" style="font-size: 1.1rem; padding: 1rem 2rem;">

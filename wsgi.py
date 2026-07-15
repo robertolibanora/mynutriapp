@@ -240,14 +240,13 @@ def inject_admin_name():
 if limiter and limiter_enabled:
     try:
         for rule in app.url_map.iter_rules():
-            if rule.endpoint == 'auth.login':
+            if rule.endpoint in ('auth.login', 'prenota_public.prenota_landing'):
                 view_func = app.view_functions[rule.endpoint]
-                # Applica limit solo per metodo POST con configurazione dinamica
                 app.view_functions[rule.endpoint] = limiter.limit(
                     get_login_limit()
                 )(view_func)
     except Exception as e:
-        logger.warning(f"⚠️  Errore applicazione rate limit al login: {e}")
+        logger.warning(f"⚠️  Errore applicazione rate limit al login/prenota: {e}")
 
 
 # ===========================================
