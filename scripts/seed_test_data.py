@@ -3,8 +3,8 @@
 Popola il database MyNutriApp con dati di test.
 
 Uso:
-    python scripts/seed_test_data.py
-    python scripts/seed_test_data.py --reset   # svuota e ripopola
+    python scripts/seed_test_data.py            # additivo: non cancella, salta telefoni già presenti
+    python scripts/seed_test_data.py --reset    # svuota e ripopola
 """
 from __future__ import annotations
 
@@ -39,6 +39,93 @@ from app.utils.encryption import encrypt_field
 
 TEST_PASSWORD = "test123"
 
+PATIENTS_DATA = [
+    {
+        "nome": "Maria",
+        "cognome": "Rossi",
+        "sesso": "F",
+        "data_nascita": date(1990, 3, 15),
+        "telefono": "3401234567",
+        "altezza_cm": 165,
+        "peso_iniziale": 72.5,
+        "intolleranze": "Lattosio",
+        "cibi_da_ev": "Fritti, bibite zuccherate",
+        "patologie": "Ipotiroidismo in terapia",
+        "allenamenti_descr": "3x settimana palestra + camminata",
+        "esami_biochimici": "Glicemia 92 mg/dl, Colesterolo totale 195",
+    },
+    {
+        "nome": "Luca",
+        "cognome": "Bianchi",
+        "sesso": "M",
+        "data_nascita": date(1985, 7, 22),
+        "telefono": "3409876543",
+        "altezza_cm": 178,
+        "peso_iniziale": 88.0,
+        "intolleranze": None,
+        "cibi_da_ev": "Alcol, dolci serali",
+        "patologie": None,
+        "allenamenti_descr": "Crossfit 4x settimana",
+        "esami_biochimici": "Emocromo nella norma",
+    },
+    {
+        "nome": "Giulia",
+        "cognome": "Verdi",
+        "sesso": "F",
+        "data_nascita": date(1998, 11, 8),
+        "telefono": "3471122334",
+        "altezza_cm": 170,
+        "peso_iniziale": 63.0,
+        "intolleranze": "Glutine",
+        "cibi_da_ev": "Prodotti industriali",
+        "patologie": "Celiachia diagnosticata",
+        "allenamenti_descr": "Yoga 2x + nuoto 1x",
+        "esami_biochimici": "Ferritina 45 ng/ml",
+    },
+    {
+        "nome": "Marco",
+        "cognome": "Ferrari",
+        "sesso": "M",
+        "data_nascita": date(1978, 1, 30),
+        "telefono": "3334455667",
+        "altezza_cm": 182,
+        "peso_iniziale": 95.5,
+        "intolleranze": None,
+        "cibi_da_ev": "Fast food",
+        "patologie": "Ipertensione lieve",
+        "allenamenti_descr": "Camminata quotidiana 30 min",
+        "esami_biochimici": "PA 135/85, LDL 130",
+    },
+    {
+        "nome": "Sofia",
+        "cognome": "Neri",
+        "sesso": "F",
+        "data_nascita": date(1995, 6, 12),
+        "telefono": "3395566778",
+        "altezza_cm": 168,
+        "peso_iniziale": 68.0,
+        "intolleranze": "Nichel",
+        "cibi_da_ev": "Cibi in scatola",
+        "patologie": None,
+        "allenamenti_descr": "Pilates 3x settimana",
+        "esami_biochimici": "TSH 2.1 mUI/L",
+    },
+    {
+        "nome": "Andrea",
+        "cognome": "Romano",
+        "sesso": "M",
+        "data_nascita": date(1992, 9, 5),
+        "telefono": "3386677889",
+        "altezza_cm": 175,
+        "peso_iniziale": 82.0,
+        "intolleranze": None,
+        "cibi_da_ev": "Snack salati",
+        "patologie": None,
+        "allenamenti_descr": "Corsa 3x + pesi 2x",
+        "esami_biochimici": "Vitamina D 28 ng/ml",
+    },
+]
+
 
 def clear_test_data() -> None:
     for model in (
@@ -56,93 +143,26 @@ def clear_test_data() -> None:
     db.session.commit()
 
 
-def seed() -> None:
-    today = date.today()
-    now = datetime.now()
+def _create_patient(data: dict, pwd_hash: str) -> Patient:
+    return Patient(
+        nome=data["nome"],
+        cognome=data["cognome"],
+        sesso=data["sesso"],
+        data_nascita=data["data_nascita"],
+        telefono=data["telefono"],
+        password_hash=pwd_hash,
+        altezza_cm=data["altezza_cm"],
+        peso_iniziale=data["peso_iniziale"],
+        intolleranze=encrypt_field(data["intolleranze"]) if data["intolleranze"] else None,
+        cibi_da_ev=data["cibi_da_ev"],
+        patologie=encrypt_field(data["patologie"]) if data["patologie"] else None,
+        allenamenti_descr=data["allenamenti_descr"],
+        esami_biochimici=encrypt_field(data["esami_biochimici"]) if data["esami_biochimici"] else None,
+        stato_cliente="attivo",
+    )
 
-    patients_data = [
-        {
-            "nome": "Maria",
-            "cognome": "Rossi",
-            "sesso": "F",
-            "data_nascita": date(1990, 3, 15),
-            "telefono": "3401234567",
-            "altezza_cm": 165,
-            "peso_iniziale": 72.5,
-            "intolleranze": "Lattosio",
-            "cibi_da_ev": "Fritti, bibite zuccherate",
-            "patologie": "Ipotiroidismo in terapia",
-            "allenamenti_descr": "3x settimana palestra + camminata",
-            "esami_biochimici": "Glicemia 92 mg/dl, Colesterolo totale 195",
-        },
-        {
-            "nome": "Luca",
-            "cognome": "Bianchi",
-            "sesso": "M",
-            "data_nascita": date(1985, 7, 22),
-            "telefono": "3409876543",
-            "altezza_cm": 178,
-            "peso_iniziale": 88.0,
-            "intolleranze": None,
-            "cibi_da_ev": "Alcol, dolci serali",
-            "patologie": None,
-            "allenamenti_descr": "Crossfit 4x settimana",
-            "esami_biochimici": "Emocromo nella norma",
-        },
-        {
-            "nome": "Giulia",
-            "cognome": "Verdi",
-            "sesso": "F",
-            "data_nascita": date(1998, 11, 8),
-            "telefono": "3471122334",
-            "altezza_cm": 170,
-            "peso_iniziale": 63.0,
-            "intolleranze": "Glutine",
-            "cibi_da_ev": "Prodotti industriali",
-            "patologie": "Celiachia diagnosticata",
-            "allenamenti_descr": "Yoga 2x + nuoto 1x",
-            "esami_biochimici": "Ferritina 45 ng/ml",
-        },
-        {
-            "nome": "Marco",
-            "cognome": "Ferrari",
-            "sesso": "M",
-            "data_nascita": date(1978, 1, 30),
-            "telefono": "3334455667",
-            "altezza_cm": 182,
-            "peso_iniziale": 95.5,
-            "intolleranze": None,
-            "cibi_da_ev": "Fast food",
-            "patologie": "Ipertensione lieve",
-            "allenamenti_descr": "Camminata quotidiana 30 min",
-            "esami_biochimici": "PA 135/85, LDL 130",
-        },
-    ]
 
-    patients: list[Patient] = []
-    pwd_hash = generate_password_hash(TEST_PASSWORD)
-
-    for data in patients_data:
-        p = Patient(
-            nome=data["nome"],
-            cognome=data["cognome"],
-            sesso=data["sesso"],
-            data_nascita=data["data_nascita"],
-            telefono=data["telefono"],
-            password_hash=pwd_hash,
-            altezza_cm=data["altezza_cm"],
-            peso_iniziale=data["peso_iniziale"],
-            intolleranze=encrypt_field(data["intolleranze"]) if data["intolleranze"] else None,
-            cibi_da_ev=data["cibi_da_ev"],
-            patologie=encrypt_field(data["patologie"]) if data["patologie"] else None,
-            allenamenti_descr=data["allenamenti_descr"],
-            esami_biochimici=encrypt_field(data["esami_biochimici"]) if data["esami_biochimici"] else None,
-        )
-        db.session.add(p)
-        patients.append(p)
-
-    db.session.flush()
-
+def _seed_related_for_patients(patients: list[Patient], today: date, now: datetime) -> None:
     for i, p in enumerate(patients):
         db.session.add(
             Dieta(
@@ -167,11 +187,14 @@ def seed() -> None:
             )
         )
 
+    if not patients:
+        return
+
     appuntamenti_specs = [
         (0, "check", "confermato", 3),
-        (1, "rinnovo_dieta", "completato", -7),
-        (2, "allenamento_1to1", "in_attesa", 5),
-        (3, "check", "confermato", 10),
+        (1 % len(patients), "rinnovo_dieta", "completato", -7),
+        (2 % len(patients), "allenamento_1to1", "in_attesa", 5),
+        (3 % len(patients), "check", "confermato", 10),
         (0, "altro", "in_attesa", 14),
     ]
     for p_idx, tipo, stato, days_ahead in appuntamenti_specs:
@@ -240,32 +263,71 @@ def seed() -> None:
             )
         )
 
-    for day in (2, 4, 9, 11, 16):
-        slot_dt = (now + timedelta(days=day)).replace(hour=9, minute=0, second=0, microsecond=0)
-        db.session.add(
-            SlotDisponibilita(
-                data_ora=slot_dt,
-                attivo=True,
-                note="Slot test disponibile",
-            )
-        )
-        db.session.add(
-            SlotDisponibilita(
-                data_ora=slot_dt.replace(hour=15, minute=30),
-                attivo=True,
-                note="Slot pomeriggio test",
-            )
-        )
 
+def _seed_slots(now: datetime) -> int:
+    created = 0
+    for day in (2, 4, 9, 11, 16):
+        for hour, minute, note in (
+            (9, 0, "Slot test disponibile"),
+            (15, 30, "Slot pomeriggio test"),
+        ):
+            slot_dt = (now + timedelta(days=day)).replace(
+                hour=hour, minute=minute, second=0, microsecond=0
+            )
+            if SlotDisponibilita.query.filter_by(data_ora=slot_dt).first():
+                continue
+            db.session.add(
+                SlotDisponibilita(
+                    data_ora=slot_dt,
+                    attivo=True,
+                    note=note,
+                )
+            )
+            created += 1
+    return created
+
+
+def seed(*, additive: bool = True) -> None:
+    today = date.today()
+    now = datetime.now()
+    pwd_hash = generate_password_hash(TEST_PASSWORD)
+
+    patients: list[Patient] = []
+    skipped: list[str] = []
+
+    for data in PATIENTS_DATA:
+        existing = Patient.query.filter_by(telefono=data["telefono"]).first()
+        if existing:
+            skipped.append(f"{data['nome']} {data['cognome']} ({data['telefono']})")
+            continue
+        p = _create_patient(data, pwd_hash)
+        db.session.add(p)
+        patients.append(p)
+
+    if patients:
+        db.session.flush()
+        _seed_related_for_patients(patients, today, now)
+
+    slots_created = _seed_slots(now)
     db.session.commit()
 
-    print("✅ Database popolato con dati di test")
-    print(f"   Pazienti: {len(patients)}")
-    print(f"   Password pazienti: {TEST_PASSWORD}")
-    print()
-    print("   Account pazienti (telefono / password):")
-    for p in patients:
-        print(f"   - {p.nome} {p.cognome}: {p.telefono} / {TEST_PASSWORD}")
+    if patients:
+        print("✅ Dati di test inseriti (senza cancellare i record esistenti)" if additive else "✅ Database popolato con dati di test")
+        print(f"   Nuovi pazienti: {len(patients)}")
+        print(f"   Password pazienti: {TEST_PASSWORD}")
+        print()
+        print("   Account pazienti (telefono / password):")
+        for p in patients:
+            print(f"   - {p.nome} {p.cognome}: {p.telefono} / {TEST_PASSWORD}")
+    else:
+        print("ℹ️  Nessun nuovo paziente da inserire (telefoni già presenti).")
+
+    if skipped:
+        print(f"   Saltati (già presenti): {len(skipped)}")
+        for s in skipped:
+            print(f"   - {s}")
+
+    print(f"   Slot disponibilità creati: {slots_created}")
 
 
 def main() -> None:
@@ -278,13 +340,12 @@ def main() -> None:
     args = parser.parse_args()
 
     with app.app_context():
-        if args.reset or Patient.query.count() > 0:
-            if Patient.query.count() > 0 and not args.reset:
-                print("⚠️  Il database contiene già dati. Usa --reset per svuotare e ripopolare.")
-                return
+        if args.reset:
             print("🗑️  Pulizia dati esistenti...")
             clear_test_data()
-        seed()
+            seed(additive=False)
+        else:
+            seed(additive=True)
 
 
 if __name__ == "__main__":
