@@ -5,19 +5,23 @@
 <div class="adm-hero">
   <div>
     <div class="adm-hero-meta">{{ data_oggi }} · {{ ora_ora }}</div>
-    <h2>{{ saluto }}, {{ admin_name.split()[0] if admin_name else 'doc' }}</h2>
+    <h2>{{ saluto }}, {{ admin_name }}</h2>
     <p>
       {% if n_appuntamenti_oggi %}
-        Oggi hai {{ n_appuntamenti_oggi }} appuntament{{ 'o' if n_appuntamenti_oggi == 1 else 'i' }}.
+        Oggi hai {{ n_appuntamenti_oggi }} appuntament{{ 'o' if n_appuntamenti_oggi == 1 else 'i' }}
       {% else %}
-        Nessun appuntamento in agenda per oggi.
+        Nessun appuntamento in agenda per oggi
       {% endif %}
-      {% if n_da_gestire %}
-        · <strong style="color:#fff;">{{ n_da_gestire }} da gestire</strong>
+      {% if n_richieste %}
+        · <strong style="color:#fff;">{{ n_richieste }} richiest{{ 'a' if n_richieste == 1 else 'e' }} di appuntamento</strong>
+      {% endif %}
+      {% if n_appuntamenti_settimana %}
+        · {{ n_appuntamenti_settimana }} nei prossimi 7 giorni
       {% endif %}
     </p>
   </div>
   <div class="adm-hero-actions">
+    <a href="{{ url_for('appuntamenti.nuovo_admin') }}" class="btn btn-secondary">{{ icon('calendar', 16) }} Nuovo appuntamento</a>
     <a href="{{ url_for('diete_plans.new_diet_plan_standalone') }}" class="btn btn-secondary">{{ icon('diet', 16) }} Nuova dieta</a>
     <a href="{{ url_for('allenamenti.nuovo_allenamento_standalone') }}" class="btn btn-secondary">{{ icon('dumbbell', 16) }} Nuovo allenamento</a>
     <a href="{{ url_for('patients.nuovo_paziente') }}" class="adm-btn-cta">{{ icon('plus', 16) }} Nuovo paziente</a>
@@ -31,7 +35,7 @@
     <div class="adm-attention-text">
       {% if n_da_confermare %}{{ n_da_confermare }} appuntament{{ 'o' if n_da_confermare == 1 else 'i' }} da confermare{% endif %}
       {% if n_da_confermare and n_richieste %} · {% endif %}
-      {% if n_richieste %}{{ n_richieste }} richist{{ 'a' if n_richieste == 1 else 'e' }} dalla prenotazione online{% endif %}
+      {% if n_richieste %}{{ n_richieste }} richiest{{ 'a' if n_richieste == 1 else 'e' }} dalla prenotazione online{% endif %}
     </div>
   </div>
   <div class="adm-attention-actions">
@@ -45,76 +49,6 @@
 </div>
 {% endif %}
 
-<div class="adm-stat-grid">
-  <article class="adm-stat-card">
-    <div class="adm-stat-head">
-      <span class="adm-stat-icon">{{ icon('users', 21) }}</span>
-    </div>
-    <div class="adm-stat-value">{{ n_pazienti }}</div>
-    <div class="adm-stat-label">Pazienti</div>
-    <a href="{{ url_for('patients.lista_pazienti') }}" class="adm-stat-link">Anagrafica {{ icon('arrow-right', 14) }}</a>
-  </article>
-
-  <article class="adm-stat-card">
-    <div class="adm-stat-head">
-      <span class="adm-stat-icon">{{ icon('calendar', 21) }}</span>
-      {% if n_appuntamenti_settimana %}
-      <span class="adm-stat-badge">{{ n_appuntamenti_settimana }} in 7 gg</span>
-      {% endif %}
-    </div>
-    <div class="adm-stat-value">{{ n_appuntamenti_oggi }}</div>
-    <div class="adm-stat-label">Appuntamenti oggi</div>
-    <a href="{{ url_for('agenda.agenda_unificata') }}" class="adm-stat-link">Apri agenda {{ icon('arrow-right', 14) }}</a>
-  </article>
-
-  <article class="adm-stat-card">
-    <div class="adm-stat-head">
-      <span class="adm-stat-icon">{{ icon('diet', 21) }}</span>
-      {% if n_diete_bozza %}
-      <span class="adm-stat-badge">{{ n_diete_bozza }} bozz{{ 'a' if n_diete_bozza == 1 else 'e' }}</span>
-      {% endif %}
-    </div>
-    <div class="adm-stat-value">{{ n_diete }}</div>
-    <div class="adm-stat-label">Piani alimentari</div>
-    <a href="{{ url_for('diete_plans.lista_diet_plans') }}" class="adm-stat-link">Sezione Dieta {{ icon('arrow-right', 14) }}</a>
-  </article>
-
-  <article class="adm-stat-card {% if n_da_gestire %}adm-stat-card--alert{% endif %}">
-    <div class="adm-stat-head">
-      <span class="adm-stat-icon">{{ icon('clock', 21) }}</span>
-      {% if n_slot_futuri %}
-      <span class="adm-stat-badge">{{ n_slot_futuri }} slot liberi</span>
-      {% endif %}
-    </div>
-    <div class="adm-stat-value">{{ n_da_gestire }}</div>
-    <div class="adm-stat-label">Da gestire</div>
-    <a href="{{ url_for('agenda.agenda_unificata') }}" class="adm-stat-link">Controlla ora {{ icon('arrow-right', 14) }}</a>
-  </article>
-</div>
-
-<nav class="adm-quick-actions" aria-label="Azioni rapide">
-  <a href="{{ url_for('agenda.agenda_unificata') }}" class="adm-quick-action">
-    <span class="adm-quick-action-icon">{{ icon('calendar', 18) }}</span>
-    <span>Agenda</span>
-  </a>
-  <a href="{{ url_for('diete_plans.lista_diet_plans') }}" class="adm-quick-action">
-    <span class="adm-quick-action-icon">{{ icon('diet', 18) }}</span>
-    <span>Dieta</span>
-  </a>
-  <a href="{{ url_for('allenamenti.lista_allenamenti') }}" class="adm-quick-action">
-    <span class="adm-quick-action-icon">{{ icon('dumbbell', 18) }}</span>
-    <span>Allenamento</span>
-  </a>
-  <a href="{{ url_for('patients.lista_pazienti') }}" class="adm-quick-action">
-    <span class="adm-quick-action-icon">{{ icon('users', 18) }}</span>
-    <span>Pazienti</span>
-  </a>
-  <a href="{{ url_for('broadcast.dashboard') }}" class="adm-quick-action">
-    <span class="adm-quick-action-icon">{{ icon('message', 18) }}</span>
-    <span>Messaggi</span>
-  </a>
-</nav>
-
 {% if deviazione is defined %}
 {% include 'admin/_deviazione_widget.html' %}
 {% endif %}
@@ -122,7 +56,7 @@
 <div class="adm-split-grid">
   <section class="adm-panel">
     <div class="adm-panel-head">
-      <h3 class="adm-panel-title">Oggi</h3>
+      <h3 class="adm-panel-title">Appuntamenti di oggi</h3>
       <a href="{{ url_for('agenda.agenda_unificata') }}" class="adm-panel-link">Vedi agenda</a>
     </div>
     <div class="adm-appt-list">
@@ -164,7 +98,7 @@
       {% else %}
         <div class="adm-empty-state">
           <p class="adm-empty">Nessun appuntamento in programma per oggi.</p>
-          <a href="{{ url_for('agenda.agenda_unificata') }}" class="btn btn-secondary btn-small">Gestisci agenda</a>
+          <a href="{{ url_for('appuntamenti.nuovo_admin') }}" class="btn btn-secondary btn-small">Nuovo appuntamento</a>
         </div>
       {% endif %}
     </div>
@@ -172,69 +106,7 @@
 
   <section class="adm-panel">
     <div class="adm-panel-head">
-      <h3 class="adm-panel-title">Prossimi 7 giorni</h3>
-      <a href="{{ url_for('agenda.agenda_unificata') }}" class="adm-panel-link">Apri agenda</a>
-    </div>
-    <div class="adm-appt-list">
-      {% if prossimi_appuntamenti %}
-        {% for appt in prossimi_appuntamenti %}
-        {% set paziente = appt.patient %}
-        {% set tipo = tipo_labels.get(appt.tipo, appt.tipo|replace('_', ' ')|title) %}
-        <a href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id) }}" class="adm-appt-item adm-appt-item--link">
-          <span class="adm-appt-time adm-appt-time--blue">{{ appt.data_appuntamento.strftime('%d/%m') }}</span>
-          <div style="flex:1;min-width:0;">
-            <div class="adm-appt-name">{{ paziente.nome }} {{ paziente.cognome }}</div>
-            <div class="adm-appt-type">{{ appt.data_appuntamento.strftime('%H:%M') }} · {{ tipo }}</div>
-          </div>
-          {% if appt.stato == 'in_attesa' %}
-          <span class="adm-status-pill adm-status-pill--wait">Da conf.</span>
-          {% endif %}
-        </a>
-        {% endfor %}
-      {% else %}
-        <div class="adm-empty-state">
-          <p class="adm-empty">Nessun appuntamento nei prossimi 7 giorni.</p>
-          <a href="{{ url_for('agenda.agenda_unificata') }}" class="btn btn-secondary btn-small">Apri agenda</a>
-        </div>
-      {% endif %}
-    </div>
-  </section>
-</div>
-
-<div class="adm-split-grid" style="margin-top:18px;">
-  <section class="adm-panel">
-    <div class="adm-panel-head">
-      <h3 class="adm-panel-title">Ultime diete</h3>
-      <a href="{{ url_for('diete_plans.lista_diet_plans') }}" class="adm-panel-link">Tutte</a>
-    </div>
-    <div class="adm-appt-list">
-      {% if ultime_diete %}
-        {% for plan in ultime_diete %}
-        <a href="{{ url_for('diete_plans.diet_plan_detail', diet_plan_id=plan.id) }}" class="adm-appt-item adm-appt-item--link">
-          <div style="flex:1;min-width:0;">
-            <div class="adm-appt-name">{{ plan.title }}</div>
-            <div class="adm-appt-type">
-              {{ plan.patient.nome }} {{ plan.patient.cognome }}
-              {% if plan.updated_at %} · {{ plan.updated_at.strftime('%d/%m') }}{% endif %}
-            </div>
-          </div>
-          <span class="adm-status-pill {% if plan.status == 'published' %}adm-status-pill--confirmed{% else %}adm-status-pill--wait{% endif %}">
-            {{ 'Pubblicata' if plan.status == 'published' else 'Bozza' }}
-          </span>
-        </a>
-        {% endfor %}
-      {% else %}
-        <div class="adm-empty-state">
-          <p class="adm-empty">Nessun piano alimentare ancora.</p>
-          <a href="{{ url_for('diete_plans.new_diet_plan_standalone') }}" class="btn btn-primary btn-small">Crea dieta</a>
-        </div>
-      {% endif %}
-    </div>
-  </section>
-
-  <section class="adm-panel">
-    <div class="adm-panel-head">
-      <h3 class="adm-panel-title">Richieste online</h3>
+      <h3 class="adm-panel-title">Richieste di appuntamento</h3>
       <a href="{{ url_for('prenota_public.lista_richieste_admin') }}" class="adm-panel-link">Gestisci</a>
     </div>
     <div class="adm-appt-list">
@@ -255,11 +127,41 @@
         {% endfor %}
       {% else %}
         <div class="adm-empty-state">
-          <p class="adm-empty">Nessuna richiesta in attesa dalla prenotazione pubblica.</p>
+          <p class="adm-empty">Nessuna richiesta in attesa dalla prenotazione online.</p>
         </div>
       {% endif %}
     </div>
   </section>
 </div>
+
+<section class="adm-panel" style="margin-top:18px;">
+  <div class="adm-panel-head">
+    <h3 class="adm-panel-title">Prossimi 7 giorni</h3>
+    <a href="{{ url_for('agenda.agenda_unificata') }}" class="adm-panel-link">Apri agenda</a>
+  </div>
+  <div class="adm-appt-list">
+    {% if prossimi_appuntamenti %}
+      {% for appt in prossimi_appuntamenti %}
+      {% set paziente = appt.patient %}
+      {% set tipo = tipo_labels.get(appt.tipo, appt.tipo|replace('_', ' ')|title) %}
+      <a href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id) }}" class="adm-appt-item adm-appt-item--link">
+        <span class="adm-appt-time adm-appt-time--blue">{{ appt.data_appuntamento.strftime('%d/%m') }}</span>
+        <div style="flex:1;min-width:0;">
+          <div class="adm-appt-name">{{ paziente.nome }} {{ paziente.cognome }}</div>
+          <div class="adm-appt-type">{{ appt.data_appuntamento.strftime('%H:%M') }} · {{ tipo }}</div>
+        </div>
+        {% if appt.stato == 'in_attesa' %}
+        <span class="adm-status-pill adm-status-pill--wait">Da conf.</span>
+        {% endif %}
+      </a>
+      {% endfor %}
+    {% else %}
+      <div class="adm-empty-state">
+        <p class="adm-empty">Nessun appuntamento nei prossimi 7 giorni.</p>
+        <a href="{{ url_for('agenda.agenda_unificata') }}" class="btn btn-secondary btn-small">Apri agenda</a>
+      </div>
+    {% endif %}
+  </div>
+</section>
 
 {% endblock %}

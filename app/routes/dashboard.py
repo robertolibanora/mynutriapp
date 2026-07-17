@@ -10,7 +10,6 @@ from app.models.models import (
     Appuntamento,
     RichiestaAppuntamento,
 )
-from app.services.agenda_service import AgendaService
 from app.utils.db_schema import (
     ensure_segretario_removed,
     ensure_agenda_schema,
@@ -68,8 +67,6 @@ def admin_dashboard():
     oggi_data = oggi.date()
     fine_settimana = oggi + timedelta(days=7)
 
-    n_pazienti = Patient.query.count()
-
     n_appuntamenti_oggi = Appuntamento.query.filter(
         db.func.date(Appuntamento.data_appuntamento) == oggi_data,
         Appuntamento.stato != "annullato",
@@ -81,17 +78,6 @@ def admin_dashboard():
         Appuntamento.stato != "annullato",
     ).count()
 
-    n_diete_pubblicate = DietPlan.query.filter_by(status="published").count()
-    n_diete_bozza = DietPlan.query.filter_by(status="draft").count()
-    n_diete = n_diete_pubblicate + n_diete_bozza
-
-    # Fallback legacy se non ci sono piani strutturati
-    if n_diete == 0:
-        n_diete = Dieta.query.filter(
-            Dieta.data_inizio <= oggi_data,
-            Dieta.data_fine >= oggi_data,
-        ).count()
-
     n_da_confermare = Appuntamento.query.filter(
         Appuntamento.stato == "in_attesa",
         Appuntamento.data_appuntamento >= oggi,
@@ -99,8 +85,6 @@ def admin_dashboard():
 
     n_richieste = RichiestaAppuntamento.query.filter_by(stato="in_attesa").count()
     n_da_gestire = n_da_confermare + n_richieste
-
-    n_slot_futuri = len(AgendaService.slot_liberi())
 
     appuntamenti_oggi = (
         Appuntamento.query.options(joinedload(Appuntamento.patient))
@@ -124,35 +108,22 @@ def admin_dashboard():
         .all()
     )
 
-    ultime_diete = (
-        DietPlan.query.options(joinedload(DietPlan.patient))
-        .order_by(DietPlan.updated_at.desc(), DietPlan.created_at.desc())
-        .limit(5)
-        .all()
-    )
-
     richieste_recenti = (
         RichiestaAppuntamento.query.filter_by(stato="in_attesa")
         .order_by(RichiestaAppuntamento.data_richiesta.asc())
-        .limit(4)
+        .limit(6)
         .all()
     )
 
     return render_template(
         'admin/dashboard.html',
-        n_pazienti=n_pazienti,
         n_appuntamenti_oggi=n_appuntamenti_oggi,
         appuntamenti_oggi=appuntamenti_oggi,
-        n_diete=n_diete,
-        n_diete_pubblicate=n_diete_pubblicate,
-        n_diete_bozza=n_diete_bozza,
-        n_slot_futuri=n_slot_futuri,
         n_appuntamenti_settimana=n_appuntamenti_settimana,
         n_da_confermare=n_da_confermare,
         n_richieste=n_richieste,
         n_da_gestire=n_da_gestire,
         prossimi_appuntamenti=prossimi_appuntamenti,
-        ultime_diete=ultime_diete,
         richieste_recenti=richieste_recenti,
         tipo_labels=_TIPO_LABELS,
         saluto=_saluto(oggi.hour),
