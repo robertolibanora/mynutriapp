@@ -156,7 +156,8 @@ def ensure_nutrition_schema() -> None:
 
     Usa ``create_all`` limitato alle sole tabelle nuove: è idempotente e
     non tocca le tabelle esistenti. Coerente con l'approccio senza Alembic
-    già usato nel progetto.
+    già usato nel progetto. Aggiunge anche colonne nuove su tabelle già presenti
+    (es. ``diet_meals.day_index_to`` per intervalli di giorni).
     """
     global _NUTRITION_SCHEMA_OK
     if _NUTRITION_SCHEMA_OK:
@@ -166,6 +167,21 @@ def ensure_nutrition_schema() -> None:
 
         tables = [m.__table__ for m in (Food, DietPlan, DietMeal, DietMealItem)]
         db.metadata.create_all(bind=db.engine, tables=tables, checkfirst=True)
+
+        insp = inspect(db.engine)
+        if "diet_meals" in set(insp.get_table_names()):
+            cols = {c["name"] for c in insp.get_columns("diet_meals")}
+            if "day_index_to" not in cols:
+                with db.engine.begin() as conn:
+                    conn.execute(
+                        text(
+                            "ALTER TABLE diet_meals "
+                            "ADD COLUMN day_index_to INT NOT NULL DEFAULT 0"
+                        )
+                    )
+                    conn.execute(text("UPDATE diet_meals SET day_index_to = day_index"))
+                logger.info("Aggiunta colonna diet_meals.day_index_to")
+
         _NUTRITION_SCHEMA_OK = True
         logger.info("Schema modulo nutrizione verificato (foods, diet_plans, diet_meals, diet_meal_items)")
     except Exception as exc:  # noqa: BLE001

@@ -456,16 +456,24 @@
         return;
       }
       var nameInput = mealForm.querySelector('[name="meal_name"]');
-      var dayField = mealForm.querySelector('[name="day_index"]');
+      var dayFromField = mealForm.querySelector('[name="day_from"]');
+      var dayToField = mealForm.querySelector('[name="day_to"]');
       var name = ((nameInput && nameInput.value) || "").trim();
       if (!name) {
         showMsg("Inserisci il nome del pasto.");
         return;
       }
-      var dayInput = parseInt((dayField && dayField.value) || "1", 10) || 1;
+      var dayFrom = parseInt((dayFromField && dayFromField.value) || "1", 10) || 1;
+      var dayTo = parseInt((dayToField && dayToField.value) || String(dayFrom), 10) || dayFrom;
+      if (dayFrom < 1) dayFrom = 1;
+      if (dayTo < dayFrom) {
+        showMsg("Il giorno finale deve essere maggiore o uguale al giorno iniziale.");
+        return;
+      }
       var payload = {
         meal_name: name,
-        day_index: Math.max(0, dayInput - 1)
+        day_index: Math.max(0, dayFrom - 1),
+        day_index_to: Math.max(0, dayTo - 1)
       };
       var btn = mealForm.querySelector('button[type="submit"]');
       if (btn) btn.disabled = true;
@@ -480,7 +488,8 @@
         }
         if (res.data && res.data.meal) appendMealCard(res.data.meal);
         mealForm.reset();
-        if (dayField) dayField.value = String(dayInput);
+        if (dayFromField) dayFromField.value = String(dayFrom);
+        if (dayToField) dayToField.value = String(dayTo);
         showMsg("Pasto aggiunto.", true);
       }).catch(function () {
         showMsg("Errore di rete.");
@@ -490,9 +499,17 @@
     });
   }
 
+  function formatDayLabel(meal) {
+    if (meal && meal.day_label) return meal.day_label;
+    var from = ((meal && meal.day_index) || 0) + 1;
+    var to = meal && meal.day_index_to != null ? meal.day_index_to + 1 : from;
+    if (to < from) to = from;
+    return from === to ? ("Giorno " + from) : ("Giorno " + from + "-" + to);
+  }
+
   function appendMealCard(meal) {
     var tpl = document.getElementById("meal-tpl").innerHTML;
-    var sub = "Giorno " + ((meal.day_index || 0) + 1);
+    var sub = formatDayLabel(meal);
     var html = tpl.replace(/__MEAL_ID__/g, meal.id).replace("__MEAL_SUB__", sub);
     var wrap = document.createElement("div");
     wrap.innerHTML = html.trim();

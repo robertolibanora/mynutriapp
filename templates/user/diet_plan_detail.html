@@ -51,7 +51,7 @@
   <div class="dp-meal">
     <div class="dp-meal-head">
       <span class="dp-meal-name">{{ meal.meal_name }}</span>
-      <span class="dp-meal-time">Giorno {{ meal.day_index + 1 }}</span>
+      <span class="dp-meal-time">{{ meal.day_label }}</span>
     </div>
 
     {% if meal.items %}

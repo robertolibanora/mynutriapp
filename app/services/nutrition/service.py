@@ -262,9 +262,12 @@ class NutritionService:
         if not meal_name:
             raise NutritionServiceError("meal_name è obbligatorio")
 
+        day_from, day_to = self._parse_day_range(data)
+
         meal = DietMeal(
             diet_plan_id=plan.id,
-            day_index=int(data.get("day_index") or 0),
+            day_index=day_from,
+            day_index_to=day_to,
             meal_name=meal_name,
             meal_time=self._parse_time(data.get("meal_time")),
             notes=(data.get("notes") or None),
@@ -360,6 +363,25 @@ class NutritionService:
         except (TypeError, ValueError):
             return None
 
+    @classmethod
+    def _parse_day_range(cls, data: Dict[str, Any]) -> tuple[int, int]:
+        """Intervallo giorni 0-based da ``day_index`` / ``day_index_to``.
+
+        Se manca ``day_index_to``, il pasto vale un solo giorno.
+        """
+        day_from = int(data.get("day_index") or 0)
+        if day_from < 0:
+            raise NutritionServiceError("day_index non può essere negativo")
+
+        if data.get("day_index_to") is None or data.get("day_index_to") == "":
+            day_to = day_from
+        else:
+            day_to = int(data.get("day_index_to"))
+
+        if day_to < day_from:
+            raise NutritionServiceError("day_index_to deve essere >= day_index")
+        return day_from, day_to
+
     @staticmethod
     def _parse_time(value: Any):
         if not value:
@@ -422,6 +444,8 @@ def diet_meal_to_dict(meal: DietMeal) -> Dict[str, Any]:
         "id": meal.id,
         "diet_plan_id": meal.diet_plan_id,
         "day_index": meal.day_index,
+        "day_index_to": meal.day_index_to,
+        "day_label": meal.day_label,
         "meal_name": meal.meal_name,
         "meal_time": meal.meal_time.strftime("%H:%M") if meal.meal_time else None,
         "notes": meal.notes,

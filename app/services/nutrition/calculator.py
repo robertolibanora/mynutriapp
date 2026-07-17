@@ -111,7 +111,11 @@ class NutritionCalculatorService:
 
     @classmethod
     def compute_plan(cls, meals: Iterable[Any], round_ndigits: int = 2) -> Dict[str, Any]:
-        """Totale dieta + breakdown per giornata (``day_index``).
+        """Totale dieta + breakdown per giornata (``day_index`` … ``day_index_to``).
+
+        Il totale somma ogni pasto una sola volta (non moltiplica per i giorni
+        del range). ``per_day`` invece include il pasto in ogni giornata
+        coperta dall'intervallo.
 
         Ritorna::
 
@@ -124,10 +128,17 @@ class NutritionCalculatorService:
         per_day: Dict[int, Dict[str, float]] = {}
         buckets: Dict[int, list] = {}
         for meal in meals:
-            day = getattr(meal, "day_index", 0) or 0
-            buckets.setdefault(day, []).append(meal)
+            day_from = getattr(meal, "day_index", 0) or 0
+            day_to = getattr(meal, "day_index_to", None)
+            if day_to is None:
+                day_to = day_from
+            if day_to < day_from:
+                day_to = day_from
+            for day in range(day_from, day_to + 1):
+                buckets.setdefault(day, []).append(meal)
         for day, day_meals in buckets.items():
             per_day[day] = cls.compute_day(day_meals, round_ndigits)
 
-        total = cls._sum(per_day.values(), round_ndigits)
+        # Totale = somma pasti unici (non somma di per_day, che duplicherebbe i range)
+        total = cls.compute_day(meals, round_ndigits)
         return {"total": total, "per_day": per_day}

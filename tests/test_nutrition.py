@@ -302,6 +302,47 @@ class MealTotalsTest(DbTestCase):
         self.assertEqual(plan_totals["total"]["kcal"], 100.3)
         self.assertIn(0, plan_totals["per_day"])
 
+    def test_meal_day_range(self):
+        patient = Patient(
+            password_hash="x",
+            telefono="+390000000001",
+            nome="Anna",
+            cognome="Bianchi",
+            sesso="F",
+            data_nascita=date(1992, 2, 2),
+            altezza_cm=165,
+            peso_iniziale=60,
+        )
+        db.session.add(patient)
+        db.session.commit()
+
+        service = NutritionService(provider=FakeProvider())
+        food = service.import_food("fake", "1")
+        plan = service.create_diet_plan({"patient_id": patient.id, "title": "Range giorni"})
+
+        meal = service.add_meal(
+            plan.id,
+            {"meal_name": "Colazione", "day_index": 0, "day_index_to": 4},
+        )
+        self.assertEqual(meal.day_index, 0)
+        self.assertEqual(meal.day_index_to, 4)
+        self.assertEqual(meal.day_label, "Giorno 1-5")
+
+        service.add_meal_item(meal.id, {"food_id": food.id, "quantity_g": 170})
+        plan_totals = service.plan_totals(plan.id)
+
+        # Totale = pasto una sola volta; per_day copre i 5 giorni del range
+        self.assertEqual(plan_totals["total"]["kcal"], 100.3)
+        self.assertEqual(sorted(plan_totals["per_day"].keys()), [0, 1, 2, 3, 4])
+        self.assertEqual(plan_totals["per_day"][0]["kcal"], 100.3)
+        self.assertEqual(plan_totals["per_day"][4]["kcal"], 100.3)
+
+        with self.assertRaises(NutritionServiceError):
+            service.add_meal(
+                plan.id,
+                {"meal_name": "Cena", "day_index": 3, "day_index_to": 1},
+            )
+
 
 class DietPlanStatusTest(DbTestCase):
     """Aggiornamento stato bozza ↔ pubblicata."""

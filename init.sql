@@ -330,6 +330,7 @@ CREATE TABLE IF NOT EXISTS diet_meals (
     id INT AUTO_INCREMENT PRIMARY KEY,
     diet_plan_id INT NOT NULL,
     day_index INT NOT NULL DEFAULT 0,
+    day_index_to INT NOT NULL DEFAULT 0,
     meal_name VARCHAR(100) NOT NULL,
     meal_time TIME NULL,
     notes TEXT NULL,

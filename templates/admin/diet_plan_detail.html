@@ -81,7 +81,7 @@
       <div class="diet-meal-head">
         <div>
           <div class="diet-meal-title">{{ meal.meal_name }}</div>
-          <div class="diet-meal-sub">Giorno {{ meal.day_index + 1 }}{% if meal.notes %} · {{ meal.notes }}{% endif %}</div>
+          <div class="diet-meal-sub">{{ meal.day_label }}{% if meal.notes %} · {{ meal.notes }}{% endif %}</div>
         </div>
         <div class="diet-meal-actions">
           <div class="dm-total" data-meal-total="{{ meal.id }}">
@@ -164,8 +164,12 @@
         <input type="text" class="input-text" name="meal_name" required placeholder="Es. Colazione">
       </div>
       <div class="diet-form-field diet-form-field--day">
-        <label class="diet-form-label">Giorno</label>
-        <input type="number" class="input-text" name="day_index" value="1" min="1" step="1">
+        <label class="diet-form-label">Da giorno</label>
+        <input type="number" class="input-text" name="day_from" value="1" min="1" step="1">
+      </div>
+      <div class="diet-form-field diet-form-field--day">
+        <label class="diet-form-label">A giorno</label>
+        <input type="number" class="input-text" name="day_to" value="1" min="1" step="1">
       </div>
       <button type="submit" class="btn btn-primary">{{ icon('plus', 16) }} Aggiungi pasto</button>
     </form>

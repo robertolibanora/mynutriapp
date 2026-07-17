@@ -235,7 +235,7 @@ class DietPlan(db.Model):
         backref="diet_plan",
         lazy=True,
         cascade="all, delete-orphan",
-        order_by="DietMeal.day_index",
+        order_by="DietMeal.day_index, DietMeal.day_index_to",
     )
 
     def __repr__(self):
@@ -254,6 +254,7 @@ class DietMeal(db.Model):
     diet_plan_id = db.Column(db.Integer, db.ForeignKey("diet_plans.id", ondelete="CASCADE"), nullable=False, index=True)
 
     day_index = db.Column(db.Integer, nullable=False, server_default="0")
+    day_index_to = db.Column(db.Integer, nullable=False, server_default="0")
     meal_name = db.Column(db.String(100), nullable=False)
     meal_time = db.Column(db.Time, nullable=True)
     notes = db.Column(db.Text, nullable=True)
@@ -267,6 +268,17 @@ class DietMeal(db.Model):
         lazy=True,
         cascade="all, delete-orphan",
     )
+
+    @property
+    def day_label(self) -> str:
+        """Etichetta 1-based: ``Giorno 1`` oppure ``Giorno 1-5``."""
+        start = (self.day_index or 0) + 1
+        end = (self.day_index_to if self.day_index_to is not None else self.day_index or 0) + 1
+        if end < start:
+            end = start
+        if start == end:
+            return f"Giorno {start}"
+        return f"Giorno {start}-{end}"
 
     def __repr__(self):
         return f"<DietMeal {self.id} - Piano {self.diet_plan_id}>"
