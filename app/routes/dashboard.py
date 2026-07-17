@@ -9,12 +9,10 @@ from app.models.models import (
     Progresso,
     Appuntamento,
     RichiestaAppuntamento,
-    SegretarioConfig,
 )
 from app.services.agenda_service import AgendaService
-from app.services import call_forwarding_service
 from app.utils.db_schema import (
-    ensure_segretario_deviazione_schema,
+    ensure_segretario_removed,
     ensure_agenda_schema,
     ensure_finance_removed,
     ensure_richieste_appuntamento_schema,
@@ -62,7 +60,7 @@ def admin_dashboard():
         return redirect(url_for('auth.login'))
 
     ensure_finance_removed()
-    ensure_segretario_deviazione_schema()
+    ensure_segretario_removed()
     ensure_agenda_schema()
     ensure_richieste_appuntamento_schema()
 
@@ -140,12 +138,6 @@ def admin_dashboard():
         .all()
     )
 
-    segretario_cfg = SegretarioConfig.query.first()
-    deviazione_attiva = bool(segretario_cfg and segretario_cfg.deviazione_attiva)
-    deviazione = call_forwarding_service.status_info(deviazione_attiva)
-    if segretario_cfg:
-        deviazione["aggiornata_at"] = segretario_cfg.deviazione_aggiornata_at
-
     return render_template(
         'admin/dashboard.html',
         n_pazienti=n_pazienti,
@@ -166,7 +158,6 @@ def admin_dashboard():
         saluto=_saluto(oggi.hour),
         data_oggi=_data_italiana(oggi),
         ora_ora=oggi.strftime("%H:%M"),
-        deviazione=deviazione,
         oggi=oggi,
     )
 

@@ -17,7 +17,6 @@ def register_blueprints(app):
     from .documenti import documenti_bp
     from .slot import slot_bp
     from .whatsapp.broadcast_routes import broadcast_bp
-    from .segretario import segretario_bp
     from .admin_nutrition import admin_nutrition_bp
     from .admin_diets import admin_diets_bp
     from .diete_plans import diete_plans_bp
@@ -35,7 +34,6 @@ def register_blueprints(app):
     app.register_blueprint(documenti_bp)
     app.register_blueprint(slot_bp)
     app.register_blueprint(broadcast_bp)
-    app.register_blueprint(segretario_bp)
     app.register_blueprint(admin_nutrition_bp)
     app.register_blueprint(admin_diets_bp)
     app.register_blueprint(diete_plans_bp)

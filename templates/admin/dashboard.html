@@ -128,15 +128,7 @@
     <span class="adm-quick-action-icon">{{ icon('message', 18) }}</span>
     <span>Messaggi</span>
   </a>
-  <a href="{{ url_for('segretario.dashboard') }}" class="adm-quick-action">
-    <span class="adm-quick-action-icon">{{ icon('phone', 18) }}</span>
-    <span>Segretario</span>
-  </a>
 </nav>
-
-{% if deviazione is defined %}
-{% include 'admin/_deviazione_widget.html' %}
-{% endif %}
 
 <div class="adm-split-grid">
   <section class="adm-panel">

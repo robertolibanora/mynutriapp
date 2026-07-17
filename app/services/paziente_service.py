@@ -19,7 +19,13 @@ LABEL_STATO_CLIENTE = {
 }
 
 
-def crea_paziente_provvisorio(nome: str, cognome: str, telefono: str) -> Patient:
+def crea_paziente_provvisorio(
+    nome: str,
+    cognome: str,
+    telefono: str,
+    altezza_cm: Optional[int] = None,
+    peso_iniziale=None,
+) -> Patient:
     """Crea un paziente minimale da prenotazione pubblica (non può ancora accedere)."""
     return Patient(
         nome=nome.strip(),
@@ -28,8 +34,8 @@ def crea_paziente_provvisorio(nome: str, cognome: str, telefono: str) -> Patient
         password_hash=generate_password_hash(secrets.token_urlsafe(32)),
         sesso=None,
         data_nascita=None,
-        altezza_cm=None,
-        peso_iniziale=None,
+        altezza_cm=altezza_cm,
+        peso_iniziale=peso_iniziale,
         stato_cliente="provvisorio",
     )
 

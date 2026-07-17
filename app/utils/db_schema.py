@@ -8,7 +8,7 @@ from app.models.models import db
 
 logger = logging.getLogger(__name__)
 
-_SEGRETARIO_DEVIAZIONE_OK = False
+_SEGRETARIO_REMOVED_OK = False
 _NUTRITION_SCHEMA_OK = False
 _FINANCE_REMOVED_OK = False
 
@@ -172,29 +172,22 @@ def ensure_nutrition_schema() -> None:
         logger.warning("Impossibile creare lo schema nutrizione: %s", exc)
 
 
-def ensure_segretario_deviazione_schema() -> None:
-    global _SEGRETARIO_DEVIAZIONE_OK
-    if _SEGRETARIO_DEVIAZIONE_OK:
+def ensure_segretario_removed() -> None:
+    """Rimuove tabelle del modulo Segretario AI (Vapi / chiamate inbound)."""
+    global _SEGRETARIO_REMOVED_OK
+    if _SEGRETARIO_REMOVED_OK:
         return
     try:
         insp = inspect(db.engine)
-        cols = {c["name"] for c in insp.get_columns("segretario_config")}
-        stmts = []
-        if "deviazione_attiva" not in cols:
-            stmts.append(
-                "ALTER TABLE segretario_config "
-                "ADD COLUMN deviazione_attiva BOOLEAN NOT NULL DEFAULT FALSE"
-            )
-        if "deviazione_aggiornata_at" not in cols:
-            stmts.append(
-                "ALTER TABLE segretario_config "
-                "ADD COLUMN deviazione_aggiornata_at DATETIME NULL"
-            )
-        if stmts:
-            with db.engine.begin() as conn:
-                for stmt in stmts:
-                    conn.execute(text(stmt))
-            logger.info("Schema segretario_config aggiornato (deviazione chiamate)")
-        _SEGRETARIO_DEVIAZIONE_OK = True
+        tables = set(insp.get_table_names())
+        with db.engine.begin() as conn:
+            if "chiamate_inbound" in tables:
+                conn.execute(text("DROP TABLE IF EXISTS chiamate_inbound"))
+                logger.info("Rimossa tabella chiamate_inbound")
+            if "segretario_config" in tables:
+                conn.execute(text("DROP TABLE IF EXISTS segretario_config"))
+                logger.info("Rimossa tabella segretario_config")
+        _SEGRETARIO_REMOVED_OK = True
     except Exception as exc:  # noqa: BLE001
-        logger.warning("Impossibile verificare schema deviazione: %s", exc)
+        db.session.rollback()
+        logger.warning("Impossibile rimuovere lo schema segretario: %s", exc)

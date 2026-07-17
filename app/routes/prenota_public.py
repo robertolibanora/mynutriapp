@@ -66,12 +66,28 @@ def prenota_landing():
             cognome = (request.form.get("cognome") or "").strip()
             telefono = (request.form.get("telefono") or "").strip()
             email = (request.form.get("email") or "").strip() or None
+            altezza_raw = (request.form.get("altezza_cm") or "").strip()
+            peso_raw = (request.form.get("peso_iniziale") or "").strip()
             data_str = request.form.get("data_appuntamento") or ""
             tipo = request.form.get("tipo") or "altro"
             note = (request.form.get("note") or "").strip() or None
 
-            if not nome or not cognome or not telefono or not data_str:
+            if not nome or not cognome or not telefono or not data_str or not altezza_raw or not peso_raw:
                 flash("Compila tutti i campi obbligatori", "warning")
+                return redirect(url_for("prenota_public.prenota_landing"))
+
+            try:
+                altezza_cm = int(float(altezza_raw.replace(",", ".")))
+                peso_iniziale = float(peso_raw.replace(",", "."))
+            except ValueError:
+                flash("Altezza e peso devono essere numerici", "warning")
+                return redirect(url_for("prenota_public.prenota_landing"))
+
+            if not (100 <= altezza_cm <= 250):
+                flash("Inserisci un'altezza valida (100–250 cm)", "warning")
+                return redirect(url_for("prenota_public.prenota_landing"))
+            if not (30 <= peso_iniziale <= 300):
+                flash("Inserisci un peso valido (30–300 kg)", "warning")
                 return redirect(url_for("prenota_public.prenota_landing"))
 
             if tipo not in TIPI_PUBBLICI:
@@ -94,7 +110,13 @@ def prenota_landing():
 
             if not paziente:
                 # Nuova prenotazione → cliente provvisorio in anagrafica
-                paziente = crea_paziente_provvisorio(nome, cognome, telefono)
+                paziente = crea_paziente_provvisorio(
+                    nome,
+                    cognome,
+                    telefono,
+                    altezza_cm=altezza_cm,
+                    peso_iniziale=peso_iniziale,
+                )
                 db.session.add(paziente)
                 db.session.flush()
             else:
@@ -105,6 +127,11 @@ def prenota_landing():
                     paziente.nome = nome
                 if cognome and paziente.cognome != cognome:
                     paziente.cognome = cognome
+                # Aggiorna misure se mancanti o se il cliente sta riprenotando come provvisorio
+                if paziente.stato_cliente == "provvisorio" or paziente.altezza_cm is None:
+                    paziente.altezza_cm = altezza_cm
+                if paziente.stato_cliente == "provvisorio" or paziente.peso_iniziale is None:
+                    paziente.peso_iniziale = peso_iniziale
 
             nuovo = Appuntamento(
                 patient_id=paziente.id,

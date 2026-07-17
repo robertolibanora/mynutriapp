@@ -178,20 +178,6 @@ from app.routes import register_blueprints
 register_blueprints(app)
 
 # ===========================================
-# ☎️ WEBHOOK VAPI: esente da CSRF e rate limiting
-# Vapi invia POST senza token CSRF e può generare molti eventi per chiamata.
-# ===========================================
-try:
-    _vapi_webhook_view = app.view_functions.get('segretario.webhook')
-    if _vapi_webhook_view is not None:
-        csrf.exempt(_vapi_webhook_view)
-        if limiter is not None:
-            limiter.exempt(_vapi_webhook_view)
-        logger.info("✅ Webhook Vapi esente da CSRF e rate limiting")
-except Exception as e:
-    logger.warning(f"⚠️  Impossibile esentare il webhook Vapi: {e}")
-
-# ===========================================
 # 🍎 API NUTRIZIONE/DIETE: esenti da CSRF
 # Sono API JSON protette da sessione admin, consumate via fetch/client.
 # ===========================================
@@ -335,7 +321,6 @@ def init_db_command():
             Patient, Dieta, Allenamento, Progresso, 
             MisureAntropometriche, ComposizioneCorporea,
             Documento, Appuntamento, SlotDisponibilita,
-            SegretarioConfig, ChiamataInbound,
             Food, DietPlan, DietMeal, DietMealItem
         )
         
