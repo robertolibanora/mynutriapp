@@ -54,9 +54,9 @@
 {% endif %}
 
 <div class="adm-split-grid">
-  <section class="adm-panel">
+  <section class="adm-panel adm-panel--featured">
     <div class="adm-panel-head">
-      <h3 class="adm-panel-title">Appuntamenti di oggi</h3>
+      <h3 class="adm-panel-title">Appuntamenti di oggi{% if n_appuntamenti_oggi %}<span class="adm-panel-count">{{ n_appuntamenti_oggi }}</span>{% endif %}</h3>
       <a href="{{ url_for('agenda.agenda_unificata') }}" class="adm-panel-link">Vedi agenda</a>
     </div>
     <div class="adm-appt-list">
