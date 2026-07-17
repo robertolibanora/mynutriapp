@@ -309,23 +309,6 @@ def presentazione_roberto():
     return render_template('public/presentazione_roberto.html')
 
 # ===========================================
-# 🏠 ROUTE PRINCIPALE (redirect intelligente)
-# ===========================================
-@app.route('/')
-def home():
-    """
-    Redireziona automaticamente l'utente alla dashboard corretta
-    in base al ruolo salvato in sessione.
-    """
-    if 'role' in session:
-        if session['role'] == 'admin':
-            return redirect(url_for('dashboard.admin_dashboard'))
-        elif session['role'] == 'user':
-            return redirect(url_for('dashboard.user_dashboard'))
-    return redirect(url_for('auth.login'))
-
-
-# ===========================================
 # 🚦 ERROR HANDLER RATE LIMIT
 # ===========================================
 @app.errorhandler(429)

@@ -47,11 +47,17 @@ def _trova_paziente_per_telefono(telefono: str):
 
 
 # ========================
-# PUBBLICO: LANDING PRENOTA
+# PUBBLICO: LANDING PRENOTA (root)
 # ========================
-@prenota_public_bp.route("/prenota", methods=["GET", "POST"])
+@prenota_public_bp.route("/", methods=["GET", "POST"])
 def prenota_landing():
-    """Landing: il visitatore richiede un appuntamento scegliendo uno slot libero."""
+    """Landing sulla root: richiesta appuntamento senza login."""
+    if request.method == "GET" and "role" in session:
+        if session["role"] == "admin":
+            return redirect(url_for("dashboard.admin_dashboard"))
+        if session["role"] == "user":
+            return redirect(url_for("dashboard.user_dashboard"))
+
     if request.method == "POST":
         try:
             nome = (request.form.get("nome") or "").strip()
@@ -130,6 +136,18 @@ def prenota_landing():
         tipi=TIPI_PUBBLICI,
         inviato=request.args.get("ok") == "1",
     )
+
+
+@prenota_public_bp.route("/prenota", methods=["GET", "POST"])
+def prenota_legacy_redirect():
+    """Compatibilità: /prenota → /"""
+    if request.method == "POST":
+        return prenota_landing()
+    qs = request.query_string.decode() if request.query_string else ""
+    target = url_for("prenota_public.prenota_landing")
+    if qs:
+        target = f"{target}?{qs}"
+    return redirect(target, code=301)
 
 
 # ========================
