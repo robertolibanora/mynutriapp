@@ -372,6 +372,40 @@
     });
   }
 
+  var targetsToggle = document.getElementById("targets-toggle");
+  var targetsForm = document.getElementById("targets-form");
+  if (targetsToggle && targetsForm) {
+    targetsToggle.addEventListener("click", function () {
+      targetsForm.hidden = !targetsForm.hidden;
+    });
+
+    targetsForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var updateUrl = targetsForm.dataset.planUpdateUrl;
+      if (!updateUrl) return;
+
+      var payload = {};
+      ["target_kcal", "target_protein_pct", "target_carbs_pct", "target_fat_pct"].forEach(function (name) {
+        var input = targetsForm.querySelector('[name="' + name + '"]');
+        if (input) payload[name] = input.value.trim() === "" ? null : input.value;
+      });
+
+      var submitBtn = targetsForm.querySelector('[type="submit"]');
+      if (submitBtn) submitBtn.disabled = true;
+      jsonFetch(updateUrl, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      }).then(function (res) {
+        if (!res.ok) throw new Error(res.data.error || "Impossibile salvare gli obiettivi.");
+        window.location.reload();
+      }).catch(function (err) {
+        showMsg(err.message || "Errore salvataggio obiettivi.");
+        if (submitBtn) submitBtn.disabled = false;
+      });
+    });
+  }
+
   root.addEventListener("click", function (e) {
     var addBtn = e.target.closest("[data-add-item]");
     if (addBtn) { e.preventDefault(); addItem(addBtn.dataset.addItem); return; }

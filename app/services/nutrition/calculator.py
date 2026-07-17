@@ -109,6 +109,15 @@ class NutritionCalculatorService:
             "fat": round(fat_kcal / macro_kcal * 100, 1),
         }
 
+    @staticmethod
+    def target_grams(kcal: Any, pct: Any, kcal_per_gram: float) -> Optional[float]:
+        """Grammi di un macro dati kcal totali target e % di calorie."""
+        kcal_f = _to_float(kcal)
+        pct_f = _to_float(pct)
+        if not kcal_f or pct_f is None:
+            return None
+        return round(kcal_f * pct_f / 100.0 / kcal_per_gram, 1)
+
     @classmethod
     def compute_plan(cls, meals: Iterable[Any], round_ndigits: int = 2) -> Dict[str, Any]:
         """Totale dieta + breakdown per giornata (``day_index`` … ``day_index_to``).

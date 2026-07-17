@@ -34,12 +34,21 @@
 <!-- OBIETTIVI NUTRIZIONALI ATTUALI -->
 <div class="dp-goals">
   <h2 class="dp-goals-title">Obiettivi nutrizionali attuali</h2>
+  {% if targets %}
+  <div class="dp-summary">
+    <div class="dp-kpi"><b>{{ targets.kcal }}</b><span>Calorie target</span></div>
+    <div class="dp-kpi"><b>{{ "%.0f"|format(targets.protein_g) if targets.protein_g is not none else '—' }}</b><span>Proteine (g)</span>{% if targets.protein_pct is not none %}<em>{{ "%.0f"|format(targets.protein_pct) }}%</em>{% endif %}</div>
+    <div class="dp-kpi"><b>{{ "%.0f"|format(targets.carbs_g) if targets.carbs_g is not none else '—' }}</b><span>Carbo (g)</span>{% if targets.carbs_pct is not none %}<em>{{ "%.0f"|format(targets.carbs_pct) }}%</em>{% endif %}</div>
+    <div class="dp-kpi"><b>{{ "%.0f"|format(targets.fat_g) if targets.fat_g is not none else '—' }}</b><span>Grassi (g)</span>{% if targets.fat_pct is not none %}<em>{{ "%.0f"|format(targets.fat_pct) }}%</em>{% endif %}</div>
+  </div>
+  {% else %}
   <div class="dp-summary">
     <div class="dp-kpi"><b>{{ "%.0f"|format(totals.plan.total.kcal) }}</b><span>Calorie target</span></div>
     <div class="dp-kpi"><b>{{ "%.0f"|format(totals.plan.total.protein) }}</b><span>Proteine (g)</span><em>{{ "%.0f"|format(totals.perc.protein) }}%</em></div>
     <div class="dp-kpi"><b>{{ "%.0f"|format(totals.plan.total.carbs) }}</b><span>Carbo (g)</span><em>{{ "%.0f"|format(totals.perc.carbs) }}%</em></div>
     <div class="dp-kpi"><b>{{ "%.0f"|format(totals.plan.total.fat) }}</b><span>Grassi (g)</span><em>{{ "%.0f"|format(totals.perc.fat) }}%</em></div>
   </div>
+  {% endif %}
 </div>
 
 {% if plan.goal %}<p style="color:#d4d4d4;font-weight:600;margin:.2rem 0 .6rem;">Obiettivo: {{ plan.goal }}</p>{% endif %}

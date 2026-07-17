@@ -1441,6 +1441,37 @@
   color: var(--adm-accent);
 }
 
+.admin-app .diet-goals-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.admin-app .diet-goals-head .diet-goals-title {
+  margin-bottom: 0;
+}
+
+.admin-app .diet-kpi-actual {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.72rem;
+  color: var(--adm-text-dim);
+}
+
+.admin-app .diet-targets-form {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--adm-border-soft);
+}
+
+.admin-app .diet-targets-hint {
+  margin: 0.6rem 0 0;
+  font-size: 0.78rem;
+  color: var(--adm-text-dim);
+}
+
 .admin-app .diet-kpi {
   background: var(--adm-surface);
   border: 1px solid var(--adm-border);

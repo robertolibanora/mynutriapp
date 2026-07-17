@@ -25,7 +25,40 @@
 </div>
 
 <div class="diet-goals-card">
-  <h3 class="diet-goals-title">Obiettivi nutrizionali attuali</h3>
+  <div class="diet-goals-head">
+    <h3 class="diet-goals-title">Obiettivi nutrizionali attuali</h3>
+    <button type="button" class="btn btn-secondary btn-small" id="targets-toggle">
+      {{ 'Modifica obiettivi' if targets else 'Imposta obiettivi' }}
+    </button>
+  </div>
+
+  {% if targets %}
+  <div class="diet-summary diet-summary--goals" data-plan-total>
+    <div class="diet-kpi diet-kpi--kcal">
+      <b>{{ targets.kcal }}</b>
+      <span>Calorie target</span>
+      <small class="diet-kpi-actual">attuale: <span data-k="kcal">{{ "%.0f"|format(totals.plan.total.kcal) }}</span> kcal</small>
+    </div>
+    <div class="diet-kpi diet-kpi--protein">
+      <b>{{ "%.0f"|format(targets.protein_g) if targets.protein_g is not none else '—' }}</b>
+      <span>Proteine (g)</span>
+      {% if targets.protein_pct is not none %}<em class="diet-kpi-pct">{{ "%.0f"|format(targets.protein_pct) }}%</em>{% endif %}
+      <small class="diet-kpi-actual">attuale: <span data-k="protein">{{ "%.1f"|format(totals.plan.total.protein) }}</span> g</small>
+    </div>
+    <div class="diet-kpi diet-kpi--carbs">
+      <b>{{ "%.0f"|format(targets.carbs_g) if targets.carbs_g is not none else '—' }}</b>
+      <span>Carboidrati (g)</span>
+      {% if targets.carbs_pct is not none %}<em class="diet-kpi-pct">{{ "%.0f"|format(targets.carbs_pct) }}%</em>{% endif %}
+      <small class="diet-kpi-actual">attuale: <span data-k="carbs">{{ "%.1f"|format(totals.plan.total.carbs) }}</span> g</small>
+    </div>
+    <div class="diet-kpi diet-kpi--fat">
+      <b>{{ "%.0f"|format(targets.fat_g) if targets.fat_g is not none else '—' }}</b>
+      <span>Grassi (g)</span>
+      {% if targets.fat_pct is not none %}<em class="diet-kpi-pct">{{ "%.0f"|format(targets.fat_pct) }}%</em>{% endif %}
+      <small class="diet-kpi-actual">attuale: <span data-k="fat">{{ "%.1f"|format(totals.plan.total.fat) }}</span> g</small>
+    </div>
+  </div>
+  {% else %}
   <div class="diet-summary diet-summary--goals" data-plan-total>
     <div class="diet-kpi diet-kpi--kcal">
       <b data-k="kcal">{{ "%.0f"|format(totals.plan.total.kcal) }}</b>
@@ -47,6 +80,35 @@
       <em class="diet-kpi-pct" data-pct="fat">{{ "%.0f"|format(totals.perc.fat) }}%</em>
     </div>
   </div>
+  {% endif %}
+
+  <form id="targets-form" class="diet-targets-form" hidden
+        data-plan-update-url="{{ url_for('admin_diets.update_diet_plan', diet_plan_id=plan.id) }}">
+    <div class="diet-form-grid">
+      <div class="diet-form-field diet-form-field--sm">
+        <label class="diet-form-label">Calorie target</label>
+        <input type="number" class="input-text" name="target_kcal" min="1" step="1"
+               value="{{ plan.target_kcal or '' }}" placeholder="2000">
+      </div>
+      <div class="diet-form-field diet-form-field--sm">
+        <label class="diet-form-label">Proteine %</label>
+        <input type="number" class="input-text" name="target_protein_pct" min="0" max="100" step="1"
+               value="{{ plan.target_protein_pct|round(0)|int if plan.target_protein_pct is not none else '' }}" placeholder="30">
+      </div>
+      <div class="diet-form-field diet-form-field--sm">
+        <label class="diet-form-label">Carboidrati %</label>
+        <input type="number" class="input-text" name="target_carbs_pct" min="0" max="100" step="1"
+               value="{{ plan.target_carbs_pct|round(0)|int if plan.target_carbs_pct is not none else '' }}" placeholder="40">
+      </div>
+      <div class="diet-form-field diet-form-field--sm">
+        <label class="diet-form-label">Grassi %</label>
+        <input type="number" class="input-text" name="target_fat_pct" min="0" max="100" step="1"
+               value="{{ plan.target_fat_pct|round(0)|int if plan.target_fat_pct is not none else '' }}" placeholder="30">
+      </div>
+      <button type="submit" class="btn btn-primary btn-small">Salva obiettivi</button>
+    </div>
+    <p class="diet-targets-hint">Le percentuali devono sommare 100. Svuota le calorie target per tornare ai totali del piano.</p>
+  </form>
 </div>
 
 <div class="adm-hero diet-page-hero">

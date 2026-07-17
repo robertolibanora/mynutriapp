@@ -182,6 +182,26 @@ def ensure_nutrition_schema() -> None:
                     conn.execute(text("UPDATE diet_meals SET day_index_to = day_index"))
                 logger.info("Aggiunta colonna diet_meals.day_index_to")
 
+        if "diet_plans" in set(insp.get_table_names()):
+            plan_cols = {c["name"] for c in insp.get_columns("diet_plans")}
+            target_cols = {
+                "target_kcal": "INT NULL",
+                "target_protein_pct": "DECIMAL(5,2) NULL",
+                "target_carbs_pct": "DECIMAL(5,2) NULL",
+                "target_fat_pct": "DECIMAL(5,2) NULL",
+            }
+            missing = {k: v for k, v in target_cols.items() if k not in plan_cols}
+            if missing:
+                with db.engine.begin() as conn:
+                    for col, ddl in missing.items():
+                        conn.execute(
+                            text(f"ALTER TABLE diet_plans ADD COLUMN {col} {ddl}")
+                        )
+                logger.info(
+                    "Aggiunte colonne obiettivi su diet_plans: %s",
+                    ", ".join(missing),
+                )
+
         _NUTRITION_SCHEMA_OK = True
         logger.info("Schema modulo nutrizione verificato (foods, diet_plans, diet_meals, diet_meal_items)")
     except Exception as exc:  # noqa: BLE001

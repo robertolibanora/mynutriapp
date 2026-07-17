@@ -226,6 +226,13 @@ class DietPlan(db.Model):
     notes = db.Column(db.Text, nullable=True)
     status = db.Column(db.String(20), nullable=False, server_default="draft")
 
+    # Obiettivi nutrizionali impostati dal professionista (indipendenti dal
+    # contenuto del piano). Le percentuali sono % di calorie del macro.
+    target_kcal = db.Column(db.Integer, nullable=True)
+    target_protein_pct = db.Column(db.Numeric(5, 2), nullable=True)
+    target_carbs_pct = db.Column(db.Numeric(5, 2), nullable=True)
+    target_fat_pct = db.Column(db.Numeric(5, 2), nullable=True)
+
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
 

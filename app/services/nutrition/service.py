@@ -250,8 +250,48 @@ class NutritionService:
         if "notes" in data:
             plan.notes = (data.get("notes") or None)
 
+        self._apply_targets(plan, data)
+
         db.session.commit()
         return plan
+
+    @staticmethod
+    def _apply_targets(plan: DietPlan, data: Dict[str, Any]) -> None:
+        """Aggiorna gli obiettivi nutrizionali del piano (kcal + % macro).
+
+        Valori vuoti/None azzerano il campo. Le tre percentuali, se tutte
+        presenti, devono sommare ~100 (tolleranza ±2).
+        """
+
+        def _num(key, lo, hi, integer=False):
+            raw = data.get(key)
+            if raw is None or (isinstance(raw, str) and not raw.strip()):
+                return None
+            try:
+                value = float(raw)
+            except (TypeError, ValueError):
+                raise NutritionServiceError(f"{key} deve essere un numero")
+            if not (lo <= value <= hi):
+                raise NutritionServiceError(f"{key} deve essere tra {lo} e {hi}")
+            return int(round(value)) if integer else round(value, 2)
+
+        if "target_kcal" in data:
+            plan.target_kcal = _num("target_kcal", 1, 20000, integer=True)
+
+        pct_fields = ("target_protein_pct", "target_carbs_pct", "target_fat_pct")
+        touched = [f for f in pct_fields if f in data]
+        for field in touched:
+            setattr(plan, field, _num(field, 0, 100))
+
+        if touched:
+            pcts = [getattr(plan, f) for f in pct_fields]
+            if all(p is not None for p in pcts):
+                total = sum(float(p) for p in pcts)
+                if abs(total - 100) > 2:
+                    raise NutritionServiceError(
+                        "Le percentuali dei macronutrienti devono sommare 100"
+                        f" (attuale: {total:.0f})"
+                    )
 
     def add_meal(self, diet_plan_id: int, data: Dict[str, Any]) -> DietMeal:
         plan = db.session.get(DietPlan, diet_plan_id)
@@ -436,6 +476,10 @@ def diet_plan_to_dict(plan: DietPlan) -> Dict[str, Any]:
         "goal": plan.goal,
         "notes": plan.notes,
         "status": plan.status,
+        "target_kcal": plan.target_kcal,
+        "target_protein_pct": float(plan.target_protein_pct) if plan.target_protein_pct is not None else None,
+        "target_carbs_pct": float(plan.target_carbs_pct) if plan.target_carbs_pct is not None else None,
+        "target_fat_pct": float(plan.target_fat_pct) if plan.target_fat_pct is not None else None,
     }
 
 

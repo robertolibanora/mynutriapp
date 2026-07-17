@@ -85,6 +85,26 @@ def _build_totals(plan: DietPlan) -> dict:
     }
 
 
+def _build_targets(plan: DietPlan) -> dict | None:
+    """View-model degli obiettivi impostati dal professionista.
+
+    Ritorna None se il piano non ha un target kcal: in quel caso la scheda
+    obiettivi mostra i totali attuali del piano.
+    """
+    if not plan.target_kcal:
+        return None
+    calc = NutritionCalculatorService
+    return {
+        "kcal": plan.target_kcal,
+        "protein_pct": float(plan.target_protein_pct) if plan.target_protein_pct is not None else None,
+        "carbs_pct": float(plan.target_carbs_pct) if plan.target_carbs_pct is not None else None,
+        "fat_pct": float(plan.target_fat_pct) if plan.target_fat_pct is not None else None,
+        "protein_g": calc.target_grams(plan.target_kcal, plan.target_protein_pct, 4),
+        "carbs_g": calc.target_grams(plan.target_kcal, plan.target_carbs_pct, 4),
+        "fat_g": calc.target_grams(plan.target_kcal, plan.target_fat_pct, 9),
+    }
+
+
 # ========================
 # ADMIN: LISTA DIETE
 # ========================
@@ -162,6 +182,7 @@ def diet_plan_detail(diet_plan_id):
         plan=plan,
         paziente=paziente,
         totals=totals,
+        targets=_build_targets(plan),
     )
 
 
@@ -196,5 +217,6 @@ def user_diet_plan(diet_plan_id):
         plan=plan,
         paziente=paziente,
         totals=totals,
+        targets=_build_targets(plan),
         is_preview=is_preview,
     )
