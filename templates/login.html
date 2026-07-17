@@ -3,63 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    
-    <!-- 📱 PWA METATAGS -->
+
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
-    <meta name="theme-color" content="#d4d4d4">
+    <meta name="theme-color" content="#0f0f0f">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-title" content="NutriApp">
-    <meta name="application-name" content="NutriApp">
-    <meta name="msapplication-TileColor" content="#d4d4d4">
+    <meta name="apple-mobile-web-app-title" content="MyNutriApp">
+    <meta name="application-name" content="MyNutriApp">
+    <meta name="msapplication-TileColor" content="#0f0f0f">
     <meta name="msapplication-tap-highlight" content="no">
-    
-    <!-- 🎨 FAVICONS -->
+
     <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
     <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
     <link rel="apple-touch-icon" sizes="192x192" href="{{ url_for('static', filename='icons/icon-192.png') }}">
     <link rel="apple-touch-icon" sizes="512x512" href="{{ url_for('static', filename='icons/icon-512.png') }}">
-    
-    <title>Accesso</title>
+
+    <title>Accedi · MyNutriApp</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&family=Adam+Script&display=swap" rel="stylesheet">
-    <link href="https://fonts.cdnfonts.com/css/hussar" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body class="login-body">
     <div class="login-container">
-        <div class="logo-section" style="text-align: center; margin-bottom: 2rem; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo Dott. Pozzati Nutrizionista" 
-                 style="max-width: 100px; height: auto; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); margin-bottom: 1.5rem;">
-            <h1 style="color: #d8d8d8; font-size: 1.4rem; margin: 0 0 0.6rem 0; font-weight: 700; line-height: 1.2; text-align: center; display: flex; align-items: center; justify-content: center; gap: 0.3rem;">
-                <span style="font-family: 'Hussar Bold', sans-serif; font-style: italic; font-weight: 600;">Nutrizionista</span>
-                <span style="font-family: 'Hussar Bold', sans-serif; font-weight: 900; text-transform: uppercase; letter-spacing: 1px;">GRANDI</span>
-            </h1>
-            <p style="color: #d4d4d4; font-family: 'Adam Script', cursive; font-size: 0.95rem; margin: 0 0 0.3rem 0; font-style: italic; font-weight: 600; line-height: 1.2; text-align: center; max-width: 300px;">
-                Non Diamo Pillole, Non Diamo Consigli,
-            </p>
-            <p style="color: #d4d4d4; font-family: 'Adam Script', cursive; font-size: 1.4rem; margin: 0; font-style: italic; font-weight: 700; line-height: 1.3; text-align: center; max-width: 300px; text-shadow: 0 1px 2px rgba(0,0,0,0.3);">
-                Diamo Risultati
-            </p>
+        <div class="login-brand">
+            <div class="login-mark" aria-hidden="true">
+                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="32" cy="32" r="30" stroke="currentColor" stroke-width="1.5" opacity="0.22"/>
+                    <path d="M32 48c-9.5-6.2-15-12.8-15-19.2C17 21.2 23.2 16 32 16s15 5.2 15 12.8C47 35.2 41.5 41.8 32 48z"
+                          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M32 22v18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M32 28c4.5-1.2 8-1 11.5.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    <path d="M32 34c-4.2-1-7.8-.7-11.2.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <h1 class="login-title">MyNutriApp</h1>
+            <p class="login-subtitle">Nutrizione e benessere, in un unico spazio</p>
         </div>
-        <h2 class="page-title">Accesso</h2>
-        <form method="POST" class="form">
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+          <div class="login-flashes">
+            {% for category, message in messages %}
+            <div class="login-flash login-flash--{{ category }}">{{ message }}</div>
+            {% endfor %}
+          </div>
+          {% endif %}
+        {% endwith %}
+
+        <form method="POST" class="login-form">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <div class="form-group">
-                <label class="label">Telefono</label>
-                <input type="text" name="telefono" class="input" placeholder="+39..." required>
+                <label class="label" for="telefono">Telefono</label>
+                <input id="telefono" type="text" name="telefono" class="input" placeholder="+39..." autocomplete="tel" required>
             </div>
 
             <div class="form-group">
-                <label class="label">Password</label>
-                <input type="password" name="password" class="input" required>
+                <label class="label" for="password">Password</label>
+                <input id="password" type="password" name="password" class="input" autocomplete="current-password" required>
             </div>
 
-            <button type="submit" class="btn btn-primary">Accedi</button>
+            <button type="submit" class="btn btn-primary login-submit">Accedi</button>
         </form>
+
+        <p class="login-footer">
+            <a href="{{ url_for('prenota_public.prenota_landing') }}">Torna alla prenotazione</a>
+        </p>
     </div>
-    
-    <!-- 📱 PWA SERVICE WORKER -->
+
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('/static/js/service-worker.js')

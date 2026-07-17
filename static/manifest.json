@@ -1,12 +1,12 @@
 {
-  "name": "Pannello",
-  "short_name": "Pannello",
-  "description": "App nutrizionale per seguire diete e allenamenti personalizzati",
+  "name": "MyNutriApp",
+  "short_name": "MyNutriApp",
+  "description": "Nutrizione e benessere personalizzati",
   "start_url": "/user/dashboard",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#1a1a1a",
-  "theme_color": "#d4d4d4",
+  "background_color": "#0f0f0f",
+  "theme_color": "#0f0f0f",
   "scope": "/",
   "lang": "it",
   "icons": [
