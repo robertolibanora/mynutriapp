@@ -18,23 +18,16 @@
     </p>
   </div>
   <div class="adm-hero-actions">
-    <a href="{{ url_for('diete_plans.new_diet_plan_standalone') }}" class="btn btn-secondary">
-      {{ icon('diet', 16) }} Nuova dieta
-    </a>
-    <a href="{{ url_for('allenamenti.nuovo_allenamento_standalone') }}" class="btn btn-secondary">
-      {{ icon('dumbbell', 16) }} Nuovo allenamento
-    </a>
-    <a href="{{ url_for('patients.nuovo_paziente') }}" class="adm-btn-cta">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-      Nuovo paziente
-    </a>
+    <a href="{{ url_for('diete_plans.new_diet_plan_standalone') }}" class="btn btn-secondary">Nuova dieta</a>
+    <a href="{{ url_for('allenamenti.nuovo_allenamento_standalone') }}" class="btn btn-secondary">Nuovo allenamento</a>
+    <a href="{{ url_for('patients.nuovo_paziente') }}" class="adm-btn-cta">Nuovo paziente</a>
   </div>
 </div>
 
 {% if n_da_gestire %}
 <div class="adm-attention">
   <div class="adm-attention-body">
-    <div class="adm-attention-title">{{ icon('bell', 18) }} Richiede la tua attenzione</div>
+    <div class="adm-attention-title">Richiede la tua attenzione</div>
     <div class="adm-attention-text">
       {% if n_da_confermare %}{{ n_da_confermare }} appuntament{{ 'o' if n_da_confermare == 1 else 'i' }} da confermare{% endif %}
       {% if n_da_confermare and n_richieste %} · {% endif %}
@@ -54,87 +47,62 @@
 
 <div class="adm-stat-grid">
   <article class="adm-stat-card">
-    <div class="adm-stat-head">
-      <span class="adm-stat-icon">{{ icon('users', 21) }}</span>
-    </div>
     <div class="adm-stat-value">{{ n_pazienti }}</div>
     <div class="adm-stat-label">Pazienti</div>
-    <a href="{{ url_for('patients.lista_pazienti') }}" class="adm-stat-link">
-      Anagrafica {{ icon('arrow-right', 14) }}
-    </a>
+    <a href="{{ url_for('patients.lista_pazienti') }}" class="adm-stat-link">Anagrafica</a>
   </article>
 
   <article class="adm-stat-card">
+    {% if n_appuntamenti_settimana %}
     <div class="adm-stat-head">
-      <span class="adm-stat-icon">{{ icon('calendar', 21) }}</span>
-      {% if n_appuntamenti_settimana %}
       <span class="adm-stat-badge">{{ n_appuntamenti_settimana }} in 7 gg</span>
-      {% endif %}
     </div>
+    {% endif %}
     <div class="adm-stat-value">{{ n_appuntamenti_oggi }}</div>
     <div class="adm-stat-label">Appuntamenti oggi</div>
-    <a href="{{ url_for('agenda.agenda_unificata') }}" class="adm-stat-link">
-      Apri agenda {{ icon('arrow-right', 14) }}
-    </a>
+    <a href="{{ url_for('agenda.agenda_unificata') }}" class="adm-stat-link">Apri agenda</a>
   </article>
 
   <article class="adm-stat-card">
+    {% if n_diete_bozza %}
     <div class="adm-stat-head">
-      <span class="adm-stat-icon">{{ icon('diet', 21) }}</span>
-      {% if n_diete_bozza %}
       <span class="adm-stat-badge">{{ n_diete_bozza }} bozz{{ 'a' if n_diete_bozza == 1 else 'e' }}</span>
-      {% endif %}
     </div>
+    {% endif %}
     <div class="adm-stat-value">{{ n_diete }}</div>
     <div class="adm-stat-label">Piani alimentari</div>
-    <a href="{{ url_for('diete_plans.lista_diet_plans') }}" class="adm-stat-link">
-      Sezione Dieta {{ icon('arrow-right', 14) }}
-    </a>
+    <a href="{{ url_for('diete_plans.lista_diet_plans') }}" class="adm-stat-link">Sezione Dieta</a>
   </article>
 
   <article class="adm-stat-card {% if n_da_gestire %}adm-stat-card--alert{% endif %}">
+    {% if n_slot_futuri %}
     <div class="adm-stat-head">
-      <span class="adm-stat-icon">{{ icon('clock', 21) }}</span>
-      {% if n_slot_futuri %}
       <span class="adm-stat-badge">{{ n_slot_futuri }} slot liberi</span>
-      {% endif %}
     </div>
+    {% endif %}
     <div class="adm-stat-value">{{ n_da_gestire }}</div>
     <div class="adm-stat-label">Da gestire</div>
-    <a href="{{ url_for('agenda.agenda_unificata') }}" class="adm-stat-link">
-      Controlla ora {{ icon('arrow-right', 14) }}
-    </a>
+    <a href="{{ url_for('agenda.agenda_unificata') }}" class="adm-stat-link">Controlla ora</a>
   </article>
 </div>
 
 <nav class="adm-quick-actions" aria-label="Azioni rapide">
-  <a href="{{ url_for('agenda.agenda_unificata') }}" class="adm-quick-action">
-    <span class="adm-quick-action-icon">{{ icon('calendar', 18) }}</span>
-    <span>Agenda</span>
-  </a>
-  <a href="{{ url_for('diete_plans.new_diet_plan_standalone') }}" class="adm-quick-action">
-    <span class="adm-quick-action-icon">{{ icon('diet', 18) }}</span>
-    <span>Dieta</span>
-  </a>
-  <a href="{{ url_for('allenamenti.nuovo_allenamento_standalone') }}" class="adm-quick-action">
-    <span class="adm-quick-action-icon">{{ icon('dumbbell', 18) }}</span>
-    <span>Allenamento</span>
-  </a>
-  <a href="{{ url_for('patients.lista_pazienti') }}" class="adm-quick-action">
-    <span class="adm-quick-action-icon">{{ icon('users', 18) }}</span>
-    <span>Pazienti</span>
-  </a>
-  <a href="{{ url_for('broadcast.dashboard') }}" class="adm-quick-action">
-    <span class="adm-quick-action-icon">{{ icon('message', 18) }}</span>
-    <span>Messaggi</span>
-  </a>
+  <a href="{{ url_for('agenda.agenda_unificata') }}" class="adm-quick-action"><span>Agenda</span></a>
+  <a href="{{ url_for('diete_plans.lista_diet_plans') }}" class="adm-quick-action"><span>Dieta</span></a>
+  <a href="{{ url_for('allenamenti.lista_allenamenti') }}" class="adm-quick-action"><span>Allenamento</span></a>
+  <a href="{{ url_for('patients.lista_pazienti') }}" class="adm-quick-action"><span>Pazienti</span></a>
+  <a href="{{ url_for('broadcast.dashboard') }}" class="adm-quick-action"><span>Messaggi</span></a>
 </nav>
+
+{% if deviazione is defined %}
+{% include 'admin/_deviazione_widget.html' %}
+{% endif %}
 
 <div class="adm-split-grid">
   <section class="adm-panel">
     <div class="adm-panel-head">
       <h3 class="adm-panel-title">Oggi</h3>
-      <a href="{{ url_for('agenda.agenda_unificata') }}" class="adm-panel-link">Vedi agenda {{ icon('arrow-right', 14) }}</a>
+      <a href="{{ url_for('agenda.agenda_unificata') }}" class="adm-panel-link">Vedi agenda</a>
     </div>
     <div class="adm-appt-list">
       {% if appuntamenti_oggi %}
@@ -184,7 +152,7 @@
   <section class="adm-panel">
     <div class="adm-panel-head">
       <h3 class="adm-panel-title">Prossimi 7 giorni</h3>
-      <a href="{{ url_for('agenda.agenda_unificata') }}" class="adm-panel-link">Apri agenda {{ icon('arrow-right', 14) }}</a>
+      <a href="{{ url_for('agenda.agenda_unificata') }}" class="adm-panel-link">Apri agenda</a>
     </div>
     <div class="adm-appt-list">
       {% if prossimi_appuntamenti %}
@@ -216,13 +184,12 @@
   <section class="adm-panel">
     <div class="adm-panel-head">
       <h3 class="adm-panel-title">Ultime diete</h3>
-      <a href="{{ url_for('diete_plans.lista_diet_plans') }}" class="adm-panel-link">Tutte {{ icon('arrow-right', 14) }}</a>
+      <a href="{{ url_for('diete_plans.lista_diet_plans') }}" class="adm-panel-link">Tutte</a>
     </div>
     <div class="adm-appt-list">
       {% if ultime_diete %}
         {% for plan in ultime_diete %}
         <a href="{{ url_for('diete_plans.diet_plan_detail', diet_plan_id=plan.id) }}" class="adm-appt-item adm-appt-item--link">
-          <span class="adm-appt-time">{{ icon('diet', 16) }}</span>
           <div style="flex:1;min-width:0;">
             <div class="adm-appt-name">{{ plan.title }}</div>
             <div class="adm-appt-type">
@@ -238,7 +205,7 @@
       {% else %}
         <div class="adm-empty-state">
           <p class="adm-empty">Nessun piano alimentare ancora.</p>
-          <a href="{{ url_for('diete_plans.new_diet_plan_standalone') }}" class="btn btn-primary btn-small">{{ icon('plus', 14) }} Crea dieta</a>
+          <a href="{{ url_for('diete_plans.new_diet_plan_standalone') }}" class="btn btn-primary btn-small">Crea dieta</a>
         </div>
       {% endif %}
     </div>
@@ -247,7 +214,7 @@
   <section class="adm-panel">
     <div class="adm-panel-head">
       <h3 class="adm-panel-title">Richieste online</h3>
-      <a href="{{ url_for('prenota_public.lista_richieste_admin') }}" class="adm-panel-link">Gestisci {{ icon('arrow-right', 14) }}</a>
+      <a href="{{ url_for('prenota_public.lista_richieste_admin') }}" class="adm-panel-link">Gestisci</a>
     </div>
     <div class="adm-appt-list">
       {% if richieste_recenti %}

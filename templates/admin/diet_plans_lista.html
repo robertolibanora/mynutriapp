@@ -7,10 +7,7 @@
     <h2 style="margin:0;">Dieta</h2>
     <p style="margin:.35rem 0 0 0;">Crea piani alimentari e associali a un paziente. Ogni dieta appartiene a un solo paziente.</p>
   </div>
-  <a href="{{ url_for('diete_plans.new_diet_plan_standalone') }}" class="adm-btn-cta">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-    Nuova dieta
-  </a>
+  <a href="{{ url_for('diete_plans.new_diet_plan_standalone') }}" class="adm-btn-cta">Nuova dieta</a>
 </div>
 
 <div class="main-toolbar" style="margin-bottom:1.5rem;">
@@ -23,7 +20,7 @@
     </select>
     <button type="submit" class="btn btn-white btn-small">Filtra</button>
     {% if q or status %}
-    <a href="{{ url_for('diete_plans.lista_diet_plans') }}" class="btn btn-secondary btn-small">{{ icon('x', 14) }} Reset</a>
+    <a href="{{ url_for('diete_plans.lista_diet_plans') }}" class="btn btn-secondary btn-small">Reset</a>
     {% endif %}
   </form>
 </div>
@@ -45,8 +42,8 @@
       <span class="adm-status-pill {% if plan.status == 'published' %}adm-status-pill--confirmed{% else %}adm-status-pill--wait{% endif %}">
         {{ 'Pubblicata' if plan.status == 'published' else 'Bozza' }}
       </span>
-      <a href="{{ url_for('patients.dettaglio_paziente', patient_id=plan.patient_id) }}" class="btn btn-secondary btn-small">{{ icon('user', 14) }} Paziente</a>
-      <a href="{{ url_for('diete_plans.diet_plan_detail', diet_plan_id=plan.id) }}" class="btn btn-primary btn-small">{{ icon('edit', 14) }} Apri</a>
+      <a href="{{ url_for('patients.dettaglio_paziente', patient_id=plan.patient_id) }}" class="btn btn-secondary btn-small">Paziente</a>
+      <a href="{{ url_for('diete_plans.diet_plan_detail', diet_plan_id=plan.id) }}" class="btn btn-primary btn-small">Apri</a>
     </div>
   </div>
   {% endfor %}
@@ -60,7 +57,7 @@
       Nessuna dieta ancora. Crea la prima e associala a un paziente.
     {% endif %}
   </p>
-  <a href="{{ url_for('diete_plans.new_diet_plan_standalone') }}" class="btn btn-primary">{{ icon('plus', 16) }} Nuova dieta</a>
+  <a href="{{ url_for('diete_plans.new_diet_plan_standalone') }}" class="btn btn-primary">Nuova dieta</a>
 </div>
 {% endif %}
 

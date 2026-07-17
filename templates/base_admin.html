@@ -13,7 +13,6 @@
 </head>
 <body class="admin-app">
 {% set name_parts = admin_name.split() %}
-{% set admin_initials = ((name_parts[0][0] if name_parts else 'A') ~ (name_parts[1][0] if name_parts|length > 1 else ''))|upper %}
 {% set ep = request.endpoint or '' %}
 {% if 'broadcast' in ep %}
   {% set auto_nav_label = 'Messaggi' %}

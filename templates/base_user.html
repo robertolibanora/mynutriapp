@@ -8,11 +8,11 @@
     
     <!-- 📱 PWA METATAGS -->
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
-    <meta name="theme-color" content="#d4d4d4">
+    <meta name="theme-color" content="#0f0f0f">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-title" content="NutriApp">
-    <meta name="application-name" content="NutriApp">
-    <meta name="msapplication-TileColor" content="#d4d4d4">
+    <meta name="apple-mobile-web-app-title" content="MyNutriApp">
+    <meta name="application-name" content="MyNutriApp">
+    <meta name="msapplication-TileColor" content="#0f0f0f">
     <meta name="msapplication-tap-highlight" content="no">
     
     <!-- 🔧 PWA FORCE INSTALL -->
@@ -20,13 +20,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="format-detection" content="telephone=no">
     
-    <!-- 🎨 FAVICONS -->
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
-    <link rel="apple-touch-icon" sizes="192x192" href="{{ url_for('static', filename='icons/icon-192.png') }}">
-    <link rel="apple-touch-icon" sizes="512x512" href="{{ url_for('static', filename='icons/icon-512.png') }}">
-    
-    <title>{% block title %}NutriApp{% endblock %}</title>
+    <title>{% block title %}MyNutriApp{% endblock %}</title>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -45,8 +39,8 @@
                 <span class="user-greeting-text">Ciao,</span>
                 <span class="user-name">{{ session.name }}</span>
             </div>
-            <a href="{{ url_for('patients.profilo_user') }}" class="user-avatar">
-                {{ session.name[0].upper() if session.name else '?' }}
+            <a href="{{ url_for('patients.profilo_user') }}" class="user-avatar user-avatar--text">
+                {{ session.name.split()[0] if session.name else 'Profilo' }}
             </a>
         </div>
     </header>
