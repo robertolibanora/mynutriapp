@@ -252,7 +252,7 @@ def dettaglio_paziente(patient_id):
     # Prepara dati per il grafico - include tutti i progressi con peso (paziente + nutrizionista)
     progressi_con_peso = [p for p in progressi if p.peso_settimanale]
     date_labels = [p.data_check.strftime('%d/%m/%Y') for p in progressi_con_peso]
-    pesi = [float(p.peso_settimanale) for p in progressi_con_peso]
+    pesi = [round(float(p.peso_settimanale), 1) for p in progressi_con_peso]
     aderenze = [p.aderenza if p.aderenza else 5 for p in progressi_con_peso]  # Default 5 se None
     
     # Decrittografa campi sensibili per visualizzazione

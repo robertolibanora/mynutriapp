@@ -150,7 +150,7 @@
       
       <div class="info-item" style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: rgba(255, 255, 255, 0.09); border-radius: 8px;">
         <span style="color: #d8d8d8; font-size: 0.9rem;">Peso Iniziale</span>
-        <span style="color: #ffffff; font-weight: 600;">{{ paziente.peso_iniziale }} kg</span>
+        <span style="color: #ffffff; font-weight: 600;">{% if paziente.peso_iniziale is not none %}{{ "%.1f"|format(paziente.peso_iniziale) }}{% else %}—{% endif %} kg</span>
       </div>
     </div>
   </div>
@@ -510,7 +510,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     callbacks: {
                         label: function(context) {
                             const index = context.dataIndex;
-                            const peso = weights[index];
+                            const peso = Number(weights[index]).toFixed(1);
                             const aderenza = adherences[index];
                             return [
                                 'Peso: ' + peso + ' kg',
@@ -532,7 +532,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             size: 12
                         },
                         callback: function(value) {
-                            return value + ' kg';
+                            return Number(value).toFixed(1) + ' kg';
                         }
                     }
                 },

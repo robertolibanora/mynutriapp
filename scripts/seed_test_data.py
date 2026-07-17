@@ -213,7 +213,7 @@ def _seed_related_for_patients(patients: list[Patient], today: date, now: dateti
     for week, p in enumerate(patients[:3]):
         for w in range(4):
             check_date = today - timedelta(weeks=3 - w)
-            peso = float(p.peso_iniziale) - (w * 0.6) - week * 0.3
+            peso = round(float(p.peso_iniziale) - (w * 0.6) - week * 0.3, 1)
             prog = Progresso(
                 patient_id=p.id,
                 data_check=check_date,
