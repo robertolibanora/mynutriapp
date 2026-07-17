@@ -64,7 +64,7 @@
       <div class="diet-meal-head">
         <div>
           <div class="diet-meal-title">{{ meal.meal_name }}</div>
-          <div class="diet-meal-sub">Giorno {{ meal.day_index + 1 }}{% if meal.meal_time %} · {{ meal.meal_time.strftime('%H:%M') }}{% endif %}{% if meal.notes %} · {{ meal.notes }}{% endif %}</div>
+          <div class="diet-meal-sub">Giorno {{ meal.day_index + 1 }}{% if meal.notes %} · {{ meal.notes }}{% endif %}</div>
         </div>
         <div class="diet-meal-actions">
           <div class="dm-total" data-meal-total="{{ meal.id }}">
@@ -150,10 +150,6 @@
         <label class="diet-form-label">Giorno</label>
         <input type="number" class="input-text" name="day_index" value="1" min="1" step="1">
       </div>
-      <div class="diet-form-field diet-form-field--time">
-        <label class="diet-form-label">Orario</label>
-        <input type="time" class="input-text" name="meal_time">
-      </div>
       <button type="submit" class="btn btn-primary">{{ icon('plus', 16) }} Aggiungi pasto</button>
     </form>
   </div>
@@ -206,5 +202,5 @@
 {% endblock %}
 
 {% block extra_scripts %}
-<script src="{{ url_for('static', filename='js/diet_builder.js') }}"></script>
+<script src="{{ url_for('static', filename='js/diet_builder.js') }}?v={{ static_version }}"></script>
 {% endblock %}

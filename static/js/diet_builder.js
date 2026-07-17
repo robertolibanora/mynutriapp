@@ -433,34 +433,48 @@
   if (mealForm) {
     mealForm.addEventListener("submit", function (e) {
       e.preventDefault();
-      var name = mealForm.meal_name.value.trim();
-      if (!name) { showMsg("Inserisci il nome del pasto."); return; }
-      var dayInput = parseInt(mealForm.day_index.value, 10) || 1;
+      if (!MEALS_URL) {
+        showMsg("URL pasti non configurato. Ricarica la pagina.");
+        return;
+      }
+      var nameInput = mealForm.querySelector('[name="meal_name"]');
+      var dayField = mealForm.querySelector('[name="day_index"]');
+      var name = ((nameInput && nameInput.value) || "").trim();
+      if (!name) {
+        showMsg("Inserisci il nome del pasto.");
+        return;
+      }
+      var dayInput = parseInt((dayField && dayField.value) || "1", 10) || 1;
       var payload = {
         meal_name: name,
-        day_index: Math.max(0, dayInput - 1),
-        meal_time: mealForm.meal_time.value || null
+        day_index: Math.max(0, dayInput - 1)
       };
       var btn = mealForm.querySelector('button[type="submit"]');
-      btn.disabled = true;
+      if (btn) btn.disabled = true;
       jsonFetch(MEALS_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       }).then(function (res) {
-        if (!res.ok) { showMsg(res.data.error || "Errore creazione pasto."); return; }
-        appendMealCard(res.data.meal);
+        if (!res.ok) {
+          showMsg((res.data && res.data.error) || "Errore creazione pasto.");
+          return;
+        }
+        if (res.data && res.data.meal) appendMealCard(res.data.meal);
         mealForm.reset();
-        mealForm.day_index.value = dayInput;
-        showMsg("Pasto aggiunto.", false);
-      }).catch(function () { showMsg("Errore di rete."); })
-        .finally(function () { btn.disabled = false; });
+        if (dayField) dayField.value = String(dayInput);
+        showMsg("Pasto aggiunto.", true);
+      }).catch(function () {
+        showMsg("Errore di rete.");
+      }).finally(function () {
+        if (btn) btn.disabled = false;
+      });
     });
   }
 
   function appendMealCard(meal) {
     var tpl = document.getElementById("meal-tpl").innerHTML;
-    var sub = "Giorno " + ((meal.day_index || 0) + 1) + (meal.meal_time ? " · " + meal.meal_time : "");
+    var sub = "Giorno " + ((meal.day_index || 0) + 1);
     var html = tpl.replace(/__MEAL_ID__/g, meal.id).replace("__MEAL_SUB__", sub);
     var wrap = document.createElement("div");
     wrap.innerHTML = html.trim();

@@ -1554,11 +1554,6 @@
   width: 92px;
 }
 
-.admin-app .diet-meal-form > .diet-form-field--time {
-  flex: 0 0 140px;
-  width: 140px;
-}
-
 .admin-app .diet-meal-form .btn-primary {
   flex: 0 0 auto;
   height: 42px;
@@ -1629,8 +1624,7 @@
     min-width: 0;
   }
 
-  .admin-app .diet-meal-form > .diet-form-field--day,
-  .admin-app .diet-meal-form > .diet-form-field--time {
+  .admin-app .diet-meal-form > .diet-form-field--day {
     flex: 1 1 calc(50% - 0.4rem);
     width: auto;
   }

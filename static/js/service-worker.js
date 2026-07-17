@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nutriapp-v5';
+const CACHE_NAME = 'nutriapp-v6';
 const urlsToCache = [
   '/',
   '/login',
@@ -41,6 +41,22 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   console.log('🌐 Service Worker: Fetch', e.request.url);
   
+  // JS: Network First (evita script admin/user obsoleti dopo deploy)
+  if (e.request.url.includes('/static/') && e.request.url.includes('.js')) {
+    e.respondWith(
+      fetch(e.request).then((fetchResponse) => {
+        if (fetchResponse && fetchResponse.status === 200) {
+          const responseClone = fetchResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(e.request, responseClone);
+          });
+        }
+        return fetchResponse;
+      }).catch(() => caches.match(e.request))
+    );
+    return;
+  }
+
   // Strategia: Cache First per risorse statiche, Network First per pagine
   if (e.request.url.includes('/static/')) {
     // Cache First per risorse statiche
