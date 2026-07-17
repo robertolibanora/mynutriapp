@@ -12,12 +12,31 @@
       <div>
         <h1 style="color: #ffffff; margin: 0; font-size: 2.5rem; font-weight: 700;">{{ paziente.nome }} {{ paziente.cognome }}</h1>
         <p style="color: #d8d8d8; margin: 0.5rem 0 0 0; font-size: 1.1rem;">{{ icon('phone', 14) }} {{ paziente.telefono }}</p>
+        {% set sc = paziente.stato_cliente or 'attivo' %}
+        <p style="margin: 0.5rem 0 0 0;">
+          <span style="font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.03em; padding:0.25rem 0.65rem; border-radius:999px;
+            {% if sc == 'provvisorio' %}background:rgba(255,183,77,0.2); color:#FFB74D;
+            {% elif sc == 'attivo' %}background:rgba(129,199,132,0.2); color:#81C784;
+            {% else %}background:rgba(229,115,115,0.2); color:#E57373;{% endif %}">
+            {% if sc == 'provvisorio' %}Provvisorio{% elif sc == 'attivo' %}Attivo{% else %}Non attivo{% endif %}
+          </span>
+        </p>
         {% if paziente.data_creazione %}
         <p style="color: #d8d8d8; margin: 0.25rem 0 0 0; font-size: 0.9rem;">{{ icon('calendar', 14) }} Registrato il {{ paziente.data_creazione.strftime('%d/%m/%Y') }}</p>
         {% endif %}
       </div>
     </div>
     <div class="header-actions" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+      {% if sc == 'provvisorio' %}
+      <form method="POST" action="{{ url_for('patients.approva_cliente', patient_id=paziente.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <button type="submit" class="btn btn-primary" onclick="return confirm('Approvare questo cliente? Diventerà attivo e l\'appuntamento verrà confermato.')">Approva</button>
+      </form>
+      <form method="POST" action="{{ url_for('patients.rifiuta_cliente', patient_id=paziente.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <button type="submit" class="btn btn-danger" onclick="return confirm('Rifiutare questo cliente? Diventerà non attivo.')">Rifiuta</button>
+      </form>
+      {% endif %}
       <a href="{{ url_for('progressi.check_nutrizionista_completo', patient_id=paziente.id) }}" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem; background: #d8d8d8; border-color: #d8d8d8;">
         {{ icon('medical', 20) }}
         <span>Check Nutrizionista</span>
@@ -325,16 +344,13 @@ document.addEventListener('keydown', function(e) {
 </script>
 {% endif %}
 
-<!-- PIANI ALIMENTARI (NUOVO FLUSSO STRUTTURATO) -->
+<!-- PIANI ALIMENTARI ASSOCIATI (sola lettura / collegamento) -->
 <div class="management-card" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
   <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.8rem;margin-bottom:1rem;">
     <h3 style="color: #d4d4d4; margin:0; display: flex; align-items: center; gap: 0.5rem;">
-      {{ icon('diet', 18) }} Piani alimentari
+      {{ icon('diet', 18) }} Diete associate
     </h3>
-    <div style="display:inline-flex;gap:.4rem;flex-wrap:wrap;">
-      <a href="{{ url_for('diete_plans.new_diet_plan_standalone') }}?patient_id={{ paziente.id }}" class="btn btn-primary btn-small" style="display:inline-flex;align-items:center;gap:.4rem;">{{ icon('plus', 16) }} Crea dieta</a>
-      <a href="{{ url_for('diete_plans.lista_diet_plans') }}" class="btn btn-secondary btn-small" style="display:inline-flex;align-items:center;gap:.4rem;">{{ icon('list', 14) }} Sezione diete</a>
-    </div>
+    <a href="{{ url_for('diete_plans.lista_diet_plans') }}" class="btn btn-secondary btn-small" style="display:inline-flex;align-items:center;gap:.4rem;">{{ icon('list', 14) }} Sezione Dieta</a>
   </div>
 
   {% if paziente.diet_plans %}
@@ -348,21 +364,17 @@ document.addEventListener('keydown', function(e) {
           <span style="color:{{ '#d8d8d8' if dp.status == 'published' else '#b0b0b0' }};">{{ 'Pubblicata' if dp.status == 'published' else 'Bozza' }}</span>
         </div>
       </div>
-      <a href="{{ url_for('diete_plans.diet_plan_detail', diet_plan_id=dp.id) }}" class="btn btn-white btn-small">{{ icon('eye', 14) }} Visualizza / Modifica</a>
+      <a href="{{ url_for('diete_plans.diet_plan_detail', diet_plan_id=dp.id) }}" class="btn btn-white btn-small">{{ icon('eye', 14) }} Visualizza</a>
     </div>
     {% endfor %}
   </div>
   {% else %}
-  <p style="color:#d8d8d8;font-size:.9rem;margin:0;">Nessun piano alimentare strutturato. Clicca <strong>Crea dieta</strong> per iniziare con ricerca alimenti e calcolo automatico dei macro.</p>
+  <p style="color:#d8d8d8;font-size:.9rem;margin:0;">Nessuna dieta associata. Crea e associa i piani dalla sezione <strong>Dieta</strong> nella sidebar.</p>
   {% endif %}
 
-  <!-- DIETE PDF LEGACY -->
   {% if paziente.diete %}
   <div style="margin-top:1.3rem;border-top:1px dashed rgba(182,177,169,.25);padding-top:1rem;">
-    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.6rem;margin-bottom:.6rem;">
-      <h4 style="color:#d8d8d8;margin:0;font-size:.9rem;">Diete caricate come PDF (archivio)</h4>
-      <a href="{{ url_for('diete.nuova_dieta', patient_id=paziente.id) }}" class="btn btn-secondary btn-small">{{ icon('file', 14) }} Carica PDF</a>
-    </div>
+    <h4 style="color:#d8d8d8;margin:0 0 .6rem 0;font-size:.9rem;">Diete PDF (archivio)</h4>
     <div style="display:flex;flex-direction:column;gap:.4rem;">
       {% for d in paziente.diete %}
       <div style="display:flex;justify-content:space-between;align-items:center;gap:.8rem;padding:.5rem .8rem;background:rgba(0,0,0,.12);border-radius:8px;flex-wrap:wrap;">
@@ -375,20 +387,36 @@ document.addEventListener('keydown', function(e) {
   {% endif %}
 </div>
 
+<!-- ALLENAMENTI ASSOCIATI -->
+<div class="management-card" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.8rem;margin-bottom:1rem;">
+    <h3 style="color: #d4d4d4; margin:0; display: flex; align-items: center; gap: 0.5rem;">
+      {{ icon('dumbbell', 18) }} Allenamenti associati
+    </h3>
+    <a href="{{ url_for('allenamenti.lista_allenamenti') }}" class="btn btn-secondary btn-small" style="display:inline-flex;align-items:center;gap:.4rem;">{{ icon('list', 14) }} Sezione Allenamento</a>
+  </div>
+
+  {% if paziente.allenamenti %}
+  <div style="display:flex;flex-direction:column;gap:.5rem;">
+    {% for a in paziente.allenamenti|sort(attribute='created_at', reverse=true) %}
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:.8rem;padding:.7rem .9rem;background:rgba(0,0,0,.18);border-radius:8px;flex-wrap:wrap;">
+      <div>
+        <div style="color:#fff;font-weight:600;">{{ a.data_inizio.strftime('%d/%m/%Y') }} → {{ a.data_fine.strftime('%d/%m/%Y') }}</div>
+        <div style="color:#d8d8d8;font-size:.82rem;">{% if a.note %}{{ a.note[:80] }}{% if a.note|length > 80 %}…{% endif %}{% else %}Nessuna nota{% endif %}</div>
+      </div>
+      {% if a.pdf_path %}
+      <a href="{{ url_for('allenamenti.serve_file', allenamento_id=a.id) }}" target="_blank" class="btn btn-white btn-small">{{ icon('file', 14) }} PDF</a>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p style="color:#d8d8d8;font-size:.9rem;margin:0;">Nessun allenamento associato. Crea e associa i piani dalla sezione <strong>Allenamento</strong> nella sidebar.</p>
+  {% endif %}
+</div>
+
 <!-- GESTIONE CONTENUTI -->
 <div class="management-section" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
-  
-  <!-- ALLENAMENTI -->
-  <div class="management-card" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 12px; padding: 1.5rem;">
-    <h3 style="color: #d4d4d4; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-      Allenamenti
-    </h3>
-    <p style="color: #d8d8d8; margin-bottom: 1rem; font-size: 0.9rem;">Crea programmi di allenamento</p>
-    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-      <a href="{{ url_for('allenamenti.nuovo_allenamento', patient_id=paziente.id) }}" class="btn btn-primary btn-small">{{ icon('plus', 16) }} Nuovo</a>
-      <a href="{{ url_for('allenamenti.allenamenti_paziente', patient_id=paziente.id) }}" class="btn btn-white btn-small adm-icon-btn">{{ icon('eye', 14) }} Tutti</a>
-    </div>
-  </div>
 
   <!-- PROGRESSI -->
   <div class="management-card" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 12px; padding: 1.5rem;">

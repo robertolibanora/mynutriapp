@@ -107,8 +107,9 @@ def cambia_stato_admin(id, nuovo_stato):
         return redirect(url_for('agenda.agenda_unificata', tab='appuntamenti', filtro='da_confermare'))
     
     try:
-        vecchio_stato = app.stato
         app.stato = nuovo_stato
+        from app.services.paziente_service import sync_stato_cliente_da_appuntamento
+        sync_stato_cliente_da_appuntamento(app, nuovo_stato)
         db.session.commit()
         
         # 🔔 INVIO WHATSAPP AUTOMATICO
@@ -116,7 +117,7 @@ def cambia_stato_admin(id, nuovo_stato):
         safe_trigger_appuntamento_stato(app, nuovo_stato)
         
         messaggi = {
-            'confermato': 'Appuntamento confermato ✅',
+            'confermato': 'Appuntamento confermato ✅ — cliente attivo',
             'completato': 'Appuntamento completato ✅',
             'annullato': 'Appuntamento annullato',
             'in_attesa': 'Appuntamento rimesso in attesa ⏳'

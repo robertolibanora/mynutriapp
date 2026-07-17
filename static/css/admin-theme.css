@@ -289,8 +289,9 @@
 .admin-content {
   flex: 1;
   padding: 28px 36px 36px;
-  max-width: 1400px;
   width: 100%;
+  max-width: none;
+  box-sizing: border-box;
 }
 
 .admin-footer {
@@ -1255,6 +1256,74 @@
   gap: 0.75rem;
   flex-wrap: wrap;
   margin-bottom: 1rem;
+}
+
+.diet-create-hero {
+  align-items: flex-start;
+}
+
+.diet-create-hero-actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.diet-create-card {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 16px;
+  padding: 1.75rem 1.75rem 1.5rem;
+  box-sizing: border-box;
+}
+
+.diet-create-form {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+}
+
+.diet-create-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.1rem 1.25rem;
+}
+
+.diet-create-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.diet-create-field--full {
+  grid-column: 1 / -1;
+}
+
+.diet-create-field .input-text,
+.diet-create-field .input-select {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.diet-create-hint {
+  color: #b0b0b0;
+  font-size: 0.82rem;
+  margin: 0.15rem 0 0;
+  line-height: 1.4;
+}
+
+.diet-create-actions {
+  margin-top: 1.35rem;
+  padding-top: 1.15rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+  display: flex;
+  justify-content: flex-start;
+}
+
+@media (max-width: 760px) {
+  .diet-create-grid { grid-template-columns: 1fr; }
+  .diet-create-card { padding: 1.25rem; }
 }
 
 .admin-app .diet-page-toolbar__left {

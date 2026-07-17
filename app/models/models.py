@@ -16,15 +16,15 @@ class Patient(db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     telefono = db.Column(db.String(20), unique=True, nullable=False)
 
-    # 👤 Dati anagrafici
+    # 👤 Dati anagrafici (sesso/data_nascita nullable per clienti provvisori da prenotazione)
     nome = db.Column(db.String(100), nullable=False)
     cognome = db.Column(db.String(100), nullable=False)
-    sesso = db.Column(db.Enum('M', 'F', 'Altro'), nullable=False)
-    data_nascita = db.Column(db.Date, nullable=False)
+    sesso = db.Column(db.Enum('M', 'F', 'Altro'), nullable=True)
+    data_nascita = db.Column(db.Date, nullable=True)
 
-    # ⚖️ Dati fisici di base
-    altezza_cm = db.Column(db.Integer, nullable=False)
-    peso_iniziale = db.Column(db.Numeric(5, 2), nullable=False)
+    # ⚖️ Dati fisici di base (nullable: pazienti provvisori da prenotazione)
+    altezza_cm = db.Column(db.Integer, nullable=True)
+    peso_iniziale = db.Column(db.Numeric(5, 2), nullable=True)
 
     # 🍽️ Dati nutrizionali / sanitari
     intolleranze = db.Column(db.Text)
@@ -32,6 +32,13 @@ class Patient(db.Model):
     patologie = db.Column(db.Text)
     allenamenti_descr = db.Column(db.Text)
     esami_biochimici = db.Column(db.Text)
+
+    # 🚦 Stato cliente: provvisorio (da prenotazione) → attivo / non_attivo
+    stato_cliente = db.Column(
+        db.Enum("provvisorio", "attivo", "non_attivo"),
+        nullable=False,
+        server_default="attivo",
+    )
 
     # 🕒 Metadati
     data_creazione = db.Column(db.DateTime, server_default=db.func.now())

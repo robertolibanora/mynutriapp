@@ -121,9 +121,14 @@ ensure_upload_dirs()
 # ===========================================
 with app.app_context():
     try:
-        from app.utils.db_schema import ensure_nutrition_schema, ensure_finance_removed
+        from app.utils.db_schema import (
+            ensure_nutrition_schema,
+            ensure_finance_removed,
+            ensure_patient_stato_schema,
+        )
         ensure_nutrition_schema()
         ensure_finance_removed()
+        ensure_patient_stato_schema()
     except Exception as e:
         logger.warning(f"⚠️  Impossibile verificare lo schema nutrizione al boot: {e}")
 

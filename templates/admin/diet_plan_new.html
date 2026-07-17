@@ -3,21 +3,12 @@
 {% block content %}
 
 <div class="adm-hero" style="margin-bottom:1.5rem;">
-  <h2 style="margin:0;">
-    {% if paziente %}
-      Crea dieta per {{ paziente.nome }} {{ paziente.cognome }}
-    {% else %}
-      Nuova dieta
-    {% endif %}
-  </h2>
+  <h2 style="margin:0;">Nuova dieta</h2>
   <p style="margin:.35rem 0 0 0;">Associa il piano a un paziente, poi aggiungi pasti e alimenti con calcolo automatico di kcal e macro.</p>
 </div>
 
 <div style="display:flex;gap:.5rem;margin-bottom:1.5rem;flex-wrap:wrap;">
   <a href="{{ url_for('diete_plans.lista_diet_plans') }}" class="btn btn-secondary btn-small">{{ icon('list', 14) }} Tutte le diete</a>
-  {% if paziente %}
-  <a href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id) }}" class="btn btn-secondary btn-small">{{ icon('user', 14) }} Scheda paziente</a>
-  {% endif %}
 </div>
 
 <div class="management-card" style="max-width:640px;background:rgba(255, 255, 255, 0.06);border:1px solid rgba(255, 255, 255, 0.3);border-radius:12px;padding:1.5rem;">
@@ -26,7 +17,7 @@
         data-detail-base="/admin/diet-plans/">
     <div style="margin-bottom:1rem;">
       <label class="diet-form-label" for="patient_id">Paziente *</label>
-      <select id="patient_id" name="patient_id" class="input-text input-select" required {% if paziente %}disabled{% endif %}>
+      <select id="patient_id" name="patient_id" class="input-text input-select" required>
         <option value="">Seleziona un paziente…</option>
         {% for p in pazienti %}
         <option value="{{ p.id }}" {% if preselect_patient_id == p.id %}selected{% endif %}>
@@ -34,10 +25,7 @@
         </option>
         {% endfor %}
       </select>
-      {% if paziente %}
-      <input type="hidden" name="patient_id" value="{{ paziente.id }}">
-      {% endif %}
-      <p style="color:#b8b8b8;font-size:.82rem;margin:.4rem 0 0 0;">La dieta viene associata al paziente selezionato e sarà visibile nella sua area (se pubblicata).</p>
+      <p style="color:#b8b8b8;font-size:.82rem;margin:.4rem 0 0 0;">La dieta viene creata qui e associata al paziente selezionato (visibile in area paziente se pubblicata).</p>
     </div>
     <div style="margin-bottom:1rem;">
       <label class="diet-form-label">Titolo dieta *</label>
@@ -87,11 +75,8 @@
     var btn = form.querySelector('button[type="submit"]');
     btn.disabled = true;
 
-    var patientField = form.querySelector('input[name="patient_id"]') || patientSelect;
-    var patientId = parseInt(patientField.value, 10);
-
     var payload = {
-      patient_id: patientId,
+      patient_id: parseInt(patientSelect.value, 10),
       title: form.title.value.trim(),
       goal: form.goal.value.trim() || null,
       notes: form.notes.value.trim() || null,

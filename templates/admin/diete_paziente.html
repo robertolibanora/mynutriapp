@@ -19,8 +19,8 @@
 <!-- TOOLBAR -->
 <div class="toolbar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
   <div>
-    <a href="{{ url_for('diete.nuova_dieta', patient_id=paziente.id) }}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem;">
-      {{ icon('plus', 16) }} Nuova dieta
+    <a href="{{ url_for('diete_plans.lista_diet_plans') }}" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+      {{ icon('list', 14) }} Sezione Dieta
     </a>
     <a href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id) }}" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 0.5rem; margin-left: 0.5rem;">
       {{ icon('user', 14) }} Dettaglio Paziente
@@ -147,8 +147,8 @@
   <p style="color: #d8d8d8; margin-bottom: 2rem; font-size: 1.1rem;">
     {{ paziente.nome }} non ha ancora ricevuto alcun piano nutrizionale.
   </p>
-  <a href="{{ url_for('diete.nuova_dieta', patient_id=paziente.id) }}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem;">
-    {{ icon('plus', 16) }} Crea prima dieta
+  <a href="{{ url_for('diete_plans.lista_diet_plans') }}" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+    {{ icon('list', 14) }} Vai alla sezione Dieta
   </a>
 </div>
 {% endif %}

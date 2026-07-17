@@ -63,6 +63,14 @@ def login():
                     user = candidate
                     break
         if user and check_password_hash(user.password_hash, password):
+            stato = getattr(user, "stato_cliente", None) or "attivo"
+            if stato != "attivo":
+                flash(
+                    "Account non ancora attivo. Attendi la conferma del nutrizionista.",
+                    "warning",
+                )
+                return redirect(url_for("auth.login"))
+
             # Protezione contro session fixation: Flask non supporta session.regenerate()
             # quindi puliamo la sessione esistente e reimpostiamo solo le chiavi necessarie
             session.clear()

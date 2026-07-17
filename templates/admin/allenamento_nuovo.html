@@ -1,63 +1,79 @@
 {% extends 'base_admin.html' %}
-{% block title %}Nuovo Allenamento - {{ paziente.nome }} {{ paziente.cognome }}{% endblock %}
+{% block title %}Nuovo allenamento{% endblock %}
 {% block content %}
 
-<h2 class="page-title">Allenamento di {{ paziente.nome }} {{ paziente.cognome }}</h2>
+<div class="adm-hero" style="margin-bottom:1.5rem;">
+  <div>
+    <h2 style="margin:0;">Nuovo allenamento</h2>
+    <p style="margin:.35rem 0 0 0;">Carica il piano in PDF e associalo a un paziente. Il paziente lo vedrà nella propria area.</p>
+  </div>
+</div>
 
-<form method="POST" enctype="multipart/form-data" class="form-container">
-<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+<div style="display:flex;gap:.5rem;margin-bottom:1.5rem;flex-wrap:wrap;">
+  <a href="{{ url_for('allenamenti.lista_allenamenti') }}" class="btn btn-secondary btn-small">{{ icon('list', 14) }} Tutti gli allenamenti</a>
+</div>
 
-  <!-- Campo nascosto per il paziente -->
-  <input type="hidden" name="patient_id" value="{{ paziente.id }}">
+<form method="POST" enctype="multipart/form-data" class="form-container" style="max-width:640px;">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 
-  <!-- PERIODO ALLENAMENTO -->
   <div class="form-section" style="margin-bottom: 2rem;">
     <h3 style="color: #d4d4d4; margin-bottom: 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.12); padding-bottom: 0.5rem;">
-      Periodo Allenamento
+      Paziente
     </h3>
-    
+    <div class="form-group">
+      <label for="patient_id">Associa a *</label>
+      <select id="patient_id" name="patient_id" class="input-text input-select" required>
+        <option value="">Seleziona un paziente…</option>
+        {% for p in pazienti %}
+        <option value="{{ p.id }}" {% if preselect_patient_id == p.id %}selected{% endif %}>
+          {{ p.cognome }} {{ p.nome }}{% if p.telefono %} · {{ p.telefono }}{% endif %}
+        </option>
+        {% endfor %}
+      </select>
+      <p style="color:#b8b8b8;font-size:.82rem;margin:.4rem 0 0 0;">L'allenamento viene creato qui e associato al paziente selezionato.</p>
+    </div>
+  </div>
+
+  <div class="form-section" style="margin-bottom: 2rem;">
+    <h3 style="color: #d4d4d4; margin-bottom: 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.12); padding-bottom: 0.5rem;">
+      Periodo
+    </h3>
     <div class="form-grid">
       <div class="form-group">
-        <label for="data_inizio">Data Inizio</label>
+        <label for="data_inizio">Data inizio</label>
         <input type="date" id="data_inizio" name="data_inizio" class="input-text" required>
       </div>
-
       <div class="form-group">
-        <label for="data_fine">Data Fine</label>
+        <label for="data_fine">Data fine</label>
         <input type="date" id="data_fine" name="data_fine" class="input-text" required>
       </div>
     </div>
   </div>
 
-  <!-- FILE ALLENAMENTO -->
   <div class="form-section" style="margin-bottom: 2rem;">
     <h3 style="color: #d4d4d4; margin-bottom: 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.12); padding-bottom: 0.5rem;">
-      File Allenamento
+      File
     </h3>
-    
     <div class="form-group">
-      <label for="pdf">File Allenamento (PDF)</label>
+      <label for="pdf">Piano di allenamento (PDF)</label>
       <input type="file" id="pdf" name="pdf" accept=".pdf" class="input-text" required>
     </div>
   </div>
 
-  <!-- NOTE -->
   <div class="form-section" style="margin-bottom: 2rem;">
     <h3 style="color: #d4d4d4; margin-bottom: 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.12); padding-bottom: 0.5rem;">
       Note
     </h3>
-    
     <div class="form-group">
       <label for="note">Note</label>
-      <textarea id="note" name="note" class="input-text" rows="3"></textarea>
+      <textarea id="note" name="note" class="input-text" rows="3" placeholder="Indicazioni, frequenza, ecc."></textarea>
     </div>
   </div>
 
   <div class="form-actions">
-    <button type="submit" class="btn btn-primary">Salva Allenamento</button>
-    <a href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id) }}" class="btn btn-secondary">Torna al Paziente</a>
+    <button type="submit" class="btn btn-primary">{{ icon('plus', 16) }} Salva e associa</button>
+    <a href="{{ url_for('allenamenti.lista_allenamenti') }}" class="btn btn-secondary">Annulla</a>
   </div>
-
 </form>
 
 {% endblock %}

@@ -4,36 +4,37 @@
 
 <!-- STATISTICHE RAPIDE -->
 <div class="quick-stats">
-  <div class="stat-card">
+  <div class="stat-card" {% if n_provvisori %}onclick="location.href='{{ url_for('patients.lista_pazienti', stato='provvisorio') }}'" style="cursor:pointer;"{% endif %}>
+    <div class="adm-icon--lg">{{ icon('clock', 28) }}</div>
+    <div style="font-size: 1.5rem; font-weight: 700; color: #FFB74D; margin-bottom: 0.25rem;">{{ n_provvisori }}</div>
+    <div style="color: #d8d8d8; font-size: 0.9rem;">Provvisori</div>
+  </div>
+
+  <div class="stat-card" {% if n_attivi %}onclick="location.href='{{ url_for('patients.lista_pazienti', stato='attivo') }}'" style="cursor:pointer;"{% endif %}>
     <div class="adm-icon--lg">{{ icon('users', 28) }}</div>
-    <div style="font-size: 1.5rem; font-weight: 700; color: #d8d8d8; margin-bottom: 0.25rem;">{{ pazienti|length }}</div>
-    <div style="color: #d8d8d8; font-size: 0.9rem;">Pazienti Totali</div>
+    <div style="font-size: 1.5rem; font-weight: 700; color: #81C784; margin-bottom: 0.25rem;">{{ n_attivi }}</div>
+    <div style="color: #d8d8d8; font-size: 0.9rem;">Attivi</div>
   </div>
   
-  <div class="stat-card">
-    <div class="adm-icon--lg">{{ icon('diet', 28) }}</div>
-    <div style="font-size: 1.5rem; font-weight: 700; color: #a8a8a8; margin-bottom: 0.25rem;">
-      {{ pazienti|map(attribute='diete')|map('length')|sum }}
-    </div>
-    <div style="color: #d8d8d8; font-size: 0.9rem;">Diete Totali</div>
+  <div class="stat-card" {% if n_non_attivi %}onclick="location.href='{{ url_for('patients.lista_pazienti', stato='non_attivo') }}'" style="cursor:pointer;"{% endif %}>
+    <div class="adm-icon--lg">{{ icon('x', 28) }}</div>
+    <div style="font-size: 1.5rem; font-weight: 700; color: #E57373; margin-bottom: 0.25rem;">{{ n_non_attivi }}</div>
+    <div style="color: #d8d8d8; font-size: 0.9rem;">Non attivi</div>
   </div>
-  
-  <div class="stat-card">
-    <div class="adm-icon--lg">{{ icon('dumbbell', 28) }}</div>
-    <div style="font-size: 1.5rem; font-weight: 700; color: #b0b0b0; margin-bottom: 0.25rem;">
-      {{ pazienti|map(attribute='allenamenti')|map('length')|sum }}
-    </div>
-    <div style="color: #d8d8d8; font-size: 0.9rem;">Allenamenti Totali</div>
-  </div>
-  
-  <div class="stat-card">
-    <div class="adm-icon--lg">{{ icon('trending', 28) }}</div>
-    <div style="font-size: 1.5rem; font-weight: 700; color: #909090; margin-bottom: 0.25rem;">
-      {{ pazienti|map(attribute='progressi')|map('length')|sum }}
-    </div>
-    <div style="color: #d8d8d8; font-size: 0.9rem;">Progressi Totali</div>
+
+  <div class="stat-card" onclick="location.href='{{ url_for('patients.lista_pazienti') }}'" style="cursor:pointer;">
+    <div class="adm-icon--lg">{{ icon('users', 28) }}</div>
+    <div style="font-size: 1.5rem; font-weight: 700; color: #d8d8d8; margin-bottom: 0.25rem;">{{ n_provvisori + n_attivi + n_non_attivi }}</div>
+    <div style="color: #d8d8d8; font-size: 0.9rem;">Totale</div>
   </div>
 </div>
+
+{% if n_provvisori and not stato_filtro %}
+<div class="banner banner-warn" style="margin-bottom:1rem;">
+  Hai <strong>{{ n_provvisori }}</strong> cliente{{ 'i' if n_provvisori != 1 else '' }} provvisor{{ 'i' if n_provvisori != 1 else 'io' }} da approvare o rifiutare.
+  <a href="{{ url_for('patients.lista_pazienti', stato='provvisorio') }}" style="margin-left:0.5rem;">Vedi solo provvisori →</a>
+</div>
+{% endif %}
 
 <!-- TOOLBAR PRINCIPALE -->
 <div class="main-toolbar">
@@ -46,12 +47,19 @@
     </a>
   </div>
   
-  <div style="display: flex; gap: 1rem; align-items: center;">
+  <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+    <div style="display:flex; gap:0.35rem; flex-wrap:wrap;">
+      <a href="{{ url_for('patients.lista_pazienti', search=request.args.get('search','')) }}" class="btn btn-sm {% if not stato_filtro %}btn-primary{% else %}btn-ghost{% endif %}">Tutti</a>
+      <a href="{{ url_for('patients.lista_pazienti', stato='provvisorio', search=request.args.get('search','')) }}" class="btn btn-sm {% if stato_filtro == 'provvisorio' %}btn-primary{% else %}btn-ghost{% endif %}">Provvisori</a>
+      <a href="{{ url_for('patients.lista_pazienti', stato='attivo', search=request.args.get('search','')) }}" class="btn btn-sm {% if stato_filtro == 'attivo' %}btn-primary{% else %}btn-ghost{% endif %}">Attivi</a>
+      <a href="{{ url_for('patients.lista_pazienti', stato='non_attivo', search=request.args.get('search','')) }}" class="btn btn-sm {% if stato_filtro == 'non_attivo' %}btn-primary{% else %}btn-ghost{% endif %}">Non attivi</a>
+    </div>
     <form method="get" style="display: flex; gap: 0.5rem; align-items: center;">
+      {% if stato_filtro %}<input type="hidden" name="stato" value="{{ stato_filtro }}">{% endif %}
       <label for="search" style="color: #d8d8d8; font-weight: 600; font-size: 0.9rem;">{{ icon('search', 16) }}</label>
-      <input type="text" name="search" id="search" placeholder="Cerca paziente..." class="input-text" style="width: 250px; font-size: 0.9rem;" value="{{ request.args.get('search', '') }}">
+      <input type="text" name="search" id="search" placeholder="Cerca paziente..." class="input-text" style="width: 220px; font-size: 0.9rem;" value="{{ request.args.get('search', '') }}">
       <button type="submit" class="btn btn-white btn-small">Cerca</button>
-      {% if request.args.get('search') %}
+      {% if request.args.get('search') or stato_filtro %}
       <a href="{{ url_for('patients.lista_pazienti') }}" class="btn btn-secondary btn-small">{{ icon('x', 16) }}</a>
       {% endif %}
     </form>
@@ -62,6 +70,7 @@
 {% if pazienti %}
 <div class="patients-grid">
     {% for p in pazienti %}
+  {% set sc = p.stato_cliente or 'attivo' %}
   <div class="patient-card" data-href="{{ url_for('patients.dettaglio_paziente', patient_id=p.id) }}">
     
     <!-- AVATAR E INFO PRINCIPALE -->
@@ -70,8 +79,16 @@
         {{ p.nome[0] }}{{ p.cognome[0] }}
       </div>
       <div style="flex: 1; min-width: 0;">
-        <div style="font-size: 1.3rem; font-weight: 600; color: #ffffff; margin-bottom: 0.25rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-          {{ p.nome }} {{ p.cognome }}
+        <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap; margin-bottom: 0.25rem;">
+          <div style="font-size: 1.3rem; font-weight: 600; color: #ffffff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            {{ p.nome }} {{ p.cognome }}
+          </div>
+          <span style="font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.03em; padding:0.2rem 0.55rem; border-radius:999px;
+            {% if sc == 'provvisorio' %}background:rgba(255,183,77,0.2); color:#FFB74D;
+            {% elif sc == 'attivo' %}background:rgba(129,199,132,0.2); color:#81C784;
+            {% else %}background:rgba(229,115,115,0.2); color:#E57373;{% endif %}">
+            {{ label_stato.get(sc, sc) }}
+          </span>
         </div>
         <div style="color: #d8d8d8; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem;">
           {{ icon('phone', 16) }}
@@ -95,14 +112,10 @@
           <div style="color: #d8d8d8; font-size: 0.75rem; margin-bottom: 0.25rem;">Peso</div>
           <div style="color: #ffffff; font-size: 0.85rem; font-weight: 600;">{{ p.peso_iniziale }} kg</div>
         </div>
-        {% endif %}
-        
-
-        
-        {% if p.email %}
+        {% elif sc == 'provvisorio' %}
         <div>
-          <div style="color: #d8d8d8; font-size: 0.75rem; margin-bottom: 0.25rem;">Email</div>
-          <div style="color: #ffffff; font-size: 0.85rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ p.email }}</div>
+          <div style="color: #d8d8d8; font-size: 0.75rem; margin-bottom: 0.25rem;">Anagrafica</div>
+          <div style="color: #FFB74D; font-size: 0.85rem; font-weight: 600;">Da completare</div>
         </div>
         {% endif %}
       </div>
@@ -128,6 +141,20 @@
     
     <!-- AZIONI -->
     <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;" onclick="event.stopPropagation();">
+      {% if sc == 'provvisorio' %}
+      <form action="{{ url_for('patients.approva_cliente', patient_id=p.id) }}" method="POST" style="flex: 1;" onclick="event.stopPropagation();">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <button type="submit" class="btn btn-primary btn-small" style="width: 100%; font-size: 0.85rem;" onclick="return confirm('Approvare {{ p.nome }} {{ p.cognome }}? Diventerà cliente attivo e l\'appuntamento verrà confermato.')">
+          Approva
+        </button>
+      </form>
+      <form action="{{ url_for('patients.rifiuta_cliente', patient_id=p.id) }}" method="POST" style="flex: 1;" onclick="event.stopPropagation();">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <button type="submit" class="btn btn-danger btn-small" style="width: 100%; font-size: 0.85rem;" onclick="return confirm('Rifiutare {{ p.nome }} {{ p.cognome }}? Diventerà non attivo e l\'appuntamento verrà annullato.')">
+          Rifiuta
+        </button>
+      </form>
+      {% else %}
       <a href="{{ url_for('patients.dettaglio_paziente', patient_id=p.id) }}" class="btn btn-primary btn-small" style="flex: 1; font-size: 0.85rem; text-align: center;" onclick="event.stopPropagation();">
         {{ icon('eye', 16) }} Dettaglio
       </a>
@@ -139,7 +166,8 @@
         <button type="submit" class="btn btn-danger btn-small" style="width: 100%; font-size: 0.85rem;" onclick="return confirm('Eliminare {{ p.nome }} {{ p.cognome }}?')">
           {{ icon('trash', 16) }} Elimina
         </button>
-        </form>
+      </form>
+      {% endif %}
     </div>
   </div>
     {% endfor %}
@@ -150,20 +178,20 @@
 <div class="empty-state" style="text-align: center; padding: 4rem 2rem; background: rgba(255, 255, 255, 0.2); border: 2px dashed rgba(255, 255, 255, 0.16); border-radius: 16px;">
   <div class="adm-empty-icon">{{ icon('users', 48) }}</div>
   <h3 style="color: #d8d8d8; margin-bottom: 1rem;">
-    {% if request.args.get('search') %}
+    {% if request.args.get('search') or stato_filtro %}
     Nessun paziente trovato
     {% else %}
     Nessun paziente registrato
     {% endif %}
   </h3>
   <p style="color: #d8d8d8; margin-bottom: 2rem; font-size: 1.1rem;">
-    {% if request.args.get('search') %}
-    Prova a modificare i criteri di ricerca.
+    {% if request.args.get('search') or stato_filtro %}
+    Prova a modificare i criteri di ricerca o il filtro stato.
     {% else %}
     Inizia registrando il tuo primo paziente per gestire diete, allenamenti e progressi.
     {% endif %}
   </p>
-  {% if request.args.get('search') %}
+  {% if request.args.get('search') or stato_filtro %}
   <a href="{{ url_for('patients.lista_pazienti') }}" class="btn btn-secondary" style="font-size: 1.1rem; padding: 1rem 2rem; margin-right: 1rem;">
     {{ icon('x', 16) }} Rimuovi filtri
   </a>
@@ -177,15 +205,11 @@
 <!-- CSS E JAVASCRIPT -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // Gestione click sulle card pazienti
   document.querySelectorAll('.patient-card').forEach(function(card) {
     card.addEventListener('click', function(e) {
-      // Se il click è su un pulsante o form, non fare nulla
       if (e.target.closest('a, button, form')) {
         return;
       }
-      
-      // Altrimenti naviga al dettaglio paziente
       const href = this.getAttribute('data-href');
       if (href) {
         window.location.href = href;

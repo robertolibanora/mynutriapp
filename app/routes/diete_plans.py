@@ -126,12 +126,11 @@ def lista_diet_plans():
 @diete_plans_bp.route("/admin/diet-plans/new")
 @admin_required
 def new_diet_plan_standalone():
-    """Creazione dieta dalla sezione Diete: richiede selezione paziente."""
+    """Creazione dieta dalla sezione Dieta: richiede selezione paziente."""
     pazienti = Patient.query.order_by(Patient.cognome.asc(), Patient.nome.asc()).all()
     preselect_id = request.args.get("patient_id", type=int)
     return render_template(
         "admin/diet_plan_new.html",
-        paziente=None,
         pazienti=pazienti,
         preselect_patient_id=preselect_id,
     )
@@ -140,14 +139,9 @@ def new_diet_plan_standalone():
 @diete_plans_bp.route("/admin/pazienti/<int:patient_id>/diet-plans/new")
 @admin_required
 def new_diet_plan(patient_id):
-    """Pagina di creazione di un nuovo piano alimentare per il paziente."""
-    paziente = Patient.query.get_or_404(patient_id)
-    pazienti = Patient.query.order_by(Patient.cognome.asc(), Patient.nome.asc()).all()
-    return render_template(
-        "admin/diet_plan_new.html",
-        paziente=paziente,
-        pazienti=pazienti,
-        preselect_patient_id=paziente.id,
+    """Redirect verso il flusso globale (compatibilità URL)."""
+    return redirect(
+        url_for("diete_plans.new_diet_plan_standalone", patient_id=patient_id)
     )
 
 

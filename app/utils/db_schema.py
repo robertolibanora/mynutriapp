@@ -14,6 +14,7 @@ _FINANCE_REMOVED_OK = False
 
 _AGENDA_SCHEMA_OK = False
 _RICHIESTE_SCHEMA_OK = False
+_PATIENT_STATO_OK = False
 
 
 def ensure_finance_removed() -> None:
@@ -49,6 +50,45 @@ def ensure_finance_removed() -> None:
         logger.warning("Impossibile rimuovere lo schema finanziario: %s", exc)
 
 
+def ensure_patient_stato_schema() -> None:
+    """Aggiunge stato_cliente e rende nullable i campi non noti in prenotazione."""
+    global _PATIENT_STATO_OK
+    if _PATIENT_STATO_OK:
+        return
+    try:
+        insp = inspect(db.engine)
+        if "patients" not in set(insp.get_table_names()):
+            return
+        cols = {c["name"]: c for c in insp.get_columns("patients")}
+        stmts = []
+        if "stato_cliente" not in cols:
+            stmts.append(
+                "ALTER TABLE patients "
+                "ADD COLUMN stato_cliente ENUM('provvisorio','attivo','non_attivo') "
+                "NOT NULL DEFAULT 'attivo'"
+            )
+        # Campi anagrafici/fisici: nullable per clienti provvisori
+        for col_name, ddl in (
+            ("sesso", "MODIFY COLUMN sesso ENUM('M','F','Altro') NULL"),
+            ("data_nascita", "MODIFY COLUMN data_nascita DATE NULL"),
+            ("altezza_cm", "MODIFY COLUMN altezza_cm INT NULL"),
+            ("peso_iniziale", "MODIFY COLUMN peso_iniziale DECIMAL(5,2) NULL"),
+        ):
+            col = cols.get(col_name)
+            if col is not None and not col.get("nullable", False):
+                stmts.append(f"ALTER TABLE patients {ddl}")
+
+        if stmts:
+            with db.engine.begin() as conn:
+                for stmt in stmts:
+                    conn.execute(text(stmt))
+            logger.info("Schema patients aggiornato (stato_cliente + campi nullable)")
+        _PATIENT_STATO_OK = True
+    except Exception as exc:  # noqa: BLE001
+        db.session.rollback()
+        logger.warning("Impossibile aggiornare schema patients/stato_cliente: %s", exc)
+
+
 def ensure_richieste_appuntamento_schema() -> None:
     """Crea la tabella richieste_appuntamento (landing pubblica) se mancante."""
     global _RICHIESTE_SCHEMA_OK
@@ -57,6 +97,7 @@ def ensure_richieste_appuntamento_schema() -> None:
     try:
         from app.models.models import RichiestaAppuntamento
 
+        ensure_patient_stato_schema()
         db.metadata.create_all(
             bind=db.engine,
             tables=[RichiestaAppuntamento.__table__],

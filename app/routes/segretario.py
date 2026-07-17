@@ -379,14 +379,18 @@ def _tool_prenota_appuntamento(args: dict, chiamata: ChiamataInbound, caller: st
     note_finale = " — ".join(note_parts)
 
     if not paziente:
-        # Niente paziente collegato: registra la richiesta come messaggio.
-        chiamata.riassunto = (
-            (chiamata.riassunto or "")
-            + f"\nRichiesta appuntamento ({_format_slot_it(dt)}) da numero non registrato. "
-            + note_finale
-        ).strip()
-        return ("Il numero non risulta fra i pazienti registrati. Ho preso nota della richiesta "
-                f"per {_format_slot_it(dt)} e il nutrizionista confermerà appena possibile.")
+        # Numero sconosciuto → crea cliente provvisorio + appuntamento da confermare
+        parti_nome = (nome or "Cliente").strip().split(None, 1)
+        nome_p = parti_nome[0]
+        cognome_p = parti_nome[1] if len(parti_nome) > 1 else "Da completare"
+        telefono_p = caller or f"sconosciuto-{chiamata.id}"
+        from app.services.paziente_service import crea_paziente_provvisorio
+        paziente = crea_paziente_provvisorio(nome_p, cognome_p, telefono_p)
+        db.session.add(paziente)
+        db.session.flush()
+
+    if paziente.stato_cliente == "non_attivo":
+        paziente.stato_cliente = "provvisorio"
 
     appuntamento = Appuntamento(
         patient_id=paziente.id,

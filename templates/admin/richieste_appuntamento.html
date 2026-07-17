@@ -21,6 +21,7 @@
 <div class="banner banner-warn" style="margin-bottom:1rem;">
   {{ in_attesa|length }} richiesta{{ 'e' if in_attesa|length != 1 else '' }} in attesa di gestione.
   Per accettare, collega un paziente già in anagrafica (crealo prima se nuovo).
+  Le nuove prenotazioni creano automaticamente un cliente <strong>provvisorio</strong> in anagrafica.
 </div>
 {% endif %}
 

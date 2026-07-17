@@ -51,6 +51,29 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
+def _salva_allenamento(patient_id, data_inizio, data_fine, note, file):
+    """Crea il record Allenamento dopo upload PDF. Ritorna (allenamento, paziente)."""
+    if not file or not allowed_file(file.filename):
+        raise ValueError("Carica un file PDF valido")
+
+    paziente = Patient.query.get_or_404(patient_id)
+    filename = secure_filename(file.filename)
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+    save_path = os.path.join(UPLOAD_FOLDER, filename)
+    file.save(save_path)
+
+    nuovo = Allenamento(
+        patient_id=patient_id,
+        data_inizio=data_inizio,
+        data_fine=data_fine,
+        pdf_path=save_path,
+        note=note
+    )
+    db.session.add(nuovo)
+    db.session.commit()
+    return nuovo, paziente
+
+
 # ========================
 # SERVIRE FILE ALLENAMENTO
 # ========================
@@ -77,66 +100,109 @@ def serve_file(allenamento_id):
 
 
 # ========================
+# LISTA GLOBALE ALLENAMENTI
+# ========================
+@allenamenti_bp.route('/')
+@admin_required
+def lista_allenamenti():
+    """Elenco globale degli allenamenti, con filtro opzionale."""
+    q = (request.args.get('q') or '').strip()
+    today = date.today()
+
+    query = Allenamento.query.options(db.joinedload(Allenamento.patient)).order_by(
+        Allenamento.created_at.desc()
+    )
+    if q:
+        like = f"%{q}%"
+        query = query.filter(
+            db.or_(
+                Allenamento.note.ilike(like),
+                Allenamento.patient.has(
+                    db.or_(
+                        Patient.nome.ilike(like),
+                        Patient.cognome.ilike(like),
+                    )
+                ),
+            )
+        )
+
+    allenamenti = query.all()
+    return render_template(
+        'admin/allenamenti_lista.html',
+        allenamenti=allenamenti,
+        q=q,
+        today=today,
+    )
+
+
+# ========================
 # LISTA ALLENAMENTI DI UN PAZIENTE
 # ========================
 @allenamenti_bp.route('/paziente/<int:patient_id>')
 @admin_required
 def allenamenti_paziente(patient_id):
-    """Mostra solo gli allenamenti di un singolo paziente"""
+    """Mostra solo gli allenamenti di un singolo paziente (sola lettura / gestione)."""
     paziente = Patient.query.get_or_404(patient_id)
     today = date.today()
     return render_template('admin/allenamenti_paziente.html', paziente=paziente, allenamenti=paziente.allenamenti, today=today)
 
 
 # ========================
-# CREA NUOVO ALLENAMENTO
+# CREA NUOVO ALLENAMENTO (sezione sidebar)
 # ========================
-@allenamenti_bp.route('/nuovo/<int:patient_id>', methods=['GET', 'POST'])
+@allenamenti_bp.route('/nuovo', methods=['GET', 'POST'])
 @admin_required
-def nuovo_allenamento(patient_id):
-    paziente = Patient.query.get_or_404(patient_id)
+def nuovo_allenamento_standalone():
+    """Creazione allenamento dalla sezione Allenamento: richiede selezione paziente."""
+    pazienti = Patient.query.order_by(Patient.cognome.asc(), Patient.nome.asc()).all()
+    preselect_id = request.args.get('patient_id', type=int)
 
     if request.method == 'POST':
         try:
-            data_inizio = request.form['data_inizio']
-            data_fine = request.form['data_fine']
-            note = request.form.get('note')
+            patient_id = request.form.get('patient_id', type=int)
+            if not patient_id:
+                flash("Seleziona il paziente a cui associare l'allenamento", "danger")
+                return render_template(
+                    'admin/allenamento_nuovo.html',
+                    paziente=None,
+                    pazienti=pazienti,
+                    preselect_patient_id=None,
+                )
 
-            # --- Upload PDF ---
-            file = request.files['pdf']
-            if not file or not allowed_file(file.filename):
-                flash("Carica un file PDF valido", "danger")
-                return redirect(request.url)
-
-            filename = secure_filename(file.filename)
-            os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-            save_path = os.path.join(UPLOAD_FOLDER, filename)
-            file.save(save_path)
-
-            # --- Crea record ---
-            nuovo = Allenamento(
+            nuovo, paziente = _salva_allenamento(
                 patient_id=patient_id,
-                data_inizio=data_inizio,
-                data_fine=data_fine,
-                pdf_path=save_path,
-                note=note
+                data_inizio=request.form['data_inizio'],
+                data_fine=request.form['data_fine'],
+                note=request.form.get('note'),
+                file=request.files.get('pdf'),
             )
 
-            db.session.add(nuovo)
-            db.session.commit()
-            
-            # 🔔 INVIO WHATSAPP AUTOMATICO
             from app.routes.whatsapp.triggers import safe_trigger_nuovo_allenamento
             safe_trigger_nuovo_allenamento(paziente, nuovo)
-            
-            flash("Nuovo piano di allenamento caricato ✅", "success")
-            return redirect(url_for('allenamenti.allenamenti_paziente', patient_id=patient_id))
 
+            flash("Nuovo piano di allenamento caricato ✅", "success")
+            return redirect(url_for('allenamenti.lista_allenamenti'))
+
+        except ValueError as e:
+            db.session.rollback()
+            flash(str(e), "danger")
         except Exception as e:
             db.session.rollback()
             flash(f"Errore durante il caricamento: {e}", "danger")
 
-    return render_template('admin/allenamento_nuovo.html', paziente=paziente)
+    return render_template(
+        'admin/allenamento_nuovo.html',
+        paziente=None,
+        pazienti=pazienti,
+        preselect_patient_id=preselect_id,
+    )
+
+
+@allenamenti_bp.route('/nuovo/<int:patient_id>', methods=['GET', 'POST'])
+@admin_required
+def nuovo_allenamento(patient_id):
+    """Redirect verso il flusso globale (compatibilità URL)."""
+    return redirect(url_for('allenamenti.nuovo_allenamento_standalone', patient_id=patient_id))
 
 
 # ========================
@@ -146,7 +212,7 @@ def nuovo_allenamento(patient_id):
 @admin_required
 def elimina_allenamento(allenamento_id):
     allenamento = Allenamento.query.get_or_404(allenamento_id)
-    patient_id = allenamento.patient_id
+    next_url = request.form.get('next') or request.args.get('next')
 
     try:
         # 🔥 Elimina file PDF se presente
@@ -161,7 +227,9 @@ def elimina_allenamento(allenamento_id):
         db.session.rollback()
         flash(f"Errore durante l'eliminazione: {e}", "danger")
 
-    return redirect(url_for('allenamenti.allenamenti_paziente', patient_id=patient_id))
+    if next_url:
+        return redirect(next_url)
+    return redirect(url_for('allenamenti.lista_allenamenti'))
 
 
 # ========================

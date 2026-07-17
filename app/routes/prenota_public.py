@@ -7,7 +7,8 @@ from flask import Blueprint, flash, redirect, render_template, request, session,
 
 from app.models.models import Appuntamento, Patient, RichiestaAppuntamento, db
 from app.services.agenda_service import AgendaService
-from app.utils.db_schema import ensure_richieste_appuntamento_schema
+from app.services.paziente_service import crea_paziente_provvisorio
+from app.utils.db_schema import ensure_patient_stato_schema, ensure_richieste_appuntamento_schema
 from app.utils.helpers import normalize_phone
 
 prenota_public_bp = Blueprint("prenota_public", __name__)
@@ -32,6 +33,7 @@ def admin_required(func):
 
 @prenota_public_bp.before_request
 def _ensure_schema():
+    ensure_patient_stato_schema()
     ensure_richieste_appuntamento_schema()
 
 
@@ -84,40 +86,40 @@ def prenota_landing():
                 flash("Questo orario non è più disponibile. Scegline un altro.", "warning")
                 return redirect(url_for("prenota_public.prenota_landing"))
 
+            note_finale = note
+            if email:
+                note_finale = f"Email: {email}" + (f"\n{note}" if note else "")
+
             paziente = _trova_paziente_per_telefono(telefono)
 
-            if paziente:
-                nuovo = Appuntamento(
-                    patient_id=paziente.id,
-                    created_by="user",
-                    data_appuntamento=data_appuntamento,
-                    tipo=tipo,
-                    stato="in_attesa",
-                    note=note,
-                )
-                db.session.add(nuovo)
-                db.session.commit()
-                flash(
-                    "Richiesta inviata. Il nutrizionista la confermerà a breve.",
-                    "success",
-                )
+            if not paziente:
+                # Nuova prenotazione → cliente provvisorio in anagrafica
+                paziente = crea_paziente_provvisorio(nome, cognome, telefono)
+                db.session.add(paziente)
+                db.session.flush()
             else:
-                richiesta = RichiestaAppuntamento(
-                    nome=nome,
-                    cognome=cognome,
-                    telefono=telefono,
-                    email=email,
-                    data_richiesta=data_appuntamento,
-                    tipo=tipo,
-                    note=note,
-                    stato="in_attesa",
-                )
-                db.session.add(richiesta)
-                db.session.commit()
-                flash(
-                    "Richiesta inviata. Ti contatteremo per confermare l'appuntamento.",
-                    "success",
-                )
+                # Cliente già in anagrafica: aggiorna nome se diverso; se non attivo → di nuovo provvisorio
+                if paziente.stato_cliente == "non_attivo":
+                    paziente.stato_cliente = "provvisorio"
+                if nome and paziente.nome != nome:
+                    paziente.nome = nome
+                if cognome and paziente.cognome != cognome:
+                    paziente.cognome = cognome
+
+            nuovo = Appuntamento(
+                patient_id=paziente.id,
+                created_by="user",
+                data_appuntamento=data_appuntamento,
+                tipo=tipo,
+                stato="in_attesa",
+                note=note_finale,
+            )
+            db.session.add(nuovo)
+            db.session.commit()
+            flash(
+                "Richiesta inviata. Il nutrizionista la confermerà a breve.",
+                "success",
+            )
 
             return redirect(url_for("prenota_public.prenota_landing", ok=1))
 
@@ -151,7 +153,7 @@ def prenota_legacy_redirect():
 
 
 # ========================
-# ADMIN: GESTIONE RICHIESTE
+# ADMIN: GESTIONE RICHIESTE (legacy / residui)
 # ========================
 @prenota_public_bp.route("/appuntamenti/admin/richieste")
 @admin_required
@@ -179,7 +181,7 @@ def lista_richieste_admin():
 )
 @admin_required
 def accetta_richiesta(id):
-    """Converte una richiesta in appuntamento collegato a un paziente."""
+    """Converte una richiesta in appuntamento e attiva il paziente collegato."""
     richiesta = RichiestaAppuntamento.query.get_or_404(id)
     if richiesta.stato != "in_attesa":
         flash("Questa richiesta è già stata gestita", "warning")
@@ -209,6 +211,7 @@ def accetta_richiesta(id):
         db.session.add(nuovo)
         db.session.flush()
 
+        paziente.stato_cliente = "attivo"
         richiesta.stato = "accettata"
         richiesta.patient_id = paziente.id
         richiesta.appuntamento_id = nuovo.id
@@ -218,7 +221,7 @@ def accetta_richiesta(id):
 
         safe_trigger_appuntamento_stato(nuovo, "confermato")
 
-        flash("Richiesta accettata: appuntamento creato ✅", "success")
+        flash("Richiesta accettata: cliente attivo e appuntamento creato ✅", "success")
     except Exception as e:
         db.session.rollback()
         flash(f"Errore: {e}", "danger")
@@ -231,13 +234,17 @@ def accetta_richiesta(id):
 )
 @admin_required
 def rifiuta_richiesta(id):
-    """Rifiuta una richiesta e libera lo slot."""
+    """Rifiuta una richiesta e, se collegato, imposta il paziente non attivo."""
     richiesta = RichiestaAppuntamento.query.get_or_404(id)
     if richiesta.stato != "in_attesa":
         flash("Questa richiesta è già stata gestita", "warning")
         return redirect(url_for("prenota_public.lista_richieste_admin"))
 
     try:
+        if richiesta.patient_id:
+            paziente = Patient.query.get(richiesta.patient_id)
+            if paziente and paziente.stato_cliente == "provvisorio":
+                paziente.stato_cliente = "non_attivo"
         richiesta.stato = "rifiutata"
         db.session.commit()
         flash("Richiesta rifiutata, slot liberato", "success")

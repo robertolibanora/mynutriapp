@@ -21,6 +21,9 @@
     <a href="{{ url_for('diete_plans.new_diet_plan_standalone') }}" class="btn btn-secondary">
       {{ icon('diet', 16) }} Nuova dieta
     </a>
+    <a href="{{ url_for('allenamenti.nuovo_allenamento_standalone') }}" class="btn btn-secondary">
+      {{ icon('dumbbell', 16) }} Nuovo allenamento
+    </a>
     <a href="{{ url_for('patients.nuovo_paziente') }}" class="adm-btn-cta">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
       Nuovo paziente
@@ -85,7 +88,7 @@
     <div class="adm-stat-value">{{ n_diete }}</div>
     <div class="adm-stat-label">Piani alimentari</div>
     <a href="{{ url_for('diete_plans.lista_diet_plans') }}" class="adm-stat-link">
-      Sezione diete {{ icon('arrow-right', 14) }}
+      Sezione Dieta {{ icon('arrow-right', 14) }}
     </a>
   </article>
 
@@ -110,8 +113,12 @@
     <span>Agenda</span>
   </a>
   <a href="{{ url_for('diete_plans.new_diet_plan_standalone') }}" class="adm-quick-action">
-    <span class="adm-quick-action-icon">{{ icon('plus', 18) }}</span>
-    <span>Crea dieta</span>
+    <span class="adm-quick-action-icon">{{ icon('diet', 18) }}</span>
+    <span>Dieta</span>
+  </a>
+  <a href="{{ url_for('allenamenti.nuovo_allenamento_standalone') }}" class="adm-quick-action">
+    <span class="adm-quick-action-icon">{{ icon('dumbbell', 18) }}</span>
+    <span>Allenamento</span>
   </a>
   <a href="{{ url_for('patients.lista_pazienti') }}" class="adm-quick-action">
     <span class="adm-quick-action-icon">{{ icon('users', 18) }}</span>

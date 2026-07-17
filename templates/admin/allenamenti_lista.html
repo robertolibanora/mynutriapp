@@ -1,0 +1,72 @@
+{% extends 'base_admin.html' %}
+{% block title %}Allenamento{% endblock %}
+{% block content %}
+
+<div class="adm-hero" style="margin-bottom:1.5rem;">
+  <div>
+    <h2 style="margin:0;">Allenamento</h2>
+    <p style="margin:.35rem 0 0 0;">Crea piani di allenamento e associali a un paziente. Ogni piano appartiene a un solo paziente.</p>
+  </div>
+  <a href="{{ url_for('allenamenti.nuovo_allenamento_standalone') }}" class="adm-btn-cta">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+    Nuovo allenamento
+  </a>
+</div>
+
+<div class="main-toolbar" style="margin-bottom:1.5rem;">
+  <form method="get" style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;width:100%;">
+    <input type="text" name="q" value="{{ q }}" placeholder="Cerca per paziente o note..." class="input-text" style="min-width:220px;flex:1;">
+    <button type="submit" class="btn btn-white btn-small">Filtra</button>
+    {% if q %}
+    <a href="{{ url_for('allenamenti.lista_allenamenti') }}" class="btn btn-secondary btn-small">{{ icon('x', 14) }} Reset</a>
+    {% endif %}
+  </form>
+</div>
+
+{% if allenamenti %}
+<div style="display:flex;flex-direction:column;gap:.6rem;">
+  {% for a in allenamenti %}
+  {% set attivo = a.data_inizio <= today and a.data_fine >= today %}
+  <div class="management-card" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);border-radius:12px;padding:1rem 1.2rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;">
+    <div style="min-width:0;flex:1;">
+      <div style="color:#fff;font-weight:650;font-size:1.05rem;">
+        {{ a.patient.nome }} {{ a.patient.cognome }}
+      </div>
+      <div style="color:#d0d0d0;font-size:.88rem;margin-top:.25rem;">
+        {{ a.data_inizio.strftime('%d/%m/%Y') }} → {{ a.data_fine.strftime('%d/%m/%Y') }}
+        {% set durata = (a.data_fine - a.data_inizio).days + 1 %}
+        · {{ durata }} {{ 'giorno' if durata == 1 else 'giorni' }}
+        {% if a.note %} · {{ a.note[:60] }}{% if a.note|length > 60 %}…{% endif %}{% endif %}
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
+      <span class="adm-status-pill {% if attivo %}adm-status-pill--confirmed{% else %}adm-status-pill--wait{% endif %}">
+        {{ 'Attivo' if attivo else 'Periodo concluso/futuro' }}
+      </span>
+      <a href="{{ url_for('patients.dettaglio_paziente', patient_id=a.patient_id) }}" class="btn btn-secondary btn-small">{{ icon('user', 14) }} Paziente</a>
+      {% if a.pdf_path %}
+      <a href="{{ url_for('allenamenti.serve_file', allenamento_id=a.id) }}" target="_blank" class="btn btn-primary btn-small">{{ icon('file', 14) }} PDF</a>
+      {% endif %}
+      <form method="POST" action="{{ url_for('allenamenti.elimina_allenamento', allenamento_id=a.id) }}" style="display:inline;" onsubmit="return confirm('Eliminare questo allenamento?');">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <input type="hidden" name="next" value="{{ url_for('allenamenti.lista_allenamenti') }}">
+        <button type="submit" class="btn btn-secondary btn-small">{{ icon('trash', 14) }}</button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="management-card" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);border-radius:12px;padding:2rem;text-align:center;">
+  <p style="color:#d8d8d8;margin:0 0 1rem 0;">
+    {% if q %}
+      Nessun allenamento corrisponde ai filtri.
+    {% else %}
+      Nessun allenamento ancora. Crea il primo e associalo a un paziente.
+    {% endif %}
+  </p>
+  <a href="{{ url_for('allenamenti.nuovo_allenamento_standalone') }}" class="btn btn-primary">{{ icon('plus', 16) }} Nuovo allenamento</a>
+</div>
+{% endif %}
+
+{% endblock %}

@@ -1,12 +1,25 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from werkzeug.security import generate_password_hash
 from app.models.models import db, Patient, Dieta, Allenamento, Progresso
+from app.services.paziente_service import (
+    LABEL_STATO_CLIENTE,
+    STATI_CLIENTE,
+    approva_paziente,
+    rifiuta_paziente,
+)
+from app.utils.db_schema import ensure_patient_stato_schema
 from datetime import date, timedelta
+from sqlalchemy import case
 
 # ========================
 # BLUEPRINT
 # ========================
 patients_bp = Blueprint('patients', __name__, url_prefix='/admin/pazienti')
+
+
+@patients_bp.before_request
+def _ensure_patient_schema():
+    ensure_patient_stato_schema()
 
 
 # ========================
@@ -46,32 +59,93 @@ def user_required(func):
 @patients_bp.route('/')
 @admin_required
 def lista_pazienti():
-    # Ricerca pazienti
     search_query = request.args.get('search', '').strip()
-    
+    stato_filtro = request.args.get('stato', '').strip()
+
+    query = Patient.query
     if search_query:
-        # Cerca per nome, cognome o telefono
-        pazienti = Patient.query.filter(
+        query = query.filter(
             db.or_(
                 Patient.nome.ilike(f'%{search_query}%'),
                 Patient.cognome.ilike(f'%{search_query}%'),
                 Patient.telefono.ilike(f'%{search_query}%')
             )
-        ).order_by(Patient.data_creazione.desc()).all()
-    else:
-        pazienti = Patient.query.order_by(Patient.data_creazione.desc()).all()
-    
-    # Calcola l'età per ogni paziente
-    from datetime import date
+        )
+    if stato_filtro in STATI_CLIENTE:
+        query = query.filter(Patient.stato_cliente == stato_filtro)
+
+    ordine_stato = case(
+        (Patient.stato_cliente == 'provvisorio', 0),
+        (Patient.stato_cliente == 'attivo', 1),
+        else_=2,
+    )
+    pazienti = query.order_by(ordine_stato.asc(), Patient.data_creazione.desc()).all()
+
     oggi = date.today()
     for paziente in pazienti:
         if paziente.data_nascita:
-            eta = oggi.year - paziente.data_nascita.year - ((oggi.month, oggi.day) < (paziente.data_nascita.month, paziente.data_nascita.day))
+            eta = oggi.year - paziente.data_nascita.year - (
+                (oggi.month, oggi.day) < (paziente.data_nascita.month, paziente.data_nascita.day)
+            )
             paziente.eta = eta
         else:
             paziente.eta = None
-    
-    return render_template('admin/pazienti_lista.html', pazienti=pazienti)
+
+    return render_template(
+        'admin/pazienti_lista.html',
+        pazienti=pazienti,
+        stato_filtro=stato_filtro,
+        label_stato=LABEL_STATO_CLIENTE,
+        n_provvisori=Patient.query.filter_by(stato_cliente='provvisorio').count(),
+        n_attivi=Patient.query.filter_by(stato_cliente='attivo').count(),
+        n_non_attivi=Patient.query.filter_by(stato_cliente='non_attivo').count(),
+    )
+
+
+# ========================
+# APPROVA / RIFIUTA CLIENTE PROVVISORIO
+# ========================
+@patients_bp.route('/<int:patient_id>/approva', methods=['POST'])
+@admin_required
+def approva_cliente(patient_id):
+    """Approva cliente provvisorio → attivo + conferma appuntamento in attesa."""
+    paziente = Patient.query.get_or_404(patient_id)
+    if paziente.stato_cliente != 'provvisorio':
+        flash("Questo paziente non è in stato provvisorio", "warning")
+        return redirect(url_for('patients.lista_pazienti'))
+
+    try:
+        appuntamento = approva_paziente(paziente)
+        db.session.commit()
+        if appuntamento:
+            from app.routes.whatsapp.triggers import safe_trigger_appuntamento_stato
+            safe_trigger_appuntamento_stato(appuntamento, 'confermato')
+        flash(f"{paziente.nome} {paziente.cognome} approvato: ora è attivo ✅", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Errore durante l'approvazione: {e}", "danger")
+
+    return redirect(url_for('patients.lista_pazienti', stato='provvisorio'))
+
+
+@patients_bp.route('/<int:patient_id>/rifiuta', methods=['POST'])
+@admin_required
+def rifiuta_cliente(patient_id):
+    """Rifiuta cliente provvisorio → non attivo + annulla appuntamenti in attesa."""
+    paziente = Patient.query.get_or_404(patient_id)
+    if paziente.stato_cliente != 'provvisorio':
+        flash("Questo paziente non è in stato provvisorio", "warning")
+        return redirect(url_for('patients.lista_pazienti'))
+
+    try:
+        rifiuta_paziente(paziente)
+        db.session.commit()
+        flash(f"{paziente.nome} {paziente.cognome} rifiutato: impostato come non attivo", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Errore durante il rifiuto: {e}", "danger")
+
+    return redirect(url_for('patients.lista_pazienti', stato='provvisorio'))
 
 
 # ========================
@@ -158,7 +232,7 @@ def dettaglio_paziente(patient_id):
     # Statistiche peso - include tutti i progressi con peso (paziente + nutrizionista)
     variazioni_peso = []
     progressi_con_peso = [p for p in progressi if p.peso_settimanale]
-    if progressi_con_peso:
+    if progressi_con_peso and paziente.peso_iniziale is not None:
         peso_iniziale = float(paziente.peso_iniziale)
         for p in progressi_con_peso:
             variazioni_peso.append(float(p.peso_settimanale) - peso_iniziale)
@@ -231,7 +305,8 @@ def nuovo_paziente():
                 telefono=telefono,
                 password_hash=password_hash,
                 altezza_cm=altezza,
-                peso_iniziale=peso_iniziale
+                peso_iniziale=peso_iniziale,
+                stato_cliente='attivo',
             )
 
             db.session.add(nuovo)
