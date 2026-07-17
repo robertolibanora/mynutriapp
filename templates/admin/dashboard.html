@@ -18,16 +18,16 @@
     </p>
   </div>
   <div class="adm-hero-actions">
-    <a href="{{ url_for('diete_plans.new_diet_plan_standalone') }}" class="btn btn-secondary">Nuova dieta</a>
-    <a href="{{ url_for('allenamenti.nuovo_allenamento_standalone') }}" class="btn btn-secondary">Nuovo allenamento</a>
-    <a href="{{ url_for('patients.nuovo_paziente') }}" class="adm-btn-cta">Nuovo paziente</a>
+    <a href="{{ url_for('diete_plans.new_diet_plan_standalone') }}" class="btn btn-secondary">{{ icon('diet', 16) }} Nuova dieta</a>
+    <a href="{{ url_for('allenamenti.nuovo_allenamento_standalone') }}" class="btn btn-secondary">{{ icon('dumbbell', 16) }} Nuovo allenamento</a>
+    <a href="{{ url_for('patients.nuovo_paziente') }}" class="adm-btn-cta">{{ icon('plus', 16) }} Nuovo paziente</a>
   </div>
 </div>
 
 {% if n_da_gestire %}
 <div class="adm-attention">
   <div class="adm-attention-body">
-    <div class="adm-attention-title">Richiede la tua attenzione</div>
+    <div class="adm-attention-title">{{ icon('bell', 18) }} Richiede la tua attenzione</div>
     <div class="adm-attention-text">
       {% if n_da_confermare %}{{ n_da_confermare }} appuntament{{ 'o' if n_da_confermare == 1 else 'i' }} da confermare{% endif %}
       {% if n_da_confermare and n_richieste %} · {% endif %}
@@ -47,51 +47,72 @@
 
 <div class="adm-stat-grid">
   <article class="adm-stat-card">
+    <div class="adm-stat-head">
+      <span class="adm-stat-icon">{{ icon('users', 21) }}</span>
+    </div>
     <div class="adm-stat-value">{{ n_pazienti }}</div>
     <div class="adm-stat-label">Pazienti</div>
-    <a href="{{ url_for('patients.lista_pazienti') }}" class="adm-stat-link">Anagrafica</a>
+    <a href="{{ url_for('patients.lista_pazienti') }}" class="adm-stat-link">Anagrafica {{ icon('arrow-right', 14) }}</a>
   </article>
 
   <article class="adm-stat-card">
-    {% if n_appuntamenti_settimana %}
     <div class="adm-stat-head">
+      <span class="adm-stat-icon">{{ icon('calendar', 21) }}</span>
+      {% if n_appuntamenti_settimana %}
       <span class="adm-stat-badge">{{ n_appuntamenti_settimana }} in 7 gg</span>
+      {% endif %}
     </div>
-    {% endif %}
     <div class="adm-stat-value">{{ n_appuntamenti_oggi }}</div>
     <div class="adm-stat-label">Appuntamenti oggi</div>
-    <a href="{{ url_for('agenda.agenda_unificata') }}" class="adm-stat-link">Apri agenda</a>
+    <a href="{{ url_for('agenda.agenda_unificata') }}" class="adm-stat-link">Apri agenda {{ icon('arrow-right', 14) }}</a>
   </article>
 
   <article class="adm-stat-card">
-    {% if n_diete_bozza %}
     <div class="adm-stat-head">
+      <span class="adm-stat-icon">{{ icon('diet', 21) }}</span>
+      {% if n_diete_bozza %}
       <span class="adm-stat-badge">{{ n_diete_bozza }} bozz{{ 'a' if n_diete_bozza == 1 else 'e' }}</span>
+      {% endif %}
     </div>
-    {% endif %}
     <div class="adm-stat-value">{{ n_diete }}</div>
     <div class="adm-stat-label">Piani alimentari</div>
-    <a href="{{ url_for('diete_plans.lista_diet_plans') }}" class="adm-stat-link">Sezione Dieta</a>
+    <a href="{{ url_for('diete_plans.lista_diet_plans') }}" class="adm-stat-link">Sezione Dieta {{ icon('arrow-right', 14) }}</a>
   </article>
 
   <article class="adm-stat-card {% if n_da_gestire %}adm-stat-card--alert{% endif %}">
-    {% if n_slot_futuri %}
     <div class="adm-stat-head">
+      <span class="adm-stat-icon">{{ icon('clock', 21) }}</span>
+      {% if n_slot_futuri %}
       <span class="adm-stat-badge">{{ n_slot_futuri }} slot liberi</span>
+      {% endif %}
     </div>
-    {% endif %}
     <div class="adm-stat-value">{{ n_da_gestire }}</div>
     <div class="adm-stat-label">Da gestire</div>
-    <a href="{{ url_for('agenda.agenda_unificata') }}" class="adm-stat-link">Controlla ora</a>
+    <a href="{{ url_for('agenda.agenda_unificata') }}" class="adm-stat-link">Controlla ora {{ icon('arrow-right', 14) }}</a>
   </article>
 </div>
 
 <nav class="adm-quick-actions" aria-label="Azioni rapide">
-  <a href="{{ url_for('agenda.agenda_unificata') }}" class="adm-quick-action"><span>Agenda</span></a>
-  <a href="{{ url_for('diete_plans.lista_diet_plans') }}" class="adm-quick-action"><span>Dieta</span></a>
-  <a href="{{ url_for('allenamenti.lista_allenamenti') }}" class="adm-quick-action"><span>Allenamento</span></a>
-  <a href="{{ url_for('patients.lista_pazienti') }}" class="adm-quick-action"><span>Pazienti</span></a>
-  <a href="{{ url_for('broadcast.dashboard') }}" class="adm-quick-action"><span>Messaggi</span></a>
+  <a href="{{ url_for('agenda.agenda_unificata') }}" class="adm-quick-action">
+    <span class="adm-quick-action-icon">{{ icon('calendar', 18) }}</span>
+    <span>Agenda</span>
+  </a>
+  <a href="{{ url_for('diete_plans.lista_diet_plans') }}" class="adm-quick-action">
+    <span class="adm-quick-action-icon">{{ icon('diet', 18) }}</span>
+    <span>Dieta</span>
+  </a>
+  <a href="{{ url_for('allenamenti.lista_allenamenti') }}" class="adm-quick-action">
+    <span class="adm-quick-action-icon">{{ icon('dumbbell', 18) }}</span>
+    <span>Allenamento</span>
+  </a>
+  <a href="{{ url_for('patients.lista_pazienti') }}" class="adm-quick-action">
+    <span class="adm-quick-action-icon">{{ icon('users', 18) }}</span>
+    <span>Pazienti</span>
+  </a>
+  <a href="{{ url_for('broadcast.dashboard') }}" class="adm-quick-action">
+    <span class="adm-quick-action-icon">{{ icon('message', 18) }}</span>
+    <span>Messaggi</span>
+  </a>
 </nav>
 
 {% if deviazione is defined %}

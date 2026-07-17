@@ -39,8 +39,8 @@
                 <span class="user-greeting-text">Ciao,</span>
                 <span class="user-name">{{ session.name }}</span>
             </div>
-            <a href="{{ url_for('patients.profilo_user') }}" class="user-avatar user-avatar--text">
-                {{ session.name.split()[0] if session.name else 'Profilo' }}
+            <a href="{{ url_for('patients.profilo_user') }}" class="user-avatar">
+                {{ session.name[0].upper() if session.name else '?' }}
             </a>
         </div>
     </header>

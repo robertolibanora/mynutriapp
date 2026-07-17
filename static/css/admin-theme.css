@@ -92,33 +92,17 @@
 
 .admin-brand--anon { cursor: default; }
 
-.admin-brand-mark,
-.admin-brand-icon,
-.admin-user-avatar,
-.adm-stat-icon,
-.adm-quick-action-icon,
-.adm-empty-icon,
-.adm-icon,
-.adm-icon--lg,
-.login-mark,
-.brand-mark {
-  display: none !important;
-}
-
-.admin-app svg {
-  display: none !important;
-}
-
-.admin-nav-link {
-  gap: 0;
-}
-
-.admin-logout {
-  gap: 0;
-}
-
-.admin-user-card {
-  gap: 0;
+.admin-brand-mark {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  background: var(--adm-surface);
+  border: 1px solid var(--adm-border);
+  color: var(--adm-text-dim);
+  font-size: 14px;
 }
 
 .admin-brand-icon {
@@ -436,9 +420,8 @@
 .adm-quick-action {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 0;
-  padding: 14px 16px;
+  gap: 10px;
+  padding: 12px 14px;
   border-radius: 12px;
   border: 1px solid var(--adm-border);
   background: var(--adm-surface);
