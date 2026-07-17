@@ -89,6 +89,26 @@ class NutritionCalculatorService:
             round_ndigits,
         )
 
+    @staticmethod
+    def macro_percentages(totals: Dict[str, float]) -> Dict[str, float]:
+        """Percentuale di calorie fornita da proteine, carboidrati e grassi.
+
+        Usa i fattori di Atwater (P/C = 4 kcal/g, G = 9 kcal/g) e normalizza
+        sulla somma delle calorie dei tre macro, così le percentuali chiudono
+        sempre a 100 anche se le kcal dichiarate degli alimenti divergono.
+        """
+        protein_kcal = (_to_float(totals.get("protein")) or 0.0) * 4.0
+        carbs_kcal = (_to_float(totals.get("carbs")) or 0.0) * 4.0
+        fat_kcal = (_to_float(totals.get("fat")) or 0.0) * 9.0
+        macro_kcal = protein_kcal + carbs_kcal + fat_kcal
+        if macro_kcal <= 0:
+            return {"protein": 0.0, "carbs": 0.0, "fat": 0.0}
+        return {
+            "protein": round(protein_kcal / macro_kcal * 100, 1),
+            "carbs": round(carbs_kcal / macro_kcal * 100, 1),
+            "fat": round(fat_kcal / macro_kcal * 100, 1),
+        }
+
     @classmethod
     def compute_plan(cls, meals: Iterable[Any], round_ndigits: int = 2) -> Dict[str, Any]:
         """Totale dieta + breakdown per giornata (``day_index``).

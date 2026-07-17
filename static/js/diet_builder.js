@@ -60,6 +60,7 @@
       var span = el.querySelector('[data-k="' + k + '"]');
       if (span) span.textContent = map[k];
     });
+    refreshMacroPcts(el);
   }
 
   function bumpTotals(el, delta) {
@@ -71,6 +72,23 @@
       var cur = parseFloat(String(node.textContent).replace(",", ".")) || 0;
       var next = cur + (parseFloat(delta[k]) || 0);
       node.textContent = k === "kcal" ? fmt0(next) : fmt1(next);
+    });
+    refreshMacroPcts(el);
+  }
+
+  // Percentuali caloriche dei macro (P/C 4 kcal/g, G 9 kcal/g) nella card
+  // "Obiettivi nutrizionali attuali": ricalcolate dai grammi mostrati.
+  function refreshMacroPcts(el) {
+    if (!el || !el.querySelector("[data-pct]")) return;
+    function grams(k) {
+      var n = el.querySelector('[data-k="' + k + '"]');
+      return n ? (parseFloat(String(n.textContent).replace(",", ".")) || 0) : 0;
+    }
+    var kcals = { protein: grams("protein") * 4, carbs: grams("carbs") * 4, fat: grams("fat") * 9 };
+    var total = kcals.protein + kcals.carbs + kcals.fat;
+    Object.keys(kcals).forEach(function (k) {
+      var node = el.querySelector('[data-pct="' + k + '"]');
+      if (node) node.textContent = (total > 0 ? Math.round((kcals[k] / total) * 100) : 0) + "%";
     });
   }
 

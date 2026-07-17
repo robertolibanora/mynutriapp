@@ -15,10 +15,13 @@
   .dp-item-macros { color:#999; font-size:.75rem; }
   .dp-meal-total { margin-top:.5rem; text-align:right; color:#666; font-size:.8rem; }
   .dp-meal-total b { color:#d4d4d4; }
-  .dp-summary { display:flex; flex-wrap:wrap; gap:.5rem; margin-bottom:1.2rem; }
+  .dp-goals { background:#fff; border:1px solid #eee; border-radius:14px; padding:1rem 1.1rem; margin-bottom:1.2rem; box-shadow:0 2px 8px rgba(0,0,0,.05); }
+  .dp-goals-title { margin:0 0 .7rem; font-size:1rem; font-weight:700; color:#1a1a1a; }
+  .dp-summary { display:flex; flex-wrap:wrap; gap:.5rem; }
   .dp-kpi { flex:1; min-width:80px; background:#1a1a1a; color:#fff; border-radius:12px; padding:.7rem; text-align:center; }
   .dp-kpi b { display:block; font-size:1.25rem; }
   .dp-kpi span { font-size:.68rem; opacity:.8; text-transform:uppercase; }
+  .dp-kpi em { display:block; font-style:normal; font-weight:700; font-size:.8rem; margin-top:.25rem; color:#9ccc65; }
   .dp-preview-banner { background:#fff3e6; border:1px solid #ffd0a3; color:#b35900; padding:.6rem .9rem; border-radius:10px; font-size:.85rem; margin-bottom:1rem; }
 </style>
 
@@ -28,16 +31,19 @@
 
 <h1 class="page-title-user">{{ icon('diet', 22, 'usr-icon') }} {{ plan.title }}</h1>
 
+<!-- OBIETTIVI NUTRIZIONALI ATTUALI -->
+<div class="dp-goals">
+  <h2 class="dp-goals-title">Obiettivi nutrizionali attuali</h2>
+  <div class="dp-summary">
+    <div class="dp-kpi"><b>{{ "%.0f"|format(totals.plan.total.kcal) }}</b><span>Calorie target</span></div>
+    <div class="dp-kpi"><b>{{ "%.0f"|format(totals.plan.total.protein) }}</b><span>Proteine (g)</span><em>{{ "%.0f"|format(totals.perc.protein) }}%</em></div>
+    <div class="dp-kpi"><b>{{ "%.0f"|format(totals.plan.total.carbs) }}</b><span>Carbo (g)</span><em>{{ "%.0f"|format(totals.perc.carbs) }}%</em></div>
+    <div class="dp-kpi"><b>{{ "%.0f"|format(totals.plan.total.fat) }}</b><span>Grassi (g)</span><em>{{ "%.0f"|format(totals.perc.fat) }}%</em></div>
+  </div>
+</div>
+
 {% if plan.goal %}<p style="color:#d4d4d4;font-weight:600;margin:.2rem 0 .6rem;">Obiettivo: {{ plan.goal }}</p>{% endif %}
 {% if plan.notes %}<p style="color:#666;margin:0 0 1rem;">{{ plan.notes }}</p>{% endif %}
-
-<!-- TOTALI -->
-<div class="dp-summary">
-  <div class="dp-kpi"><b>{{ "%.0f"|format(totals.plan.total.kcal) }}</b><span>kcal</span></div>
-  <div class="dp-kpi"><b>{{ "%.0f"|format(totals.plan.total.protein) }}</b><span>prot (g)</span></div>
-  <div class="dp-kpi"><b>{{ "%.0f"|format(totals.plan.total.carbs) }}</b><span>carbo (g)</span></div>
-  <div class="dp-kpi"><b>{{ "%.0f"|format(totals.plan.total.fat) }}</b><span>grassi (g)</span></div>
-</div>
 
 {% if plan.meals %}
   {% for meal in plan.meals %}

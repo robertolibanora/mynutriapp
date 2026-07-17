@@ -81,6 +81,7 @@ def _build_totals(plan: DietPlan) -> dict:
         "plan": plan_totals,
         "meal": meal_totals,
         "item": item_totals,
+        "perc": NutritionCalculatorService.macro_percentages(plan_totals["total"]),
     }
 
 

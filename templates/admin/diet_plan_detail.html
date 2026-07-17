@@ -24,6 +24,31 @@
   </button>
 </div>
 
+<div class="diet-goals-card">
+  <h3 class="diet-goals-title">Obiettivi nutrizionali attuali</h3>
+  <div class="diet-summary diet-summary--goals" data-plan-total>
+    <div class="diet-kpi diet-kpi--kcal">
+      <b data-k="kcal">{{ "%.0f"|format(totals.plan.total.kcal) }}</b>
+      <span>Calorie target</span>
+    </div>
+    <div class="diet-kpi diet-kpi--protein">
+      <b data-k="protein">{{ "%.1f"|format(totals.plan.total.protein) }}</b>
+      <span>Proteine (g)</span>
+      <em class="diet-kpi-pct" data-pct="protein">{{ "%.0f"|format(totals.perc.protein) }}%</em>
+    </div>
+    <div class="diet-kpi diet-kpi--carbs">
+      <b data-k="carbs">{{ "%.1f"|format(totals.plan.total.carbs) }}</b>
+      <span>Carboidrati (g)</span>
+      <em class="diet-kpi-pct" data-pct="carbs">{{ "%.0f"|format(totals.perc.carbs) }}%</em>
+    </div>
+    <div class="diet-kpi diet-kpi--fat">
+      <b data-k="fat">{{ "%.1f"|format(totals.plan.total.fat) }}</b>
+      <span>Grassi (g)</span>
+      <em class="diet-kpi-pct" data-pct="fat">{{ "%.0f"|format(totals.perc.fat) }}%</em>
+    </div>
+  </div>
+</div>
+
 <div class="adm-hero diet-page-hero">
   <h2>{{ plan.title }}</h2>
   <p>
@@ -32,14 +57,6 @@
     · Stato: <span id="plan-status-label">{{ 'Pubblicata' if plan.status == 'published' else 'Bozza' }}</span>
   </p>
   {% if plan.notes %}<p>{{ plan.notes }}</p>{% endif %}
-</div>
-
-<div class="diet-summary" data-plan-total>
-  <div class="diet-kpi diet-kpi--kcal"><b data-k="kcal">{{ "%.0f"|format(totals.plan.total.kcal) }}</b><span>kcal totali</span></div>
-  <div class="diet-kpi diet-kpi--protein"><b data-k="protein">{{ "%.1f"|format(totals.plan.total.protein) }}</b><span>proteine (g)</span></div>
-  <div class="diet-kpi diet-kpi--carbs"><b data-k="carbs">{{ "%.1f"|format(totals.plan.total.carbs) }}</b><span>carboidrati (g)</span></div>
-  <div class="diet-kpi diet-kpi--fat"><b data-k="fat">{{ "%.1f"|format(totals.plan.total.fat) }}</b><span>grassi (g)</span></div>
-  <div class="diet-kpi diet-kpi--fiber"><b data-k="fiber">{{ "%.1f"|format(totals.plan.total.fiber) }}</b><span>fibre (g)</span></div>
 </div>
 
 <div id="diet-msg" class="diet-msg" style="display:none;margin-bottom:1rem;"></div>

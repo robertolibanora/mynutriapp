@@ -1373,6 +1373,34 @@
   margin-bottom: 1.25rem;
 }
 
+.admin-app .diet-goals-card {
+  background: var(--adm-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: 14px;
+  padding: 1.1rem 1.2rem;
+  margin-bottom: 1.25rem;
+}
+
+.admin-app .diet-goals-title {
+  margin: 0 0 0.85rem;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.admin-app .diet-summary--goals {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-bottom: 0;
+}
+
+.admin-app .diet-kpi-pct {
+  display: block;
+  margin-top: 0.3rem;
+  font-style: normal;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--adm-accent);
+}
+
 .admin-app .diet-kpi {
   background: var(--adm-surface);
   border: 1px solid var(--adm-border);
@@ -1617,6 +1645,10 @@
 @media (max-width: 900px) {
   .admin-app .diet-summary {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .admin-app .diet-summary--goals {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .admin-app .diet-meal-form > .diet-form-field:first-child {
