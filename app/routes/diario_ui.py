@@ -9,6 +9,7 @@ from flask import Blueprint, flash, redirect, render_template, request, session,
 
 from app.models.models import Patient, db
 from app.services.diario_audio_service import DiarioAudioError
+from app.services.diario_consultation_service import get_consultation_for_pipeline
 from app.services.diario_review_service import get_diary_for_review, list_patient_diaries
 from app.services.diario_timeline_service import (
     get_patient_diary_timeline,
@@ -41,6 +42,46 @@ def _admin_required(func):
     return wrapper
 
 
+@diario_ui_bp.route("/pazienti/<int:patient_id>/nuovo")
+@_admin_required
+def nuovo_colloquio(patient_id: int):
+    """UI: crea colloquio + carica audio + avvia pipeline."""
+    paziente = db.session.get(Patient, patient_id)
+    if paziente is None:
+        flash("Paziente non trovato", "danger")
+        return redirect(url_for("patients.lista_pazienti"))
+    return render_template(
+        "admin/diario_pipeline.html",
+        paziente=paziente,
+        consultation=None,
+        consultation_id=None,
+        mode="nuovo",
+    )
+
+
+@diario_ui_bp.route("/consultations/<int:consultation_id>/pipeline")
+@_admin_required
+def pipeline_colloquio(consultation_id: int):
+    """UI: riprendi upload/trascrizione/estrazione di un colloquio esistente."""
+    try:
+        payload = get_consultation_for_pipeline(
+            consultation_id=consultation_id,
+            utente_id=int(session["utente_id"]),
+        )
+    except DiarioAudioError as exc:
+        flash(str(exc), "danger")
+        return redirect(url_for("patients.lista_pazienti"))
+
+    paziente = db.session.get(Patient, payload["patient"]["id"])
+    return render_template(
+        "admin/diario_pipeline.html",
+        paziente=paziente,
+        consultation=payload,
+        consultation_id=consultation_id,
+        mode="pipeline",
+    )
+
+
 @diario_ui_bp.route("/consultations/<int:consultation_id>/review")
 @_admin_required
 def review_diary(consultation_id: int):
@@ -52,6 +93,11 @@ def review_diary(consultation_id: int):
         )
     except DiarioAudioError as exc:
         flash(str(exc), "danger")
+        # Se non c'è ancora diario, manda alla pipeline
+        if exc.status_code in (404, 400):
+            return redirect(
+                url_for("diario_ui.pipeline_colloquio", consultation_id=consultation_id)
+            )
         return redirect(url_for("patients.lista_pazienti"))
 
     patient_id = payload["patient"]["id"]

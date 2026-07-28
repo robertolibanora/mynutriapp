@@ -31,7 +31,8 @@
 
 <div style="margin-bottom: 1.25rem; display:flex; gap:0.5rem; flex-wrap:wrap;">
   <a href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id) }}" class="btn btn-ghost btn-small">← Scheda paziente</a>
-  <a href="{{ url_for('diario_ui.timeline_paziente', patient_id=paziente.id) }}" class="btn btn-primary btn-small">Timeline</a>
+  <a href="{{ url_for('diario_ui.timeline_paziente', patient_id=paziente.id) }}" class="btn btn-ghost btn-small">Timeline</a>
+  <a href="{{ url_for('diario_ui.nuovo_colloquio', patient_id=paziente.id) }}" class="btn btn-primary btn-small">+ Nuovo colloquio</a>
 </div>
 
 <h2 class="page-title">Diario colloqui — {{ paziente.nome }} {{ paziente.cognome }}</h2>
@@ -75,7 +76,7 @@
 {% endif %}
 
 {% if altri %}
-<h3 style="color:#fff; font-size:1.1rem; margin: 1.5rem 0 0.75rem 0;">Altri colloqui</h3>
+<h3 style="color:#fff; font-size:1.1rem; margin: 1.5rem 0 0.75rem 0;">In elaborazione / altri ({{ altri|length }})</h3>
 {% for item in altri %}
   <div class="diary-row">
     <div>
@@ -86,12 +87,14 @@
         {% if not item.has_diary_entry %}· senza diario{% endif %}
       </div>
     </div>
+    <a class="btn btn-primary btn-small" href="{{ url_for('diario_ui.pipeline_colloquio', consultation_id=item.consultation_id) }}">Continua</a>
   </div>
 {% endfor %}
 {% endif %}
 
 {% if not items %}
-<p style="color:#d8d8d8;">Nessun colloquio diario per questo paziente (o non sei il nutrizionista proprietario).</p>
+<p style="color:#d8d8d8; margin-bottom:1rem;">Nessun colloquio diario per questo paziente.</p>
+<a href="{{ url_for('diario_ui.nuovo_colloquio', patient_id=paziente.id) }}" class="btn btn-primary">+ Crea il primo colloquio</a>
 {% endif %}
 
 {% endblock %}

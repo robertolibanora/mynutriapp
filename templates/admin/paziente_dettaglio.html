@@ -91,9 +91,13 @@
         {{ icon('medical', 20) }}
         <span>Check Nutrizionista</span>
       </a>
-      <a href="{{ url_for('diario_ui.timeline_paziente', patient_id=paziente.id) }}" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem;">
+      <a href="{{ url_for('diario_ui.lista_diari_paziente', patient_id=paziente.id) }}" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem;">
         {{ icon('file', 16) }}
         <span>Diario colloqui</span>
+      </a>
+      <a href="{{ url_for('diario_ui.nuovo_colloquio', patient_id=paziente.id) }}" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem; background: #81C784; border-color: #81C784; color: #1a1a1a;">
+        {{ icon('plus', 16) }}
+        <span>Nuovo colloquio</span>
       </a>
       <a href="{{ url_for('patients.modifica_paziente', patient_id=paziente.id) }}" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem;">
         {{ icon('edit', 16) }}
