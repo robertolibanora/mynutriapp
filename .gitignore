@@ -279,3 +279,6 @@ certbot/www/
 *.key
 *.crt
 *.cert
+
+# Diario: audio cifrati at-rest (mai in repo)
+storage/audio/

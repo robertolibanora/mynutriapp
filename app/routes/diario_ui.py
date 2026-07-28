@@ -1,0 +1,131 @@
+"""UI HTML revisione e timeline diario colloquio."""
+
+from __future__ import annotations
+
+import json
+from functools import wraps
+
+from flask import Blueprint, flash, redirect, render_template, request, session, url_for
+
+from app.models.models import Patient, db
+from app.services.diario_audio_service import DiarioAudioError
+from app.services.diario_review_service import get_diary_for_review, list_patient_diaries
+from app.services.diario_timeline_service import (
+    get_patient_diary_timeline,
+    get_patient_diary_trends,
+)
+
+diario_ui_bp = Blueprint("diario_ui", __name__, url_prefix="/admin/diario")
+
+
+def _admin_required(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if session.get("role") != "admin":
+            flash("Accesso non autorizzato", "danger")
+            return redirect(url_for("auth.login"))
+        if not session.get("utente_id"):
+            flash(
+                "Sessione nutrizionista incompleta: effettua di nuovo il login.",
+                "warning",
+            )
+            return redirect(url_for("auth.login"))
+        return func(*args, **kwargs)
+
+    return wrapper
+
+
+@diario_ui_bp.route("/consultations/<int:consultation_id>/review")
+@_admin_required
+def review_diary(consultation_id: int):
+    """UI: trascrizione a sinistra, campi editabili a destra."""
+    try:
+        payload = get_diary_for_review(
+            consultation_id=consultation_id,
+            utente_id=int(session["utente_id"]),
+        )
+    except DiarioAudioError as exc:
+        flash(str(exc), "danger")
+        return redirect(url_for("patients.lista_pazienti"))
+
+    patient_id = payload["patient"]["id"]
+    return render_template(
+        "admin/diario_review.html",
+        consultation_id=consultation_id,
+        patient_id=patient_id,
+        payload=payload,
+        contenuto=payload["diary_entry"]["contenuto_json"] or {},
+    )
+
+
+@diario_ui_bp.route("/pazienti/<int:patient_id>")
+@_admin_required
+def lista_diari_paziente(patient_id: int):
+    """Lista colloqui/diario del paziente con badge da revisionare."""
+    paziente = db.session.get(Patient, patient_id)
+    if paziente is None:
+        flash("Paziente non trovato", "danger")
+        return redirect(url_for("patients.lista_pazienti"))
+
+    items = list_patient_diaries(
+        patient_id=patient_id,
+        utente_id=int(session["utente_id"]),
+    )
+    da_revisionare = [i for i in items if i["da_revisionare"]]
+    confermati = [i for i in items if i["valido_storico"]]
+    altri = [i for i in items if not i["da_revisionare"] and not i["valido_storico"]]
+
+    return render_template(
+        "admin/diario_lista_paziente.html",
+        paziente=paziente,
+        items=items,
+        da_revisionare=da_revisionare,
+        confermati=confermati,
+        altri=altri,
+    )
+
+
+@diario_ui_bp.route("/pazienti/<int:patient_id>/timeline")
+@_admin_required
+def timeline_paziente(patient_id: int):
+    """Timeline cronologica + grafico peso."""
+    utente_id = int(session["utente_id"])
+    include_pending = request.args.get("include_pending") in ("1", "true", "on", "yes")
+    date_from = request.args.get("from") or None
+    date_to = request.args.get("to") or None
+    page = request.args.get("page", 1, type=int) or 1
+
+    try:
+        timeline = get_patient_diary_timeline(
+            patient_id=patient_id,
+            utente_id=utente_id,
+            include_pending=include_pending,
+            date_from=date_from,
+            date_to=date_to,
+            page=page,
+            per_page=20,
+        )
+        trends = get_patient_diary_trends(
+            patient_id=patient_id,
+            utente_id=utente_id,
+            date_from=date_from,
+            date_to=date_to,
+        )
+    except DiarioAudioError as exc:
+        flash(str(exc), "danger")
+        return redirect(url_for("patients.dettaglio_paziente", patient_id=patient_id))
+
+    paziente = db.session.get(Patient, patient_id)
+    return render_template(
+        "admin/diario_timeline.html",
+        paziente=paziente,
+        items=timeline["items"],
+        page=timeline["page"],
+        pages=timeline["pages"],
+        has_next=timeline["has_next"],
+        has_prev=timeline["has_prev"],
+        include_pending=include_pending,
+        date_from=date_from or "",
+        date_to=date_to or "",
+        trends_json=json.dumps(trends),
+    )

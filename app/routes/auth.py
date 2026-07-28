@@ -45,6 +45,18 @@ def login():
                 # Reimposta solo le chiavi necessarie per l'autenticazione admin
                 session['role'] = 'admin'
                 session['name'] = ADMIN_NAME
+                # Ownership diary: collega la sessione a un record utente (se presente)
+                try:
+                    from app.models.diario import Utente
+
+                    nutr = Utente.query.filter_by(telefono=ADMIN_PHONE, attivo=True).first()
+                    if nutr is None:
+                        nutr = Utente.query.filter_by(attivo=True).order_by(Utente.id.asc()).first()
+                    if nutr is not None:
+                        session['utente_id'] = nutr.id
+                except Exception:
+                    # Tabella utente assente / non migrata: le API diary richiederanno re-login
+                    pass
                 session.permanent = True  # Session permanente per admin
                 session.modified = True  # Forza il salvataggio della sessione
                 

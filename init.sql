@@ -19,7 +19,24 @@ w-- ========================================
 USE mynutriapp;
 
 -- ========================================
+-- 📋 TABELLA: utente (nutrizionisti / operatori)
+-- ========================================
+CREATE TABLE IF NOT EXISTS utente (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    cognome VARCHAR(100) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    telefono VARCHAR(20) NULL,
+    attivo TINYINT(1) NOT NULL DEFAULT 1,
+    creato_il DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    aggiornato_il DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_utente_email (email),
+    UNIQUE KEY uq_utente_telefono (telefono)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ========================================
 -- 📋 TABELLA: patients
+-- (dominio diary: "patient" → questa tabella)
 -- ========================================
 CREATE TABLE IF NOT EXISTS patients (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -36,9 +53,19 @@ CREATE TABLE IF NOT EXISTS patients (
     patologie TEXT,
     allenamenti_descr TEXT,
     esami_biochimici TEXT,
+    email VARCHAR(255) NULL,
+    nutrizionista_id INT NULL,
+    consenso_registrazione TINYINT(1) NOT NULL DEFAULT 0,
+    consenso_ai TINYINT(1) NOT NULL DEFAULT 0,
+    consenso_aggiornato_il DATETIME NULL,
     data_creazione DATETIME DEFAULT CURRENT_TIMESTAMP,
+    aggiornato_il DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_telefono (telefono),
-    INDEX idx_nome_cognome (nome, cognome)
+    INDEX idx_nome_cognome (nome, cognome),
+    UNIQUE KEY uq_patients_email (email),
+    INDEX ix_patients_nutrizionista_id (nutrizionista_id),
+    CONSTRAINT fk_patients_nutrizionista_id_utente
+        FOREIGN KEY (nutrizionista_id) REFERENCES utente(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ========================================
@@ -355,6 +382,79 @@ CREATE TABLE IF NOT EXISTS diet_meal_items (
     FOREIGN KEY (food_id) REFERENCES foods(id) ON DELETE RESTRICT,
     INDEX idx_diet_meal_item_meal (diet_meal_id),
     INDEX idx_diet_meal_item_food (food_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ========================================
+-- 📔 DIARIO PAZIENTE (fase 1)
+-- Schema gestito anche da Alembic: migrations/versions/20260729_diario_01.py
+-- Nota: tabella utente e colonne diary su patients sono definite sopra.
+-- ========================================
+
+CREATE TABLE IF NOT EXISTS consultation (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    patient_id INT NOT NULL,
+    nutrizionista_id INT NOT NULL,
+    data_colloquio DATETIME NOT NULL,
+    stato ENUM('BOZZA','CARICATO','TRASCRITTO','ELABORATO','CONFERMATO','ERRORE') NOT NULL DEFAULT 'BOZZA',
+    note_manuali TEXT NULL,
+    errore_pipeline TEXT NULL,
+    creato_il DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    aggiornato_il DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_consultation_patient_id FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
+    CONSTRAINT fk_consultation_nutrizionista_id FOREIGN KEY (nutrizionista_id) REFERENCES utente(id) ON DELETE RESTRICT,
+    INDEX ix_consultation_patient_id (patient_id),
+    INDEX ix_consultation_nutrizionista_id (nutrizionista_id),
+    INDEX ix_consultation_data_colloquio (data_colloquio),
+    INDEX ix_consultation_patient_data (patient_id, data_colloquio)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS audio_recording (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    consultation_id INT NOT NULL,
+    path_file VARCHAR(512) NOT NULL,
+    nome_originale VARCHAR(255) NOT NULL,
+    mime_type VARCHAR(100) NOT NULL,
+    dimensione_byte BIGINT NOT NULL,
+    durata_sec FLOAT NULL,
+    checksum_sha256 VARCHAR(64) NOT NULL,
+    cifrato TINYINT(1) NOT NULL DEFAULT 0,
+    cancellato_il DATETIME NULL,
+    creato_il DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_audio_recording_consultation_id FOREIGN KEY (consultation_id) REFERENCES consultation(id) ON DELETE CASCADE,
+    UNIQUE KEY uq_audio_recording_consultation_id (consultation_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS transcript (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    consultation_id INT NOT NULL,
+    testo TEXT NOT NULL,
+    lingua VARCHAR(16) NOT NULL DEFAULT 'it',
+    provider VARCHAR(64) NOT NULL,
+    modello VARCHAR(128) NOT NULL,
+    durata_elaborazione_sec FLOAT NULL,
+    creato_il DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_transcript_consultation_id FOREIGN KEY (consultation_id) REFERENCES consultation(id) ON DELETE CASCADE,
+    UNIQUE KEY uq_transcript_consultation_id (consultation_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS diary_entry (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    consultation_id INT NOT NULL,
+    patient_id INT NOT NULL,
+    contenuto_json JSON NOT NULL,
+    riassunto_testo TEXT NULL,
+    modello_usato VARCHAR(128) NOT NULL,
+    revisionato_da INT NULL,
+    revisionato_il DATETIME NULL,
+    modificato_manualmente TINYINT(1) NOT NULL DEFAULT 0,
+    creato_il DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    aggiornato_il DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_diary_entry_consultation_id FOREIGN KEY (consultation_id) REFERENCES consultation(id) ON DELETE CASCADE,
+    CONSTRAINT fk_diary_entry_patient_id FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
+    CONSTRAINT fk_diary_entry_revisionato_da FOREIGN KEY (revisionato_da) REFERENCES utente(id) ON DELETE SET NULL,
+    UNIQUE KEY uq_diary_entry_consultation_id (consultation_id),
+    INDEX ix_diary_entry_patient_id (patient_id),
+    INDEX ix_diary_entry_revisionato_da (revisionato_da)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ========================================

@@ -157,6 +157,62 @@ class Config:
     }
     
     MAX_FILE_SIZE = int(os.environ.get('MAX_FILE_SIZE', 10)) * 1024 * 1024
+
+    # ========================================
+    # 🎙️ DIARIO — AUDIO COLLOQUIO
+    # ========================================
+    # Path base storage (MAI hardcoded nei router/service oltre Config)
+    AUDIO_STORAGE_PATH = os.environ.get(
+        "AUDIO_STORAGE_PATH",
+        str(BASE_DIR / "storage" / "audio"),
+    )
+    # Chiave AES-256: 64 hex char (32 byte) oppure base64 di 32 byte
+    AUDIO_ENCRYPTION_KEY = os.getenv("AUDIO_ENCRYPTION_KEY")
+    AUDIO_MAX_BYTES = int(os.getenv("AUDIO_MAX_MB", "100")) * 1024 * 1024
+    AUDIO_MAX_DURATION_SEC = float(os.getenv("AUDIO_MAX_DURATION_SEC", "10800"))  # 3 ore
+    AUDIO_CHUNK_SIZE = int(os.getenv("AUDIO_CHUNK_SIZE", str(1024 * 1024)))
+    AUDIO_ALLOWED_MIME = {
+        m.strip().lower()
+        for m in os.getenv(
+            "AUDIO_ALLOWED_MIME",
+            "audio/mpeg,audio/mp4,audio/webm,audio/ogg,audio/wav",
+        ).split(",")
+        if m.strip()
+    }
+
+    # ========================================
+    # 🗣️ DIARIO — TRASCRIZIONE
+    # ========================================
+    # local_whisper (default) | openai_whisper
+    TRANSCRIPTION_PROVIDER = os.getenv("TRANSCRIPTION_PROVIDER", "local_whisper").strip().lower()
+    TRANSCRIPTION_LANGUAGE = os.getenv("TRANSCRIPTION_LANGUAGE", "it").strip() or "it"
+    TRANSCRIPTION_MAX_ATTEMPTS = int(os.getenv("TRANSCRIPTION_MAX_ATTEMPTS", "3"))
+    TRANSCRIPTION_RETRY_BASE_SEC = float(os.getenv("TRANSCRIPTION_RETRY_BASE_SEC", "1"))
+    # Job backend: thread (BackgroundTasks) | celery (futuro)
+    JOB_BACKEND = os.getenv("JOB_BACKEND", "thread").strip().lower()
+
+    # faster-whisper
+    WHISPER_MODEL_SIZE = os.getenv("WHISPER_MODEL_SIZE", "small").strip()
+    WHISPER_DEVICE = os.getenv("WHISPER_DEVICE", "cpu").strip()
+    WHISPER_COMPUTE_TYPE = os.getenv("WHISPER_COMPUTE_TYPE", "int8").strip()
+    WHISPER_DOWNLOAD_ROOT = os.getenv("WHISPER_DOWNLOAD_ROOT", "").strip()
+
+    # OpenAI Whisper API (fallback)
+    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "").strip()
+    OPENAI_WHISPER_MODEL = os.getenv("OPENAI_WHISPER_MODEL", "whisper-1").strip()
+    OPENAI_WHISPER_TIMEOUT_SEC = float(os.getenv("OPENAI_WHISPER_TIMEOUT_SEC", "120"))
+    OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "").strip()
+
+    # ========================================
+    # 📓 DIARIO — ESTRAZIONE CLAUDE
+    # ========================================
+    ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "").strip()
+    # Default: Haiku (costo/latenza). Override con CLAUDE_DIARY_MODEL.
+    CLAUDE_DIARY_MODEL = os.getenv(
+        "CLAUDE_DIARY_MODEL", "claude-3-5-haiku-latest"
+    ).strip()
+    CLAUDE_DIARY_MAX_TOKENS = int(os.getenv("CLAUDE_DIARY_MAX_TOKENS", "4096"))
+    CLAUDE_DIARY_TEMPERATURE = float(os.getenv("CLAUDE_DIARY_TEMPERATURE", "0"))
     
     # ========================================
     # 🧾 AUDIT LOG
@@ -212,6 +268,7 @@ def ensure_upload_dirs():
     """Crea tutte le directory di upload se non esistono"""
     for folder_path in Config.UPLOAD_FOLDERS.values():
         os.makedirs(folder_path, exist_ok=True)
+    os.makedirs(Config.AUDIO_STORAGE_PATH, exist_ok=True)
 
 
 def get_relative_path(full_path: str) -> str:

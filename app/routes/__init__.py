@@ -21,6 +21,9 @@ def register_blueprints(app):
     from .admin_diets import admin_diets_bp
     from .diete_plans import diete_plans_bp
     from .prenota_public import prenota_public_bp
+    from .consultations_audio import consultations_audio_bp
+    from .diario_ui import diario_ui_bp
+    from .patients_diary_api import patients_diary_api_bp
     
     # Registra i blueprint
     app.register_blueprint(auth_bp)
@@ -38,3 +41,6 @@ def register_blueprints(app):
     app.register_blueprint(admin_diets_bp)
     app.register_blueprint(diete_plans_bp)
     app.register_blueprint(prenota_public_bp)
+    app.register_blueprint(consultations_audio_bp)
+    app.register_blueprint(diario_ui_bp)
+    app.register_blueprint(patients_diary_api_bp)

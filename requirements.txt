@@ -16,6 +16,11 @@ blinker==1.9.0
 Flask-SQLAlchemy==3.1.1
 SQLAlchemy==2.0.44
 PyMySQL==1.1.2
+alembic==1.18.5
+
+# Schemi / validazione API (diario e futuri endpoint)
+pydantic==2.13.4
+email-validator==2.3.0
 
 # Security & Forms
 Flask-WTF==1.2.2
@@ -46,6 +51,18 @@ Deprecated==1.2.18
 packaging==25.0
 wrapt==1.17.3
 typing_extensions==4.15.0
+
+# Audio diary (durata file)
+mutagen==1.48.1
+
+# Trascrizione diario (Fase 3)
+# local_whisper (default): faster-whisper + ffmpeg di sistema — vedi docs/transcription_vps.md
+faster-whisper==1.1.1
+# openai_whisper (fallback API)
+openai==1.109.1
+
+# Estrazione diario strutturato (Claude / Anthropic)
+anthropic==0.75.0
 
 # Gunicorn
 gunicorn==23.0.0

@@ -1,0 +1,1 @@
+"""Schemi Pydantic dell'applicazione."""

@@ -1,0 +1,300 @@
+{% extends 'base_admin.html' %}
+{% block title %}Revisione diario — colloquio {{ consultation_id }}{% endblock %}
+{% block content %}
+
+{% set entry = payload.diary_entry %}
+{% set paziente_nome = (payload.patient.nome or '') ~ ' ' ~ (payload.patient.cognome or '') %}
+{% set c = contenuto %}
+
+<style>
+  .diary-review-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    align-items: start;
+  }
+  @media (max-width: 960px) {
+    .diary-review-grid { grid-template-columns: 1fr; }
+  }
+  .diary-panel {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 14px;
+    padding: 1.25rem 1.35rem;
+  }
+  .diary-panel h3 {
+    margin: 0 0 1rem 0;
+    color: #fff;
+    font-size: 1.1rem;
+    border-bottom: 1px solid rgba(255,255,255,0.12);
+    padding-bottom: 0.55rem;
+  }
+  .transcript-box {
+    white-space: pre-wrap;
+    color: #e8e8e8;
+    font-size: 0.95rem;
+    line-height: 1.55;
+    max-height: 70vh;
+    overflow: auto;
+    background: rgba(0,0,0,0.22);
+    border-radius: 10px;
+    padding: 1rem;
+  }
+  .badge-review {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 0.28rem 0.7rem;
+    border-radius: 999px;
+  }
+  .badge-review.da-revisionare {
+    background: rgba(255,183,77,0.22);
+    color: #FFB74D;
+  }
+  .badge-review.confermato {
+    background: rgba(129,199,132,0.22);
+    color: #81C784;
+  }
+  .diary-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 1.25rem;
+  }
+  .diary-status-msg {
+    margin-top: 0.85rem;
+    font-size: 0.9rem;
+    color: #d8d8d8;
+    min-height: 1.2em;
+  }
+  .list-field textarea { min-height: 4.5rem; }
+</style>
+
+<div class="detail-nav-row" style="margin-bottom: 1.25rem;">
+  <div>
+    <a href="{{ url_for('diario_ui.lista_diari_paziente', patient_id=patient_id) }}" class="btn btn-ghost btn-small">← Diari paziente</a>
+    <a href="{{ url_for('patients.dettaglio_paziente', patient_id=patient_id) }}" class="btn btn-ghost btn-small">Scheda paziente</a>
+  </div>
+  <div>
+    {% if payload.da_revisionare %}
+      <span class="badge-review da-revisionare">Da revisionare</span>
+    {% elif payload.confermato %}
+      <span class="badge-review confermato">Confermato (storico validato)</span>
+    {% endif %}
+  </div>
+</div>
+
+<h2 class="page-title" style="margin-bottom: 0.35rem;">Revisione diario</h2>
+<p style="color:#d8d8d8; margin: 0 0 1.5rem 0;">
+  {{ paziente_nome.strip() }} · colloquio #{{ consultation_id }} · stato {{ payload.stato }}
+</p>
+
+<div class="diary-review-grid">
+  <section class="diary-panel">
+    <h3>Trascrizione</h3>
+    <div class="transcript-box" id="transcript-text">
+{%- if payload.transcript and payload.transcript.testo -%}
+{{ payload.transcript.testo }}
+{%- else -%}
+<em>Trascrizione non disponibile.</em>
+{%- endif -%}
+    </div>
+  </section>
+
+  <section class="diary-panel">
+    <h3>Campi estratti</h3>
+    <form id="diary-form" class="form-container" style="padding:0; background:transparent; border:none;">
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="peso_kg">Peso (kg)</label>
+          <input type="number" step="0.1" id="peso_kg" class="input-text" value="{{ c.peso_kg if c.peso_kg is not none else '' }}">
+        </div>
+        <div class="form-group">
+          <label for="aderenza_piano">Aderenza piano</label>
+          <select id="aderenza_piano" class="input-text">
+            {% for opt in ['alta','media','bassa','non_rilevata'] %}
+            <option value="{{ opt }}" {% if c.get('aderenza_piano', 'non_rilevata') == opt %}selected{% endif %}>{{ opt }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="vita_cm">Vita (cm)</label>
+          <input type="number" step="0.1" id="vita_cm" class="input-text" value="{{ c.get('misure', {}).get('vita_cm', '') if c.get('misure') else '' }}">
+        </div>
+        <div class="form-group">
+          <label for="fianchi_cm">Fianchi (cm)</label>
+          <input type="number" step="0.1" id="fianchi_cm" class="input-text" value="{{ c.get('misure', {}).get('fianchi_cm', '') if c.get('misure') else '' }}">
+        </div>
+        <div class="form-group">
+          <label for="massa_grassa_pct">Massa grassa %</label>
+          <input type="number" step="0.1" id="massa_grassa_pct" class="input-text" value="{{ c.get('misure', {}).get('massa_grassa_pct', '') if c.get('misure') else '' }}">
+        </div>
+        <div class="form-group">
+          <label for="attivita_fisica">Attività fisica</label>
+          <input type="text" id="attivita_fisica" class="input-text" value="{{ c.get('attivita_fisica') or '' }}">
+        </div>
+      </div>
+
+      <div class="form-group list-field" style="margin-top:0.75rem;">
+        <label for="sintomi_riportati">Sintomi (uno per riga)</label>
+        <textarea id="sintomi_riportati" class="input-text">{{ (c.get('sintomi_riportati') or [])|join('\n') }}</textarea>
+      </div>
+      <div class="form-group list-field">
+        <label for="difficolta_segnalate">Difficoltà (uno per riga)</label>
+        <textarea id="difficolta_segnalate" class="input-text">{{ (c.get('difficolta_segnalate') or [])|join('\n') }}</textarea>
+      </div>
+      <div class="form-group list-field">
+        <label for="abitudini_alimentari">Abitudini alimentari (uno per riga)</label>
+        <textarea id="abitudini_alimentari" class="input-text">{{ (c.get('abitudini_alimentari') or [])|join('\n') }}</textarea>
+      </div>
+      <div class="form-group list-field">
+        <label for="obiettivi_concordati">Obiettivi concordati (uno per riga)</label>
+        <textarea id="obiettivi_concordati" class="input-text">{{ (c.get('obiettivi_concordati') or [])|join('\n') }}</textarea>
+      </div>
+      <div class="form-group list-field">
+        <label for="modifiche_al_piano">Modifiche al piano (uno per riga)</label>
+        <textarea id="modifiche_al_piano" class="input-text">{{ (c.get('modifiche_al_piano') or [])|join('\n') }}</textarea>
+      </div>
+      <div class="form-group">
+        <label for="note_cliniche">Note cliniche</label>
+        <textarea id="note_cliniche" class="input-text" rows="3">{{ c.get('note_cliniche') or '' }}</textarea>
+      </div>
+      <div class="form-group">
+        <label for="prossimo_controllo">Prossimo controllo</label>
+        <input type="text" id="prossimo_controllo" class="input-text" value="{{ c.get('prossimo_controllo') or '' }}">
+      </div>
+      <div class="form-group">
+        <label for="riassunto">Riassunto *</label>
+        <textarea id="riassunto" class="input-text" rows="4" required>{{ c.get('riassunto') or entry.riassunto_testo or '' }}</textarea>
+      </div>
+
+      <div class="diary-actions">
+        {% if payload.modificabile %}
+        <button type="button" class="btn btn-primary" id="btn-save">Salva modifiche</button>
+        <button type="button" class="btn btn-primary" id="btn-confirm" style="background:#81C784;border-color:#81C784;color:#111;">Conferma</button>
+        <button type="button" class="btn btn-ghost" id="btn-reject">Rigenera</button>
+        {% else %}
+        <p style="color:#d8d8d8;margin:0;">Diario confermato: usa la correzione post-conferma se necessario.</p>
+        <button type="button" class="btn btn-primary" id="btn-post-confirm">Salva correzione post-conferma</button>
+        {% endif %}
+      </div>
+      <div class="diary-status-msg" id="status-msg"></div>
+    </form>
+  </section>
+</div>
+
+<script>
+(function () {
+  const consultationId = {{ consultation_id|tojson }};
+  const confermato = {{ payload.confermato|tojson }};
+  const statusEl = document.getElementById('status-msg');
+
+  function lines(id) {
+    return (document.getElementById(id).value || '')
+      .split('\n')
+      .map(s => s.trim())
+      .filter(Boolean);
+  }
+  function numOrNull(id) {
+    const v = document.getElementById(id).value;
+    if (v === '' || v === null) return null;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  }
+  function buildPayload() {
+    const riassunto = (document.getElementById('riassunto').value || '').trim();
+    const contenuto_json = {
+      peso_kg: numOrNull('peso_kg'),
+      misure: {
+        vita_cm: numOrNull('vita_cm'),
+        fianchi_cm: numOrNull('fianchi_cm'),
+        massa_grassa_pct: numOrNull('massa_grassa_pct'),
+      },
+      aderenza_piano: document.getElementById('aderenza_piano').value,
+      sintomi_riportati: lines('sintomi_riportati'),
+      difficolta_segnalate: lines('difficolta_segnalate'),
+      abitudini_alimentari: lines('abitudini_alimentari'),
+      attivita_fisica: document.getElementById('attivita_fisica').value.trim() || null,
+      obiettivi_concordati: lines('obiettivi_concordati'),
+      modifiche_al_piano: lines('modifiche_al_piano'),
+      note_cliniche: document.getElementById('note_cliniche').value.trim() || null,
+      prossimo_controllo: document.getElementById('prossimo_controllo').value.trim() || null,
+      riassunto: riassunto,
+    };
+    return { contenuto_json, riassunto_testo: riassunto };
+  }
+
+  async function api(method, path, body) {
+    const opts = {
+      method,
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    };
+    if (body !== undefined) opts.body = JSON.stringify(body);
+    const res = await fetch(path, opts);
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || ('Errore HTTP ' + res.status));
+    return data;
+  }
+
+  function setMsg(text, ok) {
+    statusEl.textContent = text || '';
+    statusEl.style.color = ok ? '#81C784' : '#E57373';
+  }
+
+  const btnSave = document.getElementById('btn-save');
+  if (btnSave) {
+    btnSave.addEventListener('click', async () => {
+      try {
+        setMsg('Salvataggio…', true);
+        await api('PATCH', '/api/consultations/' + consultationId + '/diary', buildPayload());
+        setMsg('Modifiche salvate (bozza da revisionare).', true);
+      } catch (e) { setMsg(e.message, false); }
+    });
+  }
+
+  const btnConfirm = document.getElementById('btn-confirm');
+  if (btnConfirm) {
+    btnConfirm.addEventListener('click', async () => {
+      if (!confirm('Confermare definitivamente questo diario? Entrerà nello storico validato.')) return;
+      try {
+        setMsg('Conferma in corso…', true);
+        await api('PATCH', '/api/consultations/' + consultationId + '/diary', buildPayload());
+        await api('POST', '/api/consultations/' + consultationId + '/diary/confirm');
+        setMsg('Diario confermato.', true);
+        window.location.reload();
+      } catch (e) { setMsg(e.message, false); }
+    });
+  }
+
+  const btnReject = document.getElementById('btn-reject');
+  if (btnReject) {
+    btnReject.addEventListener('click', async () => {
+      if (!confirm('Scartare la bozza e rigenerare con AI?')) return;
+      try {
+        setMsg('Rigenerazione avviata…', true);
+        await api('POST', '/api/consultations/' + consultationId + '/diary/reject');
+        setMsg('Rigenerazione in corso. Ricarica tra qualche secondo.', true);
+        setTimeout(() => window.location.href = '{{ url_for("diario_ui.lista_diari_paziente", patient_id=patient_id) }}', 1200);
+      } catch (e) { setMsg(e.message, false); }
+    });
+  }
+
+  const btnPost = document.getElementById('btn-post-confirm');
+  if (btnPost) {
+    btnPost.addEventListener('click', async () => {
+      const motivo = prompt('Motivo della correzione post-conferma:') || '';
+      try {
+        setMsg('Salvataggio correzione…', true);
+        const body = buildPayload();
+        body.motivo = motivo;
+        await api('PATCH', '/api/consultations/' + consultationId + '/diary/post-confirm', body);
+        setMsg('Correzione post-conferma salvata.', true);
+      } catch (e) { setMsg(e.message, false); }
+    });
+  }
+})();
+</script>
+{% endblock %}

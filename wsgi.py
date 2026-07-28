@@ -1,5 +1,5 @@
 from flask import Flask, redirect, url_for, session, render_template
-from app.models.models import db
+from app.models import db  # importa anche modelli diario (Consultation, …)
 from app.config.config import Config, get_dynamic_limits, get_login_limit, get_rate_limit_config
 from dotenv import load_dotenv
 from app.config.config import ensure_upload_dirs
@@ -184,12 +184,16 @@ register_blueprints(app)
 try:
     from app.routes.admin_nutrition import admin_nutrition_bp
     from app.routes.admin_diets import admin_diets_bp
+    from app.routes.consultations_audio import consultations_audio_bp
+    from app.routes.patients_diary_api import patients_diary_api_bp
 
     csrf.exempt(admin_nutrition_bp)
     csrf.exempt(admin_diets_bp)
-    logger.info("✅ API nutrizione/diete esenti da CSRF")
+    csrf.exempt(consultations_audio_bp)
+    csrf.exempt(patients_diary_api_bp)
+    logger.info("✅ API nutrizione/diete/audio/diary esenti da CSRF")
 except Exception as e:
-    logger.warning(f"⚠️  Impossibile esentare le API nutrizione/diete: {e}")
+    logger.warning(f"⚠️  Impossibile esentare le API nutrizione/diete/audio/diary: {e}")
 
 # Rende disponibile csrf_token() in tutte le template
 @app.context_processor

@@ -91,6 +91,10 @@
         {{ icon('medical', 20) }}
         <span>Check Nutrizionista</span>
       </a>
+      <a href="{{ url_for('diario_ui.timeline_paziente', patient_id=paziente.id) }}" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem;">
+        {{ icon('file', 16) }}
+        <span>Diario colloqui</span>
+      </a>
       <a href="{{ url_for('patients.modifica_paziente', patient_id=paziente.id) }}" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem;">
         {{ icon('edit', 16) }}
         <span>Modifica Dati</span>

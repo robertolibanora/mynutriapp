@@ -40,8 +40,35 @@ class Patient(db.Model):
         server_default="attivo",
     )
 
+    # 📧 Contatto / diario
+    email = db.Column(db.String(255), nullable=True, unique=True)
+
+    # 👨‍⚕️ Nutrizionista di riferimento (tabella utente)
+    nutrizionista_id = db.Column(
+        db.Integer,
+        db.ForeignKey("utente.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+
+    # ✅ Consensi feature diario / AI
+    consenso_registrazione = db.Column(
+        db.Boolean, nullable=False, default=False, server_default=db.text("0")
+    )
+    consenso_ai = db.Column(
+        db.Boolean, nullable=False, default=False, server_default=db.text("0")
+    )
+    consenso_aggiornato_il = db.Column(db.DateTime, nullable=True)
+
     # 🕒 Metadati
     data_creazione = db.Column(db.DateTime, server_default=db.func.now())
+    # Alias di dominio diary: creato_il ≡ data_creazione (colonna storica)
+    aggiornato_il = db.Column(
+        db.DateTime,
+        nullable=True,
+        server_default=db.func.now(),
+        onupdate=db.func.now(),
+    )
 
     # 🔗 Relazioni (1:N)
     diete = db.relationship('Dieta', backref='patient', lazy=True, cascade="all, delete-orphan")
@@ -51,6 +78,26 @@ class Patient(db.Model):
     appuntamenti = db.relationship('Appuntamento', backref='patient', lazy=True, cascade="all, delete-orphan")
     misure_antropometriche = db.relationship('MisureAntropometriche', backref='patient', lazy=True, cascade="all, delete-orphan")
     composizione_corporea = db.relationship('ComposizioneCorporea', backref='patient', lazy=True, cascade="all, delete-orphan")
+    nutrizionista = db.relationship("Utente", back_populates="pazienti", foreign_keys=[nutrizionista_id])
+    consultations = db.relationship(
+        "Consultation",
+        back_populates="patient",
+        lazy=True,
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+    diary_entries = db.relationship(
+        "DiaryEntry",
+        back_populates="patient",
+        lazy=True,
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+
+    @property
+    def creato_il(self):
+        """Allinea lo schema diary (creato_il) alla colonna storica data_creazione."""
+        return self.data_creazione
 
     # 🧠 Metodo utile per debug o pannello admin
     def __repr__(self):

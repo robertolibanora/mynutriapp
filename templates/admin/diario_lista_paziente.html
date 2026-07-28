@@ -1,0 +1,97 @@
+{% extends 'base_admin.html' %}
+{% block title %}Diario colloqui — {{ paziente.nome }} {{ paziente.cognome }}{% endblock %}
+{% block content %}
+
+<style>
+  .badge-review {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 0.28rem 0.7rem;
+    border-radius: 999px;
+  }
+  .badge-review.da-revisionare { background: rgba(255,183,77,0.22); color: #FFB74D; }
+  .badge-review.confermato { background: rgba(129,199,132,0.22); color: #81C784; }
+  .badge-review.bozza { background: rgba(176,190,197,0.2); color: #B0BEC5; }
+  .diary-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 1rem 1.15rem;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 12px;
+    margin-bottom: 0.75rem;
+  }
+</style>
+
+<div style="margin-bottom: 1.25rem; display:flex; gap:0.5rem; flex-wrap:wrap;">
+  <a href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id) }}" class="btn btn-ghost btn-small">← Scheda paziente</a>
+  <a href="{{ url_for('diario_ui.timeline_paziente', patient_id=paziente.id) }}" class="btn btn-primary btn-small">Timeline</a>
+</div>
+
+<h2 class="page-title">Diario colloqui — {{ paziente.nome }} {{ paziente.cognome }}</h2>
+<p style="color:#d8d8d8; margin-bottom: 1.5rem;">
+  Le voci <strong style="color:#FFB74D;">da revisionare</strong> non fanno parte dello storico validato finché non le confermi.
+</p>
+
+{% if da_revisionare %}
+<h3 style="color:#fff; font-size:1.1rem; margin: 0 0 0.75rem 0;">Da revisionare ({{ da_revisionare|length }})</h3>
+{% for item in da_revisionare %}
+  <div class="diary-row">
+    <div>
+      <span class="badge-review da-revisionare">Da revisionare</span>
+      <div style="color:#fff; font-weight:600; margin-top:0.45rem;">Colloquio #{{ item.consultation_id }}</div>
+      <div style="color:#d8d8d8; font-size:0.9rem;">
+        {% if item.data_colloquio %}{{ item.data_colloquio[:16].replace('T', ' ') }}{% endif %}
+        · {{ item.stato }}
+      </div>
+      {% if item.riassunto %}<div style="color:#cfcfcf; margin-top:0.35rem; font-size:0.9rem;">{{ item.riassunto[:160] }}{% if item.riassunto|length > 160 %}…{% endif %}</div>{% endif %}
+    </div>
+    <a class="btn btn-primary btn-small" href="{{ url_for('diario_ui.review_diary', consultation_id=item.consultation_id) }}">Revisiona</a>
+  </div>
+{% endfor %}
+{% endif %}
+
+{% if confermati %}
+<h3 style="color:#fff; font-size:1.1rem; margin: 1.5rem 0 0.75rem 0;">Storico confermato ({{ confermati|length }})</h3>
+{% for item in confermati %}
+  <div class="diary-row">
+    <div>
+      <span class="badge-review confermato">Confermato</span>
+      <div style="color:#fff; font-weight:600; margin-top:0.45rem;">Colloquio #{{ item.consultation_id }}</div>
+      <div style="color:#d8d8d8; font-size:0.9rem;">
+        {% if item.data_colloquio %}{{ item.data_colloquio[:16].replace('T', ' ') }}{% endif %}
+      </div>
+      {% if item.riassunto %}<div style="color:#cfcfcf; margin-top:0.35rem; font-size:0.9rem;">{{ item.riassunto[:160] }}{% if item.riassunto|length > 160 %}…{% endif %}</div>{% endif %}
+    </div>
+    <a class="btn btn-ghost btn-small" href="{{ url_for('diario_ui.review_diary', consultation_id=item.consultation_id) }}">Apri</a>
+  </div>
+{% endfor %}
+{% endif %}
+
+{% if altri %}
+<h3 style="color:#fff; font-size:1.1rem; margin: 1.5rem 0 0.75rem 0;">Altri colloqui</h3>
+{% for item in altri %}
+  <div class="diary-row">
+    <div>
+      <span class="badge-review bozza">{{ item.stato }}</span>
+      <div style="color:#fff; font-weight:600; margin-top:0.45rem;">Colloquio #{{ item.consultation_id }}</div>
+      <div style="color:#d8d8d8; font-size:0.9rem;">
+        {% if item.data_colloquio %}{{ item.data_colloquio[:16].replace('T', ' ') }}{% endif %}
+        {% if not item.has_diary_entry %}· senza diario{% endif %}
+      </div>
+    </div>
+  </div>
+{% endfor %}
+{% endif %}
+
+{% if not items %}
+<p style="color:#d8d8d8;">Nessun colloquio diario per questo paziente (o non sei il nutrizionista proprietario).</p>
+{% endif %}
+
+{% endblock %}
