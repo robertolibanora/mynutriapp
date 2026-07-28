@@ -171,10 +171,16 @@ class DiaryTimelineApiTest(unittest.TestCase):
         self.assertEqual(dates, sorted(dates))
 
     def test_non_owner_forbidden(self):
-        with self.client.session_transaction() as sess:
-            sess["utente_id"] = self.other.id
-        res = self.client.get(f"/api/patients/{self.patient.id}/diary")
-        self.assertEqual(res.status_code, 403)
+        from app.config.config import Config
+
+        Config.SINGLE_TENANT = False
+        try:
+            with self.client.session_transaction() as sess:
+                sess["utente_id"] = self.other.id
+            res = self.client.get(f"/api/patients/{self.patient.id}/diary")
+            self.assertEqual(res.status_code, 403)
+        finally:
+            Config.SINGLE_TENANT = True
 
 
 if __name__ == "__main__":

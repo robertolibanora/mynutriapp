@@ -280,11 +280,12 @@ def amend_confirmed_diary(
 
 def list_patient_diaries(*, patient_id: int, utente_id: int) -> list[dict[str, Any]]:
     """Elenco consultation/diary del paziente (con flag revisione)."""
-    rows = (
-        Consultation.query.filter_by(patient_id=patient_id, nutrizionista_id=utente_id)
-        .order_by(Consultation.data_colloquio.desc())
-        .all()
-    )
+    from app.config.config import Config
+
+    q = Consultation.query.filter_by(patient_id=patient_id)
+    if not Config.SINGLE_TENANT:
+        q = q.filter_by(nutrizionista_id=utente_id)
+    rows = q.order_by(Consultation.data_colloquio.desc()).all()
     out: list[dict[str, Any]] = []
     for c in rows:
         confermato = _is_confermato(c)

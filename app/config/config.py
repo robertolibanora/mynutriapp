@@ -213,6 +213,9 @@ class Config:
     ).strip()
     CLAUDE_DIARY_MAX_TOKENS = int(os.getenv("CLAUDE_DIARY_MAX_TOKENS", "4096"))
     CLAUDE_DIARY_TEMPERATURE = float(os.getenv("CLAUDE_DIARY_TEMPERATURE", "0"))
+
+    # Single-tenant: un solo nutrizionista admin vede tutti i pazienti/consultation
+    SINGLE_TENANT = _get_bool_env("SINGLE_TENANT", True)
     
     # ========================================
     # 🧾 AUDIT LOG

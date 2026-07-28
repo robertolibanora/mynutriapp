@@ -145,6 +145,9 @@ def probe_duration_sec(plaintext_path: Path, mime: str) -> float:
 def assert_consultation_ownership(consultation: Consultation, utente_id: Optional[int]) -> None:
     if not utente_id:
         raise DiarioAudioError("Autenticazione nutrizionista richiesta", status_code=401)
+    # Single-tenant: l'unico admin autenticato ha accesso a tutte le consultation
+    if Config.SINGLE_TENANT:
+        return
     if consultation.nutrizionista_id != utente_id:
         raise DiarioAudioError(
             "Non sei il nutrizionista proprietario di questa consultation",

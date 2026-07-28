@@ -207,11 +207,17 @@ class ConsultationAudioApiTest(unittest.TestCase):
         self.assertIn("consenso_registrazione", resp.get_json()["error"])
 
     def test_utente_non_proprietario(self):
-        self._login_as(self.other.id)
-        wav = _make_wav_bytes(0.2)
-        resp = self._post_audio(wav, "colloquio.wav", "audio/wav")
-        self.assertEqual(resp.status_code, 403, resp.get_json())
-        self.assertIn("proprietario", resp.get_json()["error"].lower())
+        from app.config.config import Config
+
+        Config.SINGLE_TENANT = False
+        try:
+            self._login_as(self.other.id)
+            wav = _make_wav_bytes(0.2)
+            resp = self._post_audio(wav, "colloquio.wav", "audio/wav")
+            self.assertEqual(resp.status_code, 403, resp.get_json())
+            self.assertIn("proprietario", resp.get_json()["error"].lower())
+        finally:
+            Config.SINGLE_TENANT = True
 
     def test_soft_delete_preserva_stato_db_senza_file(self):
         self._login_as(self.owner.id)

@@ -8,6 +8,7 @@ from typing import Any, Optional
 from app.models.diario import Consultation, DiaryEntry
 from app.models.enums import ConsultationStato
 from app.models.models import Patient, db
+from app.config.config import Config
 from app.services.diario_audio_service import DiarioAudioError
 
 
@@ -30,7 +31,11 @@ def _assert_patient_access(patient_id: int, utente_id: int) -> Patient:
     patient = db.session.get(Patient, patient_id)
     if patient is None:
         raise DiarioAudioError("Paziente non trovato", status_code=404)
-    # Accesso: nutrizionista assegnato oppure proprietario di almeno una consultation
+    if not utente_id:
+        raise DiarioAudioError("Autenticazione nutrizionista richiesta", status_code=401)
+    # Single-tenant: qualsiasi nutrizionista admin autenticato vede tutti i pazienti
+    if Config.SINGLE_TENANT:
+        return patient
     if patient.nutrizionista_id == utente_id:
         return patient
     owned = (
@@ -79,11 +84,10 @@ def get_patient_diary_timeline(
     q = (
         db.session.query(Consultation, DiaryEntry)
         .join(DiaryEntry, DiaryEntry.consultation_id == Consultation.id)
-        .filter(
-            Consultation.patient_id == patient_id,
-            Consultation.nutrizionista_id == utente_id,
-        )
+        .filter(Consultation.patient_id == patient_id)
     )
+    if not Config.SINGLE_TENANT:
+        q = q.filter(Consultation.nutrizionista_id == utente_id)
     if include_pending:
         q = q.filter(
             Consultation.stato.in_(
@@ -176,10 +180,11 @@ def get_patient_diary_trends(
         .join(DiaryEntry, DiaryEntry.consultation_id == Consultation.id)
         .filter(
             Consultation.patient_id == patient_id,
-            Consultation.nutrizionista_id == utente_id,
             Consultation.stato == ConsultationStato.CONFERMATO,
         )
     )
+    if not Config.SINGLE_TENANT:
+        q = q.filter(Consultation.nutrizionista_id == utente_id)
     if dt_from is not None:
         q = q.filter(Consultation.data_colloquio >= dt_from)
     if dt_to is not None:
