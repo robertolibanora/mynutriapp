@@ -45,18 +45,18 @@ def login():
                 # Reimposta solo le chiavi necessarie per l'autenticazione admin
                 session['role'] = 'admin'
                 session['name'] = ADMIN_NAME
-                # Ownership diary: collega la sessione a un record utente (se presente)
+                # Ownership diary: garantisce record utente (auto-provision se manca)
                 try:
-                    from app.models.diario import Utente
+                    from app.services.utente_service import ensure_admin_utente
 
-                    nutr = Utente.query.filter_by(telefono=ADMIN_PHONE, attivo=True).first()
-                    if nutr is None:
-                        nutr = Utente.query.filter_by(attivo=True).order_by(Utente.id.asc()).first()
-                    if nutr is not None:
-                        session['utente_id'] = nutr.id
-                except Exception:
-                    # Tabella utente assente / non migrata: le API diary richiederanno re-login
-                    pass
+                    session['utente_id'] = ensure_admin_utente(
+                        telefono=ADMIN_PHONE,
+                        admin_name=ADMIN_NAME,
+                    )
+                except Exception as exc:  # noqa: BLE001
+                    current_app.logger.warning(
+                        "Impossibile collegare utente_id alla sessione admin: %s", exc
+                    )
                 session.permanent = True  # Session permanente per admin
                 session.modified = True  # Forza il salvataggio della sessione
                 

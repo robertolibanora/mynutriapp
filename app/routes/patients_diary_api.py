@@ -25,12 +25,18 @@ def api_nutrizionista_required(func):
         if session.get("role") != "admin":
             return jsonify({"error": "Accesso non autorizzato"}), 403
         if not session.get("utente_id"):
-            return jsonify(
-                {
-                    "error": "Sessione nutrizionista incompleta: manca utente_id. "
-                    "Effettua di nuovo il login."
-                }
-            ), 401
+            try:
+                from app.services.utente_service import ensure_session_utente_id
+
+                if ensure_session_utente_id() is None:
+                    raise RuntimeError("utente_id non disponibile")
+            except Exception:  # noqa: BLE001
+                return jsonify(
+                    {
+                        "error": "Sessione nutrizionista incompleta: manca utente_id. "
+                        "Effettua di nuovo il login."
+                    }
+                ), 401
         return func(*args, **kwargs)
 
     return wrapper

@@ -25,11 +25,17 @@ def _admin_required(func):
             flash("Accesso non autorizzato", "danger")
             return redirect(url_for("auth.login"))
         if not session.get("utente_id"):
-            flash(
-                "Sessione nutrizionista incompleta: effettua di nuovo il login.",
-                "warning",
-            )
-            return redirect(url_for("auth.login"))
+            try:
+                from app.services.utente_service import ensure_session_utente_id
+
+                if ensure_session_utente_id() is None:
+                    raise RuntimeError("utente_id non disponibile")
+            except Exception:  # noqa: BLE001
+                flash(
+                    "Sessione nutrizionista incompleta: effettua di nuovo il login.",
+                    "warning",
+                )
+                return redirect(url_for("auth.login"))
         return func(*args, **kwargs)
 
     return wrapper
