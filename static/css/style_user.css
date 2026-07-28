@@ -12,16 +12,16 @@
     --usr-muted: #d8d8d8;
     --usr-muted-2: #b0b0b0;
     --usr-nav-idle: #c4bfb6;
-    --usr-surface: rgba(26, 77, 46, 0.55);
-    --usr-surface-soft: rgba(26, 77, 46, 0.35);
+    --usr-surface: rgba(255, 255, 255, 0.08);
+    --usr-surface-soft: rgba(255, 255, 255, 0.05);
     --usr-surface-glass: rgba(255, 255, 255, 0.06);
     --usr-border: rgba(182, 177, 169, 0.15);
     --usr-border-strong: rgba(255, 255, 255, 0.18);
     --usr-accent: #ff9a56;
     --usr-accent-soft: rgba(255, 154, 86, 0.12);
-    --usr-success: #6ee07a;
-    --usr-success-soft: rgba(110, 224, 122, 0.14);
-    --usr-fiber: #9ccc65;
+    --usr-success: #ff9a56;
+    --usr-success-soft: rgba(255, 154, 86, 0.14);
+    --usr-fiber: #ff9a56;
     --usr-danger: #f44336;
     --usr-danger-soft: rgba(244, 67, 54, 0.18);
     --usr-radius: 18px;
@@ -87,8 +87,8 @@ body::before {
     position: fixed;
     inset: 0;
     background:
-        radial-gradient(ellipse 120% 70% at 50% -10%, rgba(26, 77, 46, 0.45) 0%, transparent 55%),
-        radial-gradient(ellipse 80% 50% at 100% 80%, rgba(255, 154, 86, 0.08) 0%, transparent 45%),
+        radial-gradient(ellipse 120% 70% at 50% -10%, rgba(255, 154, 86, 0.12) 0%, transparent 55%),
+        radial-gradient(ellipse 80% 50% at 100% 80%, rgba(255, 255, 255, 0.04) 0%, transparent 45%),
         linear-gradient(165deg, var(--usr-bg-0) 0%, var(--usr-bg-1) 55%, var(--usr-bg-deep) 100%);
     z-index: -2;
     pointer-events: none;
@@ -146,8 +146,8 @@ p {
     width: 40px;
     height: 40px;
     border-radius: 12px;
-    background: linear-gradient(145deg, rgba(26, 77, 46, 0.85), rgba(255, 154, 86, 0.35));
-    border: 1px solid var(--usr-border-strong);
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.12), rgba(255, 154, 86, 0.35));
+    border: 1px solid rgba(255, 154, 86, 0.35);
     display: grid;
     place-items: center;
     color: var(--usr-text);
@@ -275,7 +275,7 @@ p {
 /* === FEATURED METRIC === */
 .usr-feature {
     background:
-        linear-gradient(145deg, rgba(255, 154, 86, 0.14), rgba(26, 77, 46, 0.45));
+        linear-gradient(145deg, rgba(255, 154, 86, 0.16), rgba(255, 255, 255, 0.06));
     border: 1px solid rgba(255, 154, 86, 0.22);
     border-radius: var(--usr-radius);
     padding: 1.25rem 1.15rem;
@@ -461,7 +461,7 @@ p {
 }
 
 .card-nutrizionista {
-    background: linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(26, 77, 46, 0.4));
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 154, 86, 0.08));
     border-color: rgba(255, 255, 255, 0.18);
 }
 
@@ -970,7 +970,7 @@ select.form-control {
 
 /* === CHECK DETAIL === */
 .check-header {
-    background: linear-gradient(145deg, rgba(255, 154, 86, 0.12), rgba(26, 77, 46, 0.4));
+    background: linear-gradient(145deg, rgba(255, 154, 86, 0.14), rgba(255, 255, 255, 0.06));
     border: 1px solid rgba(255, 154, 86, 0.22);
     border-radius: var(--usr-radius);
     padding: 1.25rem;

@@ -112,8 +112,15 @@
   border-radius: 11px;
   display: grid;
   place-items: center;
-  background: var(--adm-surface);
-  border: 1px solid var(--adm-border);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 154, 86, 0.28));
+  border: 1px solid rgba(255, 154, 86, 0.35);
+  color: var(--adm-text);
+}
+
+.admin-brand-icon .adm-icon,
+.admin-brand-icon svg {
+  display: block;
+  color: inherit;
 }
 
 .admin-brand-text { line-height: 1.05; }
