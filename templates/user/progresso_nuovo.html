@@ -1,46 +1,45 @@
 {% extends 'base_user.html' %}
-{% block title %}Nuovo Check - NutriApp{% endblock %}
+{% block title %}Nuovo Check - MyNutriApp{% endblock %}
 {% block content %}
 
-<h1 class="page-title-user">{{ icon('chart', 22, 'usr-icon') }} Nuovo Check Progresso</h1>
+<h1 class="page-title-user">{{ icon('chart', 22, 'usr-icon') }} Nuovo check</h1>
 
 <form method="POST" class="card-user">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
     <div class="card-body">
-        <div class="form-group mb-2">
-            <label for="peso_settimanale" class="card-label" style="display: block; margin-bottom: 0.5rem;">Peso Attuale (kg) *</label>
-            <input 
-                type="number" 
-                step="0.1" 
-                id="peso_settimanale" 
-                name="peso_settimanale" 
-                class="btn-user" 
-                style="width: 100%; text-align: center; font-size: 1.5rem; font-weight: 700; color: #d4d4d4;"
+        <div class="form-group">
+            <label for="peso_settimanale" class="form-label">Peso attuale (kg) *</label>
+            <input
+                type="number"
+                step="0.1"
+                id="peso_settimanale"
+                name="peso_settimanale"
+                class="form-control form-control--xl"
                 placeholder="Es: 75.5"
                 required
             >
         </div>
-        
-        <div class="form-group mb-2">
-            <label for="aderenza" class="card-label" style="display: block; margin-bottom: 0.5rem;">Aderenza alla Dieta (1-10, opzionale)</label>
-            <select id="aderenza" name="aderenza" class="btn-user" style="width: 100%; text-align: left;">
+
+        <div class="form-group">
+            <label for="aderenza" class="form-label">Aderenza alla dieta (1–10, opzionale)</label>
+            <select id="aderenza" name="aderenza" class="form-control">
                 <option value="">Seleziona...</option>
                 <option value="10">10 - Perfetta</option>
                 <option value="9">9 - Ottima</option>
-                <option value="8">8 - Molto Buona</option>
+                <option value="8">8 - Molto buona</option>
                 <option value="7">7 - Buona</option>
                 <option value="6">6 - Discreta</option>
                 <option value="5">5 - Sufficiente</option>
                 <option value="4">4 - Mediocre</option>
                 <option value="3">3 - Scarsa</option>
-                <option value="2">2 - Molto Scarsa</option>
+                <option value="2">2 - Molto scarsa</option>
                 <option value="1">1 - Pessima</option>
             </select>
         </div>
-        
-        <div class="form-group mb-2">
-            <label for="frequenza_allenamenti" class="card-label" style="display: block; margin-bottom: 0.5rem;">Allenamenti questa Settimana (opzionale)</label>
-            <select id="frequenza_allenamenti" name="frequenza_allenamenti" class="btn-user" style="width: 100%; text-align: left;">
+
+        <div class="form-group">
+            <label for="frequenza_allenamenti" class="form-label">Allenamenti questa settimana (opzionale)</label>
+            <select id="frequenza_allenamenti" name="frequenza_allenamenti" class="form-control">
                 <option value="">Seleziona...</option>
                 <option value="0">0 volte</option>
                 <option value="1">1 volta</option>
@@ -51,22 +50,15 @@
             </select>
         </div>
     </div>
-    
-    <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-        <button type="submit" class="btn-user" style="flex: 1;">
-            {{ icon('save', 16, 'usr-icon') }} Salva Check
+
+    <div class="btn-row">
+        <button type="submit" class="btn-user">
+            {{ icon('save', 16, 'usr-icon') }} Salva
         </button>
-        <a href="{{ url_for('progressi.lista_progressi_user') }}" class="btn-user btn-user-secondary" style="flex: 1; text-align: center;">
+        <a href="{{ url_for('progressi.lista_progressi_user') }}" class="btn-user btn-user-secondary">
             {{ icon('arrow-left', 16, 'usr-icon') }} Annulla
         </a>
     </div>
 </form>
-
-<!-- LINK PRESENTAZIONE ROBERTO -->
-<div style="text-align: center; margin: 1rem 0;">
-    <span style="color: #d8d8d8; font-size: 0.9rem;">
-        Powered by <a href="{{ url_for('presentazione_roberto') }}" style="color: #d4d4d4; text-decoration: none;">Roberto Libanora</a>
-    </span>
-</div>
 
 {% endblock %}

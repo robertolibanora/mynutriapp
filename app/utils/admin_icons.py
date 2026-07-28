@@ -83,7 +83,7 @@ def admin_icon(name, size=18, css_class="adm-icon", title=None, stroke=1.7):
         return Markup("")
     label = f' aria-label="{title}" role="img"' if title else ' aria-hidden="true"'
     return Markup(
-        f'<span class="{css_class}{label}">'
+        f'<span class="{css_class}"{label}>'
         f'<svg width="{size}" height="{size}" viewBox="0 0 24 24" fill="none" '
         f'stroke="currentColor" stroke-width="{stroke}" stroke-linecap="round" stroke-linejoin="round">'
         f"{inner}</svg></span>"

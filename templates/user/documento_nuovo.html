@@ -1,72 +1,63 @@
 {% extends 'base_user.html' %}
-{% block title %}Carica Documento - NutriApp{% endblock %}
+{% block title %}Carica Documento - MyNutriApp{% endblock %}
 {% block content %}
 
-<h1 class="page-title-user">{{ icon('upload', 22, 'usr-icon') }} Carica Documento</h1>
+<h1 class="page-title-user">{{ icon('upload', 22, 'usr-icon') }} Carica documento</h1>
 
 <form method="POST" enctype="multipart/form-data" class="card-user">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
     <div class="card-body">
-        <div class="form-group mb-2">
-            <label for="tipo" class="card-label" style="display: block; margin-bottom: 0.5rem;">Tipo Documento</label>
-            <select id="tipo" name="tipo" class="btn-user" style="width: 100%; text-align: left;" required>
+        <div class="form-group">
+            <label for="tipo" class="form-label">Tipo documento</label>
+            <select id="tipo" name="tipo" class="form-control" required>
                 <option value="">Seleziona tipo...</option>
-                <option value="analisi">Analisi del Sangue</option>
-                <option value="referto">Referto Medico</option>
-                <option value="pdf_altro">Altro Documento</option>
+                <option value="analisi">Analisi del sangue</option>
+                <option value="referto">Referto medico</option>
+                <option value="pdf_altro">Altro documento</option>
             </select>
         </div>
-        
-        <div class="form-group mb-2">
-            <label for="descrizione" class="card-label" style="display: block; margin-bottom: 0.5rem;">Descrizione (opzionale)</label>
-            <textarea 
-                id="descrizione" 
-                name="descrizione" 
-                class="btn-user" 
-                style="width: 100%; min-height: 80px; text-align: left; font-size: 0.9rem; padding: 0.75rem;"
+
+        <div class="form-group">
+            <label for="descrizione" class="form-label">Descrizione (opzionale)</label>
+            <textarea
+                id="descrizione"
+                name="descrizione"
+                class="form-control"
                 placeholder="Es: Analisi del sangue gennaio 2025"
             ></textarea>
         </div>
-        
-        <div class="form-group mb-2">
-            <label for="file" class="card-label" style="display: block; margin-bottom: 0.5rem;">File (PDF, JPG, PNG)</label>
-            <input 
-                type="file" 
-                id="file" 
-                name="file" 
+
+        <div class="form-group">
+            <label for="file" class="form-label">File (PDF, JPG, PNG)</label>
+            <input
+                type="file"
+                id="file"
+                name="file"
                 accept=".pdf,.jpg,.jpeg,.png"
-                class="btn-user" 
-                style="width: 100%; padding: 0.75rem; font-size: 0.85rem;"
+                class="form-control"
                 required
             >
         </div>
     </div>
-    
-    <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-        <button type="submit" class="btn-user" style="flex: 1;">
-            {{ icon('save', 16, 'usr-icon') }} Carica Documento
+
+    <div class="btn-row">
+        <button type="submit" class="btn-user">
+            {{ icon('save', 16, 'usr-icon') }} Carica
         </button>
-        <a href="{{ url_for('documenti.lista_documenti_user') }}" class="btn-user btn-user-secondary" style="flex: 1; text-align: center;">
+        <a href="{{ url_for('documenti.lista_documenti_user') }}" class="btn-user btn-user-secondary">
             {{ icon('arrow-left', 16, 'usr-icon') }} Annulla
         </a>
     </div>
 </form>
 
-<div class="card-user" style="margin-top: 1rem; background: rgba(255, 255, 255, 0.1);">
+<div class="card-user card-hint">
     <div class="card-body">
-        <p class="card-label card-label--icon" style="margin-bottom: 0.5rem;">{{ icon('help', 16, 'usr-icon') }} Suggerimento</p>
-        <p class="card-value" style="font-size: 0.85rem; line-height: 1.5;">
-            Carica qui i tuoi esami del sangue, certificati di intolleranze o altri documenti medici. 
-            Il tuo nutrizionista potrà visualizzarli e tenerli in considerazione per il tuo piano alimentare.
+        <p class="card-label card-label--icon mb-1">{{ icon('help', 16, 'usr-icon') }} Suggerimento</p>
+        <p class="card-hint-text">
+            Carica qui esami del sangue, certificati di intolleranze o altri documenti medici.
+            Il nutrizionista potrà consultarli per il tuo piano alimentare.
         </p>
     </div>
-</div>
-
-<!-- LINK PRESENTAZIONE ROBERTO -->
-<div style="text-align: center; margin: 1rem 0;">
-    <span style="color: #d8d8d8; font-size: 0.9rem;">
-        Powered by <a href="{{ url_for('presentazione_roberto') }}" style="color: #d4d4d4; text-decoration: none;">Roberto Libanora</a>
-    </span>
 </div>
 
 {% endblock %}

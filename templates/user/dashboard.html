@@ -1,53 +1,76 @@
 {% extends 'base_user.html' %}
-{% block title %}Dashboard - NutriApp{% endblock %}
+{% block title %}Home - MyNutriApp{% endblock %}
 {% block content %}
 
-<h1 class="page-title-user">{{ icon('chart', 22, 'usr-icon') }} La Tua Dashboard</h1>
+<section class="usr-hero">
+    <span class="usr-hero-kicker">MyNutriApp</span>
+    <p class="usr-hero-title">Non diamo pillole, non diamo consigli: diamo risultati.</p>
+</section>
 
-<!-- MOTTO -->
-<div style="text-align: center; margin-bottom: 2rem; padding: 1.5rem 1rem;">
-  <p style="color: #d4d4d4; margin: 0; font-size: 1.3rem; font-weight: 600; font-family: 'Adam Script', cursive; line-height: 1.6;">
-    Non Diamo Pillole, Non Diamo Consigli, Diamo Risultati
-  </p>
+<!-- PESO IN EVIDENZA -->
+{% if ultimo_progresso %}
+<div class="usr-feature">
+    <div class="usr-feature-top">
+        <span class="usr-feature-label">{{ icon('scale', 16, 'usr-icon') }} Peso attuale</span>
+        {% set delta = ultimo_progresso.peso_settimanale - paziente.peso_iniziale %}
+        <span class="usr-delta {% if delta < 0 %}usr-delta--down{% elif delta > 0 %}usr-delta--up{% endif %}">
+            {{ "%+.1f"|format(delta) }} kg
+        </span>
+    </div>
+    <div class="usr-feature-value">
+        {{ ultimo_progresso.peso_settimanale }}<span class="usr-feature-unit">kg</span>
+    </div>
+    <div class="usr-feature-meta">
+        <span>Check: <strong>{{ ultimo_progresso.data_check.strftime('%d/%m/%Y') }}</strong></span>
+        <span>Iniziale: <strong>{{ paziente.peso_iniziale }} kg</strong></span>
+        {% if ultimo_progresso.aderenza %}
+        <span>Aderenza: <strong>{{ ultimo_progresso.aderenza }}</strong></span>
+        {% endif %}
+    </div>
 </div>
+{% endif %}
 
 <!-- DIETA ATTUALE -->
 <div class="summary-card">
     <div class="summary-header">
-        <span class="summary-icon">{{ icon('diet', 22, 'usr-icon') }}</span>
-        <span class="summary-title">Dieta Attuale</span>
+        <span class="summary-icon">{{ icon('diet', 20, 'usr-icon') }}</span>
+        <span class="summary-title">Dieta attuale</span>
     </div>
     <div class="summary-content">
         {% if ultimo_diet_plan %}
         <div class="summary-row">
-            <span class="summary-label">Piano:</span>
+            <span class="summary-label">Piano</span>
             <span class="summary-value">{{ ultimo_diet_plan.title }}</span>
         </div>
         {% if ultimo_diet_plan.goal %}
         <div class="summary-row">
-            <span class="summary-label">Obiettivo:</span>
+            <span class="summary-label">Obiettivo</span>
             <span class="summary-value">{{ ultimo_diet_plan.goal }}</span>
         </div>
         {% endif %}
-        <a href="{{ url_for('diete_plans.user_diet_plan', diet_plan_id=ultimo_diet_plan.id) }}" class="btn-user btn-user-small mt-2">
-            {{ icon('diet', 16, 'usr-icon') }} Visualizza dieta
-        </a>
-        <a href="{{ url_for('diete.lista_diete_user') }}" class="btn-user btn-user-small mt-2" style="margin-left:.5rem;opacity:.85;">
-            Tutte le diete
-        </a>
+        <div class="summary-actions">
+            <a href="{{ url_for('diete_plans.user_diet_plan', diet_plan_id=ultimo_diet_plan.id) }}" class="btn-user btn-user-small">
+                {{ icon('diet', 16, 'usr-icon') }} Visualizza
+            </a>
+            <a href="{{ url_for('diete.lista_diete_user') }}" class="btn-user btn-user-secondary btn-user-small">
+                Tutte le diete
+            </a>
+        </div>
         {% elif ultima_dieta %}
         <div class="summary-row">
-            <span class="summary-label">Periodo:</span>
-            <span class="summary-value">{{ ultima_dieta.data_inizio.strftime('%d/%m/%Y') }} - {{ ultima_dieta.data_fine.strftime('%d/%m/%Y') }}</span>
+            <span class="summary-label">Periodo</span>
+            <span class="summary-value">{{ ultima_dieta.data_inizio.strftime('%d/%m/%Y') }} – {{ ultima_dieta.data_fine.strftime('%d/%m/%Y') }}</span>
         </div>
         <div class="summary-row">
-            <span class="summary-label">Calorie:</span>
+            <span class="summary-label">Calorie</span>
             <span class="summary-value">{{ ultima_dieta.kcal }} kcal/giorno</span>
         </div>
         {% if ultima_dieta.pdf_path %}
-        <a href="{{ url_for('diete.serve_file', dieta_id=ultima_dieta.id) }}" target="_blank" class="btn-user btn-user-small mt-2">
-            {{ icon('file', 16, 'usr-icon') }} Apri PDF Dieta
-        </a>
+        <div class="summary-actions">
+            <a href="{{ url_for('diete.serve_file', dieta_id=ultima_dieta.id) }}" target="_blank" class="btn-user btn-user-small">
+                {{ icon('file', 16, 'usr-icon') }} Apri PDF
+            </a>
+        </div>
         {% endif %}
         {% else %}
         <div class="empty-state">
@@ -58,28 +81,30 @@
     </div>
 </div>
 
-<!-- ULTIMO ALLENAMENTO -->
+<!-- ALLENAMENTO -->
 <div class="summary-card">
     <div class="summary-header">
-        <span class="summary-icon">{{ icon('dumbbell', 22, 'usr-icon') }}</span>
-        <span class="summary-title">Allenamento Attuale</span>
+        <span class="summary-icon">{{ icon('dumbbell', 20, 'usr-icon') }}</span>
+        <span class="summary-title">Allenamento attuale</span>
     </div>
     <div class="summary-content">
         {% if ultimo_allenamento %}
         <div class="summary-row">
-            <span class="summary-label">Periodo:</span>
-            <span class="summary-value">{{ ultimo_allenamento.data_inizio.strftime('%d/%m/%Y') }} - {{ ultimo_allenamento.data_fine.strftime('%d/%m/%Y') }}</span>
+            <span class="summary-label">Periodo</span>
+            <span class="summary-value">{{ ultimo_allenamento.data_inizio.strftime('%d/%m/%Y') }} – {{ ultimo_allenamento.data_fine.strftime('%d/%m/%Y') }}</span>
         </div>
         {% if ultimo_allenamento.note %}
         <div class="summary-row">
-            <span class="summary-label">Note:</span>
+            <span class="summary-label">Note</span>
             <span class="summary-value">{{ ultimo_allenamento.note }}</span>
         </div>
         {% endif %}
         {% if ultimo_allenamento.pdf_path %}
-        <a href="{{ url_for('allenamenti.serve_file', allenamento_id=ultimo_allenamento.id) }}" target="_blank" class="btn-user btn-user-small mt-2">
-            {{ icon('file', 16, 'usr-icon') }} Apri PDF Allenamento
-        </a>
+        <div class="summary-actions">
+            <a href="{{ url_for('allenamenti.serve_file', allenamento_id=ultimo_allenamento.id) }}" target="_blank" class="btn-user btn-user-small">
+                {{ icon('file', 16, 'usr-icon') }} Apri PDF
+            </a>
+        </div>
         {% endif %}
         {% else %}
         <div class="empty-state">
@@ -90,66 +115,40 @@
     </div>
 </div>
 
-<!-- PESO PIÙ RECENTE -->
+{% if not ultimo_progresso %}
 <div class="summary-card">
     <div class="summary-header">
-        <span class="summary-icon">{{ icon('scale', 22, 'usr-icon') }}</span>
-        <span class="summary-title">Peso Attuale</span>
+        <span class="summary-icon">{{ icon('scale', 20, 'usr-icon') }}</span>
+        <span class="summary-title">Peso attuale</span>
     </div>
     <div class="summary-content">
-        {% if ultimo_progresso %}
-        <div class="summary-row">
-            <span class="summary-label">Data Check:</span>
-            <span class="summary-value">{{ ultimo_progresso.data_check.strftime('%d/%m/%Y') }}</span>
-        </div>
-        <div class="summary-row">
-            <span class="summary-label">Peso:</span>
-            <span class="summary-value">{{ ultimo_progresso.peso_settimanale }} kg</span>
-        </div>
-        {% if ultimo_progresso.aderenza %}
-        <div class="summary-row">
-            <span class="summary-label">Aderenza:</span>
-            <span class="summary-value">{{ ultimo_progresso.aderenza }}</span>
-        </div>
-        {% endif %}
-        <div class="summary-row">
-            <span class="summary-label">Peso Iniziale:</span>
-            <span class="summary-value">{{ paziente.peso_iniziale }} kg</span>
-        </div>
-        <div class="summary-row">
-            <span class="summary-label">Differenza:</span>
-            <span class="summary-value" style="color: {% if ultimo_progresso.peso_settimanale < paziente.peso_iniziale %}#d8d8d8{% else %}#d4d4d4{% endif %}">
-                {{ "%.1f"|format(ultimo_progresso.peso_settimanale - paziente.peso_iniziale) }} kg
-            </span>
-        </div>
-        {% else %}
         <div class="empty-state">
             <div class="empty-icon">{{ icon('chart', 48, 'usr-icon usr-icon--lg') }}</div>
             <p class="empty-text">Nessun progresso registrato ancora</p>
         </div>
-        {% endif %}
     </div>
 </div>
+{% endif %}
 
 <!-- PROSSIMO APPUNTAMENTO -->
 <div class="summary-card">
     <div class="summary-header">
-        <span class="summary-icon">{{ icon('calendar', 22, 'usr-icon') }}</span>
-        <span class="summary-title">Prossimo Appuntamento</span>
+        <span class="summary-icon">{{ icon('calendar', 20, 'usr-icon') }}</span>
+        <span class="summary-title">Prossimo appuntamento</span>
     </div>
     <div class="summary-content">
         {% if prossimo_appuntamento %}
         <div class="summary-row">
-            <span class="summary-label">Data:</span>
+            <span class="summary-label">Data</span>
             <span class="summary-value">{{ prossimo_appuntamento.data_appuntamento.strftime('%d/%m/%Y alle %H:%M') }}</span>
         </div>
         <div class="summary-row">
-            <span class="summary-label">Tipo:</span>
+            <span class="summary-label">Tipo</span>
             <span class="summary-value">{{ prossimo_appuntamento.tipo }}</span>
         </div>
         {% if prossimo_appuntamento.note %}
         <div class="summary-row">
-            <span class="summary-label">Note:</span>
+            <span class="summary-label">Note</span>
             <span class="summary-value">{{ prossimo_appuntamento.note }}</span>
         </div>
         {% endif %}
@@ -161,13 +160,5 @@
         {% endif %}
     </div>
 </div>
-
-<!-- LINK PRESENTAZIONE ROBERTO -->
-<div style="text-align: center; margin: 1rem 0;">
-    <span style="color: #d8d8d8; font-size: 0.9rem;">
-        Powered by <a href="{{ url_for('presentazione_roberto') }}" style="color: #d4d4d4; text-decoration: none;">Roberto Libanora</a>
-    </span>
-</div>
-
 
 {% endblock %}

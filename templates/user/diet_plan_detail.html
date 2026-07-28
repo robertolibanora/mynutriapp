@@ -1,29 +1,6 @@
 {% extends 'base_user.html' %}
-{% block title %}{{ plan.title }} - NutriApp{% endblock %}
+{% block title %}{{ plan.title }} - MyNutriApp{% endblock %}
 {% block content %}
-
-<style>
-  .dp-meal { background:#fff; border:1px solid #eee; border-radius:14px; padding:1rem 1.1rem; margin-bottom:1rem; box-shadow:0 2px 8px rgba(0,0,0,.05); }
-  .dp-meal-head { display:flex; justify-content:space-between; align-items:baseline; gap:.5rem; margin-bottom:.6rem; }
-  .dp-meal-name { font-weight:700; color:#1a1a1a; font-size:1.05rem; }
-  .dp-meal-time { color:#d4d4d4; font-size:.85rem; font-weight:600; }
-  .dp-item { display:flex; justify-content:space-between; gap:.6rem; padding:.5rem 0; border-top:1px solid #f2f2f2; }
-  .dp-item:first-child { border-top:0; }
-  .dp-item-name { color:#333; font-size:.92rem; font-weight:600; }
-  .dp-item-note { color:#999; font-size:.78rem; }
-  .dp-item-qty { color:#d8d8d8; font-weight:700; font-size:.9rem; white-space:nowrap; }
-  .dp-item-macros { color:#999; font-size:.75rem; }
-  .dp-meal-total { margin-top:.5rem; text-align:right; color:#666; font-size:.8rem; }
-  .dp-meal-total b { color:#d4d4d4; }
-  .dp-goals { background:#fff; border:1px solid #eee; border-radius:14px; padding:1rem 1.1rem; margin-bottom:1.2rem; box-shadow:0 2px 8px rgba(0,0,0,.05); }
-  .dp-goals-title { margin:0 0 .7rem; font-size:1rem; font-weight:700; color:#1a1a1a; }
-  .dp-summary { display:flex; flex-wrap:wrap; gap:.5rem; }
-  .dp-kpi { flex:1; min-width:80px; background:#1a1a1a; color:#fff; border-radius:12px; padding:.7rem; text-align:center; }
-  .dp-kpi b { display:block; font-size:1.25rem; }
-  .dp-kpi span { font-size:.68rem; opacity:.8; text-transform:uppercase; }
-  .dp-kpi em { display:block; font-style:normal; font-weight:700; font-size:.8rem; margin-top:.25rem; color:#9ccc65; }
-  .dp-preview-banner { background:#fff3e6; border:1px solid #ffd0a3; color:#b35900; padding:.6rem .9rem; border-radius:10px; font-size:.85rem; margin-bottom:1rem; }
-</style>
 
 {% if is_preview %}
 <div class="dp-preview-banner">Anteprima nutrizionista · così vede la dieta {{ paziente.nome }}.</div>
@@ -31,19 +8,18 @@
 
 <h1 class="page-title-user">{{ icon('diet', 22, 'usr-icon') }} {{ plan.title }}</h1>
 
-<!-- OBIETTIVI NUTRIZIONALI ATTUALI -->
 <div class="dp-goals">
-  <h2 class="dp-goals-title">Obiettivi nutrizionali attuali</h2>
+  <h2 class="dp-goals-title">Obiettivi nutrizionali</h2>
   {% if targets %}
   <div class="dp-summary">
-    <div class="dp-kpi"><b>{{ targets.kcal }}</b><span>Calorie target</span></div>
+    <div class="dp-kpi"><b>{{ targets.kcal }}</b><span>Calorie</span></div>
     <div class="dp-kpi"><b>{{ "%.0f"|format(targets.protein_g) if targets.protein_g is not none else '—' }}</b><span>Proteine (g)</span>{% if targets.protein_pct is not none %}<em>{{ "%.0f"|format(targets.protein_pct) }}%</em>{% endif %}</div>
     <div class="dp-kpi"><b>{{ "%.0f"|format(targets.carbs_g) if targets.carbs_g is not none else '—' }}</b><span>Carbo (g)</span>{% if targets.carbs_pct is not none %}<em>{{ "%.0f"|format(targets.carbs_pct) }}%</em>{% endif %}</div>
     <div class="dp-kpi"><b>{{ "%.0f"|format(targets.fat_g) if targets.fat_g is not none else '—' }}</b><span>Grassi (g)</span>{% if targets.fat_pct is not none %}<em>{{ "%.0f"|format(targets.fat_pct) }}%</em>{% endif %}</div>
   </div>
   {% else %}
   <div class="dp-summary">
-    <div class="dp-kpi"><b>{{ "%.0f"|format(totals.plan.total.kcal) }}</b><span>Calorie target</span></div>
+    <div class="dp-kpi"><b>{{ "%.0f"|format(totals.plan.total.kcal) }}</b><span>Calorie</span></div>
     <div class="dp-kpi"><b>{{ "%.0f"|format(totals.plan.total.protein) }}</b><span>Proteine (g)</span><em>{{ "%.0f"|format(totals.perc.protein) }}%</em></div>
     <div class="dp-kpi"><b>{{ "%.0f"|format(totals.plan.total.carbs) }}</b><span>Carbo (g)</span><em>{{ "%.0f"|format(totals.perc.carbs) }}%</em></div>
     <div class="dp-kpi"><b>{{ "%.0f"|format(totals.plan.total.fat) }}</b><span>Grassi (g)</span><em>{{ "%.0f"|format(totals.perc.fat) }}%</em></div>
@@ -51,8 +27,8 @@
   {% endif %}
 </div>
 
-{% if plan.goal %}<p style="color:#d4d4d4;font-weight:600;margin:.2rem 0 .6rem;">Obiettivo: {{ plan.goal }}</p>{% endif %}
-{% if plan.notes %}<p style="color:#666;margin:0 0 1rem;">{{ plan.notes }}</p>{% endif %}
+{% if plan.goal %}<p class="dp-goal-text">Obiettivo: {{ plan.goal }}</p>{% endif %}
+{% if plan.notes %}<p class="dp-notes">{{ plan.notes }}</p>{% endif %}
 
 {% if plan.meals %}
   {% for meal in plan.meals %}
@@ -68,7 +44,7 @@
       {% set it = totals.item[item.id] %}
       <div class="dp-item">
         <div>
-          <div class="dp-item-name">{{ item.food.name }}{% if item.food.brand %} · <span style="color:#999;font-weight:400;">{{ item.food.brand }}</span>{% endif %}</div>
+          <div class="dp-item-name">{{ item.food.name }}{% if item.food.brand %} · <span class="dp-item-brand">{{ item.food.brand }}</span>{% endif %}</div>
           {% if item.notes %}<div class="dp-item-note">{{ item.notes }}</div>{% endif %}
           {% if it.kcal or it.protein %}<div class="dp-item-macros">{{ "%.0f"|format(it.kcal) }} kcal · P {{ "%.1f"|format(it.protein) }} · C {{ "%.1f"|format(it.carbs) }} · G {{ "%.1f"|format(it.fat) }}</div>{% endif %}
         </div>
@@ -88,8 +64,10 @@
 </div>
 {% endif %}
 
-<div style="margin:1.2rem 0;">
-  <a href="{{ url_for('diete.lista_diete_user') if not is_preview else url_for('patients.dettaglio_paziente', patient_id=paziente.id) }}" class="btn-user btn-user-small">← Indietro</a>
+<div class="mt-2">
+  <a href="{{ url_for('diete.lista_diete_user') if not is_preview else url_for('patients.dettaglio_paziente', patient_id=paziente.id) }}" class="btn-user btn-user-secondary">
+    {{ icon('arrow-left', 16, 'usr-icon') }} Indietro
+  </a>
 </div>
 
 {% endblock %}
