@@ -277,6 +277,14 @@ def dettaglio_paziente(patient_id):
                          aderenze=aderenze)
 
 
+@patients_bp.route('/<int:patient_id>/percorsi')
+@admin_required
+def percorsi_paziente(patient_id):
+    """Diete e allenamenti associati al paziente."""
+    paziente = Patient.query.get_or_404(patient_id)
+    return render_template('admin/paziente_percorsi.html', paziente=paziente)
+
+
 # ========================
 # CREA NUOVO PAZIENTE
 # ========================
