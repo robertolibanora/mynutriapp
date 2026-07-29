@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nutriapp-v6';
+const CACHE_NAME = 'nutriapp-v7';
 const urlsToCache = [
   '/',
   '/login',
@@ -9,7 +9,10 @@ const urlsToCache = [
   '/user/profilo',
   '/static/css/style_user.css',
   '/static/css/style.css',
-  '/static/manifest.json'
+  '/static/manifest.json',
+  '/static/icons/icon-192.png',
+  '/static/icons/icon-512.png',
+  '/static/icons/apple-touch-icon.png'
 ];
 
 self.addEventListener('install', (e) => {

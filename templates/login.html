@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='icons/favicon-32.png') }}">
+    <link rel="icon" type="image/png" sizes="48x48" href="{{ url_for('static', filename='icons/favicon-48.png') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/apple-touch-icon.png') }}">
     <meta name="theme-color" content="#0f0f0f">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="MyNutriApp">
@@ -24,12 +27,12 @@
             <header class="login-brand">
                 <div class="login-mark" aria-hidden="true">
                     <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="32" cy="32" r="30" stroke="currentColor" stroke-width="1.5" opacity="0.22"/>
+                        <circle cx="32" cy="32" r="30" stroke="#ff9a56" stroke-width="1.5" opacity="0.35"/>
                         <path d="M32 48c-9.5-6.2-15-12.8-15-19.2C17 21.2 23.2 16 32 16s15 5.2 15 12.8C47 35.2 41.5 41.8 32 48z"
-                              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M32 22v18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                        <path d="M32 28c4.5-1.2 8-1 11.5.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                        <path d="M32 34c-4.2-1-7.8-.7-11.2.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                              fill="#ff9a56"/>
+                        <path d="M32 22v18" stroke="#0f0f0f" stroke-width="2" stroke-linecap="round" opacity="0.55"/>
+                        <path d="M32 28c4.5-1.2 8-1 11.5.4" stroke="#0f0f0f" stroke-width="1.8" stroke-linecap="round" opacity="0.4"/>
+                        <path d="M32 34c-4.2-1-7.8-.7-11.2.6" stroke="#0f0f0f" stroke-width="1.8" stroke-linecap="round" opacity="0.4"/>
                     </svg>
                 </div>
                 <h1 id="login-heading" class="login-title">MyNutriApp</h1>

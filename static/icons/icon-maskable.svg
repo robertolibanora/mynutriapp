@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a1a1a"/>
+      <stop offset="100%" stop-color="#0f0f0f"/>
+    </linearGradient>
+    <linearGradient id="leaf" x1="30%" y1="10%" x2="80%" y2="90%">
+      <stop offset="0%" stop-color="#ffb07a"/>
+      <stop offset="100%" stop-color="#ff9a56"/>
+    </linearGradient>
+  </defs>
+  <!-- full-bleed per maskable (Android ritaglia) -->
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <!-- foglia più piccola (safe zone ~66%) -->
+  <g transform="translate(256 260) scale(0.72)">
+    <path d="M0 148 C-76 -22 -120 -92 -120 -148 C-120 -210 -66 -252 0 -252
+             C66 -252 120 -210 120 -148 C120 -92 76 -22 0 148 Z"
+          fill="url(#leaf)"/>
+    <path d="M0 -200 L0 90" fill="none" stroke="#0f0f0f" stroke-width="16"
+          stroke-linecap="round" opacity="0.55"/>
+    <path d="M0 -120 C36 -130 64 -128 92 -112" fill="none" stroke="#0f0f0f"
+          stroke-width="12" stroke-linecap="round" opacity="0.4"/>
+    <path d="M0 -40 C-34 -50 -62 -48 -90 -32" fill="none" stroke="#0f0f0f"
+          stroke-width="12" stroke-linecap="round" opacity="0.4"/>
+    <path d="M0 30 C30 18 56 20 82 36" fill="none" stroke="#0f0f0f"
+          stroke-width="11" stroke-linecap="round" opacity="0.35"/>
+  </g>
+</svg>

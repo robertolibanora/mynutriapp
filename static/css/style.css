@@ -456,9 +456,9 @@ body {
     border-radius: 18px;
     display: grid;
     place-items: center;
-    color: #f0f0f0;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.16);
+    color: #ff9a56;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 154, 86, 0.28));
+    border: 1px solid rgba(255, 154, 86, 0.35);
 }
 
 .login-mark svg {
