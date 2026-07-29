@@ -204,15 +204,12 @@ class Config:
     OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "").strip()
 
     # ========================================
-    # 📓 DIARIO — ESTRAZIONE CLAUDE
+    # 📓 DIARIO — ESTRAZIONE OPENAI
     # ========================================
-    ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "").strip()
-    # Default: Haiku (costo/latenza). Override con CLAUDE_DIARY_MODEL.
-    CLAUDE_DIARY_MODEL = os.getenv(
-        "CLAUDE_DIARY_MODEL", "claude-3-5-haiku-latest"
-    ).strip()
-    CLAUDE_DIARY_MAX_TOKENS = int(os.getenv("CLAUDE_DIARY_MAX_TOKENS", "4096"))
-    CLAUDE_DIARY_TEMPERATURE = float(os.getenv("CLAUDE_DIARY_TEMPERATURE", "0"))
+    # Usa OPENAI_API_KEY (condivisa con Whisper API). Default: gpt-4o-mini.
+    OPENAI_DIARY_MODEL = os.getenv("OPENAI_DIARY_MODEL", "gpt-4o-mini").strip()
+    OPENAI_DIARY_MAX_TOKENS = int(os.getenv("OPENAI_DIARY_MAX_TOKENS", "4096"))
+    OPENAI_DIARY_TEMPERATURE = float(os.getenv("OPENAI_DIARY_TEMPERATURE", "0"))
 
     # Single-tenant: un solo nutrizionista admin vede tutti i pazienti/consultation
     SINGLE_TENANT = _get_bool_env("SINGLE_TENANT", True)

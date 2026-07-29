@@ -191,7 +191,7 @@ class DiaryReviewApiTest(unittest.TestCase):
             return DiaryExtractionSchema.model_validate(CONTENUTO)
 
         with mock.patch(
-            "app.services.diario_extraction_service.ClaudeDiaryExtractor.extract",
+            "app.services.diario_extraction_service.OpenAIDiaryExtractor.extract",
             fake_extract,
         ):
             res = self.client.post(

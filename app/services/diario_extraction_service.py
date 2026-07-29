@@ -1,4 +1,4 @@
-"""Orchestrazione: transcript → Claude → diary_entry (stato ELABORATO)."""
+"""Orchestrazione: transcript → OpenAI → diary_entry (stato ELABORATO)."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from app.models.diario import Consultation, DiaryEntry, Transcript
 from app.models.enums import ConsultationStato
 from app.models.models import Patient, db
 from app.services.diario_audio_service import DiarioAudioError, assert_consultation_ownership
-from app.services.diary_extraction_claude import ClaudeDiaryExtractor, DiaryExtractionError, redact_secrets
+from app.services.diary_extraction_openai import OpenAIDiaryExtractor, DiaryExtractionError, redact_secrets
 from app.utils.anonymize import anonymize_text, deanonymize_structure
 
 logger = logging.getLogger(__name__)
@@ -89,7 +89,7 @@ def enqueue_diary_extraction(*, consultation_id: int, utente_id: int) -> dict:
 
 
 def run_diary_extraction_job(consultation_id: int) -> None:
-    """Job isolato (thread / futuro Celery): anonimizza → Claude → valida → salva."""
+    """Job isolato (thread / futuro Celery): anonimizza → OpenAI → valida → salva."""
     try:
         consultation = db.session.get(Consultation, consultation_id)
         if consultation is None:
@@ -110,10 +110,10 @@ def run_diary_extraction_job(consultation_id: int) -> None:
             "Estrazione diario avviata consultation=%s chars=%s model=%s",
             consultation_id,
             len(anonymized),
-            Config.CLAUDE_DIARY_MODEL,
+            Config.OPENAI_DIARY_MODEL,
         )
 
-        extractor = ClaudeDiaryExtractor()
+        extractor = OpenAIDiaryExtractor()
         try:
             schema = extractor.extract(anonymized)
         except DiaryExtractionError as exc:

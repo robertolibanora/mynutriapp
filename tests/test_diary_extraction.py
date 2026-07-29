@@ -16,7 +16,7 @@ from flask import Flask
 from werkzeug.security import generate_password_hash
 
 os.environ.setdefault("AUDIO_ENCRYPTION_KEY", "ab" * 32)
-os.environ.setdefault("ANTHROPIC_API_KEY", "sk-ant-test-key-should-never-leak")
+os.environ.setdefault("OPENAI_API_KEY", "sk-test-key-should-never-leak-xxxxxx")
 
 from app.config.config import Config
 from app.models import (
@@ -30,7 +30,7 @@ from app.models import (
 )
 from app.routes.consultations_audio import consultations_audio_bp
 from app.schemas.diary_extraction import DiaryExtractionSchema
-from app.services.diary_extraction_claude import (
+from app.services.diary_extraction_openai import (
     SYSTEM_PROMPT,
     parse_diary_json,
     redact_secrets,
@@ -104,17 +104,17 @@ class ParseSchemaTest(unittest.TestCase):
 
 class RedactTest(unittest.TestCase):
     def test_redact_api_key(self):
-        Config.ANTHROPIC_API_KEY = "sk-ant-test-key-should-never-leak"
-        msg = "error with sk-ant-test-key-should-never-leak inside"
-        self.assertNotIn("sk-ant-test-key", redact_secrets(msg))
+        Config.OPENAI_API_KEY = "sk-test-key-should-never-leak-xxxxxx"
+        msg = "error with sk-test-key-should-never-leak-xxxxxx inside"
+        self.assertNotIn("sk-test-key-should-never-leak", redact_secrets(msg))
 
 
 class ExtractionApiTest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.mkdtemp()
         Config.JOB_BACKEND = "sync"
-        Config.ANTHROPIC_API_KEY = "sk-ant-test-key-should-never-leak"
-        Config.CLAUDE_DIARY_MODEL = "claude-3-5-haiku-latest"
+        Config.OPENAI_API_KEY = "sk-test-key-should-never-leak-xxxxxx"
+        Config.OPENAI_DIARY_MODEL = "gpt-4o-mini"
 
         self.app = Flask(__name__)
         self.app.config.update(
@@ -194,7 +194,7 @@ class ExtractionApiTest(unittest.TestCase):
             return DiaryExtractionSchema.model_validate(VALID_JSON)
 
         with mock.patch(
-            "app.services.diario_extraction_service.ClaudeDiaryExtractor.extract",
+            "app.services.diario_extraction_service.OpenAIDiaryExtractor.extract",
             fake_extract,
         ):
             resp = self.client.post(
@@ -202,14 +202,14 @@ class ExtractionApiTest(unittest.TestCase):
             )
         self.assertEqual(resp.status_code, 202, resp.get_json())
         body = resp.get_json()
-        self.assertNotIn("sk-ant", json.dumps(body))
+        self.assertNotIn("sk-test-key", json.dumps(body))
 
         db.session.refresh(self.consultation)
         self.assertEqual(self.consultation.stato, ConsultationStato.ELABORATO)
         entry = DiaryEntry.query.filter_by(
             consultation_id=self.consultation.id
         ).one()
-        self.assertEqual(entry.modello_usato, "claude-3-5-haiku-latest")
+        self.assertEqual(entry.modello_usato, "gpt-4o-mini")
         self.assertIn("aderenza_piano", entry.contenuto_json)
         # placeholder ripristinato nelle note
         self.assertIn("Lucia Bianchi", entry.contenuto_json["note_cliniche"])
@@ -226,12 +226,12 @@ class ExtractionApiTest(unittest.TestCase):
 
         def fail_extract(self_extractor, anonymized_transcript: str):
             calls["n"] += 1
-            from app.services.diary_extraction_claude import DiaryExtractionError
+            from app.services.diary_extraction_openai import DiaryExtractionError
 
             raise DiaryExtractionError("Schema non valido dopo correzione")
 
         with mock.patch(
-            "app.services.diario_extraction_service.ClaudeDiaryExtractor.extract",
+            "app.services.diario_extraction_service.OpenAIDiaryExtractor.extract",
             fail_extract,
         ):
             resp = self.client.post(
@@ -241,7 +241,7 @@ class ExtractionApiTest(unittest.TestCase):
         db.session.refresh(self.consultation)
         self.assertEqual(self.consultation.stato, ConsultationStato.ERRORE)
         self.assertIsNotNone(self.consultation.errore_pipeline)
-        self.assertNotIn("sk-ant", self.consultation.errore_pipeline)
+        self.assertNotIn("sk-test-key", self.consultation.errore_pipeline)
         self.assertEqual(
             DiaryEntry.query.filter_by(consultation_id=self.consultation.id).count(),
             0,

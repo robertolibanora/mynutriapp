@@ -1,4 +1,4 @@
-"""Schema Pydantic del diario strutturato (output Claude)."""
+"""Schema Pydantic del diario strutturato (output OpenAI)."""
 
 from __future__ import annotations
 

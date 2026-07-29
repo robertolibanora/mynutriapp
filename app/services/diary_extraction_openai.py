@@ -1,11 +1,11 @@
-"""Estrazione diario strutturato via Claude (Anthropic Messages API)."""
+"""Estrazione diario strutturato via OpenAI Chat Completions API."""
 
 from __future__ import annotations
 
 import json
 import logging
 import re
-from typing import Any, Optional
+from typing import Optional
 
 from app.config.config import Config
 from app.schemas.diary_extraction import DiaryExtractionSchema
@@ -62,11 +62,10 @@ def redact_secrets(message: str) -> str:
     if not message:
         return message
     redacted = message
-    key = (Config.ANTHROPIC_API_KEY or "").strip()
+    key = (Config.OPENAI_API_KEY or "").strip()
     if key:
         redacted = redacted.replace(key, "[REDACTED]")
-    # pattern tipici chiavi Anthropic
-    redacted = re.sub(r"sk-ant-[A-Za-z0-9\-_]+", "[REDACTED]", redacted)
+    redacted = re.sub(r"sk-[A-Za-z0-9\-_]{20,}", "[REDACTED]", redacted)
     return redacted
 
 
@@ -91,8 +90,8 @@ def parse_diary_json(raw: str) -> DiaryExtractionSchema:
         raise DiaryExtractionError(f"Schema non valido: {exc}") from exc
 
 
-class ClaudeDiaryExtractor:
-    """Client Anthropic per estrazione diario."""
+class OpenAIDiaryExtractor:
+    """Client OpenAI per estrazione diario."""
 
     def __init__(
         self,
@@ -101,51 +100,58 @@ class ClaudeDiaryExtractor:
         model: Optional[str] = None,
         max_tokens: Optional[int] = None,
         temperature: Optional[float] = None,
+        base_url: Optional[str] = None,
     ) -> None:
-        self.api_key = (api_key if api_key is not None else Config.ANTHROPIC_API_KEY) or ""
-        self.model = model or Config.CLAUDE_DIARY_MODEL
-        self.max_tokens = max_tokens if max_tokens is not None else Config.CLAUDE_DIARY_MAX_TOKENS
+        self.api_key = (api_key if api_key is not None else Config.OPENAI_API_KEY) or ""
+        self.model = model or Config.OPENAI_DIARY_MODEL
+        self.max_tokens = max_tokens if max_tokens is not None else Config.OPENAI_DIARY_MAX_TOKENS
         self.temperature = (
-            temperature if temperature is not None else Config.CLAUDE_DIARY_TEMPERATURE
+            temperature if temperature is not None else Config.OPENAI_DIARY_TEMPERATURE
+        )
+        self.base_url = (
+            base_url if base_url is not None else (Config.OPENAI_BASE_URL or None)
         )
         self._client = None
 
     def _get_client(self):
         if not self.api_key:
-            raise DiaryExtractionError("ANTHROPIC_API_KEY non configurata")
+            raise DiaryExtractionError("OPENAI_API_KEY non configurata")
         if self._client is None:
             try:
-                import anthropic
+                from openai import OpenAI
             except ImportError as exc:
                 raise DiaryExtractionError(
-                    "Pacchetto anthropic non installato. pip install anthropic"
+                    "Pacchetto openai non installato. pip install openai"
                 ) from exc
-            self._client = anthropic.Anthropic(api_key=self.api_key)
+            kwargs = {"api_key": self.api_key}
+            if self.base_url:
+                kwargs["base_url"] = self.base_url
+            self._client = OpenAI(**kwargs)
         return self._client
 
     def _call(self, user_content: str) -> str:
         client = self._get_client()
         try:
-            message = client.messages.create(
+            response = client.chat.completions.create(
                 model=self.model,
                 max_tokens=self.max_tokens,
                 temperature=self.temperature,
-                system=SYSTEM_PROMPT,
-                messages=[{"role": "user", "content": user_content}],
+                response_format={"type": "json_object"},
+                messages=[
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": user_content},
+                ],
             )
         except Exception as exc:  # noqa: BLE001
             raise DiaryExtractionError(
-                redact_secrets(f"Chiamata Claude fallita: {exc}")
+                redact_secrets(f"Chiamata OpenAI fallita: {exc}")
             ) from exc
 
-        parts: list[str] = []
-        for block in getattr(message, "content", []) or []:
-            text = getattr(block, "text", None)
-            if text:
-                parts.append(text)
-        raw = "\n".join(parts).strip()
+        choice = (getattr(response, "choices", None) or [None])[0]
+        message = getattr(choice, "message", None) if choice is not None else None
+        raw = (getattr(message, "content", None) or "").strip()
         if not raw:
-            raise DiaryExtractionError("Risposta Claude vuota")
+            raise DiaryExtractionError("Risposta OpenAI vuota")
         return raw
 
     def extract(self, anonymized_transcript: str) -> DiaryExtractionSchema:

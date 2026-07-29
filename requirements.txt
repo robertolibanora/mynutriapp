@@ -61,9 +61,6 @@ faster-whisper==1.1.1
 # openai_whisper (fallback API)
 openai==1.109.1
 
-# Estrazione diario strutturato (Claude / Anthropic)
-anthropic==0.75.0
-
 # Gunicorn
 gunicorn==23.0.0
 
