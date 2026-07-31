@@ -67,6 +67,19 @@ def api_nutrizionista_required(func):
 def upload_audio(consultation_id: int):
     """POST /api/consultations/{id}/audio — multipart field ``audio``."""
     file_storage = request.files.get("audio")
+    if file_storage is None:
+        # Diagnostica: spesso Content-Type errato o body tagliato dal proxy
+        import logging
+
+        logging.getLogger(__name__).warning(
+            "Upload audio senza campo file: consultation=%s content_type=%s "
+            "content_length=%s files=%s form_keys=%s",
+            consultation_id,
+            request.content_type,
+            request.content_length,
+            list(request.files.keys()),
+            list(request.form.keys()),
+        )
     try:
         recording = upload_consultation_audio(
             consultation_id=consultation_id,

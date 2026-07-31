@@ -175,10 +175,12 @@ class Config:
         m.strip().lower()
         for m in os.getenv(
             "AUDIO_ALLOWED_MIME",
-            "audio/mpeg,audio/mp4,audio/webm,audio/ogg,audio/wav",
+            "audio/mpeg,audio/mp4,audio/x-m4a,audio/aac,audio/webm,audio/ogg,audio/wav",
         ).split(",")
         if m.strip()
     }
+    # Flask 3.1+: tetto body richiesta (allineato al limite audio + overhead multipart)
+    MAX_CONTENT_LENGTH = AUDIO_MAX_BYTES + (2 * 1024 * 1024)
 
     # ========================================
     # 🗣️ DIARIO — TRASCRIZIONE

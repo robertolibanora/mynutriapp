@@ -30,6 +30,8 @@ logger = logging.getLogger(__name__)
 MIME_TO_EXT = {
     "audio/mpeg": ".mp3",
     "audio/mp4": ".m4a",
+    "audio/x-m4a": ".m4a",
+    "audio/aac": ".aac",
     "audio/webm": ".webm",
     "audio/ogg": ".ogg",
     "audio/wav": ".wav",
@@ -60,6 +62,8 @@ def _normalize_mime(raw: Optional[str]) -> Optional[str]:
     mime = raw.split(";", 1)[0].strip().lower()
     if mime == "audio/x-wav":
         return "audio/wav"
+    if mime in {"audio/x-m4a", "audio/m4a", "audio/aac"}:
+        return "audio/mp4"
     return mime
 
 
@@ -80,18 +84,23 @@ def detect_mime(file_storage: FileStorage, plaintext_path: Path) -> str:
         # python-magic opzionale
         pass
 
-    # Header WAV RIFF
+    # Header magic bytes
     try:
         with plaintext_path.open("rb") as fh:
-            header = fh.read(12)
+            header = fh.read(16)
         if header[:4] == b"RIFF" and header[8:12] == b"WAVE":
             candidates.insert(0, "audio/wav")
         elif header[:3] == b"ID3" or header[:2] == b"\xff\xfb":
             candidates.insert(0, "audio/mpeg")
-        elif header[:4] == b"fLaC":
-            pass
         elif header[:4] == b"OggS":
             candidates.insert(0, "audio/ogg")
+        elif header[4:8] == b"ftyp":
+            # m4a / mp4 / caf-container audio
+            brand = header[8:12]
+            if brand in {b"M4A ", b"mp41", b"mp42", b"isom", b"M4B ", b"M4P "}:
+                candidates.insert(0, "audio/mp4")
+        elif header[:4] == b"\x1aE\xdf\xa3":
+            candidates.insert(0, "audio/webm")
     except OSError:
         pass
 
@@ -100,6 +109,20 @@ def detect_mime(file_storage: FileStorage, plaintext_path: Path) -> str:
     guess_n = _normalize_mime(guess)
     if guess_n:
         candidates.append(guess_n)
+    # Estensione come fallback esplicito (Chrome a volte manda application/octet-stream)
+    ext = Path(name).suffix.lower()
+    ext_map = {
+        ".mp3": "audio/mpeg",
+        ".m4a": "audio/mp4",
+        ".aac": "audio/mp4",
+        ".mp4": "audio/mp4",
+        ".webm": "audio/webm",
+        ".ogg": "audio/ogg",
+        ".oga": "audio/ogg",
+        ".wav": "audio/wav",
+    }
+    if ext in ext_map:
+        candidates.append(ext_map[ext])
 
     allowed = Config.AUDIO_ALLOWED_MIME
     for mime in candidates:
@@ -136,10 +159,13 @@ def probe_duration_sec(plaintext_path: Path, mime: str) -> float:
     except Exception as exc:  # noqa: BLE001
         logger.warning("mutagen non ha potuto leggere la durata: %s", exc)
 
-    raise DiarioAudioError(
-        "Impossibile determinare la durata dell'audio",
-        status_code=400,
+    # Non bloccare l'upload: alcuni m4a/webm non espongono durata in modo affidabile
+    logger.warning(
+        "Durata audio non determinabile per %s (%s); uso 0 e proseguo",
+        plaintext_path.name,
+        mime,
     )
+    return 0.0
 
 
 def assert_consultation_ownership(consultation: Consultation, utente_id: Optional[int]) -> None:
@@ -176,8 +202,18 @@ def upload_consultation_audio(
     file_storage: FileStorage,
 ) -> AudioRecording:
     """Streaming upload → validate → encrypt → persist. Cleanup su errore."""
-    if file_storage is None or not getattr(file_storage, "filename", None):
-        raise DiarioAudioError("File audio mancante (campo 'audio')", status_code=400)
+    if file_storage is None:
+        raise DiarioAudioError(
+            "File audio mancante (campo multipart 'audio'). "
+            "Ricarica la pagina, seleziona di nuovo il file e riprova.",
+            status_code=400,
+        )
+
+    # Alcuni browser inviano Content-Disposition senza filename: non bloccare
+    raw_name = (getattr(file_storage, "filename", None) or "").strip()
+    if not raw_name:
+        raw_name = "recording.audio"
+        file_storage.filename = raw_name
 
     consultation = db.session.get(Consultation, consultation_id)
     if consultation is None:
@@ -190,14 +226,10 @@ def upload_consultation_audio(
         raise DiarioAudioError("Paziente non trovato", status_code=404)
     assert_patient_recording_consent(patient)
 
+    # Re-upload: sostituisce l'audio attivo (pipeline / retry)
     existing = AudioRecording.query.filter_by(consultation_id=consultation.id).first()
-    if existing is not None and existing.cancellato_il is None:
-        raise DiarioAudioError(
-            "Esiste già un audio attivo per questa consultation",
-            status_code=409,
-        )
 
-    original_name = secure_filename(file_storage.filename) or "audio.bin"
+    original_name = secure_filename(raw_name) or "recording.audio"
     plain_tmp: Optional[Path] = None
     enc_path: Optional[Path] = None
     previous_path: Optional[Path] = None
@@ -239,7 +271,6 @@ def upload_consultation_audio(
         relative_path = str(enc_path)
 
         if existing is not None:
-            # Sostituisce un audio soft-deleted
             if existing.path_file:
                 previous_path = Path(existing.path_file)
             existing.path_file = relative_path

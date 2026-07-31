@@ -185,16 +185,41 @@
   }
 
   async function uploadAudio(id, file) {
+    if (!file || file.size <= 0) {
+      throw new Error('File audio non valido o vuoto. Seleziona di nuovo il file.');
+    }
+    const maxBytes = 100 * 1024 * 1024;
+    if (file.size > maxBytes) {
+      throw new Error('File troppo grande (max 100 MB). Comprimi o spezza la registrazione.');
+    }
     const fd = new FormData();
-    fd.append('audio', file);
+    // Nome esplicito: alcuni browser inviano Content-Disposition senza filename
+    const safeName = (file.name && file.name.trim()) || ('recording' + guessExt(file));
+    fd.append('audio', file, safeName);
     const res = await fetch('/api/consultations/' + id + '/audio', {
       method: 'POST',
       credentials: 'same-origin',
+      // NON impostare Content-Type: il browser deve aggiungere il boundary multipart
       body: fd,
     });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.error || ('Upload fallito (' + res.status + ')'));
+    if (!res.ok) {
+      if (res.status === 413) {
+        throw new Error('File troppo grande per il server (max ~100 MB).');
+      }
+      throw new Error(data.error || ('Upload fallito (' + res.status + ')'));
+    }
     return data;
+  }
+
+  function guessExt(file) {
+    const t = (file.type || '').toLowerCase();
+    if (t.includes('mpeg') || t.includes('mp3')) return '.mp3';
+    if (t.includes('mp4') || t.includes('m4a') || t.includes('aac')) return '.m4a';
+    if (t.includes('webm')) return '.webm';
+    if (t.includes('ogg')) return '.ogg';
+    if (t.includes('wav')) return '.wav';
+    return '.audio';
   }
 
   function showReview(id) {
@@ -304,11 +329,17 @@
       }
 
       if (file) {
+        const mb = (file.size / (1024 * 1024)).toFixed(1);
         setStep('step-audio', 'active', 'Upload in corso…');
-        setMsg('Caricamento audio…', true);
+        setMsg('Caricamento audio (' + (file.name || 'file') + ', ' + mb + ' MB)…', true);
         await uploadAudio(consultationId, file);
         setStep('step-audio', 'done', 'Audio caricato');
         document.getElementById('audio').value = '';
+      } else if (!consultationId) {
+        setMsg('Seleziona un file audio.', false);
+        btnStart.disabled = false;
+        btnStart.textContent = 'Carica e avvia elaborazione';
+        return;
       }
 
       setStep('step-tx', 'active', 'Avvio trascrizione…');

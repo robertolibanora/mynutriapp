@@ -21,7 +21,7 @@ NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=false
-ReadWritePaths=/var/www/mynutriapp/static/uploads /var/www/mynutriapp/logs
+ReadWritePaths=/var/www/mynutriapp/static/uploads /var/www/mynutriapp/logs /var/www/mynutriapp/storage
 
 [Install]
 WantedBy=multi-user.target
