@@ -1,12 +1,4 @@
-"""Pagine HTML per i piani alimentari strutturati (nuovo flusso dieta).
-
-Queste view renderizzano solo le pagine: tutte le mutazioni (creazione
-piano/pasto/item, ricerca e import alimenti) passano dalle API JSON già
-esistenti sotto ``/api/admin/...``. Il calcolo dei totali per il rendering
-iniziale usa :class:`NutritionCalculatorService`.
-
-Il vecchio flusso dieta-PDF (blueprint ``diete``) resta intatto.
-"""
+"""Vista paziente read-only del piano alimentare strutturato."""
 
 from __future__ import annotations
 
@@ -18,37 +10,21 @@ from flask import (
     flash,
     redirect,
     render_template,
-    request,
     session,
     url_for,
 )
 
-from app.models.models import DietPlan, Patient, db
+from app.models.models import DietPlan, Patient
 from app.services.nutrition import NutritionCalculatorService
 from app.utils.db_schema import ensure_nutrition_schema
 
 diete_plans_bp = Blueprint("diete_plans", __name__)
 
 
-# ========================
-# DECORATORI DI PROTEZIONE
-# ========================
-
-def admin_required(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        if session.get("role") != "admin":
-            flash("Accesso non autorizzato", "danger")
-            return redirect(url_for("auth.login"))
-        return func(*args, **kwargs)
-
-    return wrapper
-
-
 def login_required(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if session.get("role") not in ("admin", "user"):
+        if session.get("role") != "user":
             flash("Effettua il login", "warning")
             return redirect(url_for("auth.login"))
         return func(*args, **kwargs)
@@ -61,12 +37,7 @@ def _ensure_schema():
     ensure_nutrition_schema()
 
 
-# ========================
-# VIEW MODEL TOTALI
-# ========================
-
 def _build_totals(plan: DietPlan) -> dict:
-    """Prepara i totali (dieta, per pasto, per item) per il template."""
     meal_totals = {}
     item_totals = {}
     for meal in plan.meals:
@@ -76,7 +47,6 @@ def _build_totals(plan: DietPlan) -> dict:
                 item.food, item.quantity_g
             )
     plan_totals = NutritionCalculatorService.compute_plan(plan.meals)
-    # NB: niente chiave "items"/"meals" per non collidere con dict.items()/.meals in Jinja.
     return {
         "plan": plan_totals,
         "meal": meal_totals,
@@ -86,11 +56,6 @@ def _build_totals(plan: DietPlan) -> dict:
 
 
 def _build_targets(plan: DietPlan) -> dict | None:
-    """View-model degli obiettivi impostati dal professionista.
-
-    Ritorna None se il piano non ha un target kcal: in quel caso la scheda
-    obiettivi mostra i totali attuali del piano.
-    """
     if not plan.target_kcal:
         return None
     calc = NutritionCalculatorService
@@ -105,118 +70,22 @@ def _build_targets(plan: DietPlan) -> dict | None:
     }
 
 
-# ========================
-# ADMIN: LISTA DIETE
-# ========================
-
-@diete_plans_bp.route("/admin/diet-plans")
-@admin_required
-def lista_diet_plans():
-    """Elenco globale dei piani alimentari, con filtro opzionale per paziente."""
-    q = (request.args.get("q") or "").strip()
-    status = (request.args.get("status") or "").strip()
-
-    query = DietPlan.query.options(db.joinedload(DietPlan.patient)).order_by(
-        DietPlan.created_at.desc()
-    )
-    if q:
-        like = f"%{q}%"
-        query = query.join(Patient).filter(
-            db.or_(
-                DietPlan.title.ilike(like),
-                Patient.nome.ilike(like),
-                Patient.cognome.ilike(like),
-            )
-        )
-    if status in ("draft", "published"):
-        query = query.filter(DietPlan.status == status)
-
-    piani = query.all()
-    return render_template(
-        "admin/diet_plans_lista.html",
-        piani=piani,
-        q=q,
-        status=status,
-    )
-
-
-# ========================
-# ADMIN: CREA DIETA (pagina)
-# ========================
-
-@diete_plans_bp.route("/admin/diet-plans/new")
-@admin_required
-def new_diet_plan_standalone():
-    """Creazione dieta dalla sezione Dieta: richiede selezione paziente."""
-    pazienti = Patient.query.order_by(Patient.cognome.asc(), Patient.nome.asc()).all()
-    preselect_id = request.args.get("patient_id", type=int)
-    return render_template(
-        "admin/diet_plan_new.html",
-        pazienti=pazienti,
-        preselect_patient_id=preselect_id,
-    )
-
-
-@diete_plans_bp.route("/admin/pazienti/<int:patient_id>/diet-plans/new")
-@admin_required
-def new_diet_plan(patient_id):
-    """Redirect verso il flusso globale (compatibilità URL)."""
-    return redirect(
-        url_for("diete_plans.new_diet_plan_standalone", patient_id=patient_id)
-    )
-
-
-# ========================
-# ADMIN: DETTAGLIO/BUILDER DIETA
-# ========================
-
-@diete_plans_bp.route("/admin/diet-plans/<int:diet_plan_id>")
-@admin_required
-def diet_plan_detail(diet_plan_id):
-    """Dettaglio e builder del piano: pasti, alimenti, totali."""
-    plan = DietPlan.query.get_or_404(diet_plan_id)
-    paziente = Patient.query.get_or_404(plan.patient_id)
-    totals = _build_totals(plan)
-    return render_template(
-        "admin/diet_plan_detail.html",
-        plan=plan,
-        paziente=paziente,
-        totals=totals,
-        targets=_build_targets(plan),
-    )
-
-
-# ========================
-# PAZIENTE: VISTA DIETA (read-only)
-# ========================
-
 @diete_plans_bp.route("/paziente/diet-plans/<int:diet_plan_id>")
 @login_required
 def user_diet_plan(diet_plan_id):
-    """Vista read-only del piano.
-
-    - Il paziente vede SOLO i propri piani.
-    - L'admin può aprire qualsiasi piano come anteprima.
-    """
     plan = DietPlan.query.get_or_404(diet_plan_id)
 
-    role = session.get("role")
-    if role == "user":
-        if plan.patient_id != session.get("user_id"):
-            abort(403)
-        if plan.status != "published":
-            abort(404)
-    elif role != "admin":
+    if plan.patient_id != session.get("user_id"):
         abort(403)
+    if plan.status != "published":
+        abort(404)
 
     paziente = Patient.query.get_or_404(plan.patient_id)
-    totals = _build_totals(plan)
-    is_preview = role == "admin"
     return render_template(
         "user/diet_plan_detail.html",
         plan=plan,
         paziente=paziente,
-        totals=totals,
+        totals=_build_totals(plan),
         targets=_build_targets(plan),
-        is_preview=is_preview,
+        is_preview=False,
     )

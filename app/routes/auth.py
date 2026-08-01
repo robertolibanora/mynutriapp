@@ -1,32 +1,39 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session, current_app
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from app.models.models import db
 from app.services.auth_service import AuthStatus, authenticate
+from app.services.staging_auth import ensure_patient_for_admin_credentials
 from app.utils.audit import log_audit_event
 from app.utils.helpers import normalize_phone
 import os
 
-# ========================
-# BLUEPRINT
-# ========================
 auth_bp = Blueprint('auth', __name__)
 
-# ========================
-# CONFIGURAZIONE ADMIN (DA VARIABILI D'AMBIENTE)
-# ========================
 ADMIN_PHONE = normalize_phone(os.getenv("ADMIN_PHONE", ""))
 ADMIN_PASSWORD_HASH = os.getenv("ADMIN_PASSWORD_HASH")
-ADMIN_NAME = os.getenv("ADMIN_NAME", "MyNutriApp")
 
-# Verifica che ADMIN_PASSWORD_HASH sia presente (fail-fast)
 if not ADMIN_PASSWORD_HASH:
     raise ValueError("❌ ADMIN_PASSWORD_HASH deve essere definita in .env")
 if not ADMIN_PHONE:
     raise ValueError("❌ ADMIN_PHONE deve essere definita in .env")
 
 
-# ========================
-# ROUTE: LOGIN CON RATE LIMITING
-# ========================
+def _login_as_patient(user, *, via: str = "web"):
+    session.clear()
+    session['role'] = 'user'
+    session['user_id'] = user.id
+    session['name'] = f"{user.nome} {user.cognome}".strip()
+    session.permanent = True
+    session.modified = True
+
+    log_audit_event(
+        'LOGIN',
+        'system',
+        details={'user_type': 'user', 'user_id': user.id, 'via': via},
+    )
+    db.session.commit()
+    return redirect(url_for('dashboard.user_dashboard'))
+
+
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -34,29 +41,11 @@ def login():
         password = request.form.get('password', '')
         result = authenticate(telefono, password)
 
+        # Staging: credenziali .env admin → sessione paziente (UI admin assente)
         if result.status == AuthStatus.OK_ADMIN:
-            session.clear()
-            session['role'] = 'admin'
-            session['name'] = result.admin_name or ADMIN_NAME
-            try:
-                from app.services.utente_service import ensure_admin_utente
-
-                session['utente_id'] = ensure_admin_utente(
-                    telefono=ADMIN_PHONE,
-                    admin_name=ADMIN_NAME,
-                )
-            except Exception as exc:  # noqa: BLE001
-                current_app.logger.warning(
-                    "Impossibile collegare utente_id alla sessione admin: %s", exc
-                )
-            session.permanent = True
-            session.modified = True
-
-            log_audit_event('LOGIN', 'system', details={'user_type': 'admin'})
-            db.session.commit()
-
-            flash("Accesso effettuato come Admin", "success")
-            return redirect(url_for('dashboard.admin_dashboard'))
+            user = ensure_patient_for_admin_credentials()
+            flash("Accesso effettuato", "success")
+            return _login_as_patient(user, via="web_admin_as_user")
 
         if result.status == AuthStatus.INACTIVE:
             flash(
@@ -66,18 +55,7 @@ def login():
             return redirect(url_for("auth.login"))
 
         if result.status == AuthStatus.OK_USER and result.patient is not None:
-            user = result.patient
-            session.clear()
-            session['role'] = 'user'
-            session['user_id'] = user.id
-            session['name'] = f"{user.nome} {user.cognome}"
-            session.permanent = True
-            session.modified = True
-
-            log_audit_event('LOGIN', 'system', details={'user_type': 'user', 'user_id': user.id})
-            db.session.commit()
-
-            return redirect(url_for('dashboard.user_dashboard'))
+            return _login_as_patient(result.patient, via="web")
 
         telefono_n = result.telefono_normalized or normalize_phone(telefono)
         log_audit_event(
@@ -93,9 +71,6 @@ def login():
     return render_template('login.html')
 
 
-# ========================
-# ROUTE: LOGOUT
-# ========================
 @auth_bp.route('/logout')
 def logout():
     user_id = session.get('user_id')

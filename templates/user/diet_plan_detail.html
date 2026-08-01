@@ -65,7 +65,7 @@
 {% endif %}
 
 <div class="mt-2">
-  <a href="{{ url_for('diete.lista_diete_user') if not is_preview else url_for('patients.dettaglio_paziente', patient_id=paziente.id) }}" class="btn-user btn-user-secondary">
+  <a href="{{ url_for('diete.lista_diete_user') }}" class="btn-user btn-user-secondary">
     {{ icon('arrow-left', 16, 'usr-icon') }} Indietro
   </a>
 </div>

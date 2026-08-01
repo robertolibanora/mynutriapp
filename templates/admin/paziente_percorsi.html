@@ -1,9 +1,0 @@
-{% extends 'base_admin.html' %}
-{% block title %}{{ paziente.nome }} {{ paziente.cognome }} - Percorsi{% endblock %}
-{% block content %}
-{# Fallback legacy: i percorsi vivono nella tab Percorsi della scheda paziente. #}
-<div style="margin-bottom: 1.25rem;">
-  <a href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id, tab='percorsi') }}" class="btn btn-ghost btn-small">← Scheda paziente</a>
-</div>
-{% include 'admin/_percorsi_content.html' %}
-{% endblock %}

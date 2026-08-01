@@ -178,24 +178,15 @@ from app.routes import register_blueprints
 register_blueprints(app)
 
 # ===========================================
-# 🍎 API NUTRIZIONE/DIETE: esenti da CSRF
-# Sono API JSON protette da sessione admin, consumate via fetch/client.
+# 📱 API mobile /api/v1: esente da CSRF (JWT)
 # ===========================================
 try:
-    from app.routes.admin_nutrition import admin_nutrition_bp
-    from app.routes.admin_diets import admin_diets_bp
-    from app.routes.consultations_audio import consultations_audio_bp
-    from app.routes.patients_diary_api import patients_diary_api_bp
     from app.api.v1 import api_v1_bp
 
-    csrf.exempt(admin_nutrition_bp)
-    csrf.exempt(admin_diets_bp)
-    csrf.exempt(consultations_audio_bp)
-    csrf.exempt(patients_diary_api_bp)
     csrf.exempt(api_v1_bp)
-    logger.info("✅ API nutrizione/diete/audio/diary/v1 esenti da CSRF")
+    logger.info("✅ API /api/v1 esente da CSRF")
 except Exception as e:
-    logger.warning(f"⚠️  Impossibile esentare le API nutrizione/diete/audio/diary/v1: {e}")
+    logger.warning(f"⚠️  Impossibile esentare API /api/v1: {e}")
 
 # Rende disponibile csrf_token() in tutte le template
 @app.context_processor
@@ -227,14 +218,8 @@ from app.utils.admin_icons import admin_icon
 def inject_admin_icons():
     return dict(icon=admin_icon)
 
-@app.context_processor
-def inject_admin_name():
-    """Nome admin da .env (ADMIN_NAME), sempre aggiornato senza rifare login."""
-    from app.config.config import Config
-    return dict(admin_name=Config.ADMIN_NAME)
 
 # 🚦 Applica rate limiting specifico al login con configurazione dinamica
-# Decora la view function del login dopo la registrazione delle routes
 if limiter and limiter_enabled:
     try:
         for rule in app.url_map.iter_rules():
@@ -250,36 +235,6 @@ if limiter and limiter_enabled:
     except Exception as e:
         logger.warning(f"⚠️  Errore applicazione rate limit al login/prenota: {e}")
 
-
-# ===========================================
-# 🔧 ROUTE DEBUG RATE LIMITING
-# ===========================================
-@app.route('/debug/rate-limit')
-def debug_rate_limit():
-    """Route per debug delle configurazioni rate limiting"""
-    if session.get('role') != 'admin':
-        return "Accesso negato", 403
-    
-    config = get_rate_limit_config()
-    return f"""
-    <h1>🔍 Rate Limiting Debug</h1>
-    <h2>Configurazioni attuali:</h2>
-    <ul>
-        <li><strong>Enabled:</strong> {config['enabled']}</li>
-        <li><strong>Storage URL:</strong> {config['storage_url']}</li>
-        <li><strong>Default per day:</strong> {config['default_per_day']}</li>
-        <li><strong>Default per hour:</strong> {config['default_per_hour']}</li>
-        <li><strong>Login limit:</strong> {config['login_limit']}</li>
-        <li><strong>Create limit:</strong> {config['create_limit']}</li>
-        <li><strong>Upload limit:</strong> {config['upload_limit']}</li>
-    </ul>
-    <h2>Limiti dinamici:</h2>
-    <ul>
-        <li><strong>Dynamic limits:</strong> {get_dynamic_limits()}</li>
-        <li><strong>Login limit:</strong> {get_login_limit()}</li>
-    </ul>
-    <p><a href="/admin/dashboard">← Torna alla dashboard</a></p>
-    """
 
 # ===========================================
 # 🏥 HEALTH CHECK ENDPOINT (completamente isolato)
