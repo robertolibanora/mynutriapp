@@ -22,8 +22,29 @@
     --dr-line: rgba(255, 255, 255, 0.1);
     --dr-line-strong: rgba(255, 255, 255, 0.22);
     --dr-soft: rgba(255, 255, 255, 0.045);
-    max-width: 680px;
+    width: 100%;
+    max-width: none;
     color: var(--dr-text);
+  }
+
+  .admin-app .dr-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .admin-app .dr-head > header { min-width: 0; flex: 1; }
+
+  .admin-app .dr-main {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.9fr);
+    gap: 2rem 2.5rem;
+    align-items: start;
+    margin-top: 1.75rem;
+  }
+  @media (max-width: 980px) {
+    .admin-app .dr-main { grid-template-columns: 1fr; gap: 0; }
   }
 
   .admin-app .dr-nav {
@@ -66,15 +87,27 @@
     font-size: 0.92rem;
   }
 
-  .admin-app .dr-section {
-    margin-top: 2rem;
-    padding-top: 1.65rem;
+  .admin-app .dr-col .dr-section {
+    margin-top: 1.85rem;
+    padding-top: 1.5rem;
     border-top: 1px solid var(--dr-line);
   }
-  .admin-app .dr-section:first-of-type {
-    margin-top: 2.1rem;
+  .admin-app .dr-col .dr-section:first-child {
+    margin-top: 0;
     padding-top: 0;
     border-top: none;
+  }
+  .admin-app .dr-col-side {
+    position: sticky;
+    top: 1rem;
+  }
+  @media (max-width: 980px) {
+    .admin-app .dr-col-side { position: static; }
+    .admin-app .dr-col-side .dr-section {
+      margin-top: 1.85rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--dr-line);
+    }
   }
   .admin-app .dr-section-title {
     margin: 0 0 0.85rem;
@@ -137,8 +170,8 @@
 
   .admin-app .dr-metrics {
     display: grid;
-    grid-template-columns: 6.5rem 10rem minmax(0, 1fr);
-    gap: 0.75rem;
+    grid-template-columns: 7.5rem 11rem minmax(0, 1fr);
+    gap: 0.85rem;
   }
   @media (max-width: 640px) {
     .admin-app .dr-metrics { grid-template-columns: 1fr 1fr; }
@@ -319,120 +352,128 @@
     </span>
   </div>
 
-  <header>
-    <h1 class="dr-title">{{ paziente_nome or 'Paziente' }}</h1>
-    <p class="dr-sub">Colloquio #{{ consultation_id }}</p>
-  </header>
+  <div class="dr-head">
+    <header>
+      <h1 class="dr-title">{{ paziente_nome or 'Paziente' }}</h1>
+      <p class="dr-sub">Colloquio #{{ consultation_id }}</p>
+    </header>
+  </div>
 
   <form id="diary-form">
-    <section class="dr-section dr-summary">
-      <h2 class="dr-section-title">Riassunto</h2>
-      <textarea id="riassunto" class="input-text" rows="3" required placeholder="Sintesi del colloquio…">{{ c.get('riassunto') or entry.riassunto_testo or '' }}</textarea>
-    </section>
+    <div class="dr-main">
+      <div class="dr-col">
+        <section class="dr-section dr-summary">
+          <h2 class="dr-section-title">Riassunto</h2>
+          <textarea id="riassunto" class="input-text" rows="3" required placeholder="Sintesi del colloquio…">{{ c.get('riassunto') or entry.riassunto_testo or '' }}</textarea>
+        </section>
 
-    <section class="dr-section">
-      <h2 class="dr-section-title">Essenziale</h2>
-      <div class="dr-metrics">
-        <div class="dr-metric">
-          <label class="dr-label" for="peso_kg">Peso</label>
-          <input type="number" step="0.1" id="peso_kg" class="input-text" value="{{ c.peso_kg if c.peso_kg is not none else '' }}" placeholder="kg">
-        </div>
-        <div class="dr-metric">
-          <label class="dr-label" for="aderenza_piano">Aderenza</label>
-          <select id="aderenza_piano" class="input-text">
-            {% for opt in ['alta','media','bassa','non_rilevata'] %}
-            <option value="{{ opt }}" {% if c.get('aderenza_piano', 'non_rilevata') == opt %}selected{% endif %}>{{ opt }}</option>
+        <section class="dr-section">
+          <h2 class="dr-section-title">Essenziale</h2>
+          <div class="dr-metrics">
+            <div class="dr-metric">
+              <label class="dr-label" for="peso_kg">Peso</label>
+              <input type="number" step="0.1" id="peso_kg" class="input-text" value="{{ c.peso_kg if c.peso_kg is not none else '' }}" placeholder="kg">
+            </div>
+            <div class="dr-metric">
+              <label class="dr-label" for="aderenza_piano">Aderenza</label>
+              <select id="aderenza_piano" class="input-text">
+                {% for opt in ['alta','media','bassa','non_rilevata'] %}
+                <option value="{{ opt }}" {% if c.get('aderenza_piano', 'non_rilevata') == opt %}selected{% endif %}>{{ opt }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="dr-metric">
+              <label class="dr-label" for="attivita_fisica">Attività fisica</label>
+              <input type="text" id="attivita_fisica" class="input-text" value="{{ c.get('attivita_fisica') or '' }}" placeholder="—">
+            </div>
+          </div>
+        </section>
+
+        <section class="dr-section">
+          <h2 class="dr-section-title">Punti del colloquio</h2>
+          <ul class="dr-points" id="punti-list">
+            {% for p in punti %}
+            <li class="punto-row">
+              <input type="text" class="punto-tema" placeholder="Tema" value="{{ p.tema if p is mapping else '' }}">
+              <textarea class="punto-dettaglio" rows="1" placeholder="Dettaglio">{{ p.dettaglio if p is mapping else p }}</textarea>
+              <button type="button" class="btn-x" aria-label="Rimuovi">×</button>
+            </li>
             {% endfor %}
-          </select>
-        </div>
-        <div class="dr-metric">
-          <label class="dr-label" for="attivita_fisica">Attività fisica</label>
-          <input type="text" id="attivita_fisica" class="input-text" value="{{ c.get('attivita_fisica') or '' }}" placeholder="—">
-        </div>
+          </ul>
+          {% if not punti %}
+          <p class="dr-muted" id="punti-empty">Nessun punto. Aggiungine uno se serve.</p>
+          {% endif %}
+          <button type="button" class="dr-add" id="btn-add-punto">+ Aggiungi punto</button>
+        </section>
+
+        <section class="dr-section">
+          <h2 class="dr-section-title">Quadro clinico</h2>
+          <div class="dr-lists">
+            <div>
+              <label class="dr-label" for="sintomi_riportati">Sintomi</label>
+              <textarea id="sintomi_riportati" class="input-text" rows="2" placeholder="Uno per riga">{{ sintomi|join('\n') }}</textarea>
+            </div>
+            <div>
+              <label class="dr-label" for="difficolta_segnalate">Difficoltà</label>
+              <textarea id="difficolta_segnalate" class="input-text" rows="2" placeholder="Uno per riga">{{ difficolta|join('\n') }}</textarea>
+            </div>
+            <div>
+              <label class="dr-label" for="abitudini_alimentari">Alimentazione</label>
+              <textarea id="abitudini_alimentari" class="input-text" rows="2" placeholder="Uno per riga">{{ abitudini|join('\n') }}</textarea>
+            </div>
+            <div>
+              <label class="dr-label" for="note_cliniche">Note cliniche</label>
+              <textarea id="note_cliniche" class="input-text" rows="2" placeholder="—">{{ c.get('note_cliniche') or '' }}</textarea>
+            </div>
+          </div>
+        </section>
       </div>
-    </section>
 
-    <section class="dr-section">
-      <h2 class="dr-section-title">Punti del colloquio</h2>
-      <ul class="dr-points" id="punti-list">
-        {% for p in punti %}
-        <li class="punto-row">
-          <input type="text" class="punto-tema" placeholder="Tema" value="{{ p.tema if p is mapping else '' }}">
-          <textarea class="punto-dettaglio" rows="1" placeholder="Dettaglio">{{ p.dettaglio if p is mapping else p }}</textarea>
-          <button type="button" class="btn-x" aria-label="Rimuovi">×</button>
-        </li>
-        {% endfor %}
-      </ul>
-      {% if not punti %}
-      <p class="dr-muted" id="punti-empty">Nessun punto. Aggiungine uno se serve.</p>
-      {% endif %}
-      <button type="button" class="dr-add" id="btn-add-punto">+ Aggiungi punto</button>
-    </section>
+      <div class="dr-col dr-col-side">
+        <section class="dr-section">
+          <h2 class="dr-section-title">Piano</h2>
+          <div class="dr-lists" style="grid-template-columns: 1fr;">
+            <div>
+              <label class="dr-label" for="obiettivi_concordati">Obiettivi</label>
+              <textarea id="obiettivi_concordati" class="input-text" rows="2" placeholder="Uno per riga">{{ obiettivi|join('\n') }}</textarea>
+            </div>
+            <div>
+              <label class="dr-label" for="modifiche_al_piano">Modifiche piano</label>
+              <textarea id="modifiche_al_piano" class="input-text" rows="2" placeholder="Uno per riga">{{ modifiche|join('\n') }}</textarea>
+            </div>
+            <div>
+              <label class="dr-label" for="prossimo_controllo">Prossimo controllo</label>
+              <input type="text" id="prossimo_controllo" class="input-text" value="{{ c.get('prossimo_controllo') or '' }}" placeholder="—">
+            </div>
+          </div>
+        </section>
 
-    <section class="dr-section">
-      <h2 class="dr-section-title">Quadro clinico</h2>
-      <div class="dr-lists">
-        <div>
-          <label class="dr-label" for="sintomi_riportati">Sintomi</label>
-          <textarea id="sintomi_riportati" class="input-text" rows="2" placeholder="Uno per riga">{{ sintomi|join('\n') }}</textarea>
-        </div>
-        <div>
-          <label class="dr-label" for="difficolta_segnalate">Difficoltà</label>
-          <textarea id="difficolta_segnalate" class="input-text" rows="2" placeholder="Uno per riga">{{ difficolta|join('\n') }}</textarea>
-        </div>
-        <div>
-          <label class="dr-label" for="abitudini_alimentari">Alimentazione</label>
-          <textarea id="abitudini_alimentari" class="input-text" rows="2" placeholder="Uno per riga">{{ abitudini|join('\n') }}</textarea>
-        </div>
-        <div>
-          <label class="dr-label" for="note_cliniche">Note cliniche</label>
-          <textarea id="note_cliniche" class="input-text" rows="2" placeholder="—">{{ c.get('note_cliniche') or '' }}</textarea>
-        </div>
+        <details class="dr-more">
+          <summary>Misure antropometriche</summary>
+          <div class="dr-more-grid" style="grid-template-columns: 1fr;">
+            <div>
+              <label class="dr-label" for="vita_cm">Vita (cm)</label>
+              <input type="number" step="0.1" id="vita_cm" class="input-text" value="{{ misure.vita_cm if misure.vita_cm is not none else '' }}">
+            </div>
+            <div>
+              <label class="dr-label" for="fianchi_cm">Fianchi (cm)</label>
+              <input type="number" step="0.1" id="fianchi_cm" class="input-text" value="{{ misure.fianchi_cm if misure.fianchi_cm is not none else '' }}">
+            </div>
+            <div>
+              <label class="dr-label" for="massa_grassa_pct">Massa grassa %</label>
+              <input type="number" step="0.1" id="massa_grassa_pct" class="input-text" value="{{ misure.massa_grassa_pct if misure.massa_grassa_pct is not none else '' }}">
+            </div>
+          </div>
+        </details>
+
+        {% if has_transcript %}
+        <details class="dr-more">
+          <summary>Trascrizione completa</summary>
+          <div class="transcript-box" id="transcript-text">{{ payload.transcript.testo }}</div>
+        </details>
+        {% endif %}
       </div>
-    </section>
-
-    <section class="dr-section">
-      <h2 class="dr-section-title">Piano</h2>
-      <div class="dr-lists">
-        <div>
-          <label class="dr-label" for="obiettivi_concordati">Obiettivi</label>
-          <textarea id="obiettivi_concordati" class="input-text" rows="2" placeholder="Uno per riga">{{ obiettivi|join('\n') }}</textarea>
-        </div>
-        <div>
-          <label class="dr-label" for="modifiche_al_piano">Modifiche piano</label>
-          <textarea id="modifiche_al_piano" class="input-text" rows="2" placeholder="Uno per riga">{{ modifiche|join('\n') }}</textarea>
-        </div>
-        <div class="dr-span-2">
-          <label class="dr-label" for="prossimo_controllo">Prossimo controllo</label>
-          <input type="text" id="prossimo_controllo" class="input-text" value="{{ c.get('prossimo_controllo') or '' }}" placeholder="—">
-        </div>
-      </div>
-    </section>
-
-    <details class="dr-more">
-      <summary>Misure antropometriche</summary>
-      <div class="dr-more-grid">
-        <div>
-          <label class="dr-label" for="vita_cm">Vita (cm)</label>
-          <input type="number" step="0.1" id="vita_cm" class="input-text" value="{{ misure.vita_cm if misure.vita_cm is not none else '' }}">
-        </div>
-        <div>
-          <label class="dr-label" for="fianchi_cm">Fianchi (cm)</label>
-          <input type="number" step="0.1" id="fianchi_cm" class="input-text" value="{{ misure.fianchi_cm if misure.fianchi_cm is not none else '' }}">
-        </div>
-        <div>
-          <label class="dr-label" for="massa_grassa_pct">Massa grassa %</label>
-          <input type="number" step="0.1" id="massa_grassa_pct" class="input-text" value="{{ misure.massa_grassa_pct if misure.massa_grassa_pct is not none else '' }}">
-        </div>
-      </div>
-    </details>
-
-    {% if has_transcript %}
-    <details class="dr-more">
-      <summary>Trascrizione completa</summary>
-      <div class="transcript-box" id="transcript-text">{{ payload.transcript.testo }}</div>
-    </details>
-    {% endif %}
+    </div>
 
     <div class="dr-actions">
       {% if payload.modificabile %}
