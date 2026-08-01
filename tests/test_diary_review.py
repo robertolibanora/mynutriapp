@@ -39,6 +39,9 @@ CONTENUTO = {
     "modifiche_al_piano": [],
     "note_cliniche": None,
     "prossimo_controllo": None,
+    "punti_colloquio": [
+        {"tema": "Alimentazione", "dettaglio": "Colazione regolare."},
+    ],
     "riassunto": "Riassunto iniziale del colloquio.",
 }
 

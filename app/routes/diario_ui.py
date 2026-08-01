@@ -10,7 +10,7 @@ from flask import Blueprint, flash, redirect, render_template, request, session,
 from app.models.models import Patient, db
 from app.services.diario_audio_service import DiarioAudioError
 from app.services.diario_consultation_service import get_consultation_for_pipeline
-from app.services.diario_review_service import get_diary_for_review, list_patient_diaries
+from app.services.diario_review_service import get_diary_for_review
 from app.services.diario_timeline_service import (
     get_patient_diary_timeline,
     get_patient_diary_trends,
@@ -113,27 +113,13 @@ def review_diary(consultation_id: int):
 @diario_ui_bp.route("/pazienti/<int:patient_id>")
 @_admin_required
 def lista_diari_paziente(patient_id: int):
-    """Lista colloqui/diario del paziente con badge da revisionare."""
+    """Redirect alla scheda paziente, tab Diario."""
     paziente = db.session.get(Patient, patient_id)
     if paziente is None:
         flash("Paziente non trovato", "danger")
         return redirect(url_for("patients.lista_pazienti"))
-
-    items = list_patient_diaries(
-        patient_id=patient_id,
-        utente_id=int(session["utente_id"]),
-    )
-    da_revisionare = [i for i in items if i["da_revisionare"]]
-    confermati = [i for i in items if i["valido_storico"]]
-    altri = [i for i in items if not i["da_revisionare"] and not i["valido_storico"]]
-
-    return render_template(
-        "admin/diario_lista_paziente.html",
-        paziente=paziente,
-        items=items,
-        da_revisionare=da_revisionare,
-        confermati=confermati,
-        altri=altri,
+    return redirect(
+        url_for("patients.dettaglio_paziente", patient_id=patient_id, tab="diario")
     )
 
 

@@ -67,7 +67,7 @@
 </style>
 
 <div style="margin-bottom: 1rem; display:flex; gap:0.5rem; flex-wrap:wrap;">
-  <a href="{{ url_for('diario_ui.lista_diari_paziente', patient_id=paziente.id) }}" class="btn btn-ghost btn-small">← Colloqui</a>
+  <a href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id, tab='diario') }}" class="btn btn-ghost btn-small">← Colloqui</a>
   <a href="{{ url_for('diario_ui.timeline_paziente', patient_id=paziente.id) }}" class="btn btn-ghost btn-small">Timeline</a>
   <a href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id) }}" class="btn btn-ghost btn-small">Scheda paziente</a>
 </div>

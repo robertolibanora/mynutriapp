@@ -50,6 +50,10 @@ VALID_JSON = {
     "modifiche_al_piano": [],
     "note_cliniche": f"Il {PLACEHOLDER} riferisce buon umore",
     "prossimo_controllo": "tra 4 settimane",
+    "punti_colloquio": [
+        {"tema": "Attività fisica", "dettaglio": "Camminate tre volte a settimana."},
+        {"tema": "Abitudini", "dettaglio": "Salta spesso la colazione."},
+    ],
     "riassunto": "Colloquio su aderenza e attività fisica.",
 }
 
@@ -100,6 +104,18 @@ class ParseSchemaTest(unittest.TestCase):
         self.assertIn("SOLO con JSON", SYSTEM_PROMPT)
         self.assertIn("NON inventare", SYSTEM_PROMPT)
         self.assertIn("NON formulare diagnosi", SYSTEM_PROMPT)
+        self.assertIn("punti_colloquio", SYSTEM_PROMPT)
+
+    def test_parse_punti_colloquio(self):
+        schema = parse_diary_json(json.dumps(VALID_JSON))
+        self.assertEqual(len(schema.punti_colloquio), 2)
+        self.assertEqual(schema.punti_colloquio[0].tema, "Attività fisica")
+
+    def test_punti_colloquio_optional_defaults_empty(self):
+        payload = dict(VALID_JSON)
+        del payload["punti_colloquio"]
+        schema = parse_diary_json(json.dumps(payload))
+        self.assertEqual(schema.punti_colloquio, [])
 
 
 class RedactTest(unittest.TestCase):

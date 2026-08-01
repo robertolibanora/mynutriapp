@@ -18,6 +18,15 @@ class MisureDiario(BaseModel):
     massa_grassa_pct: Optional[float] = None
 
 
+class PuntoColloquio(BaseModel):
+    """Singolo tema emerso in un punto del colloquio."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    tema: str = Field(..., min_length=1)
+    dettaglio: str = Field(..., min_length=1)
+
+
 class DiaryExtractionSchema(BaseModel):
     """JSON strutturato estratto dalla trascrizione del colloquio."""
 
@@ -34,4 +43,5 @@ class DiaryExtractionSchema(BaseModel):
     modifiche_al_piano: list[str] = Field(default_factory=list)
     note_cliniche: Optional[str] = None
     prossimo_controllo: Optional[str] = None
+    punti_colloquio: list[PuntoColloquio] = Field(default_factory=list)
     riassunto: str = Field(..., min_length=1)

@@ -1,92 +1,9 @@
 {% extends 'base_admin.html' %}
 {% block title %}{{ paziente.nome }} {{ paziente.cognome }} - Percorsi{% endblock %}
 {% block content %}
-
-<!-- HEADER -->
-<div class="patient-header" style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.3) 100%); border-radius: 16px; padding: 1.75rem 2rem; margin-bottom: 2rem; border: 1px solid rgba(255, 255, 255, 0.2);">
-  <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
-    <div>
-      <p style="color: #d8d8d8; margin: 0 0 0.35rem 0; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em;">Percorsi</p>
-      <h1 style="color: #ffffff; margin: 0; font-size: 2rem; font-weight: 700;">{{ paziente.nome }} {{ paziente.cognome }}</h1>
-      <p style="color: #d8d8d8; margin: 0.4rem 0 0 0; font-size: 0.95rem;">Diete e allenamenti associati</p>
-    </div>
-    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-      <a href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id) }}" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 0.4rem;">
-        {{ icon('arrow-left', 14) }} Torna al dettaglio
-      </a>
-    </div>
-  </div>
+{# Fallback legacy: i percorsi vivono nella tab Percorsi della scheda paziente. #}
+<div style="margin-bottom: 1.25rem;">
+  <a href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id, tab='percorsi') }}" class="btn btn-ghost btn-small">← Scheda paziente</a>
 </div>
-
-<!-- DIETE ASSOCIATE -->
-<div class="management-card" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
-  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.8rem;margin-bottom:1rem;">
-    <h3 style="color: #d4d4d4; margin:0; display: flex; align-items: center; gap: 0.5rem;">
-      {{ icon('diet', 18) }} Diete associate
-    </h3>
-    <a href="{{ url_for('diete_plans.lista_diet_plans') }}" class="btn btn-secondary btn-small" style="display:inline-flex;align-items:center;gap:.4rem;">{{ icon('list', 14) }} Sezione Dieta</a>
-  </div>
-
-  {% if paziente.diet_plans %}
-  <div style="display:flex;flex-direction:column;gap:.5rem;">
-    {% for dp in paziente.diet_plans|sort(attribute='created_at', reverse=true) %}
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:.8rem;padding:.7rem .9rem;background:rgba(0,0,0,.18);border-radius:8px;flex-wrap:wrap;">
-      <div>
-        <div style="color:#fff;font-weight:600;">{{ dp.title }}</div>
-        <div style="color:#d8d8d8;font-size:.82rem;">
-          {% if dp.goal %}{{ dp.goal }} · {% endif %}{{ dp.meals|length }} pasti ·
-          <span style="color:{{ '#d8d8d8' if dp.status == 'published' else '#b0b0b0' }};">{{ 'Pubblicata' if dp.status == 'published' else 'Bozza' }}</span>
-        </div>
-      </div>
-      <a href="{{ url_for('diete_plans.diet_plan_detail', diet_plan_id=dp.id) }}" class="btn btn-white btn-small">{{ icon('eye', 14) }} Visualizza</a>
-    </div>
-    {% endfor %}
-  </div>
-  {% else %}
-  <p style="color:#d8d8d8;font-size:.9rem;margin:0;">Nessuna dieta associata. Crea e associa i piani dalla sezione <strong>Dieta</strong> nella sidebar.</p>
-  {% endif %}
-
-  {% if paziente.diete %}
-  <div style="margin-top:1.3rem;border-top:1px dashed rgba(182,177,169,.25);padding-top:1rem;">
-    <h4 style="color:#d8d8d8;margin:0 0 .6rem 0;font-size:.9rem;">Diete PDF (archivio)</h4>
-    <div style="display:flex;flex-direction:column;gap:.4rem;">
-      {% for d in paziente.diete %}
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:.8rem;padding:.5rem .8rem;background:rgba(0,0,0,.12);border-radius:8px;flex-wrap:wrap;">
-        <span style="color:#d9d4cc;font-size:.85rem;">{{ d.data_inizio.strftime('%d/%m/%Y') }} → {{ d.data_fine.strftime('%d/%m/%Y') }} · {{ d.kcal }} kcal</span>
-        {% if d.pdf_path %}<a href="{{ url_for('diete.serve_file', dieta_id=d.id) }}" target="_blank" class="btn btn-white btn-small">{{ icon('file', 14) }} PDF</a>{% endif %}
-      </div>
-      {% endfor %}
-    </div>
-  </div>
-  {% endif %}
-</div>
-
-<!-- ALLENAMENTI ASSOCIATI -->
-<div class="management-card" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
-  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.8rem;margin-bottom:1rem;">
-    <h3 style="color: #d4d4d4; margin:0; display: flex; align-items: center; gap: 0.5rem;">
-      {{ icon('dumbbell', 18) }} Allenamenti associati
-    </h3>
-    <a href="{{ url_for('allenamenti.lista_allenamenti') }}" class="btn btn-secondary btn-small" style="display:inline-flex;align-items:center;gap:.4rem;">{{ icon('list', 14) }} Sezione Allenamento</a>
-  </div>
-
-  {% if paziente.allenamenti %}
-  <div style="display:flex;flex-direction:column;gap:.5rem;">
-    {% for a in paziente.allenamenti|sort(attribute='created_at', reverse=true) %}
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:.8rem;padding:.7rem .9rem;background:rgba(0,0,0,.18);border-radius:8px;flex-wrap:wrap;">
-      <div>
-        <div style="color:#fff;font-weight:600;">{{ a.data_inizio.strftime('%d/%m/%Y') }} → {{ a.data_fine.strftime('%d/%m/%Y') }}</div>
-        <div style="color:#d8d8d8;font-size:.82rem;">{% if a.note %}{{ a.note[:80] }}{% if a.note|length > 80 %}…{% endif %}{% else %}Nessuna nota{% endif %}</div>
-      </div>
-      {% if a.pdf_path %}
-      <a href="{{ url_for('allenamenti.serve_file', allenamento_id=a.id) }}" target="_blank" class="btn btn-white btn-small">{{ icon('file', 14) }} PDF</a>
-      {% endif %}
-    </div>
-    {% endfor %}
-  </div>
-  {% else %}
-  <p style="color:#d8d8d8;font-size:.9rem;margin:0;">Nessun allenamento associato. Crea e associa i piani dalla sezione <strong>Allenamento</strong> nella sidebar.</p>
-  {% endif %}
-</div>
-
+{% include 'admin/_percorsi_content.html' %}
 {% endblock %}

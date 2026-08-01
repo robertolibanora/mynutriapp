@@ -61,7 +61,7 @@
 
 <div style="margin-bottom: 1rem; display:flex; gap:0.5rem; flex-wrap:wrap;">
   <a href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id) }}" class="btn btn-ghost btn-small">← Scheda paziente</a>
-  <a href="{{ url_for('diario_ui.lista_diari_paziente', patient_id=paziente.id) }}" class="btn btn-ghost btn-small">Coda revisione</a>
+  <a href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id, tab='diario') }}" class="btn btn-ghost btn-small">Coda revisione</a>
   <a href="{{ url_for('diario_ui.nuovo_colloquio', patient_id=paziente.id) }}" class="btn btn-primary btn-small">+ Nuovo colloquio</a>
 </div>
 
@@ -127,16 +127,37 @@
       </div>
       <div class="tl-detail">
         {% set c = item.contenuto_json or {} %}
+        {% set punti = c.get('punti_colloquio') or [] %}
+        {% if punti %}
+        <div style="margin-top:1rem;">
+          <div style="color:#fff; font-weight:600; font-size:0.9rem; margin-bottom:0.45rem;">Punti del colloquio</div>
+          <ul style="margin:0; padding-left:1.1rem; color:#e8e8e8; font-size:0.9rem;">
+            {% for p in punti %}
+            <li style="margin-bottom:0.35rem;">
+              <strong style="color:#fff;">{{ p.tema if p is mapping else 'Tema' }}:</strong>
+              {{ p.dettaglio if p is mapping else p }}
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
         <dl>
           <dt>Peso</dt><dd>{{ c.peso_kg if c.peso_kg is not none else '—' }}</dd>
+          <dt>Vita / Fianchi / MG%</dt>
+          <dd>
+            {% set m = c.get('misure') or {} %}
+            {{ m.vita_cm if m.vita_cm is not none else '—' }} /
+            {{ m.fianchi_cm if m.fianchi_cm is not none else '—' }} /
+            {{ m.massa_grassa_pct if m.massa_grassa_pct is not none else '—' }}
+          </dd>
           <dt>Aderenza</dt><dd>{{ c.aderenza_piano or '—' }}</dd>
+          <dt>Abitudini</dt><dd>{{ (c.abitudini_alimentari or [])|join(', ') or '—' }}</dd>
           <dt>Attività fisica</dt><dd>{{ c.attivita_fisica or '—' }}</dd>
           <dt>Sintomi</dt><dd>{{ (c.sintomi_riportati or [])|join(', ') or '—' }}</dd>
           <dt>Difficoltà</dt><dd>{{ (c.difficolta_segnalate or [])|join(', ') or '—' }}</dd>
-          <dt>Abitudini</dt><dd>{{ (c.abitudini_alimentari or [])|join(', ') or '—' }}</dd>
+          <dt>Note cliniche</dt><dd>{{ c.note_cliniche or '—' }}</dd>
           <dt>Obiettivi</dt><dd>{{ (c.obiettivi_concordati or [])|join(', ') or '—' }}</dd>
           <dt>Modifiche piano</dt><dd>{{ (c.modifiche_al_piano or [])|join(', ') or '—' }}</dd>
-          <dt>Note cliniche</dt><dd>{{ c.note_cliniche or '—' }}</dd>
           <dt>Prossimo controllo</dt><dd>{{ c.prossimo_controllo or '—' }}</dd>
         </dl>
       </div>

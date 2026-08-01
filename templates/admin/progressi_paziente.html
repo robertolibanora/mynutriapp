@@ -68,7 +68,7 @@
               <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                 {% if p.peso_settimanale %}
                   <span style="color: #d8d8d8; font-size: 0.8rem; background: rgba(255, 255, 255, 0.2); padding: 0.2rem 0.4rem; border-radius: 4px;">
-                    {{ p.peso_settimanale }} kgkg
+                    {{ p.peso_settimanale }} kg
                   </span>
                 {% endif %}
                 {% if p.aderenza %}
@@ -140,7 +140,7 @@
   </div>
   
   <div class="stat-card">
-    <div style="font-size: 2rem; color: #b0b0b0; margin-bottom: 0.5rem;">⭐</div>
+    <div class="adm-icon--lg" style="color:#b0b0b0">{{ icon('star', 28) }}</div>
     <div style="font-size: 1.5rem; font-weight: 700; color: #b0b0b0; margin-bottom: 0.25rem;">{{ "%.1f"|format(aderenza_media) }}/10</div>
     <div style="color: #d8d8d8; font-size: 0.9rem;">Aderenza Media</div>
     <div style="color: #d8d8d8; font-size: 0.8rem; margin-top: 0.25rem;">paziente + nutrizionista</div>

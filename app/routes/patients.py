@@ -181,7 +181,7 @@ def dettaglio_paziente(patient_id):
             if giorni_alla_scadenza <= 14:
                 alerti.append({
                     'tipo': 'dieta_scadenza',
-                    'titolo': '🍽️ Dieta in Scadenza',
+                    'titolo': 'Dieta in scadenza',
                     'messaggio': f"La dieta scade tra {giorni_alla_scadenza} giorni ({dieta.data_fine.strftime('%d/%m/%Y')})",
                     'urgenza': 'alta' if giorni_alla_scadenza <= 7 else 'media',
                     'colore': '#F44336' if giorni_alla_scadenza <= 7 else '#FF9800'
@@ -194,7 +194,7 @@ def dettaglio_paziente(patient_id):
             if giorni_alla_scadenza <= 14:
                 alerti.append({
                     'tipo': 'allenamento_scadenza',
-                    'titolo': '🏋️ Allenamento in Scadenza',
+                    'titolo': 'Allenamento in scadenza',
                     'messaggio': f"L'allenamento scade tra {giorni_alla_scadenza} giorni ({allenamento.data_fine.strftime('%d/%m/%Y')})",
                     'urgenza': 'alta' if giorni_alla_scadenza <= 7 else 'media',
                     'colore': '#F44336' if giorni_alla_scadenza <= 7 else '#FF9800'
@@ -209,7 +209,7 @@ def dettaglio_paziente(patient_id):
         if giorni_dall_ultimo_check > 30:
             alerti.append({
                 'tipo': 'check_mancante',
-                'titolo': '📈 Check Mancante',
+                'titolo': 'Check mancante',
                 'messaggio': f"Nessun check effettuato da {giorni_dall_ultimo_check} giorni (ultimo: {ultima_data.strftime('%d/%m/%Y')})",
                 'urgenza': 'alta' if giorni_dall_ultimo_check > 60 else 'media',
                 'colore': '#F44336' if giorni_dall_ultimo_check > 60 else '#FF9800'
@@ -218,7 +218,7 @@ def dettaglio_paziente(patient_id):
         # Nessun progresso mai registrato
         alerti.append({
             'tipo': 'check_mancante',
-            'titolo': '📈 Check Mancante',
+            'titolo': 'Check mancante',
             'messaggio': "Nessun check mai effettuato - inizia il monitoraggio!",
             'urgenza': 'media',
             'colore': '#FF9800'
@@ -260,6 +260,26 @@ def dettaglio_paziente(patient_id):
     paziente.patologie = paziente.patologie_decrypted
     paziente.intolleranze = paziente.intolleranze_decrypted
     paziente.esami_biochimici = paziente.esami_biochimici_decrypted
+
+    # Diario colloqui (tab dedicato)
+    from app.services.diario_review_service import list_patient_diaries
+
+    diary_items = []
+    da_revisionare = []
+    confermati = []
+    altri = []
+    utente_id = session.get("utente_id")
+    if utente_id:
+        diary_items = list_patient_diaries(
+            patient_id=patient_id,
+            utente_id=int(utente_id),
+        )
+        da_revisionare = [i for i in diary_items if i["da_revisionare"]]
+        confermati = [i for i in diary_items if i["valido_storico"]]
+        altri = [
+            i for i in diary_items
+            if not i["da_revisionare"] and not i["valido_storico"]
+        ]
     
     return render_template('admin/paziente_dettaglio.html', 
                          paziente=paziente,
@@ -274,15 +294,21 @@ def dettaglio_paziente(patient_id):
                          foto_inviate=foto_inviate,
                          date_labels=date_labels,
                          pesi=pesi,
-                         aderenze=aderenze)
+                         aderenze=aderenze,
+                         diary_items=diary_items,
+                         da_revisionare=da_revisionare,
+                         confermati=confermati,
+                         altri=altri)
 
 
 @patients_bp.route('/<int:patient_id>/percorsi')
 @admin_required
 def percorsi_paziente(patient_id):
-    """Diete e allenamenti associati al paziente."""
-    paziente = Patient.query.get_or_404(patient_id)
-    return render_template('admin/paziente_percorsi.html', paziente=paziente)
+    """Redirect alla scheda paziente, tab Percorsi."""
+    Patient.query.get_or_404(patient_id)
+    return redirect(
+        url_for('patients.dettaglio_paziente', patient_id=patient_id, tab='percorsi')
+    )
 
 
 # ========================

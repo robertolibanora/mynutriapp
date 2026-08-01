@@ -2,9 +2,86 @@
 {% block title %}{{ paziente.nome }} {{ paziente.cognome }} - Dettaglio{% endblock %}
 {% block content %}
 
+{% set sc = paziente.stato_cliente or 'attivo' %}
 <style>
   .admin-app .patient-panel { display: none; }
   .admin-app .patient-panel.is-active { display: block; }
+  .admin-app .patient-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: #a8a8a8;
+    font-size: 0.85rem;
+    text-decoration: none;
+    margin-bottom: 0.85rem;
+  }
+  .admin-app .patient-back:hover { color: #e8e8e8; }
+  .admin-app .patient-hero {
+    margin-bottom: 1.5rem;
+    padding: 1.75rem 1.85rem;
+    border-radius: 18px;
+    background: linear-gradient(120deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04) 70%, transparent);
+    border: 1px solid rgba(255,255,255,0.12);
+  }
+  .admin-app .patient-hero-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.15rem;
+  }
+  .admin-app .patient-avatar {
+    width: 64px;
+    height: 64px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.16);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    font-weight: 650;
+    color: #f0f0f0;
+    letter-spacing: 0.02em;
+  }
+  .admin-app .patient-hero h1 {
+    margin: 0;
+    color: #fff;
+    font: 500 2.1rem var(--adm-serif, Georgia, serif);
+    line-height: 1.15;
+  }
+  .admin-app .patient-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.55rem 0.85rem;
+    margin-top: 0.65rem;
+    color: #b8b8b8;
+    font-size: 0.9rem;
+  }
+  .admin-app .patient-meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .admin-app .patient-status {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0.22rem 0.55rem;
+    border-radius: 999px;
+  }
+  .admin-app .patient-status.is-attivo { background: rgba(255,255,255,0.1); color: #d0d0d0; }
+  .admin-app .patient-status.is-provvisorio { background: rgba(255,255,255,0.08); color: #cfcfcf; border: 1px solid rgba(255,255,255,0.18); }
+  .admin-app .patient-status.is-non-attivo { background: rgba(255,255,255,0.06); color: #a0a0a0; }
+  .admin-app .patient-hero-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
   .admin-app .anag-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -29,7 +106,6 @@
   .admin-app .detail-nav-row {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     gap: 1rem;
     flex-wrap: wrap;
     margin-bottom: 1.25rem;
@@ -38,118 +114,141 @@
     margin-bottom: 0;
     flex: 1;
   }
+  .admin-app .section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+  .admin-app .section-head h3 {
+    margin: 0;
+    color: #d4d4d4;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+  }
   .admin-app .med-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.85rem;
   }
+  .admin-app .mgmt-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .admin-app .mgmt-card {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 14px;
+    padding: 1.25rem 1.35rem;
+  }
+  .admin-app .mgmt-card p {
+    color: #b8b8b8;
+    margin: 0 0 1rem;
+    font-size: 0.88rem;
+  }
+  .admin-app .mgmt-actions {
+    display: flex;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+  }
+  .admin-app .alert-soft {
+    border-radius: 12px;
+    padding: 1rem 1.15rem;
+    margin-bottom: 0.75rem;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.12);
+  }
+  .admin-app .alert-soft.is-alta { border-color: rgba(229,115,115,0.35); }
   @media (max-width: 800px) {
     .admin-app .anag-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .admin-app .med-grid { grid-template-columns: 1fr; }
+    .admin-app .mgmt-grid { grid-template-columns: 1fr; }
+    .admin-app .patient-hero h1 { font-size: 1.7rem; }
   }
   @media (max-width: 480px) {
     .admin-app .anag-grid { grid-template-columns: 1fr; }
   }
 </style>
 
+<a href="{{ url_for('patients.lista_pazienti') }}" class="patient-back">{{ icon('arrow-left', 14) }} Pazienti</a>
+
 <!-- HEADER PAZIENTE -->
-<div class="patient-header" style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.3) 100%); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; border: 1px solid rgba(255, 255, 255, 0.2);">
-  <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
-    <div style="display: flex; align-items: center; gap: 1.5rem;">
-      <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #d8d8d8, #a8a8a8); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: white; font-weight: 700;">
-        {{ paziente.nome[0] }}{{ paziente.cognome[0] }}
-      </div>
-      <div>
-        <h1 style="color: #ffffff; margin: 0; font-size: 2.5rem; font-weight: 700;">{{ paziente.nome }} {{ paziente.cognome }}</h1>
-        <p style="color: #d8d8d8; margin: 0.5rem 0 0 0; font-size: 1.1rem;">{{ icon('phone', 14) }} {{ paziente.telefono }}</p>
-        {% set sc = paziente.stato_cliente or 'attivo' %}
-        <p style="margin: 0.5rem 0 0 0;">
-          <span style="font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.03em; padding:0.25rem 0.65rem; border-radius:999px;
-            {% if sc == 'provvisorio' %}background:rgba(255,183,77,0.2); color:#FFB74D;
-            {% elif sc == 'attivo' %}background:rgba(129,199,132,0.2); color:#81C784;
-            {% else %}background:rgba(229,115,115,0.2); color:#E57373;{% endif %}">
-            {% if sc == 'provvisorio' %}Provvisorio{% elif sc == 'attivo' %}Attivo{% else %}Non attivo{% endif %}
-          </span>
-        </p>
+<header class="patient-hero">
+  <div class="patient-hero-top">
+    <div class="patient-avatar" aria-hidden="true">{{ paziente.nome[0] }}{{ paziente.cognome[0] }}</div>
+    <div style="min-width:0; flex:1;">
+      <h1>{{ paziente.nome }} {{ paziente.cognome }}</h1>
+      <div class="patient-meta">
+        <span class="patient-status {% if sc == 'provvisorio' %}is-provvisorio{% elif sc == 'attivo' %}is-attivo{% else %}is-non-attivo{% endif %}">
+          {% if sc == 'provvisorio' %}Provvisorio{% elif sc == 'attivo' %}Attivo{% else %}Non attivo{% endif %}
+        </span>
+        {% if paziente.telefono %}
+        <span class="patient-meta-item">{{ icon('phone', 14) }} {{ paziente.telefono }}</span>
+        {% endif %}
         {% if paziente.data_creazione %}
-        <p style="color: #d8d8d8; margin: 0.25rem 0 0 0; font-size: 0.9rem;">{{ icon('calendar', 14) }} Registrato il {{ paziente.data_creazione.strftime('%d/%m/%Y') }}</p>
+        <span class="patient-meta-item">{{ icon('calendar', 14) }} dal {{ paziente.data_creazione.strftime('%d/%m/%Y') }}</span>
         {% endif %}
       </div>
     </div>
-    <div class="header-actions" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-      {% if sc == 'provvisorio' %}
-      <form method="POST" action="{{ url_for('patients.approva_cliente', patient_id=paziente.id) }}">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-        <button type="submit" class="btn btn-primary" onclick="return confirm('Approvare questo cliente? Diventerà attivo e l\'appuntamento verrà confermato.')">Approva</button>
-      </form>
-      <form method="POST" action="{{ url_for('patients.rifiuta_cliente', patient_id=paziente.id) }}">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-        <button type="submit" class="btn btn-danger" onclick="return confirm('Rifiutare questo cliente? Diventerà non attivo.')">Rifiuta</button>
-      </form>
-      {% endif %}
-      <a href="{{ url_for('progressi.check_nutrizionista_completo', patient_id=paziente.id) }}" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem; background: #d8d8d8; border-color: #d8d8d8;">
-        {{ icon('medical', 20) }}
-        <span>Check Nutrizionista</span>
-      </a>
-      <a href="{{ url_for('diario_ui.lista_diari_paziente', patient_id=paziente.id) }}" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem;">
-        {{ icon('file', 16) }}
-        <span>Diario colloqui</span>
-      </a>
-      <a href="{{ url_for('diario_ui.nuovo_colloquio', patient_id=paziente.id) }}" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem; background: #81C784; border-color: #81C784; color: #1a1a1a;">
-        {{ icon('plus', 16) }}
-        <span>Nuovo colloquio</span>
-      </a>
-      <a href="{{ url_for('patients.modifica_paziente', patient_id=paziente.id) }}" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem;">
-        {{ icon('edit', 16) }}
-        <span>Modifica Dati</span>
-      </a>
-      <a href="{{ url_for('patients.lista_pazienti') }}" class="btn btn-secondary">{{ icon('arrow-left', 14) }} Torna alla Lista</a>
-    </div>
   </div>
-</div>
+  {% if sc == 'provvisorio' %}
+  <div class="patient-hero-actions">
+    <form method="POST" action="{{ url_for('patients.approva_cliente', patient_id=paziente.id) }}" style="margin:0;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+      <button type="submit" class="btn btn-ghost btn-small" onclick="return confirm('Approvare questo cliente? Diventerà attivo e l\'appuntamento verrà confermato.')">Approva cliente</button>
+    </form>
+    <form method="POST" action="{{ url_for('patients.rifiuta_cliente', patient_id=paziente.id) }}" style="margin:0;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+      <button type="submit" class="btn btn-ghost btn-small" onclick="return confirm('Rifiutare questo cliente? Diventerà non attivo.')">Rifiuta</button>
+    </form>
+  </div>
+  {% endif %}
+</header>
 
 <!-- ALERT SECTION -->
 {% if alerti %}
-<div class="alert-section" style="margin-bottom: 2rem;">
+<div class="alert-section" style="margin-bottom: 1.5rem;">
   {% for alert in alerti %}
-  <div class="alert-card {% if alert.urgenza == 'alta' %}alert-urgent{% else %}alert-warning{% endif %}" style="border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem; position: relative; overflow: hidden;">
-    <div class="alert-border"></div>
-    <div style="display: flex; align-items: center; gap: 1rem;">
-      <div style="font-size: 2rem;">{{ alert.titolo.split(' ', 1)[0] }}</div>
-      <div style="flex: 1;">
-        <h3 class="alert-title" style="margin: 0 0 0.5rem 0; font-size: 1.2rem; font-weight: 700;">
-          {{ alert.titolo }}
-        </h3>
-        <p style="color: #d8d8d8; margin: 0; font-size: 0.95rem; line-height: 1.4;">
-          {{ alert.messaggio }}
-        </p>
+  <div class="alert-soft {% if alert.urgenza == 'alta' %}is-alta{% endif %}">
+    <div style="display: flex; align-items: flex-start; gap: 0.85rem;">
+      <div style="color:#c8c8c8; margin-top:0.1rem;">
+        {% if alert.tipo == 'check_mancante' %}{{ icon('chart', 18) }}
+        {% elif alert.tipo == 'dieta_scadenza' %}{{ icon('diet', 18) }}
+        {% elif alert.tipo == 'allenamento_scadenza' %}{{ icon('dumbbell', 18) }}
+        {% else %}{{ icon('alert', 18) }}{% endif %}
       </div>
-      <div style="display: flex; align-items: center; gap: 0.5rem;">
-        {% if alert.urgenza == 'alta' %}
-        <span style="background: rgba(244, 67, 54, 0.2); color: #F44336; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">
-          Urgente
-        </span>
-        {% else %}
-        <span style="background: rgba(255, 152, 0, 0.2); color: #FF9800; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">
-          Attenzione
-        </span>
-        {% endif %}
+      <div style="flex:1; min-width:0;">
+        <h3 style="margin:0 0 0.3rem 0; font-size:1rem; color:#f0f0f0; font-weight:600;">{{ alert.titolo }}</h3>
+        <p style="color:#b8b8b8; margin:0; font-size:0.9rem; line-height:1.4;">{{ alert.messaggio }}</p>
       </div>
+      <span style="font-size:0.7rem; font-weight:650; text-transform:uppercase; letter-spacing:0.04em; color:#a8a8a8; white-space:nowrap;">
+        {% if alert.urgenza == 'alta' %}Urgente{% else %}Attenzione{% endif %}
+      </span>
     </div>
   </div>
   {% endfor %}
 </div>
 {% endif %}
 
-<!-- NAV: TAB + PERCORSI -->
+<!-- NAV: TAB DINAMICHE -->
 <div class="detail-nav-row">
   <div class="tabs-minimal">
     <button type="button" class="tab-min is-active" data-tab="panoramica">Panoramica</button>
     <button type="button" class="tab-min" data-tab="mediche">Info mediche</button>
+    <button type="button" class="tab-min" data-tab="diario">
+      Diario
+      {% if da_revisionare %}
+      <span style="margin-left:0.35rem; background:rgba(255,255,255,0.12); color:#d0d0d0; font-size:0.7rem; font-weight:700; padding:0.1rem 0.4rem; border-radius:999px;">{{ da_revisionare|length }}</span>
+      {% endif %}
+    </button>
+    <button type="button" class="tab-min" data-tab="percorsi">Percorsi</button>
   </div>
-  <a href="{{ url_for('patients.percorsi_paziente', patient_id=paziente.id) }}" class="btn btn-secondary btn-small" style="display: inline-flex; align-items: center; gap: 0.4rem; flex-shrink: 0;">
-    {{ icon('link', 14) }} Percorsi
-  </a>
 </div>
 
 <!-- ========== TAB PANORAMICA ========== -->
@@ -176,8 +275,8 @@
         </p>
       </div>
       {% if not (paziente.intolleranze or paziente.patologie or paziente.allenamenti_descr) %}
-      <button type="button" class="btn btn-primary btn-small" style="flex-shrink: 0;" onclick="document.querySelector('.tab-min[data-tab=mediche]').click();">
-        {{ icon('plus', 14) }} Vai a Info mediche
+      <button type="button" class="btn btn-ghost btn-small" style="flex-shrink: 0;" onclick="document.querySelector('.tab-min[data-tab=mediche]').click();">
+        {{ icon('arrow-right', 14) }} Info mediche
       </button>
       {% endif %}
     </div>
@@ -185,9 +284,10 @@
 
   <!-- DATI ANAGRAFICI (compatto) -->
   <div class="content-card" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 1.25rem; margin-bottom: 1.5rem;">
-    <h3 style="color: #d4d4d4; margin: 0 0 1rem 0; display: flex; align-items: center; gap: 0.5rem; font-size: 1rem;">
-      {{ icon('user', 16) }} Dati anagrafici
-    </h3>
+    <div class="section-head">
+      <h3>{{ icon('user', 16) }} Dati anagrafici</h3>
+      <a href="{{ url_for('patients.modifica_paziente', patient_id=paziente.id) }}" class="btn btn-ghost btn-small">{{ icon('edit', 14) }} Modifica</a>
+    </div>
     <div class="anag-grid">
       <div class="anag-cell">
         <span class="anag-cell-label">Telefono</span>
@@ -227,7 +327,7 @@
         <p style="color: #d8d8d8; font-size: 0.9rem; margin: 0.25rem 0 0 0;">Include check paziente + nutrizionista</p>
       </div>
       <div style="display: flex; gap: 0.5rem;">
-        <a href="{{ url_for('progressi.check_nutrizionista_completo', patient_id=paziente.id) }}" class="btn btn-primary btn-small">{{ icon('plus', 16) }} Nuovo Check</a>
+        <a href="{{ url_for('progressi.check_nutrizionista_completo', patient_id=paziente.id) }}" class="btn btn-ghost btn-small">{{ icon('plus', 16) }} Nuovo check</a>
       </div>
     </div>
 
@@ -310,27 +410,27 @@
   {% endif %}
 
   <!-- PROGRESSI + DOCUMENTI -->
-  <div class="management-section" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
-    <div class="management-card" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 12px; padding: 1.5rem;">
-      <h3 style="color: #d4d4d4; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-        Progressi
-      </h3>
-      <p style="color: #d8d8d8; margin-bottom: 1rem; font-size: 0.9rem;">Monitora i risultati</p>
-      <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-        <a href="{{ url_for('progressi.check_nutrizionista_completo', patient_id=paziente.id) }}" class="btn btn-primary btn-small">{{ icon('plus', 16) }} Nuovo</a>
-        <a href="{{ url_for('progressi.progressi_paziente_admin', patient_id=paziente.id) }}" class="btn btn-white btn-small adm-icon-btn">{{ icon('eye', 14) }} Tutti</a>
+  <div class="mgmt-grid">
+    <section class="mgmt-card">
+      <div class="section-head">
+        <h3>{{ icon('medical', 16) }} Progressi</h3>
       </div>
-    </div>
+      <p>Check nutrizionista e storico dei monitoraggi.</p>
+      <div class="mgmt-actions">
+        <a href="{{ url_for('progressi.check_nutrizionista_completo', patient_id=paziente.id) }}" class="btn btn-ghost btn-small">{{ icon('plus', 14) }} Nuovo check</a>
+        <a href="{{ url_for('progressi.progressi_paziente_admin', patient_id=paziente.id) }}" class="btn btn-ghost btn-small">{{ icon('eye', 14) }} Storico</a>
+      </div>
+    </section>
 
-    <div class="management-card" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 152, 0, 0.3); border-radius: 12px; padding: 1.5rem;">
-      <h3 style="color: #d4d4d4; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-        {{ icon('file', 16) }} Documenti
-      </h3>
-      <p style="color: #d8d8d8; margin-bottom: 1rem; font-size: 0.9rem;">Documenti caricati dal paziente</p>
-      <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-        <a href="{{ url_for('documenti.lista_documenti_admin', patient_id=paziente.id) }}" class="btn btn-primary btn-small">{{ icon('eye', 16) }} Visualizza ({{ documenti|length }})</a>
+    <section class="mgmt-card">
+      <div class="section-head">
+        <h3>{{ icon('file', 16) }} Documenti</h3>
       </div>
-    </div>
+      <p>{{ documenti|length }} document{{ 'i' if documenti|length != 1 else 'o' }} caricati dal paziente.</p>
+      <div class="mgmt-actions">
+        <a href="{{ url_for('documenti.lista_documenti_admin', patient_id=paziente.id) }}" class="btn btn-ghost btn-small">{{ icon('eye', 14) }} Apri documenti</a>
+      </div>
+    </section>
   </div>
 
 </section>
@@ -339,16 +439,14 @@
 <section id="mediche-tab" class="patient-panel">
 
   <div class="content-card" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem;">
-    <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem; flex-wrap: wrap;">
-      <h3 style="color: #d4d4d4; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
-        {{ icon('medical', 16) }} Informazioni mediche
-      </h3>
+    <div class="section-head" style="margin-bottom:1.25rem;">
+      <h3>{{ icon('medical', 16) }} Informazioni mediche</h3>
       <a href="{{ url_for('patients.modifica_paziente', patient_id=paziente.id) }}#informazioni-mediche"
-         class="btn btn-primary btn-small">
+         class="btn btn-ghost btn-small">
         {% if paziente.intolleranze or paziente.cibi_da_ev or paziente.patologie or paziente.esami_biochimici %}
           {{ icon('edit', 14) }} Modifica
         {% else %}
-          {{ icon('plus', 16) }} Aggiungi
+          {{ icon('plus', 14) }} Aggiungi
         {% endif %}
       </a>
     </div>
@@ -386,16 +484,14 @@
 
   <!-- ATTIVITÀ FISICA -->
   <div class="activity-card" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem;">
-    <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap;">
-      <h3 style="color: #d4d4d4; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
-        {{ icon('dumbbell', 16) }} Attività fisica
-      </h3>
+    <div class="section-head">
+      <h3>{{ icon('dumbbell', 16) }} Attività fisica</h3>
       <a href="{{ url_for('patients.modifica_paziente', patient_id=paziente.id) }}#attivita-fisica"
-         class="btn btn-primary btn-small">
+         class="btn btn-ghost btn-small">
         {% if paziente.allenamenti_descr %}
           {{ icon('edit', 14) }} Modifica
         {% else %}
-          {{ icon('plus', 16) }} Aggiungi
+          {{ icon('plus', 14) }} Aggiungi
         {% endif %}
       </a>
     </div>
@@ -410,12 +506,26 @@
 
 </section>
 
+<!-- ========== TAB DIARIO ========== -->
+<section id="diario-tab" class="patient-panel">
+  <div class="content-card" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem;">
+    {% include 'admin/_diario_lista_content.html' %}
+  </div>
+</section>
+
+<!-- ========== TAB PERCORSI ========== -->
+<section id="percorsi-tab" class="patient-panel">
+  {% include 'admin/_percorsi_content.html' %}
+</section>
+
 <!-- CHART.JS -->
 <script src="{{ url_for('static', filename='js/chart.umd.min.js') }}"></script>
 
 <script>
 (function () {
+  var knownTabs = { panoramica: true, mediche: true, diario: true, percorsi: true };
   function showTab(name) {
+    if (!knownTabs[name]) name = 'panoramica';
     document.querySelectorAll('.patient-panel').forEach(function (p) {
       p.classList.toggle('is-active', p.id === name + '-tab');
     });
@@ -434,8 +544,9 @@
     btn.addEventListener('click', function () { showTab(btn.getAttribute('data-tab')); });
   });
   var params = new URLSearchParams(location.search);
-  if (params.get('tab') === 'mediche') {
-    showTab('mediche');
+  var initial = params.get('tab');
+  if (initial && knownTabs[initial] && initial !== 'panoramica') {
+    showTab(initial);
   }
 })();
 

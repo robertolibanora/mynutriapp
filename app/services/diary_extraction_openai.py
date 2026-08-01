@@ -32,6 +32,9 @@ che rispetta ESATTAMENTE questo schema (nessun altro campo):
   "modifiche_al_piano": [string],
   "note_cliniche": string | null,
   "prossimo_controllo": string | null,
+  "punti_colloquio": [
+    {"tema": string, "dettaglio": string}
+  ],
   "riassunto": string
 }
 
@@ -45,6 +48,12 @@ REGOLE OBBLIGATORIE:
 4. "riassunto" deve essere un breve riassunto fattuale di ciò che emerge dalla trascrizione
    (obbligatorio, non vuoto).
 5. Il paziente è indicato come [PAZIENTE] nel testo: non inventare il nome reale.
+6. Scansiona TUTTA la trascrizione: i colloqui toccano più temi in punti diversi.
+   Compila i campi tematici (misure, alimentazione, attività, sintomi, piano, follow-up)
+   e in "punti_colloquio" elenca i temi distinti emersi, in ordine cronologico di
+   comparsa. Ogni punto ha "tema" (etichetta breve, es. "Attività fisica", "Dolori",
+   "Istruzioni diario") e "dettaglio" (1-3 frasi fattuali su ciò che è stato detto).
+   Se non emergono temi chiari, usa [].
 """
 
 CORRECTION_PROMPT = """La risposta precedente NON era JSON valido rispetto allo schema richiesto.

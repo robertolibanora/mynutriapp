@@ -5,6 +5,7 @@
 {% set entry = payload.diary_entry %}
 {% set paziente_nome = (payload.patient.nome or '') ~ ' ' ~ (payload.patient.cognome or '') %}
 {% set c = contenuto %}
+{% set punti = c.get('punti_colloquio') or [] %}
 
 <style>
   .diary-review-grid {
@@ -22,7 +23,7 @@
     border-radius: 14px;
     padding: 1.25rem 1.35rem;
   }
-  .diary-panel h3 {
+  .diary-panel > h3 {
     margin: 0 0 1rem 0;
     color: #fff;
     font-size: 1.1rem;
@@ -70,11 +71,65 @@
     min-height: 1.2em;
   }
   .list-field textarea { min-height: 4.5rem; }
+  .diary-section {
+    margin: 0 0 1.15rem 0;
+    padding: 0.95rem 1rem 1rem;
+    background: rgba(0,0,0,0.18);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+  }
+  .diary-section:last-of-type { margin-bottom: 0; }
+  .diary-section-title {
+    margin: 0 0 0.75rem 0;
+    color: #fff;
+    font-size: 0.92rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+  .diary-section-hint {
+    margin: -0.35rem 0 0.75rem 0;
+    color: #a8a8a8;
+    font-size: 0.78rem;
+    line-height: 1.35;
+  }
+  .punti-list { display: flex; flex-direction: column; gap: 0.65rem; }
+  .punto-row {
+    display: grid;
+    grid-template-columns: 11rem 1fr auto;
+    gap: 0.5rem;
+    align-items: start;
+  }
+  @media (max-width: 640px) {
+    .punto-row { grid-template-columns: 1fr; }
+  }
+  .punto-row .input-text { margin: 0; }
+  .punto-row textarea.input-text { min-height: 3.4rem; resize: vertical; }
+  .btn-remove-punto {
+    background: transparent;
+    border: 1px solid rgba(229,115,115,0.45);
+    color: #E57373;
+    border-radius: 8px;
+    padding: 0.35rem 0.55rem;
+    cursor: pointer;
+    font-size: 0.8rem;
+    line-height: 1.2;
+  }
+  .btn-remove-punto:hover { background: rgba(229,115,115,0.12); }
+  .punti-empty {
+    color: #a8a8a8;
+    font-size: 0.85rem;
+    margin: 0 0 0.5rem 0;
+  }
+  #fields-scroll {
+    max-height: 70vh;
+    overflow: auto;
+    padding-right: 0.25rem;
+  }
 </style>
 
 <div class="detail-nav-row" style="margin-bottom: 1.25rem;">
   <div>
-    <a href="{{ url_for('diario_ui.lista_diari_paziente', patient_id=patient_id) }}" class="btn btn-ghost btn-small">← Diari paziente</a>
+    <a href="{{ url_for('patients.dettaglio_paziente', patient_id=patient_id, tab='diario') }}" class="btn btn-ghost btn-small">← Diari paziente</a>
     <a href="{{ url_for('patients.dettaglio_paziente', patient_id=patient_id) }}" class="btn btn-ghost btn-small">Scheda paziente</a>
   </div>
   <div>
@@ -106,68 +161,114 @@
   <section class="diary-panel">
     <h3>Campi estratti</h3>
     <form id="diary-form" class="form-container" style="padding:0; background:transparent; border:none;">
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="peso_kg">Peso (kg)</label>
-          <input type="number" step="0.1" id="peso_kg" class="input-text" value="{{ c.peso_kg if c.peso_kg is not none else '' }}">
-        </div>
-        <div class="form-group">
-          <label for="aderenza_piano">Aderenza piano</label>
-          <select id="aderenza_piano" class="input-text">
-            {% for opt in ['alta','media','bassa','non_rilevata'] %}
-            <option value="{{ opt }}" {% if c.get('aderenza_piano', 'non_rilevata') == opt %}selected{% endif %}>{{ opt }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="vita_cm">Vita (cm)</label>
-          <input type="number" step="0.1" id="vita_cm" class="input-text" value="{{ c.get('misure', {}).get('vita_cm', '') if c.get('misure') else '' }}">
-        </div>
-        <div class="form-group">
-          <label for="fianchi_cm">Fianchi (cm)</label>
-          <input type="number" step="0.1" id="fianchi_cm" class="input-text" value="{{ c.get('misure', {}).get('fianchi_cm', '') if c.get('misure') else '' }}">
-        </div>
-        <div class="form-group">
-          <label for="massa_grassa_pct">Massa grassa %</label>
-          <input type="number" step="0.1" id="massa_grassa_pct" class="input-text" value="{{ c.get('misure', {}).get('massa_grassa_pct', '') if c.get('misure') else '' }}">
-        </div>
-        <div class="form-group">
-          <label for="attivita_fisica">Attività fisica</label>
-          <input type="text" id="attivita_fisica" class="input-text" value="{{ c.get('attivita_fisica') or '' }}">
-        </div>
-      </div>
+      <div id="fields-scroll">
 
-      <div class="form-group list-field" style="margin-top:0.75rem;">
-        <label for="sintomi_riportati">Sintomi (uno per riga)</label>
-        <textarea id="sintomi_riportati" class="input-text">{{ (c.get('sintomi_riportati') or [])|join('\n') }}</textarea>
-      </div>
-      <div class="form-group list-field">
-        <label for="difficolta_segnalate">Difficoltà (uno per riga)</label>
-        <textarea id="difficolta_segnalate" class="input-text">{{ (c.get('difficolta_segnalate') or [])|join('\n') }}</textarea>
-      </div>
-      <div class="form-group list-field">
-        <label for="abitudini_alimentari">Abitudini alimentari (uno per riga)</label>
-        <textarea id="abitudini_alimentari" class="input-text">{{ (c.get('abitudini_alimentari') or [])|join('\n') }}</textarea>
-      </div>
-      <div class="form-group list-field">
-        <label for="obiettivi_concordati">Obiettivi concordati (uno per riga)</label>
-        <textarea id="obiettivi_concordati" class="input-text">{{ (c.get('obiettivi_concordati') or [])|join('\n') }}</textarea>
-      </div>
-      <div class="form-group list-field">
-        <label for="modifiche_al_piano">Modifiche al piano (uno per riga)</label>
-        <textarea id="modifiche_al_piano" class="input-text">{{ (c.get('modifiche_al_piano') or [])|join('\n') }}</textarea>
-      </div>
-      <div class="form-group">
-        <label for="note_cliniche">Note cliniche</label>
-        <textarea id="note_cliniche" class="input-text" rows="3">{{ c.get('note_cliniche') or '' }}</textarea>
-      </div>
-      <div class="form-group">
-        <label for="prossimo_controllo">Prossimo controllo</label>
-        <input type="text" id="prossimo_controllo" class="input-text" value="{{ c.get('prossimo_controllo') or '' }}">
-      </div>
-      <div class="form-group">
-        <label for="riassunto">Riassunto *</label>
-        <textarea id="riassunto" class="input-text" rows="4" required>{{ c.get('riassunto') or entry.riassunto_testo or '' }}</textarea>
+        <div class="diary-section">
+          <h4 class="diary-section-title">Punti del colloquio</h4>
+          <p class="diary-section-hint">Temi distinti emersi in momenti diversi della conversazione.</p>
+          <div id="punti-list" class="punti-list">
+            {% if punti %}
+              {% for p in punti %}
+              <div class="punto-row">
+                <input type="text" class="input-text punto-tema" placeholder="Tema" value="{{ p.tema if p is mapping else '' }}">
+                <textarea class="input-text punto-dettaglio" placeholder="Dettaglio">{{ p.dettaglio if p is mapping else p }}</textarea>
+                <button type="button" class="btn-remove-punto" aria-label="Rimuovi punto">✕</button>
+              </div>
+              {% endfor %}
+            {% endif %}
+          </div>
+          <p class="punti-empty" id="punti-empty" {% if punti %}style="display:none"{% endif %}>Nessun punto estratto. Aggiungine uno o lascia vuoto.</p>
+          <button type="button" class="btn btn-ghost btn-small" id="btn-add-punto" style="margin-top:0.35rem;">+ Aggiungi punto</button>
+        </div>
+
+        <div class="diary-section">
+          <h4 class="diary-section-title">Misure antropometriche</h4>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="peso_kg">Peso (kg)</label>
+              <input type="number" step="0.1" id="peso_kg" class="input-text" value="{{ c.peso_kg if c.peso_kg is not none else '' }}">
+            </div>
+            <div class="form-group">
+              <label for="vita_cm">Vita (cm)</label>
+              <input type="number" step="0.1" id="vita_cm" class="input-text" value="{{ c.get('misure', {}).get('vita_cm', '') if c.get('misure') else '' }}">
+            </div>
+            <div class="form-group">
+              <label for="fianchi_cm">Fianchi (cm)</label>
+              <input type="number" step="0.1" id="fianchi_cm" class="input-text" value="{{ c.get('misure', {}).get('fianchi_cm', '') if c.get('misure') else '' }}">
+            </div>
+            <div class="form-group">
+              <label for="massa_grassa_pct">Massa grassa %</label>
+              <input type="number" step="0.1" id="massa_grassa_pct" class="input-text" value="{{ c.get('misure', {}).get('massa_grassa_pct', '') if c.get('misure') else '' }}">
+            </div>
+          </div>
+        </div>
+
+        <div class="diary-section">
+          <h4 class="diary-section-title">Aderenza e alimentazione</h4>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="aderenza_piano">Aderenza piano</label>
+              <select id="aderenza_piano" class="input-text">
+                {% for opt in ['alta','media','bassa','non_rilevata'] %}
+                <option value="{{ opt }}" {% if c.get('aderenza_piano', 'non_rilevata') == opt %}selected{% endif %}>{{ opt }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="form-group list-field">
+            <label for="abitudini_alimentari">Abitudini alimentari (uno per riga)</label>
+            <textarea id="abitudini_alimentari" class="input-text">{{ (c.get('abitudini_alimentari') or [])|join('\n') }}</textarea>
+          </div>
+        </div>
+
+        <div class="diary-section">
+          <h4 class="diary-section-title">Attività fisica</h4>
+          <div class="form-group">
+            <label for="attivita_fisica">Attività riferita</label>
+            <input type="text" id="attivita_fisica" class="input-text" value="{{ c.get('attivita_fisica') or '' }}">
+          </div>
+        </div>
+
+        <div class="diary-section">
+          <h4 class="diary-section-title">Quadro clinico</h4>
+          <div class="form-group list-field">
+            <label for="sintomi_riportati">Sintomi (uno per riga)</label>
+            <textarea id="sintomi_riportati" class="input-text">{{ (c.get('sintomi_riportati') or [])|join('\n') }}</textarea>
+          </div>
+          <div class="form-group list-field">
+            <label for="difficolta_segnalate">Difficoltà (uno per riga)</label>
+            <textarea id="difficolta_segnalate" class="input-text">{{ (c.get('difficolta_segnalate') or [])|join('\n') }}</textarea>
+          </div>
+          <div class="form-group">
+            <label for="note_cliniche">Note cliniche</label>
+            <textarea id="note_cliniche" class="input-text" rows="3">{{ c.get('note_cliniche') or '' }}</textarea>
+          </div>
+        </div>
+
+        <div class="diary-section">
+          <h4 class="diary-section-title">Piano e follow-up</h4>
+          <div class="form-group list-field">
+            <label for="obiettivi_concordati">Obiettivi concordati (uno per riga)</label>
+            <textarea id="obiettivi_concordati" class="input-text">{{ (c.get('obiettivi_concordati') or [])|join('\n') }}</textarea>
+          </div>
+          <div class="form-group list-field">
+            <label for="modifiche_al_piano">Modifiche al piano (uno per riga)</label>
+            <textarea id="modifiche_al_piano" class="input-text">{{ (c.get('modifiche_al_piano') or [])|join('\n') }}</textarea>
+          </div>
+          <div class="form-group">
+            <label for="prossimo_controllo">Prossimo controllo</label>
+            <input type="text" id="prossimo_controllo" class="input-text" value="{{ c.get('prossimo_controllo') or '' }}">
+          </div>
+        </div>
+
+        <div class="diary-section">
+          <h4 class="diary-section-title">Riassunto</h4>
+          <div class="form-group">
+            <label for="riassunto">Sintesi del colloquio *</label>
+            <textarea id="riassunto" class="input-text" rows="4" required>{{ c.get('riassunto') or entry.riassunto_testo or '' }}</textarea>
+          </div>
+        </div>
+
       </div>
 
       <div class="diary-actions">
@@ -188,8 +289,48 @@
 <script>
 (function () {
   const consultationId = {{ consultation_id|tojson }};
-  const confermato = {{ payload.confermato|tojson }};
   const statusEl = document.getElementById('status-msg');
+  const puntiList = document.getElementById('punti-list');
+  const puntiEmpty = document.getElementById('punti-empty');
+
+  function syncPuntiEmpty() {
+    const hasRows = puntiList.querySelectorAll('.punto-row').length > 0;
+    puntiEmpty.style.display = hasRows ? 'none' : '';
+  }
+
+  function addPuntoRow(tema, dettaglio) {
+    const row = document.createElement('div');
+    row.className = 'punto-row';
+    row.innerHTML =
+      '<input type="text" class="input-text punto-tema" placeholder="Tema">' +
+      '<textarea class="input-text punto-dettaglio" placeholder="Dettaglio"></textarea>' +
+      '<button type="button" class="btn-remove-punto" aria-label="Rimuovi punto">✕</button>';
+    row.querySelector('.punto-tema').value = tema || '';
+    row.querySelector('.punto-dettaglio').value = dettaglio || '';
+    row.querySelector('.btn-remove-punto').addEventListener('click', () => {
+      row.remove();
+      syncPuntiEmpty();
+    });
+    puntiList.appendChild(row);
+    syncPuntiEmpty();
+  }
+
+  puntiList.querySelectorAll('.btn-remove-punto').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      btn.closest('.punto-row').remove();
+      syncPuntiEmpty();
+    });
+  });
+
+  document.getElementById('btn-add-punto').addEventListener('click', () => addPuntoRow('', ''));
+
+  function collectPunti() {
+    return Array.from(puntiList.querySelectorAll('.punto-row')).map((row) => {
+      const tema = (row.querySelector('.punto-tema').value || '').trim();
+      const dettaglio = (row.querySelector('.punto-dettaglio').value || '').trim();
+      return { tema, dettaglio };
+    }).filter((p) => p.tema && p.dettaglio);
+  }
 
   function lines(id) {
     return (document.getElementById(id).value || '')
@@ -221,6 +362,7 @@
       modifiche_al_piano: lines('modifiche_al_piano'),
       note_cliniche: document.getElementById('note_cliniche').value.trim() || null,
       prossimo_controllo: document.getElementById('prossimo_controllo').value.trim() || null,
+      punti_colloquio: collectPunti(),
       riassunto: riassunto,
     };
     return { contenuto_json, riassunto_testo: riassunto };
@@ -277,7 +419,7 @@
         setMsg('Rigenerazione avviata…', true);
         await api('POST', '/api/consultations/' + consultationId + '/diary/reject');
         setMsg('Rigenerazione in corso. Ricarica tra qualche secondo.', true);
-        setTimeout(() => window.location.href = '{{ url_for("diario_ui.lista_diari_paziente", patient_id=patient_id) }}', 1200);
+        setTimeout(() => window.location.href = '{{ url_for("patients.dettaglio_paziente", patient_id=patient_id, tab="diario") }}', 1200);
       } catch (e) { setMsg(e.message, false); }
     });
   }
