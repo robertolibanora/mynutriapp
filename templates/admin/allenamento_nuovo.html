@@ -13,7 +13,7 @@
   <a href="{{ url_for('allenamenti.lista_allenamenti') }}" class="btn btn-secondary btn-small">{{ icon('list', 14) }} Tutti gli allenamenti</a>
 </div>
 
-<form method="POST" enctype="multipart/form-data" class="form-container" style="max-width:640px;">
+<form method="POST" enctype="multipart/form-data" class="form-container">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 
   <div class="form-section" style="margin-bottom: 2rem;">

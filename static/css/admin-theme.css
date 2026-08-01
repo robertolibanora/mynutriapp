@@ -1022,8 +1022,8 @@
 
 .admin-app .form-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.25rem;
 }
 
 .admin-app .form-group label {
@@ -1037,17 +1037,67 @@
   display: flex;
   gap: 0.5rem;
   margin-top: 1rem;
-  justify-content: center;
+  justify-content: flex-start;
   flex-wrap: wrap;
 }
 
 .admin-app .form-container {
-  max-width: 800px;
-  margin: 1rem auto;
-  padding: 2rem;
+  width: 100%;
+  max-width: none;
+  margin: 0 0 1.25rem;
+  padding: 1.5rem 1.65rem;
   background: var(--adm-surface);
   border: 1px solid var(--adm-border);
   border-radius: 16px;
+  box-sizing: border-box;
+}
+
+.admin-app .data-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.85rem;
+}
+
+.admin-app .data-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.admin-app .data-icon {
+  color: #c8c8c8;
+  flex-shrink: 0;
+}
+
+.admin-app .data-label {
+  color: #a8a8a8;
+  font-size: 0.78rem;
+  margin-bottom: 0.2rem;
+}
+
+.admin-app .data-value {
+  color: #f0f0f0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.admin-app .check-section {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 1.25rem 1.35rem;
+  margin-bottom: 1rem;
+}
+
+.admin-app .check-section .section-title {
+  color: #e8e8e8;
+  font-size: 1.05rem;
+  font-weight: 650;
+  margin: 0 0 1rem;
 }
 
 .admin-app .input-text,

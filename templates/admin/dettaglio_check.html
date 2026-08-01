@@ -26,12 +26,12 @@
 
 <!-- NAVIGATION -->
 <div class="navigation" style="margin-bottom: 2rem;">
-  <a href="{{ url_for('progressi.progressi_paziente_admin', patient_id=paziente.id) }}" class="btn btn-secondary">
+  <a href="{{ url_for('progressi.progressi_paziente_admin', patient_id=paziente.id) }}" class="btn btn-ghost btn-small">
     {{ icon('arrow-left', 14) }} Torna ai Progressi
   </a>
   {% if progresso.tipo_check == 'nutrizionista' %}
-  <a href="{{ url_for('progressi.check_nutrizionista_completo', patient_id=paziente.id) }}" class="btn btn-primary" style="margin-left: 0.5rem;">
-    {{ icon('edit', 16) }} Modifica Check
+  <a href="{{ url_for('progressi.check_nutrizionista_completo', patient_id=paziente.id) }}" class="btn btn-ghost btn-small" style="margin-left: 0.35rem;">
+    {{ icon('edit', 14) }} Modifica Check
   </a>
   {% endif %}
 </div>

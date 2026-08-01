@@ -11,11 +11,12 @@
   <a href="{{ url_for('diete_plans.lista_diet_plans') }}" class="btn btn-secondary btn-small">{{ icon('list', 14) }} Tutte le diete</a>
 </div>
 
-<div class="management-card" style="max-width:640px;background:rgba(255, 255, 255, 0.06);border:1px solid rgba(255, 255, 255, 0.3);border-radius:12px;padding:1.5rem;">
+<div class="form-container">
   <form id="plan-create-form"
         data-create-url="{{ url_for('admin_diets.create_diet_plan') }}"
         data-detail-base="/admin/diet-plans/">
-    <div style="margin-bottom:1rem;">
+    <div class="form-grid">
+    <div class="form-group">
       <label class="diet-form-label" for="patient_id">Paziente *</label>
       <select id="patient_id" name="patient_id" class="input-text input-select" required>
         <option value="">Seleziona un paziente…</option>
@@ -27,31 +28,34 @@
       </select>
       <p style="color:#b8b8b8;font-size:.82rem;margin:.4rem 0 0 0;">La dieta viene creata qui e associata al paziente selezionato (visibile in area paziente se pubblicata).</p>
     </div>
-    <div style="margin-bottom:1rem;">
+    <div class="form-group">
       <label class="diet-form-label">Titolo dieta *</label>
       <input type="text" class="input-text" name="title" required placeholder="Es. Dieta dimagrimento">
     </div>
-    <div style="margin-bottom:1rem;">
+    <div class="form-group">
       <label class="diet-form-label">Obiettivo</label>
       <input type="text" class="input-text" name="goal" placeholder="Es. -5 kg in 3 mesi">
     </div>
-    <div style="margin-bottom:1rem;">
+    <div class="form-group">
       <label class="diet-form-label">Note</label>
       <textarea class="input-text" name="notes" rows="3" placeholder="Indicazioni generali, preferenze, ecc."></textarea>
     </div>
-    <div style="margin-bottom:1.25rem;">
+    <div class="form-group">
       <label class="diet-form-label">Stato</label>
       <select class="input-text" name="status">
         <option value="draft">Bozza</option>
         <option value="published">Pubblicata</option>
       </select>
     </div>
+    </div>
 
     <div id="plan-msg" class="diet-msg" style="display:none;margin-bottom:1rem;"></div>
 
-    <button type="submit" class="btn btn-primary" style="display:inline-flex;align-items:center;gap:.5rem;">
-      {{ icon('plus', 16) }} Crea dieta e aggiungi pasti
-    </button>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-ghost btn-small" style="display:inline-flex;align-items:center;gap:.5rem;">
+        {{ icon('plus', 14) }} Crea dieta e aggiungi pasti
+      </button>
+    </div>
   </form>
 </div>
 
