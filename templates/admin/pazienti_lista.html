@@ -2,218 +2,361 @@
 {% block title %}Gestione Pazienti{% endblock %}
 {% block content %}
 
-<!-- STATISTICHE RAPIDE -->
-<div class="quick-stats">
-  <div class="stat-card" {% if n_provvisori %}onclick="location.href='{{ url_for('patients.lista_pazienti', stato='provvisorio') }}'" style="cursor:pointer;"{% endif %}>
-    <div class="adm-icon--lg">{{ icon('clock', 28) }}</div>
-    <div style="font-size: 1.5rem; font-weight: 700; color: #FFB74D; margin-bottom: 0.25rem;">{{ n_provvisori }}</div>
-    <div style="color: #d8d8d8; font-size: 0.9rem;">Provvisori</div>
-  </div>
+<style>
+  .admin-app .pl-hero {
+    margin-bottom: 1.35rem;
+    padding: 1.5rem 1.65rem;
+    border-radius: 18px;
+    background: linear-gradient(120deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04) 70%, transparent);
+    border: 1px solid rgba(255,255,255,0.12);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .admin-app .pl-hero h1 {
+    margin: 0;
+    color: #fff;
+    font: 500 1.85rem var(--adm-serif, Georgia, serif);
+    line-height: 1.2;
+  }
+  .admin-app .pl-hero p {
+    margin: 0.4rem 0 0;
+    color: #a8a8a8;
+    font-size: 0.9rem;
+  }
+  .admin-app .pl-hero-actions {
+    display: flex;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+  }
+  .admin-app .pl-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+  .admin-app .pl-stat {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 0.9rem 1rem;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .admin-app .pl-stat:hover {
+    border-color: rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.07);
+  }
+  .admin-app .pl-stat.is-active {
+    border-color: rgba(255,255,255,0.28);
+    background: rgba(255,255,255,0.08);
+  }
+  .admin-app .pl-stat-num {
+    font-size: 1.35rem;
+    font-weight: 650;
+    color: #f0f0f0;
+    line-height: 1.1;
+  }
+  .admin-app .pl-stat-label {
+    margin-top: 0.25rem;
+    color: #a8a8a8;
+    font-size: 0.8rem;
+  }
+  .admin-app .pl-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.85rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+  }
+  .admin-app .pl-filters {
+    display: flex;
+    gap: 0.25rem;
+    flex-wrap: wrap;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .admin-app .pl-filter {
+    background: none;
+    border: none;
+    color: #a8a8a8;
+    padding: 0.55rem 0.85rem;
+    font: 500 0.88rem var(--adm-font, inherit);
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+  }
+  .admin-app .pl-filter.is-active {
+    color: #f0f0f0;
+    border-bottom-color: rgba(255,255,255,0.55);
+  }
+  .admin-app .pl-search {
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+  }
+  .admin-app .pl-search .input-text {
+    width: 220px;
+    font-size: 0.9rem;
+  }
+  .admin-app .pl-banner {
+    margin-bottom: 1rem;
+    padding: 0.85rem 1rem;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: #c8c8c8;
+    font-size: 0.9rem;
+  }
+  .admin-app .pl-banner a {
+    color: #e8e8e8;
+    margin-left: 0.35rem;
+  }
+  .admin-app .pl-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 0.85rem;
+  }
+  .admin-app .pl-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 14px;
+    padding: 1.15rem 1.2rem;
+    cursor: pointer;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .admin-app .pl-card:hover {
+    border-color: rgba(255,255,255,0.22);
+    background: rgba(255,255,255,0.07);
+  }
+  .admin-app .pl-card-top {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    margin-bottom: 0.85rem;
+  }
+  .admin-app .pl-avatar {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.14);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: 650;
+    color: #f0f0f0;
+  }
+  .admin-app .pl-name {
+    margin: 0;
+    color: #fff;
+    font-size: 1.05rem;
+    font-weight: 600;
+    line-height: 1.25;
+  }
+  .admin-app .pl-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.65rem;
+    margin-top: 0.3rem;
+    color: #a8a8a8;
+    font-size: 0.82rem;
+  }
+  .admin-app .pl-status {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0.15rem 0.45rem;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.1);
+    color: #d0d0d0;
+  }
+  .admin-app .pl-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 0.9rem;
+    color: #b8b8b8;
+    font-size: 0.82rem;
+    margin-bottom: 0.9rem;
+    padding-bottom: 0.9rem;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .admin-app .pl-facts span strong {
+    color: #e8e8e8;
+    font-weight: 600;
+  }
+  .admin-app .pl-actions {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .admin-app .pl-empty {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    color: #a8a8a8;
+  }
+  .admin-app .pl-empty h3 {
+    color: #e0e0e0;
+    margin: 0 0 0.5rem;
+    font-size: 1.15rem;
+  }
+  @media (max-width: 800px) {
+    .admin-app .pl-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 480px) {
+    .admin-app .pl-stats { grid-template-columns: 1fr; }
+    .admin-app .pl-search .input-text { width: 100%; }
+  }
+</style>
 
-  <div class="stat-card" {% if n_attivi %}onclick="location.href='{{ url_for('patients.lista_pazienti', stato='attivo') }}'" style="cursor:pointer;"{% endif %}>
-    <div class="adm-icon--lg">{{ icon('users', 28) }}</div>
-    <div style="font-size: 1.5rem; font-weight: 700; color: #81C784; margin-bottom: 0.25rem;">{{ n_attivi }}</div>
-    <div style="color: #d8d8d8; font-size: 0.9rem;">Attivi</div>
+<header class="pl-hero">
+  <div>
+    <h1>Pazienti</h1>
+    <p>Anagrafica e stato dei clienti.</p>
   </div>
-  
-  <div class="stat-card" {% if n_non_attivi %}onclick="location.href='{{ url_for('patients.lista_pazienti', stato='non_attivo') }}'" style="cursor:pointer;"{% endif %}>
-    <div class="adm-icon--lg">{{ icon('x', 28) }}</div>
-    <div style="font-size: 1.5rem; font-weight: 700; color: #E57373; margin-bottom: 0.25rem;">{{ n_non_attivi }}</div>
-    <div style="color: #d8d8d8; font-size: 0.9rem;">Non attivi</div>
+  <div class="pl-hero-actions">
+    <a href="{{ url_for('patients.scadenze') }}" class="btn btn-ghost btn-small">{{ icon('clock', 14) }} Scadenze</a>
+    <a href="{{ url_for('patients.nuovo_paziente') }}" class="btn btn-ghost btn-small">{{ icon('plus', 14) }} Nuovo paziente</a>
   </div>
+</header>
 
-  <div class="stat-card" onclick="location.href='{{ url_for('patients.lista_pazienti') }}'" style="cursor:pointer;">
-    <div class="adm-icon--lg">{{ icon('users', 28) }}</div>
-    <div style="font-size: 1.5rem; font-weight: 700; color: #d8d8d8; margin-bottom: 0.25rem;">{{ n_provvisori + n_attivi + n_non_attivi }}</div>
-    <div style="color: #d8d8d8; font-size: 0.9rem;">Totale</div>
-  </div>
+{% set totale = n_provvisori + n_attivi + n_non_attivi %}
+<div class="pl-stats">
+  <a class="pl-stat {% if not stato_filtro %}is-active{% endif %}" href="{{ url_for('patients.lista_pazienti', search=request.args.get('search','')) }}">
+    <div class="pl-stat-num">{{ totale }}</div>
+    <div class="pl-stat-label">Totale</div>
+  </a>
+  <a class="pl-stat {% if stato_filtro == 'attivo' %}is-active{% endif %}" href="{{ url_for('patients.lista_pazienti', stato='attivo', search=request.args.get('search','')) }}">
+    <div class="pl-stat-num">{{ n_attivi }}</div>
+    <div class="pl-stat-label">Attivi</div>
+  </a>
+  <a class="pl-stat {% if stato_filtro == 'provvisorio' %}is-active{% endif %}" href="{{ url_for('patients.lista_pazienti', stato='provvisorio', search=request.args.get('search','')) }}">
+    <div class="pl-stat-num">{{ n_provvisori }}</div>
+    <div class="pl-stat-label">Provvisori</div>
+  </a>
+  <a class="pl-stat {% if stato_filtro == 'non_attivo' %}is-active{% endif %}" href="{{ url_for('patients.lista_pazienti', stato='non_attivo', search=request.args.get('search','')) }}">
+    <div class="pl-stat-num">{{ n_non_attivi }}</div>
+    <div class="pl-stat-label">Non attivi</div>
+  </a>
 </div>
 
 {% if n_provvisori and not stato_filtro %}
-<div class="banner banner-warn" style="margin-bottom:1rem;">
-  Hai <strong>{{ n_provvisori }}</strong> cliente{{ 'i' if n_provvisori != 1 else '' }} provvisor{{ 'i' if n_provvisori != 1 else 'io' }} da approvare o rifiutare.
-  <a href="{{ url_for('patients.lista_pazienti', stato='provvisorio') }}" style="margin-left:0.5rem;">Vedi solo provvisori →</a>
+<div class="pl-banner">
+  {{ n_provvisori }} cliente{{ 'i' if n_provvisori != 1 else '' }} provvisor{{ 'i' if n_provvisori != 1 else 'io' }} in attesa di approvazione.
+  <a href="{{ url_for('patients.lista_pazienti', stato='provvisorio') }}">Vedi →</a>
 </div>
 {% endif %}
 
-<!-- TOOLBAR PRINCIPALE -->
-<div class="main-toolbar">
-  <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-    <a href="{{ url_for('patients.nuovo_paziente') }}" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem;">
-      {{ icon('plus', 16) }} Nuovo Paziente
-    </a>
-    <a href="{{ url_for('patients.scadenze') }}" class="btn btn-white" style="display: flex; align-items: center; gap: 0.5rem;">
-      {{ icon('clock', 16) }} Scadenze
-    </a>
+<div class="pl-toolbar">
+  <div class="pl-filters">
+    <a href="{{ url_for('patients.lista_pazienti', search=request.args.get('search','')) }}" class="pl-filter {% if not stato_filtro %}is-active{% endif %}">Tutti</a>
+    <a href="{{ url_for('patients.lista_pazienti', stato='provvisorio', search=request.args.get('search','')) }}" class="pl-filter {% if stato_filtro == 'provvisorio' %}is-active{% endif %}">Provvisori</a>
+    <a href="{{ url_for('patients.lista_pazienti', stato='attivo', search=request.args.get('search','')) }}" class="pl-filter {% if stato_filtro == 'attivo' %}is-active{% endif %}">Attivi</a>
+    <a href="{{ url_for('patients.lista_pazienti', stato='non_attivo', search=request.args.get('search','')) }}" class="pl-filter {% if stato_filtro == 'non_attivo' %}is-active{% endif %}">Non attivi</a>
   </div>
-  
-  <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-    <div style="display:flex; gap:0.35rem; flex-wrap:wrap;">
-      <a href="{{ url_for('patients.lista_pazienti', search=request.args.get('search','')) }}" class="btn btn-sm {% if not stato_filtro %}btn-primary{% else %}btn-ghost{% endif %}">Tutti</a>
-      <a href="{{ url_for('patients.lista_pazienti', stato='provvisorio', search=request.args.get('search','')) }}" class="btn btn-sm {% if stato_filtro == 'provvisorio' %}btn-primary{% else %}btn-ghost{% endif %}">Provvisori</a>
-      <a href="{{ url_for('patients.lista_pazienti', stato='attivo', search=request.args.get('search','')) }}" class="btn btn-sm {% if stato_filtro == 'attivo' %}btn-primary{% else %}btn-ghost{% endif %}">Attivi</a>
-      <a href="{{ url_for('patients.lista_pazienti', stato='non_attivo', search=request.args.get('search','')) }}" class="btn btn-sm {% if stato_filtro == 'non_attivo' %}btn-primary{% else %}btn-ghost{% endif %}">Non attivi</a>
-    </div>
-    <form method="get" style="display: flex; gap: 0.5rem; align-items: center;">
-      {% if stato_filtro %}<input type="hidden" name="stato" value="{{ stato_filtro }}">{% endif %}
-      <label for="search" style="color: #d8d8d8; font-weight: 600; font-size: 0.9rem;">{{ icon('search', 16) }}</label>
-      <input type="text" name="search" id="search" placeholder="Cerca paziente..." class="input-text" style="width: 220px; font-size: 0.9rem;" value="{{ request.args.get('search', '') }}">
-      <button type="submit" class="btn btn-white btn-small">Cerca</button>
-      {% if request.args.get('search') or stato_filtro %}
-      <a href="{{ url_for('patients.lista_pazienti') }}" class="btn btn-secondary btn-small">{{ icon('x', 16) }}</a>
-      {% endif %}
-    </form>
-  </div>
+  <form method="get" class="pl-search">
+    {% if stato_filtro %}<input type="hidden" name="stato" value="{{ stato_filtro }}">{% endif %}
+    <input type="text" name="search" id="search" placeholder="Cerca…" class="input-text" value="{{ request.args.get('search', '') }}">
+    <button type="submit" class="btn btn-ghost btn-small">Cerca</button>
+    {% if request.args.get('search') or stato_filtro %}
+    <a href="{{ url_for('patients.lista_pazienti') }}" class="btn btn-ghost btn-small" title="Rimuovi filtri">{{ icon('x', 14) }}</a>
+    {% endif %}
+  </form>
 </div>
 
-<!-- LISTA PAZIENTI -->
 {% if pazienti %}
-<div class="patients-grid">
-    {% for p in pazienti %}
+<div class="pl-grid">
+  {% for p in pazienti %}
   {% set sc = p.stato_cliente or 'attivo' %}
-  <div class="patient-card" data-href="{{ url_for('patients.dettaglio_paziente', patient_id=p.id) }}">
-    
-    <!-- AVATAR E INFO PRINCIPALE -->
-    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
-      <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #d8d8d8, #a8a8a8); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: white; font-weight: 700; flex-shrink: 0;">
-        {{ p.nome[0] }}{{ p.cognome[0] }}
-      </div>
-      <div style="flex: 1; min-width: 0;">
-        <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap; margin-bottom: 0.25rem;">
-          <div style="font-size: 1.3rem; font-weight: 600; color: #ffffff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-            {{ p.nome }} {{ p.cognome }}
-          </div>
-          <span style="font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.03em; padding:0.2rem 0.55rem; border-radius:999px;
-            {% if sc == 'provvisorio' %}background:rgba(255,183,77,0.2); color:#FFB74D;
-            {% elif sc == 'attivo' %}background:rgba(129,199,132,0.2); color:#81C784;
-            {% else %}background:rgba(229,115,115,0.2); color:#E57373;{% endif %}">
-            {{ label_stato.get(sc, sc) }}
-          </span>
-        </div>
-        <div style="color: #d8d8d8; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem;">
-          {{ icon('phone', 16) }}
-          <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ p.telefono }}</span>
+  <article class="pl-card" data-href="{{ url_for('patients.dettaglio_paziente', patient_id=p.id) }}">
+    <div class="pl-card-top">
+      <div class="pl-avatar" aria-hidden="true">{{ p.nome[0] }}{{ p.cognome[0] }}</div>
+      <div style="min-width:0; flex:1;">
+        <h2 class="pl-name">{{ p.nome }} {{ p.cognome }}</h2>
+        <div class="pl-meta">
+          <span class="pl-status">{{ label_stato.get(sc, sc) }}</span>
+          {% if p.telefono %}
+          <span>{{ icon('phone', 12) }} {{ p.telefono }}</span>
+          {% endif %}
         </div>
       </div>
     </div>
-    
-    <!-- INFORMAZIONI AGGIUNTIVE -->
-    <div style="background: rgba(255, 255, 255, 0.09); border-radius: 12px; padding: 1rem; margin-bottom: 1rem;">
-      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem;">
-        {% if p.eta %}
-        <div>
-          <div style="color: #d8d8d8; font-size: 0.75rem; margin-bottom: 0.25rem;">Età</div>
-          <div style="color: #d8d8d8; font-size: 0.85rem; font-weight: 600;">{{ p.eta }} anni</div>
-        </div>
-        {% endif %}
-        
-        {% if p.peso_iniziale %}
-        <div>
-          <div style="color: #d8d8d8; font-size: 0.75rem; margin-bottom: 0.25rem;">Peso</div>
-          <div style="color: #ffffff; font-size: 0.85rem; font-weight: 600;">{{ p.peso_iniziale }} kg</div>
-        </div>
-        {% elif sc == 'provvisorio' %}
-        <div>
-          <div style="color: #d8d8d8; font-size: 0.75rem; margin-bottom: 0.25rem;">Anagrafica</div>
-          <div style="color: #FFB74D; font-size: 0.85rem; font-weight: 600;">Da completare</div>
-        </div>
-        {% endif %}
-      </div>
+
+    <div class="pl-facts">
+      {% if p.eta %}<span>Età <strong>{{ p.eta }}</strong></span>{% endif %}
+      {% if p.peso_iniziale %}<span>Peso <strong>{{ p.peso_iniziale }} kg</strong></span>
+      {% elif sc == 'provvisorio' %}<span>Anagrafica da completare</span>{% endif %}
+      <span>Diete <strong>{{ p.diete|length }}</strong></span>
+      <span>Allenamenti <strong>{{ p.allenamenti|length }}</strong></span>
+      <span>Progressi <strong>{{ p.progressi|length }}</strong></span>
     </div>
-    
-    <!-- STATISTICHE PAZIENTE -->
-    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-bottom: 1rem;">
-      <div style="background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; padding: 0.5rem; text-align: center;">
-        <div style="color: #a8a8a8; font-size: 1.1rem; font-weight: 700;">{{ p.diete|length }}</div>
-        <div style="color: #d8d8d8; font-size: 0.7rem;">Diete</div>
-      </div>
-      
-      <div style="background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; padding: 0.5rem; text-align: center;">
-        <div style="color: #b0b0b0; font-size: 1.1rem; font-weight: 700;">{{ p.allenamenti|length }}</div>
-        <div style="color: #d8d8d8; font-size: 0.7rem;">Allenamenti</div>
-      </div>
-      
-      <div style="background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; padding: 0.5rem; text-align: center;">
-        <div style="color: #909090; font-size: 1.1rem; font-weight: 700;">{{ p.progressi|length }}</div>
-        <div style="color: #d8d8d8; font-size: 0.7rem;">Progressi</div>
-      </div>
-    </div>
-    
-    <!-- AZIONI -->
-    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;" onclick="event.stopPropagation();">
+
+    <div class="pl-actions" onclick="event.stopPropagation();">
       {% if sc == 'provvisorio' %}
-      <form action="{{ url_for('patients.approva_cliente', patient_id=p.id) }}" method="POST" style="flex: 1;" onclick="event.stopPropagation();">
+      <form action="{{ url_for('patients.approva_cliente', patient_id=p.id) }}" method="POST" style="margin:0;">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-        <button type="submit" class="btn btn-primary btn-small" style="width: 100%; font-size: 0.85rem;" onclick="return confirm('Approvare {{ p.nome }} {{ p.cognome }}? Diventerà cliente attivo e l\'appuntamento verrà confermato.')">
-          Approva
-        </button>
+        <button type="submit" class="btn btn-ghost btn-small" onclick="return confirm('Approvare {{ p.nome }} {{ p.cognome }}? Diventerà cliente attivo e l\'appuntamento verrà confermato.')">Approva</button>
       </form>
-      <form action="{{ url_for('patients.rifiuta_cliente', patient_id=p.id) }}" method="POST" style="flex: 1;" onclick="event.stopPropagation();">
+      <form action="{{ url_for('patients.rifiuta_cliente', patient_id=p.id) }}" method="POST" style="margin:0;">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-        <button type="submit" class="btn btn-danger btn-small" style="width: 100%; font-size: 0.85rem;" onclick="return confirm('Rifiutare {{ p.nome }} {{ p.cognome }}? Diventerà non attivo e l\'appuntamento verrà annullato.')">
-          Rifiuta
-        </button>
+        <button type="submit" class="btn btn-ghost btn-small" onclick="return confirm('Rifiutare {{ p.nome }} {{ p.cognome }}? Diventerà non attivo e l\'appuntamento verrà annullato.')">Rifiuta</button>
       </form>
       {% else %}
-      <a href="{{ url_for('patients.dettaglio_paziente', patient_id=p.id) }}" class="btn btn-primary btn-small" style="flex: 1; font-size: 0.85rem; text-align: center;" onclick="event.stopPropagation();">
-        {{ icon('eye', 16) }} Dettaglio
-      </a>
-      <a href="{{ url_for('patients.modifica_paziente', patient_id=p.id) }}" class="btn btn-secondary btn-small" style="flex: 1; font-size: 0.85rem; text-align: center;" onclick="event.stopPropagation();">
-        {{ icon('edit', 16) }} Modifica
-      </a>
-      <form action="{{ url_for('patients.elimina_paziente', patient_id=p.id) }}" method="POST" style="flex: 1;" onclick="event.stopPropagation();">
+      <a href="{{ url_for('patients.dettaglio_paziente', patient_id=p.id) }}" class="btn btn-ghost btn-small">Apri</a>
+      <a href="{{ url_for('patients.modifica_paziente', patient_id=p.id) }}" class="btn btn-ghost btn-small">{{ icon('edit', 14) }} Modifica</a>
+      <form action="{{ url_for('patients.elimina_paziente', patient_id=p.id) }}" method="POST" style="margin:0 0 0 auto;">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-        <button type="submit" class="btn btn-danger btn-small" style="width: 100%; font-size: 0.85rem;" onclick="return confirm('Eliminare {{ p.nome }} {{ p.cognome }}?')">
-          {{ icon('trash', 16) }} Elimina
-        </button>
+        <button type="submit" class="btn btn-ghost btn-small" title="Elimina" onclick="return confirm('Eliminare {{ p.nome }} {{ p.cognome }}?')">{{ icon('trash', 14) }}</button>
       </form>
       {% endif %}
     </div>
-  </div>
-    {% endfor %}
+  </article>
+  {% endfor %}
 </div>
 
 {% else %}
-<!-- EMPTY STATE -->
-<div class="empty-state" style="text-align: center; padding: 4rem 2rem; background: rgba(255, 255, 255, 0.2); border: 2px dashed rgba(255, 255, 255, 0.16); border-radius: 16px;">
-  <div class="adm-empty-icon">{{ icon('users', 48) }}</div>
-  <h3 style="color: #d8d8d8; margin-bottom: 1rem;">
+<div class="pl-empty">
+  <div class="adm-empty-icon" style="margin-bottom:0.75rem;">{{ icon('users', 40) }}</div>
+  <h3>
     {% if request.args.get('search') or stato_filtro %}
     Nessun paziente trovato
     {% else %}
     Nessun paziente registrato
     {% endif %}
   </h3>
-  <p style="color: #d8d8d8; margin-bottom: 2rem; font-size: 1.1rem;">
+  <p style="margin:0 0 1.25rem;">
     {% if request.args.get('search') or stato_filtro %}
-    Prova a modificare i criteri di ricerca o il filtro stato.
+    Prova a modificare ricerca o filtro.
     {% else %}
-    Inizia registrando il tuo primo paziente per gestire diete, allenamenti e progressi.
+    Registra il primo paziente per iniziare.
     {% endif %}
   </p>
   {% if request.args.get('search') or stato_filtro %}
-  <a href="{{ url_for('patients.lista_pazienti') }}" class="btn btn-secondary" style="font-size: 1.1rem; padding: 1rem 2rem; margin-right: 1rem;">
-    {{ icon('x', 16) }} Rimuovi filtri
-  </a>
+  <a href="{{ url_for('patients.lista_pazienti') }}" class="btn btn-ghost btn-small">Rimuovi filtri</a>
+  {% else %}
+  <a href="{{ url_for('patients.nuovo_paziente') }}" class="btn btn-ghost btn-small">{{ icon('plus', 14) }} Nuovo paziente</a>
   {% endif %}
-  <a href="{{ url_for('patients.nuovo_paziente') }}" class="btn btn-primary" style="font-size: 1.1rem; padding: 1rem 2rem;">
-    {{ icon('plus', 16) }} Registra primo paziente
-  </a>
 </div>
 {% endif %}
 
-<!-- CSS E JAVASCRIPT -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  document.querySelectorAll('.patient-card').forEach(function(card) {
+  document.querySelectorAll('.pl-card').forEach(function(card) {
     card.addEventListener('click', function(e) {
-      if (e.target.closest('a, button, form')) {
-        return;
-      }
-      const href = this.getAttribute('data-href');
-      if (href) {
-        window.location.href = href;
-      }
+      if (e.target.closest('a, button, form')) return;
+      var href = this.getAttribute('data-href');
+      if (href) window.location.href = href;
     });
   });
 });

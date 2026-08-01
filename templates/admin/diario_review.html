@@ -6,253 +6,373 @@
 {% set paziente_nome = (payload.patient.nome or '') ~ ' ' ~ (payload.patient.cognome or '') %}
 {% set c = contenuto %}
 {% set punti = c.get('punti_colloquio') or [] %}
+{% set misure = c.get('misure') or {} %}
+{% set has_transcript = payload.transcript and payload.transcript.testo %}
+{% set has_clinico = (c.get('sintomi_riportati') or []) or (c.get('difficolta_segnalate') or []) or c.get('note_cliniche') %}
+{% set has_piano = (c.get('obiettivi_concordati') or []) or (c.get('modifiche_al_piano') or []) or c.get('prossimo_controllo') %}
+{% set has_misure = c.peso_kg is not none or misure.get('vita_cm') is not none or misure.get('fianchi_cm') is not none or misure.get('massa_grassa_pct') is not none %}
 
 <style>
-  .diary-review-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.25rem;
-    align-items: start;
+  .dr-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: #a8a8a8;
+    font-size: 0.85rem;
+    text-decoration: none;
+    margin-bottom: 0.85rem;
   }
-  @media (max-width: 960px) {
-    .diary-review-grid { grid-template-columns: 1fr; }
+  .dr-back:hover { color: #e8e8e8; }
+  .dr-hero {
+    margin-bottom: 1.25rem;
+    padding: 1.35rem 1.5rem;
+    border-radius: 16px;
+    background: linear-gradient(120deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04) 70%, transparent);
+    border: 1px solid rgba(255,255,255,0.12);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    flex-wrap: wrap;
   }
-  .diary-panel {
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.14);
-    border-radius: 14px;
-    padding: 1.25rem 1.35rem;
-  }
-  .diary-panel > h3 {
-    margin: 0 0 1rem 0;
+  .dr-hero h1 {
+    margin: 0;
     color: #fff;
-    font-size: 1.1rem;
-    border-bottom: 1px solid rgba(255,255,255,0.12);
-    padding-bottom: 0.55rem;
+    font: 500 1.7rem var(--adm-serif, Georgia, serif);
+    line-height: 1.2;
   }
-  .transcript-box {
-    white-space: pre-wrap;
-    color: #e8e8e8;
-    font-size: 0.95rem;
-    line-height: 1.55;
-    max-height: 70vh;
-    overflow: auto;
-    background: rgba(0,0,0,0.22);
-    border-radius: 10px;
-    padding: 1rem;
+  .dr-hero p {
+    margin: 0.4rem 0 0;
+    color: #a8a8a8;
+    font-size: 0.9rem;
   }
-  .badge-review {
-    display: inline-block;
-    font-size: 0.72rem;
+  .dr-badge {
+    font-size: 0.7rem;
     font-weight: 700;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    padding: 0.28rem 0.7rem;
+    padding: 0.28rem 0.65rem;
     border-radius: 999px;
+    background: rgba(255,255,255,0.1);
+    color: #d0d0d0;
+    white-space: nowrap;
   }
-  .badge-review.da-revisionare {
-    background: rgba(255,183,77,0.22);
-    color: #FFB74D;
+  .dr-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.85fr);
+    gap: 1.15rem;
+    align-items: start;
   }
-  .badge-review.confermato {
-    background: rgba(129,199,132,0.22);
-    color: #81C784;
+  @media (max-width: 960px) {
+    .dr-layout { grid-template-columns: 1fr; }
   }
-  .diary-actions {
+  .dr-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 14px;
+    padding: 1.15rem 1.25rem;
+    margin-bottom: 0.85rem;
+  }
+  .dr-card:last-child { margin-bottom: 0; }
+  .dr-card h2 {
+    margin: 0 0 0.75rem;
+    color: #e8e8e8;
+    font-size: 0.95rem;
+    font-weight: 650;
+  }
+  .dr-card h2 .hint {
+    display: block;
+    margin-top: 0.25rem;
+    color: #888;
+    font-size: 0.78rem;
+    font-weight: 400;
+  }
+  .dr-keypoints {
+    list-style: none;
+    margin: 0;
+    padding: 0;
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.6rem;
-    margin-top: 1.25rem;
+    flex-direction: column;
+    gap: 0.55rem;
   }
-  .diary-status-msg {
-    margin-top: 0.85rem;
-    font-size: 0.9rem;
-    color: #d8d8d8;
-    min-height: 1.2em;
-  }
-  .list-field textarea { min-height: 4.5rem; }
-  .diary-section {
-    margin: 0 0 1.15rem 0;
-    padding: 0.95rem 1rem 1rem;
+  .dr-keypoints li {
+    padding: 0.7rem 0.85rem;
     background: rgba(0,0,0,0.18);
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .dr-keypoints strong {
+    display: block;
+    color: #fff;
+    font-size: 0.88rem;
+    margin-bottom: 0.2rem;
+  }
+  .dr-keypoints span {
+    color: #b8b8b8;
+    font-size: 0.86rem;
+    line-height: 1.4;
+  }
+  .dr-empty {
+    color: #888;
+    font-size: 0.88rem;
+    margin: 0;
+  }
+  .dr-kv {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+  }
+  @media (max-width: 520px) {
+    .dr-kv { grid-template-columns: 1fr; }
+  }
+  .dr-kv .form-group { margin: 0; }
+  .dr-kv label {
+    display: block;
+    color: #a8a8a8;
+    font-size: 0.75rem;
+    margin-bottom: 0.25rem;
+  }
+  .dr-details {
     border: 1px solid rgba(255,255,255,0.1);
     border-radius: 12px;
+    background: rgba(255,255,255,0.04);
+    margin-bottom: 0.65rem;
+    overflow: hidden;
   }
-  .diary-section:last-of-type { margin-bottom: 0; }
-  .diary-section-title {
-    margin: 0 0 0.75rem 0;
-    color: #fff;
-    font-size: 0.92rem;
-    font-weight: 700;
-    letter-spacing: 0.02em;
+  .dr-details:last-of-type { margin-bottom: 0; }
+  .dr-details > summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 0.85rem 1rem;
+    color: #e0e0e0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    user-select: none;
   }
-  .diary-section-hint {
-    margin: -0.35rem 0 0.75rem 0;
-    color: #a8a8a8;
+  .dr-details > summary::-webkit-details-marker { display: none; }
+  .dr-details > summary::after {
+    content: '›';
+    color: #888;
+    font-size: 1.1rem;
+    transition: transform .15s ease;
+  }
+  .dr-details[open] > summary::after { transform: rotate(90deg); }
+  .dr-details > summary .meta {
+    color: #888;
     font-size: 0.78rem;
-    line-height: 1.35;
+    font-weight: 400;
+    margin-right: auto;
+    margin-left: 0.5rem;
   }
-  .punti-list { display: flex; flex-direction: column; gap: 0.65rem; }
+  .dr-details-body {
+    padding: 0 1rem 1rem;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+  .dr-details-body .form-group { margin-top: 0.75rem; }
+  .dr-details-body .form-group:first-child { margin-top: 0.85rem; }
+  .list-field textarea { min-height: 3.6rem; }
+  .punti-list { display: flex; flex-direction: column; gap: 0.55rem; }
   .punto-row {
     display: grid;
-    grid-template-columns: 11rem 1fr auto;
-    gap: 0.5rem;
+    grid-template-columns: 9rem 1fr auto;
+    gap: 0.45rem;
     align-items: start;
   }
   @media (max-width: 640px) {
     .punto-row { grid-template-columns: 1fr; }
   }
   .punto-row .input-text { margin: 0; }
-  .punto-row textarea.input-text { min-height: 3.4rem; resize: vertical; }
+  .punto-row textarea.input-text { min-height: 3rem; resize: vertical; }
   .btn-remove-punto {
     background: transparent;
-    border: 1px solid rgba(229,115,115,0.45);
-    color: #E57373;
+    border: 1px solid rgba(255,255,255,0.16);
+    color: #a8a8a8;
     border-radius: 8px;
-    padding: 0.35rem 0.55rem;
+    padding: 0.35rem 0.5rem;
     cursor: pointer;
     font-size: 0.8rem;
-    line-height: 1.2;
   }
-  .btn-remove-punto:hover { background: rgba(229,115,115,0.12); }
-  .punti-empty {
-    color: #a8a8a8;
-    font-size: 0.85rem;
-    margin: 0 0 0.5rem 0;
-  }
-  #fields-scroll {
-    max-height: 70vh;
+  .btn-remove-punto:hover { color: #e8e8e8; border-color: rgba(255,255,255,0.3); }
+  .transcript-box {
+    white-space: pre-wrap;
+    color: #c8c8c8;
+    font-size: 0.88rem;
+    line-height: 1.55;
+    max-height: 50vh;
     overflow: auto;
-    padding-right: 0.25rem;
+    background: rgba(0,0,0,0.22);
+    border-radius: 10px;
+    padding: 0.9rem 1rem;
+  }
+  .dr-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+  .dr-status {
+    margin-top: 0.75rem;
+    font-size: 0.88rem;
+    min-height: 1.2em;
+    color: #a8a8a8;
+  }
+  .dr-side-note {
+    color: #888;
+    font-size: 0.82rem;
+    margin: 0 0 0.75rem;
+    line-height: 1.4;
   }
 </style>
 
-<div class="detail-nav-row" style="margin-bottom: 1.25rem;">
+<a href="{{ url_for('patients.dettaglio_paziente', patient_id=patient_id, tab='diario') }}" class="dr-back">{{ icon('arrow-left', 14) }} Diario paziente</a>
+
+<header class="dr-hero">
   <div>
-    <a href="{{ url_for('patients.dettaglio_paziente', patient_id=patient_id, tab='diario') }}" class="btn btn-ghost btn-small">← Diari paziente</a>
-    <a href="{{ url_for('patients.dettaglio_paziente', patient_id=patient_id) }}" class="btn btn-ghost btn-small">Scheda paziente</a>
+    <h1>{{ paziente_nome.strip() or 'Paziente' }}</h1>
+    <p>Colloquio #{{ consultation_id }} · {{ payload.stato }}</p>
   </div>
-  <div>
-    {% if payload.da_revisionare %}
-      <span class="badge-review da-revisionare">Da revisionare</span>
-    {% elif payload.confermato %}
-      <span class="badge-review confermato">Confermato (storico validato)</span>
-    {% endif %}
-  </div>
-</div>
+  <span class="dr-badge">
+    {% if payload.da_revisionare %}Da revisionare{% elif payload.confermato %}Confermato{% else %}{{ payload.stato }}{% endif %}
+  </span>
+</header>
 
-<h2 class="page-title" style="margin-bottom: 0.35rem;">Revisione diario</h2>
-<p style="color:#d8d8d8; margin: 0 0 1.5rem 0;">
-  {{ paziente_nome.strip() }} · colloquio #{{ consultation_id }} · stato {{ payload.stato }}
-</p>
+<form id="diary-form">
+  <div class="dr-layout">
+    <div>
+      <section class="dr-card">
+        <h2>Riassunto <span class="hint">Cosa emerge dal colloquio, in breve</span></h2>
+        <textarea id="riassunto" class="input-text" rows="4" required placeholder="Sintesi fattuale del colloquio…">{{ c.get('riassunto') or entry.riassunto_testo or '' }}</textarea>
+      </section>
 
-<div class="diary-review-grid">
-  <section class="diary-panel">
-    <h3>Trascrizione</h3>
-    <div class="transcript-box" id="transcript-text">
-{%- if payload.transcript and payload.transcript.testo -%}
-{{ payload.transcript.testo }}
-{%- else -%}
-<em>Trascrizione non disponibile.</em>
-{%- endif -%}
-    </div>
-  </section>
+      <section class="dr-card">
+        <h2>Punti del colloquio <span class="hint">Temi distinti, in ordine</span></h2>
+        {% if punti %}
+        <ul class="dr-keypoints" id="punti-preview" style="margin-bottom:0.75rem;">
+          {% for p in punti %}
+          <li>
+            <strong>{{ p.tema if p is mapping else 'Tema' }}</strong>
+            <span>{{ p.dettaglio if p is mapping else p }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p class="dr-empty" id="punti-empty-msg">Nessun punto ancora. Aggiungili sotto oppure lascia vuoto.</p>
+        {% endif %}
 
-  <section class="diary-panel">
-    <h3>Campi estratti</h3>
-    <form id="diary-form" class="form-container" style="padding:0; background:transparent; border:none;">
-      <div id="fields-scroll">
-
-        <div class="diary-section">
-          <h4 class="diary-section-title">Punti del colloquio</h4>
-          <p class="diary-section-hint">Temi distinti emersi in momenti diversi della conversazione.</p>
-          <div id="punti-list" class="punti-list">
-            {% if punti %}
+        <details class="dr-details" {% if not punti %}open{% endif %} style="margin-top:0.5rem;">
+          <summary>Modifica punti</summary>
+          <div class="dr-details-body">
+            <div id="punti-list" class="punti-list">
               {% for p in punti %}
               <div class="punto-row">
                 <input type="text" class="input-text punto-tema" placeholder="Tema" value="{{ p.tema if p is mapping else '' }}">
                 <textarea class="input-text punto-dettaglio" placeholder="Dettaglio">{{ p.dettaglio if p is mapping else p }}</textarea>
-                <button type="button" class="btn-remove-punto" aria-label="Rimuovi punto">✕</button>
+                <button type="button" class="btn-remove-punto" aria-label="Rimuovi">✕</button>
               </div>
               {% endfor %}
-            {% endif %}
-          </div>
-          <p class="punti-empty" id="punti-empty" {% if punti %}style="display:none"{% endif %}>Nessun punto estratto. Aggiungine uno o lascia vuoto.</p>
-          <button type="button" class="btn btn-ghost btn-small" id="btn-add-punto" style="margin-top:0.35rem;">+ Aggiungi punto</button>
-        </div>
-
-        <div class="diary-section">
-          <h4 class="diary-section-title">Misure antropometriche</h4>
-          <div class="form-grid">
-            <div class="form-group">
-              <label for="peso_kg">Peso (kg)</label>
-              <input type="number" step="0.1" id="peso_kg" class="input-text" value="{{ c.peso_kg if c.peso_kg is not none else '' }}">
             </div>
+            <button type="button" class="btn btn-ghost btn-small" id="btn-add-punto" style="margin-top:0.55rem;">{{ icon('plus', 14) }} Aggiungi punto</button>
+          </div>
+        </details>
+      </section>
+
+      <section class="dr-card">
+        <h2>Essenziale</h2>
+        <div class="dr-kv">
+          <div class="form-group">
+            <label for="peso_kg">Peso (kg)</label>
+            <input type="number" step="0.1" id="peso_kg" class="input-text" value="{{ c.peso_kg if c.peso_kg is not none else '' }}">
+          </div>
+          <div class="form-group">
+            <label for="aderenza_piano">Aderenza piano</label>
+            <select id="aderenza_piano" class="input-text">
+              {% for opt in ['alta','media','bassa','non_rilevata'] %}
+              <option value="{{ opt }}" {% if c.get('aderenza_piano', 'non_rilevata') == opt %}selected{% endif %}>{{ opt }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label for="attivita_fisica">Attività fisica</label>
+            <input type="text" id="attivita_fisica" class="input-text" value="{{ c.get('attivita_fisica') or '' }}" placeholder="Es. corsa 2× settimana">
+          </div>
+        </div>
+      </section>
+
+      <details class="dr-details">
+        <summary>
+          Misure
+          <span class="meta">{% if has_misure %}presente{% else %}opzionale{% endif %}</span>
+        </summary>
+        <div class="dr-details-body">
+          <div class="dr-kv">
             <div class="form-group">
               <label for="vita_cm">Vita (cm)</label>
-              <input type="number" step="0.1" id="vita_cm" class="input-text" value="{{ c.get('misure', {}).get('vita_cm', '') if c.get('misure') else '' }}">
+              <input type="number" step="0.1" id="vita_cm" class="input-text" value="{{ misure.get('vita_cm', '') if misure.get('vita_cm') is not none else '' }}">
             </div>
             <div class="form-group">
               <label for="fianchi_cm">Fianchi (cm)</label>
-              <input type="number" step="0.1" id="fianchi_cm" class="input-text" value="{{ c.get('misure', {}).get('fianchi_cm', '') if c.get('misure') else '' }}">
+              <input type="number" step="0.1" id="fianchi_cm" class="input-text" value="{{ misure.get('fianchi_cm', '') if misure.get('fianchi_cm') is not none else '' }}">
             </div>
             <div class="form-group">
               <label for="massa_grassa_pct">Massa grassa %</label>
-              <input type="number" step="0.1" id="massa_grassa_pct" class="input-text" value="{{ c.get('misure', {}).get('massa_grassa_pct', '') if c.get('misure') else '' }}">
+              <input type="number" step="0.1" id="massa_grassa_pct" class="input-text" value="{{ misure.get('massa_grassa_pct', '') if misure.get('massa_grassa_pct') is not none else '' }}">
             </div>
           </div>
         </div>
+      </details>
 
-        <div class="diary-section">
-          <h4 class="diary-section-title">Aderenza e alimentazione</h4>
-          <div class="form-grid">
-            <div class="form-group">
-              <label for="aderenza_piano">Aderenza piano</label>
-              <select id="aderenza_piano" class="input-text">
-                {% for opt in ['alta','media','bassa','non_rilevata'] %}
-                <option value="{{ opt }}" {% if c.get('aderenza_piano', 'non_rilevata') == opt %}selected{% endif %}>{{ opt }}</option>
-                {% endfor %}
-              </select>
-            </div>
-          </div>
+      <details class="dr-details">
+        <summary>
+          Alimentazione
+          <span class="meta">{% if c.get('abitudini_alimentari') %}{{ (c.get('abitudini_alimentari') or [])|length }} note{% else %}opzionale{% endif %}</span>
+        </summary>
+        <div class="dr-details-body">
           <div class="form-group list-field">
-            <label for="abitudini_alimentari">Abitudini alimentari (uno per riga)</label>
+            <label for="abitudini_alimentari">Abitudini (una per riga)</label>
             <textarea id="abitudini_alimentari" class="input-text">{{ (c.get('abitudini_alimentari') or [])|join('\n') }}</textarea>
           </div>
         </div>
+      </details>
 
-        <div class="diary-section">
-          <h4 class="diary-section-title">Attività fisica</h4>
-          <div class="form-group">
-            <label for="attivita_fisica">Attività riferita</label>
-            <input type="text" id="attivita_fisica" class="input-text" value="{{ c.get('attivita_fisica') or '' }}">
-          </div>
-        </div>
-
-        <div class="diary-section">
-          <h4 class="diary-section-title">Quadro clinico</h4>
+      <details class="dr-details" {% if has_clinico %}open{% endif %}>
+        <summary>
+          Quadro clinico
+          <span class="meta">{% if has_clinico %}presente{% else %}opzionale{% endif %}</span>
+        </summary>
+        <div class="dr-details-body">
           <div class="form-group list-field">
-            <label for="sintomi_riportati">Sintomi (uno per riga)</label>
+            <label for="sintomi_riportati">Sintomi (una per riga)</label>
             <textarea id="sintomi_riportati" class="input-text">{{ (c.get('sintomi_riportati') or [])|join('\n') }}</textarea>
           </div>
           <div class="form-group list-field">
-            <label for="difficolta_segnalate">Difficoltà (uno per riga)</label>
+            <label for="difficolta_segnalate">Difficoltà (una per riga)</label>
             <textarea id="difficolta_segnalate" class="input-text">{{ (c.get('difficolta_segnalate') or [])|join('\n') }}</textarea>
           </div>
           <div class="form-group">
-            <label for="note_cliniche">Note cliniche</label>
-            <textarea id="note_cliniche" class="input-text" rows="3">{{ c.get('note_cliniche') or '' }}</textarea>
+            <label for="note_cliniche">Note</label>
+            <textarea id="note_cliniche" class="input-text" rows="2">{{ c.get('note_cliniche') or '' }}</textarea>
           </div>
         </div>
+      </details>
 
-        <div class="diary-section">
-          <h4 class="diary-section-title">Piano e follow-up</h4>
+      <details class="dr-details" {% if has_piano %}open{% endif %}>
+        <summary>
+          Piano e follow-up
+          <span class="meta">{% if has_piano %}presente{% else %}opzionale{% endif %}</span>
+        </summary>
+        <div class="dr-details-body">
           <div class="form-group list-field">
-            <label for="obiettivi_concordati">Obiettivi concordati (uno per riga)</label>
+            <label for="obiettivi_concordati">Obiettivi (una per riga)</label>
             <textarea id="obiettivi_concordati" class="input-text">{{ (c.get('obiettivi_concordati') or [])|join('\n') }}</textarea>
           </div>
           <div class="form-group list-field">
-            <label for="modifiche_al_piano">Modifiche al piano (uno per riga)</label>
+            <label for="modifiche_al_piano">Modifiche al piano (una per riga)</label>
             <textarea id="modifiche_al_piano" class="input-text">{{ (c.get('modifiche_al_piano') or [])|join('\n') }}</textarea>
           </div>
           <div class="form-group">
@@ -260,43 +380,45 @@
             <input type="text" id="prossimo_controllo" class="input-text" value="{{ c.get('prossimo_controllo') or '' }}">
           </div>
         </div>
+      </details>
 
-        <div class="diary-section">
-          <h4 class="diary-section-title">Riassunto</h4>
-          <div class="form-group">
-            <label for="riassunto">Sintesi del colloquio *</label>
-            <textarea id="riassunto" class="input-text" rows="4" required>{{ c.get('riassunto') or entry.riassunto_testo or '' }}</textarea>
-          </div>
-        </div>
-
-      </div>
-
-      <div class="diary-actions">
+      <div class="dr-actions">
         {% if payload.modificabile %}
-        <button type="button" class="btn btn-primary" id="btn-save">Salva modifiche</button>
-        <button type="button" class="btn btn-primary" id="btn-confirm" style="background:#81C784;border-color:#81C784;color:#111;">Conferma</button>
-        <button type="button" class="btn btn-ghost" id="btn-reject">Rigenera</button>
+        <button type="button" class="btn btn-ghost btn-small" id="btn-save">Salva</button>
+        <button type="button" class="btn btn-ghost btn-small" id="btn-confirm">Conferma diario</button>
+        <button type="button" class="btn btn-ghost btn-small" id="btn-reject">Rigenera</button>
         {% else %}
-        <p style="color:#d8d8d8;margin:0;">Diario confermato: usa la correzione post-conferma se necessario.</p>
-        <button type="button" class="btn btn-primary" id="btn-post-confirm">Salva correzione post-conferma</button>
+        <button type="button" class="btn btn-ghost btn-small" id="btn-post-confirm">Salva correzione</button>
         {% endif %}
+        <a href="{{ url_for('patients.dettaglio_paziente', patient_id=patient_id) }}" class="btn btn-ghost btn-small">Scheda paziente</a>
       </div>
-      <div class="diary-status-msg" id="status-msg"></div>
-    </form>
-  </section>
-</div>
+      <div class="dr-status" id="status-msg"></div>
+    </div>
+
+    <aside>
+      <section class="dr-card">
+        <h2>Trascrizione</h2>
+        <p class="dr-side-note">Testo grezzo del colloquio. Aprila solo se ti serve verificare un dettaglio.</p>
+        {% if has_transcript %}
+        <details class="dr-details">
+          <summary>Mostra trascrizione</summary>
+          <div class="dr-details-body" style="padding-top:0.85rem;">
+            <div class="transcript-box" id="transcript-text">{{ payload.transcript.testo }}</div>
+          </div>
+        </details>
+        {% else %}
+        <p class="dr-empty">Trascrizione non disponibile.</p>
+        {% endif %}
+      </section>
+    </aside>
+  </div>
+</form>
 
 <script>
 (function () {
   const consultationId = {{ consultation_id|tojson }};
   const statusEl = document.getElementById('status-msg');
   const puntiList = document.getElementById('punti-list');
-  const puntiEmpty = document.getElementById('punti-empty');
-
-  function syncPuntiEmpty() {
-    const hasRows = puntiList.querySelectorAll('.punto-row').length > 0;
-    puntiEmpty.style.display = hasRows ? 'none' : '';
-  }
 
   function addPuntoRow(tema, dettaglio) {
     const row = document.createElement('div');
@@ -304,25 +426,26 @@
     row.innerHTML =
       '<input type="text" class="input-text punto-tema" placeholder="Tema">' +
       '<textarea class="input-text punto-dettaglio" placeholder="Dettaglio"></textarea>' +
-      '<button type="button" class="btn-remove-punto" aria-label="Rimuovi punto">✕</button>';
+      '<button type="button" class="btn-remove-punto" aria-label="Rimuovi">✕</button>';
     row.querySelector('.punto-tema').value = tema || '';
     row.querySelector('.punto-dettaglio').value = dettaglio || '';
-    row.querySelector('.btn-remove-punto').addEventListener('click', () => {
-      row.remove();
-      syncPuntiEmpty();
-    });
+    row.querySelector('.btn-remove-punto').addEventListener('click', () => row.remove());
     puntiList.appendChild(row);
-    syncPuntiEmpty();
   }
 
   puntiList.querySelectorAll('.btn-remove-punto').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      btn.closest('.punto-row').remove();
-      syncPuntiEmpty();
-    });
+    btn.addEventListener('click', () => btn.closest('.punto-row').remove());
   });
-
   document.getElementById('btn-add-punto').addEventListener('click', () => addPuntoRow('', ''));
+
+  // Spezza un po' la trascrizione grezza per leggibilità
+  const transcriptEl = document.getElementById('transcript-text');
+  if (transcriptEl) {
+    let t = transcriptEl.textContent || '';
+    t = t.replace(/\s+/g, ' ').trim();
+    t = t.replace(/([.!?…])\s+/g, '$1\n\n');
+    transcriptEl.textContent = t;
+  }
 
   function collectPunti() {
     return Array.from(puntiList.querySelectorAll('.punto-row')).map((row) => {
@@ -331,12 +454,9 @@
       return { tema, dettaglio };
     }).filter((p) => p.tema && p.dettaglio);
   }
-
   function lines(id) {
     return (document.getElementById(id).value || '')
-      .split('\n')
-      .map(s => s.trim())
-      .filter(Boolean);
+      .split('\n').map(s => s.trim()).filter(Boolean);
   }
   function numOrNull(id) {
     const v = document.getElementById(id).value;
@@ -346,26 +466,28 @@
   }
   function buildPayload() {
     const riassunto = (document.getElementById('riassunto').value || '').trim();
-    const contenuto_json = {
-      peso_kg: numOrNull('peso_kg'),
-      misure: {
-        vita_cm: numOrNull('vita_cm'),
-        fianchi_cm: numOrNull('fianchi_cm'),
-        massa_grassa_pct: numOrNull('massa_grassa_pct'),
+    return {
+      contenuto_json: {
+        peso_kg: numOrNull('peso_kg'),
+        misure: {
+          vita_cm: numOrNull('vita_cm'),
+          fianchi_cm: numOrNull('fianchi_cm'),
+          massa_grassa_pct: numOrNull('massa_grassa_pct'),
+        },
+        aderenza_piano: document.getElementById('aderenza_piano').value,
+        sintomi_riportati: lines('sintomi_riportati'),
+        difficolta_segnalate: lines('difficolta_segnalate'),
+        abitudini_alimentari: lines('abitudini_alimentari'),
+        attivita_fisica: document.getElementById('attivita_fisica').value.trim() || null,
+        obiettivi_concordati: lines('obiettivi_concordati'),
+        modifiche_al_piano: lines('modifiche_al_piano'),
+        note_cliniche: document.getElementById('note_cliniche').value.trim() || null,
+        prossimo_controllo: document.getElementById('prossimo_controllo').value.trim() || null,
+        punti_colloquio: collectPunti(),
+        riassunto: riassunto,
       },
-      aderenza_piano: document.getElementById('aderenza_piano').value,
-      sintomi_riportati: lines('sintomi_riportati'),
-      difficolta_segnalate: lines('difficolta_segnalate'),
-      abitudini_alimentari: lines('abitudini_alimentari'),
-      attivita_fisica: document.getElementById('attivita_fisica').value.trim() || null,
-      obiettivi_concordati: lines('obiettivi_concordati'),
-      modifiche_al_piano: lines('modifiche_al_piano'),
-      note_cliniche: document.getElementById('note_cliniche').value.trim() || null,
-      prossimo_controllo: document.getElementById('prossimo_controllo').value.trim() || null,
-      punti_colloquio: collectPunti(),
-      riassunto: riassunto,
+      riassunto_testo: riassunto,
     };
-    return { contenuto_json, riassunto_testo: riassunto };
   }
 
   async function api(method, path, body) {
@@ -380,10 +502,9 @@
     if (!res.ok) throw new Error(data.error || ('Errore HTTP ' + res.status));
     return data;
   }
-
   function setMsg(text, ok) {
     statusEl.textContent = text || '';
-    statusEl.style.color = ok ? '#81C784' : '#E57373';
+    statusEl.style.color = ok ? '#c8c8c8' : '#E57373';
   }
 
   const btnSave = document.getElementById('btn-save');
@@ -392,15 +513,14 @@
       try {
         setMsg('Salvataggio…', true);
         await api('PATCH', '/api/consultations/' + consultationId + '/diary', buildPayload());
-        setMsg('Modifiche salvate (bozza da revisionare).', true);
+        setMsg('Salvato.', true);
       } catch (e) { setMsg(e.message, false); }
     });
   }
-
   const btnConfirm = document.getElementById('btn-confirm');
   if (btnConfirm) {
     btnConfirm.addEventListener('click', async () => {
-      if (!confirm('Confermare definitivamente questo diario? Entrerà nello storico validato.')) return;
+      if (!confirm('Confermare definitivamente questo diario?')) return;
       try {
         setMsg('Conferma in corso…', true);
         await api('PATCH', '/api/consultations/' + consultationId + '/diary', buildPayload());
@@ -410,30 +530,29 @@
       } catch (e) { setMsg(e.message, false); }
     });
   }
-
   const btnReject = document.getElementById('btn-reject');
   if (btnReject) {
     btnReject.addEventListener('click', async () => {
-      if (!confirm('Scartare la bozza e rigenerare con AI?')) return;
+      if (!confirm('Scartare e rigenerare con AI?')) return;
       try {
-        setMsg('Rigenerazione avviata…', true);
+        setMsg('Rigenerazione…', true);
         await api('POST', '/api/consultations/' + consultationId + '/diary/reject');
-        setMsg('Rigenerazione in corso. Ricarica tra qualche secondo.', true);
-        setTimeout(() => window.location.href = '{{ url_for("patients.dettaglio_paziente", patient_id=patient_id, tab="diario") }}', 1200);
+        setTimeout(() => {
+          window.location.href = '{{ url_for("patients.dettaglio_paziente", patient_id=patient_id, tab="diario") }}';
+        }, 1000);
       } catch (e) { setMsg(e.message, false); }
     });
   }
-
   const btnPost = document.getElementById('btn-post-confirm');
   if (btnPost) {
     btnPost.addEventListener('click', async () => {
-      const motivo = prompt('Motivo della correzione post-conferma:') || '';
+      const motivo = prompt('Motivo della correzione:') || '';
       try {
-        setMsg('Salvataggio correzione…', true);
+        setMsg('Salvataggio…', true);
         const body = buildPayload();
         body.motivo = motivo;
         await api('PATCH', '/api/consultations/' + consultationId + '/diary/post-confirm', body);
-        setMsg('Correzione post-conferma salvata.', true);
+        setMsg('Correzione salvata.', true);
       } catch (e) { setMsg(e.message, false); }
     });
   }
