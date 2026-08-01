@@ -3,460 +3,409 @@
 {% block content %}
 
 {% set entry = payload.diary_entry %}
-{% set paziente_nome = (payload.patient.nome or '') ~ ' ' ~ (payload.patient.cognome or '') %}
+{% set paziente_nome = ((payload.patient.nome or '') ~ ' ' ~ (payload.patient.cognome or '')).strip() %}
 {% set c = contenuto %}
 {% set punti = c.get('punti_colloquio') or [] %}
 {% set misure = c.get('misure') or {} %}
+{% set sintomi = c.get('sintomi_riportati') or [] %}
+{% set difficolta = c.get('difficolta_segnalate') or [] %}
+{% set abitudini = c.get('abitudini_alimentari') or [] %}
+{% set obiettivi = c.get('obiettivi_concordati') or [] %}
+{% set modifiche = c.get('modifiche_al_piano') or [] %}
 {% set has_transcript = payload.transcript and payload.transcript.testo %}
-{% set has_clinico = (c.get('sintomi_riportati') or []) or (c.get('difficolta_segnalate') or []) or c.get('note_cliniche') %}
-{% set has_piano = (c.get('obiettivi_concordati') or []) or (c.get('modifiche_al_piano') or []) or c.get('prossimo_controllo') %}
-{% set has_misure = c.peso_kg is not none or misure.get('vita_cm') is not none or misure.get('fianchi_cm') is not none or misure.get('massa_grassa_pct') is not none %}
 
 <style>
-  .dr-back {
+  .dr {
+    max-width: 720px;
+  }
+  .dr-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+  .dr-nav a {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    color: #a8a8a8;
+    color: #a0a0a0;
     font-size: 0.85rem;
     text-decoration: none;
-    margin-bottom: 0.85rem;
   }
-  .dr-back:hover { color: #e8e8e8; }
-  .dr-hero {
-    margin-bottom: 1.25rem;
-    padding: 1.35rem 1.5rem;
-    border-radius: 16px;
-    background: linear-gradient(120deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04) 70%, transparent);
-    border: 1px solid rgba(255,255,255,0.12);
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 1rem;
-    flex-wrap: wrap;
+  .dr-nav a:hover { color: #eee; }
+  .dr-badge {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #b8b8b8;
+    border: 1px solid rgba(255,255,255,0.16);
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
   }
-  .dr-hero h1 {
-    margin: 0;
+
+  .dr-title {
+    margin: 0 0 0.25rem;
     color: #fff;
-    font: 500 1.7rem var(--adm-serif, Georgia, serif);
-    line-height: 1.2;
+    font: 500 1.85rem / 1.2 var(--adm-serif, Georgia, "Times New Roman", serif);
   }
-  .dr-hero p {
-    margin: 0.4rem 0 0;
-    color: #a8a8a8;
+  .dr-sub {
+    margin: 0 0 2rem;
+    color: #8e8e8e;
     font-size: 0.9rem;
   }
-  .dr-badge {
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    padding: 0.28rem 0.65rem;
-    border-radius: 999px;
-    background: rgba(255,255,255,0.1);
-    color: #d0d0d0;
-    white-space: nowrap;
+
+  .dr-block {
+    margin-bottom: 1.75rem;
   }
-  .dr-layout {
-    display: grid;
-    grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.85fr);
-    gap: 1.15rem;
-    align-items: start;
-  }
-  @media (max-width: 960px) {
-    .dr-layout { grid-template-columns: 1fr; }
-  }
-  .dr-card {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 14px;
-    padding: 1.15rem 1.25rem;
-    margin-bottom: 0.85rem;
-  }
-  .dr-card:last-child { margin-bottom: 0; }
-  .dr-card h2 {
-    margin: 0 0 0.75rem;
-    color: #e8e8e8;
-    font-size: 0.95rem;
-    font-weight: 650;
-  }
-  .dr-card h2 .hint {
+  .dr-label {
     display: block;
-    margin-top: 0.25rem;
-    color: #888;
-    font-size: 0.78rem;
-    font-weight: 400;
+    margin: 0 0 0.45rem;
+    color: #8e8e8e;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
   }
-  .dr-keypoints {
+  .dr-block .input-text,
+  .dr-block textarea.input-text,
+  .dr-block select.input-text {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(255,255,255,0.14);
+    border-radius: 0;
+    padding: 0.45rem 0;
+    color: #f2f2f2;
+    font-size: 1rem;
+    line-height: 1.45;
+  }
+  .dr-block textarea.input-text {
+    resize: vertical;
+    min-height: 4.5rem;
+  }
+  .dr-block .input-text:focus,
+  .dr-block textarea.input-text:focus,
+  .dr-block select.input-text:focus {
+    outline: none;
+    border-bottom-color: rgba(255,255,255,0.45);
+  }
+
+  .dr-metrics {
+    display: grid;
+    grid-template-columns: 7rem 9rem 1fr;
+    gap: 1.25rem;
+    margin-bottom: 1.75rem;
+  }
+  @media (max-width: 640px) {
+    .dr-metrics { grid-template-columns: 1fr 1fr; }
+    .dr-metrics .dr-metric:last-child { grid-column: 1 / -1; }
+  }
+
+  .dr-points {
     list-style: none;
     margin: 0;
     padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.55rem;
   }
-  .dr-keypoints li {
-    padding: 0.7rem 0.85rem;
-    background: rgba(0,0,0,0.18);
-    border-radius: 10px;
-    border: 1px solid rgba(255,255,255,0.06);
-  }
-  .dr-keypoints strong {
-    display: block;
-    color: #fff;
-    font-size: 0.88rem;
-    margin-bottom: 0.2rem;
-  }
-  .dr-keypoints span {
-    color: #b8b8b8;
-    font-size: 0.86rem;
-    line-height: 1.4;
-  }
-  .dr-empty {
-    color: #888;
-    font-size: 0.88rem;
-    margin: 0;
-  }
-  .dr-kv {
+  .dr-points li {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.65rem;
-  }
-  @media (max-width: 520px) {
-    .dr-kv { grid-template-columns: 1fr; }
-  }
-  .dr-kv .form-group { margin: 0; }
-  .dr-kv label {
-    display: block;
-    color: #a8a8a8;
-    font-size: 0.75rem;
-    margin-bottom: 0.25rem;
-  }
-  .dr-details {
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 12px;
-    background: rgba(255,255,255,0.04);
-    margin-bottom: 0.65rem;
-    overflow: hidden;
-  }
-  .dr-details:last-of-type { margin-bottom: 0; }
-  .dr-details > summary {
-    list-style: none;
-    cursor: pointer;
-    padding: 0.85rem 1rem;
-    color: #e0e0e0;
-    font-size: 0.9rem;
-    font-weight: 600;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 0.5rem;
-    user-select: none;
-  }
-  .dr-details > summary::-webkit-details-marker { display: none; }
-  .dr-details > summary::after {
-    content: '›';
-    color: #888;
-    font-size: 1.1rem;
-    transition: transform .15s ease;
-  }
-  .dr-details[open] > summary::after { transform: rotate(90deg); }
-  .dr-details > summary .meta {
-    color: #888;
-    font-size: 0.78rem;
-    font-weight: 400;
-    margin-right: auto;
-    margin-left: 0.5rem;
-  }
-  .dr-details-body {
-    padding: 0 1rem 1rem;
-    border-top: 1px solid rgba(255,255,255,0.06);
-  }
-  .dr-details-body .form-group { margin-top: 0.75rem; }
-  .dr-details-body .form-group:first-child { margin-top: 0.85rem; }
-  .list-field textarea { min-height: 3.6rem; }
-  .punti-list { display: flex; flex-direction: column; gap: 0.55rem; }
-  .punto-row {
-    display: grid;
-    grid-template-columns: 9rem 1fr auto;
-    gap: 0.45rem;
+    grid-template-columns: 8.5rem 1fr auto;
+    gap: 0.75rem;
+    padding: 0.65rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
     align-items: start;
   }
-  @media (max-width: 640px) {
-    .punto-row { grid-template-columns: 1fr; }
+  @media (max-width: 560px) {
+    .dr-points li { grid-template-columns: 1fr; gap: 0.35rem; }
   }
-  .punto-row .input-text { margin: 0; }
-  .punto-row textarea.input-text { min-height: 3rem; resize: vertical; }
-  .btn-remove-punto {
+  .dr-points .punto-tema {
+    font-weight: 600;
+    color: #fff;
+    font-size: 0.92rem;
     background: transparent;
-    border: 1px solid rgba(255,255,255,0.16);
-    color: #a8a8a8;
-    border-radius: 8px;
-    padding: 0.35rem 0.5rem;
-    cursor: pointer;
-    font-size: 0.8rem;
+    border: none;
+    border-bottom: 1px solid transparent;
+    padding: 0.15rem 0;
+    width: 100%;
   }
-  .btn-remove-punto:hover { color: #e8e8e8; border-color: rgba(255,255,255,0.3); }
+  .dr-points .punto-dettaglio {
+    color: #c8c8c8;
+    font-size: 0.92rem;
+    line-height: 1.4;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid transparent;
+    padding: 0.15rem 0;
+    width: 100%;
+    min-height: 1.4rem;
+    resize: vertical;
+  }
+  .dr-points .punto-tema:focus,
+  .dr-points .punto-dettaglio:focus {
+    outline: none;
+    border-bottom-color: rgba(255,255,255,0.35);
+  }
+  .dr-points .btn-x {
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    padding: 0.1rem 0.35rem;
+    font-size: 1rem;
+    line-height: 1;
+  }
+  .dr-points .btn-x:hover { color: #ccc; }
+  .dr-add {
+    margin-top: 0.55rem;
+    background: none;
+    border: none;
+    color: #8e8e8e;
+    font-size: 0.85rem;
+    cursor: pointer;
+    padding: 0;
+  }
+  .dr-add:hover { color: #ddd; }
+
+  .dr-lists {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem 2rem;
+    margin-bottom: 1.75rem;
+  }
+  @media (max-width: 640px) {
+    .dr-lists { grid-template-columns: 1fr; }
+  }
+  .dr-lists textarea.input-text {
+    min-height: 3.2rem;
+    font-size: 0.92rem;
+  }
+
+  .dr-more summary {
+    cursor: pointer;
+    color: #8e8e8e;
+    font-size: 0.85rem;
+    list-style: none;
+    margin-bottom: 0.85rem;
+    user-select: none;
+  }
+  .dr-more summary::-webkit-details-marker { display: none; }
+  .dr-more summary:hover { color: #ddd; }
+  .dr-more[open] summary { margin-bottom: 1rem; }
+  .dr-more-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+  @media (max-width: 560px) {
+    .dr-more-grid { grid-template-columns: 1fr; }
+  }
+
   .transcript-box {
     white-space: pre-wrap;
-    color: #c8c8c8;
+    color: #b5b5b5;
     font-size: 0.88rem;
     line-height: 1.55;
-    max-height: 50vh;
+    max-height: 42vh;
     overflow: auto;
-    background: rgba(0,0,0,0.22);
-    border-radius: 10px;
-    padding: 0.9rem 1rem;
+    padding: 0.25rem 0 0;
+    border-top: 1px solid rgba(255,255,255,0.08);
   }
+
   .dr-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid rgba(255,255,255,0.08);
+    gap: 0.65rem;
+    align-items: center;
+    margin-top: 2rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid rgba(255,255,255,0.1);
   }
+  .dr-actions .btn { min-width: auto; }
   .dr-status {
-    margin-top: 0.75rem;
-    font-size: 0.88rem;
+    width: 100%;
+    margin-top: 0.35rem;
+    font-size: 0.85rem;
+    color: #8e8e8e;
     min-height: 1.2em;
-    color: #a8a8a8;
   }
-  .dr-side-note {
-    color: #888;
-    font-size: 0.82rem;
-    margin: 0 0 0.75rem;
-    line-height: 1.4;
-  }
+  .dr-muted { color: #666; font-size: 0.85rem; margin: 0; }
 </style>
 
-<a href="{{ url_for('patients.dettaglio_paziente', patient_id=patient_id, tab='diario') }}" class="dr-back">{{ icon('arrow-left', 14) }} Diario paziente</a>
-
-<header class="dr-hero">
-  <div>
-    <h1>{{ paziente_nome.strip() or 'Paziente' }}</h1>
-    <p>Colloquio #{{ consultation_id }} · {{ payload.stato }}</p>
+<div class="dr">
+  <div class="dr-nav">
+    <a href="{{ url_for('patients.dettaglio_paziente', patient_id=patient_id, tab='diario') }}">{{ icon('arrow-left', 14) }} Diario</a>
+    <span class="dr-badge">
+      {% if payload.da_revisionare %}Da revisionare{% elif payload.confermato %}Confermato{% else %}{{ payload.stato }}{% endif %}
+    </span>
   </div>
-  <span class="dr-badge">
-    {% if payload.da_revisionare %}Da revisionare{% elif payload.confermato %}Confermato{% else %}{{ payload.stato }}{% endif %}
-  </span>
-</header>
 
-<form id="diary-form">
-  <div class="dr-layout">
-    <div>
-      <section class="dr-card">
-        <h2>Riassunto <span class="hint">Cosa emerge dal colloquio, in breve</span></h2>
-        <textarea id="riassunto" class="input-text" rows="4" required placeholder="Sintesi fattuale del colloquio…">{{ c.get('riassunto') or entry.riassunto_testo or '' }}</textarea>
-      </section>
+  <h1 class="dr-title">{{ paziente_nome or 'Paziente' }}</h1>
+  <p class="dr-sub">Colloquio #{{ consultation_id }}</p>
 
-      <section class="dr-card">
-        <h2>Punti del colloquio <span class="hint">Temi distinti, in ordine</span></h2>
-        {% if punti %}
-        <ul class="dr-keypoints" id="punti-preview" style="margin-bottom:0.75rem;">
-          {% for p in punti %}
-          <li>
-            <strong>{{ p.tema if p is mapping else 'Tema' }}</strong>
-            <span>{{ p.dettaglio if p is mapping else p }}</span>
-          </li>
-          {% endfor %}
-        </ul>
-        {% else %}
-        <p class="dr-empty" id="punti-empty-msg">Nessun punto ancora. Aggiungili sotto oppure lascia vuoto.</p>
-        {% endif %}
-
-        <details class="dr-details" {% if not punti %}open{% endif %} style="margin-top:0.5rem;">
-          <summary>Modifica punti</summary>
-          <div class="dr-details-body">
-            <div id="punti-list" class="punti-list">
-              {% for p in punti %}
-              <div class="punto-row">
-                <input type="text" class="input-text punto-tema" placeholder="Tema" value="{{ p.tema if p is mapping else '' }}">
-                <textarea class="input-text punto-dettaglio" placeholder="Dettaglio">{{ p.dettaglio if p is mapping else p }}</textarea>
-                <button type="button" class="btn-remove-punto" aria-label="Rimuovi">✕</button>
-              </div>
-              {% endfor %}
-            </div>
-            <button type="button" class="btn btn-ghost btn-small" id="btn-add-punto" style="margin-top:0.55rem;">{{ icon('plus', 14) }} Aggiungi punto</button>
-          </div>
-        </details>
-      </section>
-
-      <section class="dr-card">
-        <h2>Essenziale</h2>
-        <div class="dr-kv">
-          <div class="form-group">
-            <label for="peso_kg">Peso (kg)</label>
-            <input type="number" step="0.1" id="peso_kg" class="input-text" value="{{ c.peso_kg if c.peso_kg is not none else '' }}">
-          </div>
-          <div class="form-group">
-            <label for="aderenza_piano">Aderenza piano</label>
-            <select id="aderenza_piano" class="input-text">
-              {% for opt in ['alta','media','bassa','non_rilevata'] %}
-              <option value="{{ opt }}" {% if c.get('aderenza_piano', 'non_rilevata') == opt %}selected{% endif %}>{{ opt }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="form-group" style="grid-column: 1 / -1;">
-            <label for="attivita_fisica">Attività fisica</label>
-            <input type="text" id="attivita_fisica" class="input-text" value="{{ c.get('attivita_fisica') or '' }}" placeholder="Es. corsa 2× settimana">
-          </div>
-        </div>
-      </section>
-
-      <details class="dr-details">
-        <summary>
-          Misure
-          <span class="meta">{% if has_misure %}presente{% else %}opzionale{% endif %}</span>
-        </summary>
-        <div class="dr-details-body">
-          <div class="dr-kv">
-            <div class="form-group">
-              <label for="vita_cm">Vita (cm)</label>
-              <input type="number" step="0.1" id="vita_cm" class="input-text" value="{{ misure.get('vita_cm', '') if misure.get('vita_cm') is not none else '' }}">
-            </div>
-            <div class="form-group">
-              <label for="fianchi_cm">Fianchi (cm)</label>
-              <input type="number" step="0.1" id="fianchi_cm" class="input-text" value="{{ misure.get('fianchi_cm', '') if misure.get('fianchi_cm') is not none else '' }}">
-            </div>
-            <div class="form-group">
-              <label for="massa_grassa_pct">Massa grassa %</label>
-              <input type="number" step="0.1" id="massa_grassa_pct" class="input-text" value="{{ misure.get('massa_grassa_pct', '') if misure.get('massa_grassa_pct') is not none else '' }}">
-            </div>
-          </div>
-        </div>
-      </details>
-
-      <details class="dr-details">
-        <summary>
-          Alimentazione
-          <span class="meta">{% if c.get('abitudini_alimentari') %}{{ (c.get('abitudini_alimentari') or [])|length }} note{% else %}opzionale{% endif %}</span>
-        </summary>
-        <div class="dr-details-body">
-          <div class="form-group list-field">
-            <label for="abitudini_alimentari">Abitudini (una per riga)</label>
-            <textarea id="abitudini_alimentari" class="input-text">{{ (c.get('abitudini_alimentari') or [])|join('\n') }}</textarea>
-          </div>
-        </div>
-      </details>
-
-      <details class="dr-details" {% if has_clinico %}open{% endif %}>
-        <summary>
-          Quadro clinico
-          <span class="meta">{% if has_clinico %}presente{% else %}opzionale{% endif %}</span>
-        </summary>
-        <div class="dr-details-body">
-          <div class="form-group list-field">
-            <label for="sintomi_riportati">Sintomi (una per riga)</label>
-            <textarea id="sintomi_riportati" class="input-text">{{ (c.get('sintomi_riportati') or [])|join('\n') }}</textarea>
-          </div>
-          <div class="form-group list-field">
-            <label for="difficolta_segnalate">Difficoltà (una per riga)</label>
-            <textarea id="difficolta_segnalate" class="input-text">{{ (c.get('difficolta_segnalate') or [])|join('\n') }}</textarea>
-          </div>
-          <div class="form-group">
-            <label for="note_cliniche">Note</label>
-            <textarea id="note_cliniche" class="input-text" rows="2">{{ c.get('note_cliniche') or '' }}</textarea>
-          </div>
-        </div>
-      </details>
-
-      <details class="dr-details" {% if has_piano %}open{% endif %}>
-        <summary>
-          Piano e follow-up
-          <span class="meta">{% if has_piano %}presente{% else %}opzionale{% endif %}</span>
-        </summary>
-        <div class="dr-details-body">
-          <div class="form-group list-field">
-            <label for="obiettivi_concordati">Obiettivi (una per riga)</label>
-            <textarea id="obiettivi_concordati" class="input-text">{{ (c.get('obiettivi_concordati') or [])|join('\n') }}</textarea>
-          </div>
-          <div class="form-group list-field">
-            <label for="modifiche_al_piano">Modifiche al piano (una per riga)</label>
-            <textarea id="modifiche_al_piano" class="input-text">{{ (c.get('modifiche_al_piano') or [])|join('\n') }}</textarea>
-          </div>
-          <div class="form-group">
-            <label for="prossimo_controllo">Prossimo controllo</label>
-            <input type="text" id="prossimo_controllo" class="input-text" value="{{ c.get('prossimo_controllo') or '' }}">
-          </div>
-        </div>
-      </details>
-
-      <div class="dr-actions">
-        {% if payload.modificabile %}
-        <button type="button" class="btn btn-ghost btn-small" id="btn-save">Salva</button>
-        <button type="button" class="btn btn-ghost btn-small" id="btn-confirm">Conferma diario</button>
-        <button type="button" class="btn btn-ghost btn-small" id="btn-reject">Rigenera</button>
-        {% else %}
-        <button type="button" class="btn btn-ghost btn-small" id="btn-post-confirm">Salva correzione</button>
-        {% endif %}
-        <a href="{{ url_for('patients.dettaglio_paziente', patient_id=patient_id) }}" class="btn btn-ghost btn-small">Scheda paziente</a>
-      </div>
-      <div class="dr-status" id="status-msg"></div>
+  <form id="diary-form">
+    <div class="dr-block">
+      <label class="dr-label" for="riassunto">Riassunto</label>
+      <textarea id="riassunto" class="input-text" rows="3" required placeholder="Sintesi del colloquio…">{{ c.get('riassunto') or entry.riassunto_testo or '' }}</textarea>
     </div>
 
-    <aside>
-      <section class="dr-card">
-        <h2>Trascrizione</h2>
-        <p class="dr-side-note">Testo grezzo del colloquio. Aprila solo se ti serve verificare un dettaglio.</p>
-        {% if has_transcript %}
-        <details class="dr-details">
-          <summary>Mostra trascrizione</summary>
-          <div class="dr-details-body" style="padding-top:0.85rem;">
-            <div class="transcript-box" id="transcript-text">{{ payload.transcript.testo }}</div>
-          </div>
-        </details>
-        {% else %}
-        <p class="dr-empty">Trascrizione non disponibile.</p>
-        {% endif %}
-      </section>
-    </aside>
-  </div>
-</form>
+    <div class="dr-metrics">
+      <div class="dr-metric">
+        <label class="dr-label" for="peso_kg">Peso</label>
+        <input type="number" step="0.1" id="peso_kg" class="input-text" value="{{ c.peso_kg if c.peso_kg is not none else '' }}" placeholder="kg">
+      </div>
+      <div class="dr-metric">
+        <label class="dr-label" for="aderenza_piano">Aderenza</label>
+        <select id="aderenza_piano" class="input-text">
+          {% for opt in ['alta','media','bassa','non_rilevata'] %}
+          <option value="{{ opt }}" {% if c.get('aderenza_piano', 'non_rilevata') == opt %}selected{% endif %}>{{ opt }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="dr-metric">
+        <label class="dr-label" for="attivita_fisica">Attività fisica</label>
+        <input type="text" id="attivita_fisica" class="input-text" value="{{ c.get('attivita_fisica') or '' }}" placeholder="—">
+      </div>
+    </div>
+
+    <div class="dr-block">
+      <span class="dr-label">Punti del colloquio</span>
+      <ul class="dr-points" id="punti-list">
+        {% for p in punti %}
+        <li class="punto-row">
+          <input type="text" class="punto-tema" placeholder="Tema" value="{{ p.tema if p is mapping else '' }}">
+          <textarea class="punto-dettaglio" rows="1" placeholder="Dettaglio">{{ p.dettaglio if p is mapping else p }}</textarea>
+          <button type="button" class="btn-x" aria-label="Rimuovi">×</button>
+        </li>
+        {% endfor %}
+      </ul>
+      {% if not punti %}
+      <p class="dr-muted" id="punti-empty">Nessun punto. Aggiungine uno se serve.</p>
+      {% endif %}
+      <button type="button" class="dr-add" id="btn-add-punto">+ Aggiungi punto</button>
+    </div>
+
+    <div class="dr-lists">
+      <div>
+        <label class="dr-label" for="sintomi_riportati">Sintomi</label>
+        <textarea id="sintomi_riportati" class="input-text" rows="2" placeholder="Uno per riga">{{ sintomi|join('\n') }}</textarea>
+      </div>
+      <div>
+        <label class="dr-label" for="difficolta_segnalate">Difficoltà</label>
+        <textarea id="difficolta_segnalate" class="input-text" rows="2" placeholder="Uno per riga">{{ difficolta|join('\n') }}</textarea>
+      </div>
+      <div>
+        <label class="dr-label" for="abitudini_alimentari">Alimentazione</label>
+        <textarea id="abitudini_alimentari" class="input-text" rows="2" placeholder="Uno per riga">{{ abitudini|join('\n') }}</textarea>
+      </div>
+      <div>
+        <label class="dr-label" for="note_cliniche">Note cliniche</label>
+        <textarea id="note_cliniche" class="input-text" rows="2" placeholder="—">{{ c.get('note_cliniche') or '' }}</textarea>
+      </div>
+    </div>
+
+    <div class="dr-lists">
+      <div>
+        <label class="dr-label" for="obiettivi_concordati">Obiettivi</label>
+        <textarea id="obiettivi_concordati" class="input-text" rows="2" placeholder="Uno per riga">{{ obiettivi|join('\n') }}</textarea>
+      </div>
+      <div>
+        <label class="dr-label" for="modifiche_al_piano">Modifiche piano</label>
+        <textarea id="modifiche_al_piano" class="input-text" rows="2" placeholder="Uno per riga">{{ modifiche|join('\n') }}</textarea>
+      </div>
+      <div style="grid-column: 1 / -1;">
+        <label class="dr-label" for="prossimo_controllo">Prossimo controllo</label>
+        <input type="text" id="prossimo_controllo" class="input-text" value="{{ c.get('prossimo_controllo') or '' }}" placeholder="—">
+      </div>
+    </div>
+
+    <details class="dr-more">
+      <summary>Misure antropometriche</summary>
+      <div class="dr-more-grid">
+        <div>
+          <label class="dr-label" for="vita_cm">Vita (cm)</label>
+          <input type="number" step="0.1" id="vita_cm" class="input-text" value="{{ misure.vita_cm if misure.vita_cm is not none else '' }}">
+        </div>
+        <div>
+          <label class="dr-label" for="fianchi_cm">Fianchi (cm)</label>
+          <input type="number" step="0.1" id="fianchi_cm" class="input-text" value="{{ misure.fianchi_cm if misure.fianchi_cm is not none else '' }}">
+        </div>
+        <div>
+          <label class="dr-label" for="massa_grassa_pct">Massa grassa %</label>
+          <input type="number" step="0.1" id="massa_grassa_pct" class="input-text" value="{{ misure.massa_grassa_pct if misure.massa_grassa_pct is not none else '' }}">
+        </div>
+      </div>
+    </details>
+
+    {% if has_transcript %}
+    <details class="dr-more">
+      <summary>Trascrizione completa</summary>
+      <div class="transcript-box" id="transcript-text">{{ payload.transcript.testo }}</div>
+    </details>
+    {% endif %}
+
+    <div class="dr-actions">
+      {% if payload.modificabile %}
+      <button type="button" class="btn btn-ghost btn-small" id="btn-save">Salva</button>
+      <button type="button" class="btn btn-ghost btn-small" id="btn-confirm">Conferma</button>
+      <button type="button" class="btn btn-ghost btn-small" id="btn-reject">Rigenera</button>
+      {% else %}
+      <button type="button" class="btn btn-ghost btn-small" id="btn-post-confirm">Salva correzione</button>
+      {% endif %}
+      <a href="{{ url_for('patients.dettaglio_paziente', patient_id=patient_id) }}" class="btn btn-ghost btn-small">Scheda paziente</a>
+      <div class="dr-status" id="status-msg"></div>
+    </div>
+  </form>
+</div>
 
 <script>
 (function () {
   const consultationId = {{ consultation_id|tojson }};
   const statusEl = document.getElementById('status-msg');
   const puntiList = document.getElementById('punti-list');
+  const puntiEmpty = document.getElementById('punti-empty');
 
-  function addPuntoRow(tema, dettaglio) {
-    const row = document.createElement('div');
-    row.className = 'punto-row';
-    row.innerHTML =
-      '<input type="text" class="input-text punto-tema" placeholder="Tema">' +
-      '<textarea class="input-text punto-dettaglio" placeholder="Dettaglio"></textarea>' +
-      '<button type="button" class="btn-remove-punto" aria-label="Rimuovi">✕</button>';
-    row.querySelector('.punto-tema').value = tema || '';
-    row.querySelector('.punto-dettaglio').value = dettaglio || '';
-    row.querySelector('.btn-remove-punto').addEventListener('click', () => row.remove());
-    puntiList.appendChild(row);
+  function syncEmpty() {
+    if (!puntiEmpty) return;
+    puntiEmpty.style.display = puntiList.children.length ? 'none' : '';
   }
 
-  puntiList.querySelectorAll('.btn-remove-punto').forEach((btn) => {
-    btn.addEventListener('click', () => btn.closest('.punto-row').remove());
-  });
-  document.getElementById('btn-add-punto').addEventListener('click', () => addPuntoRow('', ''));
+  function addPunto(tema, dettaglio) {
+    const li = document.createElement('li');
+    li.className = 'punto-row';
+    li.innerHTML =
+      '<input type="text" class="punto-tema" placeholder="Tema">' +
+      '<textarea class="punto-dettaglio" rows="1" placeholder="Dettaglio"></textarea>' +
+      '<button type="button" class="btn-x" aria-label="Rimuovi">×</button>';
+    li.querySelector('.punto-tema').value = tema || '';
+    li.querySelector('.punto-dettaglio').value = dettaglio || '';
+    li.querySelector('.btn-x').addEventListener('click', () => { li.remove(); syncEmpty(); });
+    puntiList.appendChild(li);
+    syncEmpty();
+  }
 
-  // Spezza un po' la trascrizione grezza per leggibilità
+  puntiList.querySelectorAll('.btn-x').forEach((btn) => {
+    btn.addEventListener('click', () => { btn.closest('li').remove(); syncEmpty(); });
+  });
+  document.getElementById('btn-add-punto').addEventListener('click', () => addPunto('', ''));
+
   const transcriptEl = document.getElementById('transcript-text');
   if (transcriptEl) {
-    let t = transcriptEl.textContent || '';
-    t = t.replace(/\s+/g, ' ').trim();
+    let t = (transcriptEl.textContent || '').replace(/\s+/g, ' ').trim();
     t = t.replace(/([.!?…])\s+/g, '$1\n\n');
     transcriptEl.textContent = t;
   }
 
   function collectPunti() {
-    return Array.from(puntiList.querySelectorAll('.punto-row')).map((row) => {
-      const tema = (row.querySelector('.punto-tema').value || '').trim();
-      const dettaglio = (row.querySelector('.punto-dettaglio').value || '').trim();
-      return { tema, dettaglio };
-    }).filter((p) => p.tema && p.dettaglio);
+    return Array.from(puntiList.querySelectorAll('.punto-row')).map((row) => ({
+      tema: (row.querySelector('.punto-tema').value || '').trim(),
+      dettaglio: (row.querySelector('.punto-dettaglio').value || '').trim(),
+    })).filter((p) => p.tema && p.dettaglio);
   }
   function lines(id) {
     return (document.getElementById(id).value || '')
-      .split('\n').map(s => s.trim()).filter(Boolean);
+      .split('\n').map((s) => s.trim()).filter(Boolean);
   }
   function numOrNull(id) {
     const v = document.getElementById(id).value;
@@ -504,58 +453,50 @@
   }
   function setMsg(text, ok) {
     statusEl.textContent = text || '';
-    statusEl.style.color = ok ? '#c8c8c8' : '#E57373';
+    statusEl.style.color = ok === false ? '#E57373' : '#8e8e8e';
   }
 
-  const btnSave = document.getElementById('btn-save');
-  if (btnSave) {
-    btnSave.addEventListener('click', async () => {
-      try {
-        setMsg('Salvataggio…', true);
-        await api('PATCH', '/api/consultations/' + consultationId + '/diary', buildPayload());
-        setMsg('Salvato.', true);
-      } catch (e) { setMsg(e.message, false); }
-    });
-  }
-  const btnConfirm = document.getElementById('btn-confirm');
-  if (btnConfirm) {
-    btnConfirm.addEventListener('click', async () => {
-      if (!confirm('Confermare definitivamente questo diario?')) return;
-      try {
-        setMsg('Conferma in corso…', true);
-        await api('PATCH', '/api/consultations/' + consultationId + '/diary', buildPayload());
-        await api('POST', '/api/consultations/' + consultationId + '/diary/confirm');
-        setMsg('Diario confermato.', true);
-        window.location.reload();
-      } catch (e) { setMsg(e.message, false); }
-    });
-  }
-  const btnReject = document.getElementById('btn-reject');
-  if (btnReject) {
-    btnReject.addEventListener('click', async () => {
-      if (!confirm('Scartare e rigenerare con AI?')) return;
-      try {
-        setMsg('Rigenerazione…', true);
-        await api('POST', '/api/consultations/' + consultationId + '/diary/reject');
-        setTimeout(() => {
-          window.location.href = '{{ url_for("patients.dettaglio_paziente", patient_id=patient_id, tab="diario") }}';
-        }, 1000);
-      } catch (e) { setMsg(e.message, false); }
-    });
-  }
-  const btnPost = document.getElementById('btn-post-confirm');
-  if (btnPost) {
-    btnPost.addEventListener('click', async () => {
-      const motivo = prompt('Motivo della correzione:') || '';
-      try {
-        setMsg('Salvataggio…', true);
-        const body = buildPayload();
-        body.motivo = motivo;
-        await api('PATCH', '/api/consultations/' + consultationId + '/diary/post-confirm', body);
-        setMsg('Correzione salvata.', true);
-      } catch (e) { setMsg(e.message, false); }
-    });
-  }
+  const bind = (id, fn) => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('click', fn);
+  };
+
+  bind('btn-save', async () => {
+    try {
+      setMsg('Salvataggio…');
+      await api('PATCH', '/api/consultations/' + consultationId + '/diary', buildPayload());
+      setMsg('Salvato.');
+    } catch (e) { setMsg(e.message, false); }
+  });
+  bind('btn-confirm', async () => {
+    if (!confirm('Confermare definitivamente questo diario?')) return;
+    try {
+      setMsg('Conferma…');
+      await api('PATCH', '/api/consultations/' + consultationId + '/diary', buildPayload());
+      await api('POST', '/api/consultations/' + consultationId + '/diary/confirm');
+      window.location.reload();
+    } catch (e) { setMsg(e.message, false); }
+  });
+  bind('btn-reject', async () => {
+    if (!confirm('Scartare e rigenerare con AI?')) return;
+    try {
+      setMsg('Rigenerazione…');
+      await api('POST', '/api/consultations/' + consultationId + '/diary/reject');
+      setTimeout(() => {
+        window.location.href = '{{ url_for("patients.dettaglio_paziente", patient_id=patient_id, tab="diario") }}';
+      }, 900);
+    } catch (e) { setMsg(e.message, false); }
+  });
+  bind('btn-post-confirm', async () => {
+    const motivo = prompt('Motivo della correzione:') || '';
+    try {
+      setMsg('Salvataggio…');
+      const body = buildPayload();
+      body.motivo = motivo;
+      await api('PATCH', '/api/consultations/' + consultationId + '/diary/post-confirm', body);
+      setMsg('Correzione salvata.');
+    } catch (e) { setMsg(e.message, false); }
+  });
 })();
 </script>
 {% endblock %}
