@@ -190,11 +190,11 @@ class Config:
     TRANSCRIPTION_LANGUAGE = os.getenv("TRANSCRIPTION_LANGUAGE", "it").strip() or "it"
     TRANSCRIPTION_MAX_ATTEMPTS = int(os.getenv("TRANSCRIPTION_MAX_ATTEMPTS", "3"))
     TRANSCRIPTION_RETRY_BASE_SEC = float(os.getenv("TRANSCRIPTION_RETRY_BASE_SEC", "1"))
-    # Job backend: thread (BackgroundTasks) | celery (futuro)
-    JOB_BACKEND = os.getenv("JOB_BACKEND", "thread").strip().lower()
+    # Job backend: subprocess (default, isolato) | thread | celery (futuro)
+    JOB_BACKEND = os.getenv("JOB_BACKEND", "subprocess").strip().lower()
 
-    # faster-whisper
-    WHISPER_MODEL_SIZE = os.getenv("WHISPER_MODEL_SIZE", "small").strip()
+    # faster-whisper — su VPS 8GB preferire base/tiny; small può causare OOM/502
+    WHISPER_MODEL_SIZE = os.getenv("WHISPER_MODEL_SIZE", "base").strip()
     WHISPER_DEVICE = os.getenv("WHISPER_DEVICE", "cpu").strip()
     WHISPER_COMPUTE_TYPE = os.getenv("WHISPER_COMPUTE_TYPE", "int8").strip()
     WHISPER_DOWNLOAD_ROOT = os.getenv("WHISPER_DOWNLOAD_ROOT", "").strip()

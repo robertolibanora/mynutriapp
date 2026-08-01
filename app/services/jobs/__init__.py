@@ -1,14 +1,18 @@
-"""Esecuzione job in background (thread oggi, Celery+Redis domani).
+"""Esecuzione job in background (subprocess / thread / Celery).
 
-Il router usa :class:`BackgroundTasks` (API simile a FastAPI). La scelta del
-backend è in ``JOB_BACKEND``; migrare a Celery richiede solo un nuovo runner
-qui, senza toccare la logica di trascrizione.
+Il router usa :class:`BackgroundTasks` (API simile a FastAPI).
+Per Whisper su VPS piccole preferire ``JOB_BACKEND=subprocess``: il modello
+gira in un processo isolato e un OOM non abbatte i worker Gunicorn (502).
 """
 
 from __future__ import annotations
 
 import logging
+import os
+import subprocess
+import sys
 import threading
+from pathlib import Path
 from typing import Any, Callable, Optional
 
 from flask import Flask, current_app
@@ -16,6 +20,12 @@ from flask import Flask, current_app
 logger = logging.getLogger(__name__)
 
 TaskFunc = Callable[..., Any]
+
+# Job pesanti espposti via ``python -m app.jobs_cli``
+_SUBPROCESS_JOBS = {
+    "run_transcription_job": "transcribe",
+    "run_diary_extraction_job": "extract",
+}
 
 
 class BackgroundTasks:
@@ -59,13 +69,64 @@ class ThreadBackgroundRunner(JobRunner):
         thread.start()
 
 
+class SubprocessJobRunner(JobRunner):
+    """Esegue job pesanti in un interprete Python separato.
+
+    Se la callable non è mappata (job leggero), fa fallback al thread runner.
+    """
+
+    def enqueue(self, func: TaskFunc, *args: Any, **kwargs: Any) -> None:
+        name = getattr(func, "__name__", "")
+        cli_cmd = _SUBPROCESS_JOBS.get(name)
+        if cli_cmd is None or len(args) != 1 or kwargs:
+            ThreadBackgroundRunner().enqueue(func, *args, **kwargs)
+            return
+
+        root = Path(__file__).resolve().parents[3]
+        python = sys.executable
+        consultation_id = args[0]
+        log_dir = root / "logs"
+        log_dir.mkdir(parents=True, exist_ok=True)
+        log_path = log_dir / f"job-{cli_cmd}-{consultation_id}.log"
+
+        env = os.environ.copy()
+        env.setdefault("PYTHONUNBUFFERED", "1")
+
+        try:
+            with log_path.open("a", encoding="utf-8") as logf:
+                proc = subprocess.Popen(
+                    [python, "-m", "app.jobs_cli", cli_cmd, str(consultation_id)],
+                    cwd=str(root),
+                    env=env,
+                    stdout=logf,
+                    stderr=subprocess.STDOUT,
+                    start_new_session=True,
+                )
+        except Exception:
+            # Evita lock orfani se lo spawn fallisce
+            try:
+                from app.services.job_locks import release_job
+
+                release_job(cli_cmd, int(consultation_id))
+            except Exception:  # noqa: BLE001
+                pass
+            raise
+        logger.info(
+            "Job subprocess avviato: %s consultation=%s pid=%s log=%s",
+            cli_cmd,
+            consultation_id,
+            proc.pid,
+            log_path,
+        )
+
+
 class CeleryJobRunner(JobRunner):
     """Placeholder: sostituire con delay Celery quando si introduce Redis worker."""
 
     def enqueue(self, func: TaskFunc, *args: Any, **kwargs: Any) -> None:
         raise RuntimeError(
             "JOB_BACKEND=celery non ancora configurato. "
-            "Usa JOB_BACKEND=thread oppure implementa il task Celery."
+            "Usa JOB_BACKEND=subprocess oppure implementa il task Celery."
         )
 
 
@@ -79,7 +140,9 @@ class SyncJobRunner(JobRunner):
 def get_job_runner() -> JobRunner:
     from app.config.config import Config
 
-    backend = (Config.JOB_BACKEND or "thread").strip().lower()
+    backend = (Config.JOB_BACKEND or "subprocess").strip().lower()
+    if backend in ("subprocess", "process", "isolated"):
+        return SubprocessJobRunner()
     if backend in ("thread", "background", "background_tasks"):
         return ThreadBackgroundRunner()
     if backend == "sync":

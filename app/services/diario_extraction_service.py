@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-import threading
 from typing import Optional
 
 from app.config.config import Config
@@ -12,30 +11,24 @@ from app.models.enums import ConsultationStato
 from app.models.models import Patient, db
 from app.services.diario_audio_service import DiarioAudioError, assert_consultation_ownership
 from app.services.diary_extraction_openai import OpenAIDiaryExtractor, DiaryExtractionError, redact_secrets
+from app.services.job_locks import acquire_job, claim_job, is_job_running, release_job
 from app.utils.anonymize import anonymize_text, deanonymize_structure
 
 logger = logging.getLogger(__name__)
 
-_running_lock = threading.Lock()
-_running_ids: set[int] = set()
+_JOB_KIND = "extract"
 
 
 def _mark_running(consultation_id: int) -> bool:
-    with _running_lock:
-        if consultation_id in _running_ids:
-            return False
-        _running_ids.add(consultation_id)
-        return True
+    return acquire_job(_JOB_KIND, consultation_id)
 
 
 def _unmark_running(consultation_id: int) -> None:
-    with _running_lock:
-        _running_ids.discard(consultation_id)
+    release_job(_JOB_KIND, consultation_id)
 
 
 def is_extraction_running(consultation_id: int) -> bool:
-    with _running_lock:
-        return consultation_id in _running_ids
+    return is_job_running(_JOB_KIND, consultation_id)
 
 
 def enqueue_diary_extraction(*, consultation_id: int, utente_id: int) -> dict:
@@ -90,6 +83,7 @@ def enqueue_diary_extraction(*, consultation_id: int, utente_id: int) -> dict:
 
 def run_diary_extraction_job(consultation_id: int) -> None:
     """Job isolato (thread / futuro Celery): anonimizza → OpenAI → valida → salva."""
+    claim_job(_JOB_KIND, consultation_id)
     try:
         consultation = db.session.get(Consultation, consultation_id)
         if consultation is None:
