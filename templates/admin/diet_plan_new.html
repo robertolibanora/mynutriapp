@@ -2,61 +2,139 @@
 {% block title %}Crea dieta{% endblock %}
 {% block content %}
 
-<div class="adm-hero" style="margin-bottom:1.5rem;">
-  <h2 style="margin:0;">Nuova dieta</h2>
-  <p style="margin:.35rem 0 0 0;">Associa il piano a un paziente, poi aggiungi pasti e alimenti con calcolo automatico di kcal e macro.</p>
-</div>
+<style>
+  .admin-app .dpn {
+    width: 100%;
+  }
+  .admin-app .dpn-hero {
+    margin-bottom: 1.25rem;
+    padding: 1.5rem 1.65rem;
+    border-radius: 18px;
+    background: linear-gradient(120deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04) 70%, transparent);
+    border: 1px solid rgba(255,255,255,0.12);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .admin-app .dpn-hero h1 {
+    margin: 0;
+    color: #fff;
+    font: 500 1.85rem / 1.2 var(--adm-serif, Georgia, serif);
+  }
+  .admin-app .dpn-hero p {
+    margin: 0.4rem 0 0;
+    color: #a8a8a8;
+    font-size: 0.9rem;
+    max-width: 36rem;
+  }
+  .admin-app .dpn-card {
+    width: 100%;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    padding: 1.5rem 1.65rem;
+    box-sizing: border-box;
+  }
+  .admin-app .dpn-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.1rem 1.35rem;
+  }
+  @media (max-width: 720px) {
+    .admin-app .dpn-grid { grid-template-columns: 1fr; }
+  }
+  .admin-app .dpn-grid .dpn-span-2 { grid-column: 1 / -1; }
+  .admin-app .dpn-card .form-group { margin: 0; }
+  .admin-app .dpn-card label {
+    display: block;
+    margin: 0 0 0.4rem;
+    color: #a8a8a8;
+    font-size: 0.75rem;
+    font-weight: 650;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .admin-app .dpn-hint {
+    margin: 0.4rem 0 0;
+    color: #7a7a7a;
+    font-size: 0.8rem;
+  }
+  .admin-app .dpn-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 1.35rem;
+    padding-top: 1.15rem;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+  .admin-app .dpn-msg {
+    margin-top: 0.85rem;
+    color: #E57373;
+    font-size: 0.88rem;
+  }
+</style>
 
-<div style="display:flex;gap:.5rem;margin-bottom:1.5rem;flex-wrap:wrap;">
-  <a href="{{ url_for('diete_plans.lista_diet_plans') }}" class="btn btn-secondary btn-small">{{ icon('list', 14) }} Tutte le diete</a>
-</div>
+<div class="dpn">
+  <header class="dpn-hero">
+    <div>
+      <h1>Nuova dieta</h1>
+      <p>Associa il piano a un paziente, poi aggiungi pasti e alimenti con calcolo automatico di kcal e macro.</p>
+    </div>
+    <a href="{{ url_for('diete_plans.lista_diet_plans') }}" class="btn btn-ghost btn-small">{{ icon('list', 14) }} Tutte le diete</a>
+  </header>
 
-<div class="form-container">
-  <form id="plan-create-form"
-        data-create-url="{{ url_for('admin_diets.create_diet_plan') }}"
-        data-detail-base="/admin/diet-plans/">
-    <div class="form-grid">
-    <div class="form-group">
-      <label class="diet-form-label" for="patient_id">Paziente *</label>
-      <select id="patient_id" name="patient_id" class="input-text input-select" required>
-        <option value="">Seleziona un paziente…</option>
-        {% for p in pazienti %}
-        <option value="{{ p.id }}" {% if preselect_patient_id == p.id %}selected{% endif %}>
-          {{ p.cognome }} {{ p.nome }}{% if p.telefono %} · {{ p.telefono }}{% endif %}
-        </option>
-        {% endfor %}
-      </select>
-      <p style="color:#b8b8b8;font-size:.82rem;margin:.4rem 0 0 0;">La dieta viene creata qui e associata al paziente selezionato (visibile in area paziente se pubblicata).</p>
-    </div>
-    <div class="form-group">
-      <label class="diet-form-label">Titolo dieta *</label>
-      <input type="text" class="input-text" name="title" required placeholder="Es. Dieta dimagrimento">
-    </div>
-    <div class="form-group">
-      <label class="diet-form-label">Obiettivo</label>
-      <input type="text" class="input-text" name="goal" placeholder="Es. -5 kg in 3 mesi">
-    </div>
-    <div class="form-group">
-      <label class="diet-form-label">Note</label>
-      <textarea class="input-text" name="notes" rows="3" placeholder="Indicazioni generali, preferenze, ecc."></textarea>
-    </div>
-    <div class="form-group">
-      <label class="diet-form-label">Stato</label>
-      <select class="input-text" name="status">
-        <option value="draft">Bozza</option>
-        <option value="published">Pubblicata</option>
-      </select>
-    </div>
-    </div>
+  <div class="dpn-card">
+    <form id="plan-create-form"
+          data-create-url="{{ url_for('admin_diets.create_diet_plan') }}"
+          data-detail-base="/admin/diet-plans/">
+      <div class="dpn-grid">
+        <div class="form-group">
+          <label for="patient_id">Paziente *</label>
+          <select id="patient_id" name="patient_id" class="input-text input-select" required>
+            <option value="">Seleziona un paziente…</option>
+            {% for p in pazienti %}
+            <option value="{{ p.id }}" {% if preselect_patient_id == p.id %}selected{% endif %}>
+              {{ p.cognome }} {{ p.nome }}{% if p.telefono %} · {{ p.telefono }}{% endif %}
+            </option>
+            {% endfor %}
+          </select>
+          <p class="dpn-hint">Visibile al paziente se pubblicata.</p>
+        </div>
 
-    <div id="plan-msg" class="diet-msg" style="display:none;margin-bottom:1rem;"></div>
+        <div class="form-group">
+          <label for="title">Titolo dieta *</label>
+          <input type="text" class="input-text" id="title" name="title" required placeholder="Es. Dieta dimagrimento">
+        </div>
 
-    <div class="form-actions">
-      <button type="submit" class="btn btn-ghost btn-small" style="display:inline-flex;align-items:center;gap:.5rem;">
-        {{ icon('plus', 14) }} Crea dieta e aggiungi pasti
-      </button>
-    </div>
-  </form>
+        <div class="form-group">
+          <label for="goal">Obiettivo</label>
+          <input type="text" class="input-text" id="goal" name="goal" placeholder="Es. -5 kg in 3 mesi">
+        </div>
+
+        <div class="form-group">
+          <label for="status">Stato</label>
+          <select class="input-text" id="status" name="status">
+            <option value="draft">Bozza</option>
+            <option value="published">Pubblicata</option>
+          </select>
+        </div>
+
+        <div class="form-group dpn-span-2">
+          <label for="notes">Note</label>
+          <textarea class="input-text" id="notes" name="notes" rows="3" placeholder="Indicazioni generali, preferenze, ecc."></textarea>
+        </div>
+      </div>
+
+      <div id="plan-msg" class="dpn-msg" style="display:none;"></div>
+
+      <div class="dpn-actions">
+        <button type="submit" class="btn btn-ghost btn-small">{{ icon('plus', 14) }} Crea dieta e aggiungi pasti</button>
+        <a href="{{ url_for('diete_plans.lista_diet_plans') }}" class="btn btn-ghost btn-small">Annulla</a>
+      </div>
+    </form>
+  </div>
 </div>
 
 {% endblock %}
@@ -78,6 +156,7 @@
     e.preventDefault();
     var btn = form.querySelector('button[type="submit"]');
     btn.disabled = true;
+    msg.style.display = 'none';
 
     var payload = {
       patient_id: parseInt(patientSelect.value, 10),

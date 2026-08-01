@@ -1,20 +1,13 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session, send_from_directory, abort
-from werkzeug.utils import secure_filename
+from flask import Blueprint, render_template, redirect, url_for, flash, session, send_from_directory, abort
 import os
 from datetime import date
 from app.models.models import db, Dieta, Patient
-from app.config.config import get_upload_folder, get_allowed_extensions, get_full_path
+from app.config.config import get_full_path
 
 # ========================
 # BLUEPRINT
 # ========================
 diete_bp = Blueprint('diete', __name__, url_prefix='/admin/diete')
-
-# ========================
-# CONFIG UPLOAD FILES
-# ========================
-UPLOAD_FOLDER = get_upload_folder('diete')
-ALLOWED_EXTENSIONS = get_allowed_extensions('diete')
 
 
 # ========================
@@ -44,11 +37,6 @@ def user_required(func):
             return redirect(url_for('auth.login'))
         return func(*args, **kwargs)
     return wrapper
-
-
-def allowed_file(filename):
-    """Controlla estensione file"""
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 # ========================
@@ -89,63 +77,16 @@ def diete_paziente(patient_id):
 
 
 # ========================
-# CREA NUOVA DIETA
+# CREA NUOVA DIETA (legacy PDF) → redirect al piano strutturato
 # ========================
 @diete_bp.route('/nuova/<int:patient_id>', methods=['GET', 'POST'])
 @admin_required
 def nuova_dieta(patient_id):
-    paziente = Patient.query.get_or_404(patient_id)
-
-    if request.method == 'POST':
-        try:
-            # --- Estrai dati dal form ---
-            data_inizio = request.form['data_inizio']
-            data_fine = request.form['data_fine']
-            kcal = request.form['kcal']
-            carbo = request.form.get('carbo')
-            proteine = request.form.get('proteine')
-            grassi = request.form.get('grassi')
-            note = request.form.get('note')
-
-            # --- Gestione file PDF ---
-            file = request.files['pdf']
-            if not file or not allowed_file(file.filename):
-                flash("Carica un file PDF valido", "danger")
-                return redirect(request.url)
-
-            filename = secure_filename(file.filename)
-            save_path = os.path.join(UPLOAD_FOLDER, filename)
-            os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-            file.save(save_path)
-
-            # --- Crea nuovo record Dieta ---
-            nuova = Dieta(
-                patient_id=patient_id,
-                data_inizio=data_inizio,
-                data_fine=data_fine,
-                pdf_path=save_path,
-                kcal=kcal,
-                carbo=carbo if carbo else None,
-                proteine=proteine if proteine else None,
-                grassi=grassi if grassi else None,
-                note=note
-            )
-
-            db.session.add(nuova)
-            db.session.commit()
-
-            # 🔔 INVIO WHATSAPP AUTOMATICO
-            from app.routes.whatsapp.triggers import safe_trigger_nuova_dieta
-            safe_trigger_nuova_dieta(paziente, nuova)
-
-            flash("Nuova dieta caricata con successo ✅", "success")
-            return redirect(url_for('diete.diete_paziente', patient_id=patient_id))
-
-        except Exception as e:
-            db.session.rollback()
-            flash(f"Errore durante il caricamento: {e}", "danger")
-
-    return render_template('admin/dieta_nuova.html', paziente=paziente)
+    """Endpoint legacy rimosso: reindirizza al flusso diet-plans."""
+    Patient.query.get_or_404(patient_id)
+    return redirect(
+        url_for('diete_plans.new_diet_plan_standalone', patient_id=patient_id)
+    )
 
 
 # ========================
