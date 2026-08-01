@@ -1,0 +1,27 @@
+[Unit]
+Description=MyNutriApp Staging - Flask (Gunicorn) su stage.mynutriapp.cloud
+After=network-online.target mysql.service redis-server.service
+Wants=network-online.target
+Requires=mysql.service
+
+[Service]
+Type=simple
+User=noira
+Group=noira
+WorkingDirectory=/var/www/staging-mynutriapp
+EnvironmentFile=/var/www/staging-mynutriapp/.env
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/var/www/staging-mynutriapp/venv/bin/gunicorn -c deploy/gunicorn.conf.py wsgi:app
+Restart=on-failure
+RestartSec=5
+KillMode=mixed
+TimeoutStopSec=30
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=false
+ReadWritePaths=/var/www/staging-mynutriapp/static/uploads /var/www/staging-mynutriapp/logs /var/www/staging-mynutriapp/storage
+
+[Install]
+WantedBy=multi-user.target

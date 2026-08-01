@@ -19,13 +19,20 @@ Vedi [`.env.example`](.env.example):
 
 | Variabile | Default | Note |
 |-----------|---------|------|
-| `API_BASE_URL` | `http://127.0.0.1:5000` | Android emulator: `http://10.0.2.2:5000` |
-| `USE_MOCK_DATA` | `true` | Schermate su repository mock |
+| `API_BASE_URL` | `https://stage.mynutriapp.cloud` | Staging HTTPS per QA / store |
+| `USE_MOCK_DATA` | `false` | `true` solo in sviluppo locale |
 
-Override:
+Build store / QA contro staging:
 
 ```bash
-flutter run --dart-define=API_BASE_URL=http://10.0.2.2:5000
+flutter build appbundle --dart-define=API_BASE_URL=https://stage.mynutriapp.cloud --dart-define=USE_MOCK_DATA=false
+flutter build ipa --dart-define=API_BASE_URL=https://stage.mynutriapp.cloud --dart-define=USE_MOCK_DATA=false
+```
+
+Dev locale:
+
+```bash
+flutter run --dart-define=API_BASE_URL=http://10.0.2.2:5000 --dart-define=USE_MOCK_DATA=true
 ```
 
 ## Navigazione

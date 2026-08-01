@@ -23,3 +23,25 @@ mynutriapp.cloud {
 www.mynutriapp.cloud {
 	redir https://mynutriapp.cloud{uri} permanent
 }
+
+####################################
+# MYNUTRIAPP STAGING
+####################################
+stage.mynutriapp.cloud {
+	encode gzip zstd
+
+	@static path /static/*
+	handle @static {
+		root * /var/www/staging-mynutriapp/static
+		uri strip_prefix /static
+		file_server
+	}
+
+	handle {
+		reverse_proxy 127.0.0.1:8199
+	}
+
+	request_body {
+		max_size 100MB
+	}
+}
