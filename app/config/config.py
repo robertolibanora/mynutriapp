@@ -94,6 +94,14 @@ class Config:
     # ========================================
     ADMIN_NAME = os.getenv("ADMIN_NAME", "MyNutriApp").strip()
     SECRET_KEY = _get_required_env("SECRET_KEY", "chiave segreta Flask")
+
+    # ========================================
+    # 🔐 JWT (API mobile /api/v1)
+    # ========================================
+    # Se JWT_SECRET è assente si riusa SECRET_KEY.
+    JWT_SECRET = os.getenv("JWT_SECRET", "").strip() or None
+    JWT_ACCESS_EXPIRES = int(os.getenv("JWT_ACCESS_EXPIRES", "900"))  # 15 minuti
+    JWT_REFRESH_EXPIRES = int(os.getenv("JWT_REFRESH_EXPIRES", "2592000"))  # 30 giorni
     
     # ========================================
     # 🔐 CRITTOGRAFIA DATI SANITARI (obbligatoria)

@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, current_app
-from werkzeug.security import check_password_hash, generate_password_hash
-from app.models.models import db, Patient
+from app.models.models import db
+from app.services.auth_service import AuthStatus, authenticate
 from app.utils.audit import log_audit_event
 from app.utils.helpers import normalize_phone
 import os
@@ -9,8 +9,6 @@ import os
 # BLUEPRINT
 # ========================
 auth_bp = Blueprint('auth', __name__)
-
-# Il limiter verrà applicato tramite decorator
 
 # ========================
 # CONFIGURAZIONE ADMIN (DA VARIABILI D'AMBIENTE)
@@ -32,78 +30,63 @@ if not ADMIN_PHONE:
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        telefono = normalize_phone(request.form['telefono'])
-        password = request.form['password']
+        telefono = request.form.get('telefono', '')
+        password = request.form.get('password', '')
+        result = authenticate(telefono, password)
 
-        # --- Caso 1: Login ADMIN (con hash, non più in chiaro)
-        if ADMIN_PHONE and ADMIN_PASSWORD_HASH:
-            if telefono == ADMIN_PHONE and check_password_hash(ADMIN_PASSWORD_HASH, password):
-                # Protezione contro session fixation: Flask non supporta session.regenerate()
-                # quindi puliamo la sessione esistente e reimpostiamo solo le chiavi necessarie
-                session.clear()
-                
-                # Reimposta solo le chiavi necessarie per l'autenticazione admin
-                session['role'] = 'admin'
-                session['name'] = ADMIN_NAME
-                # Ownership diary: garantisce record utente (auto-provision se manca)
-                try:
-                    from app.services.utente_service import ensure_admin_utente
-
-                    session['utente_id'] = ensure_admin_utente(
-                        telefono=ADMIN_PHONE,
-                        admin_name=ADMIN_NAME,
-                    )
-                except Exception as exc:  # noqa: BLE001
-                    current_app.logger.warning(
-                        "Impossibile collegare utente_id alla sessione admin: %s", exc
-                    )
-                session.permanent = True  # Session permanente per admin
-                session.modified = True  # Forza il salvataggio della sessione
-                
-                # Audit log
-                log_audit_event('LOGIN', 'system', details={'user_type': 'admin'})
-                db.session.commit()
-                
-                flash("Accesso effettuato come Admin", "success")
-                return redirect(url_for('dashboard.admin_dashboard'))
-
-        # --- Caso 2: Login USER da database
-        user = Patient.query.filter_by(telefono=telefono).first()
-        if not user:
-            for candidate in Patient.query.filter(Patient.telefono.isnot(None)).all():
-                if normalize_phone(candidate.telefono) == telefono:
-                    user = candidate
-                    break
-        if user and check_password_hash(user.password_hash, password):
-            stato = getattr(user, "stato_cliente", None) or "attivo"
-            if stato != "attivo":
-                flash(
-                    "Account non ancora attivo. Attendi la conferma del nutrizionista.",
-                    "warning",
-                )
-                return redirect(url_for("auth.login"))
-
-            # Protezione contro session fixation: Flask non supporta session.regenerate()
-            # quindi puliamo la sessione esistente e reimpostiamo solo le chiavi necessarie
+        if result.status == AuthStatus.OK_ADMIN:
             session.clear()
-            
-            # Reimposta solo le chiavi necessarie per l'autenticazione user
+            session['role'] = 'admin'
+            session['name'] = result.admin_name or ADMIN_NAME
+            try:
+                from app.services.utente_service import ensure_admin_utente
+
+                session['utente_id'] = ensure_admin_utente(
+                    telefono=ADMIN_PHONE,
+                    admin_name=ADMIN_NAME,
+                )
+            except Exception as exc:  # noqa: BLE001
+                current_app.logger.warning(
+                    "Impossibile collegare utente_id alla sessione admin: %s", exc
+                )
+            session.permanent = True
+            session.modified = True
+
+            log_audit_event('LOGIN', 'system', details={'user_type': 'admin'})
+            db.session.commit()
+
+            flash("Accesso effettuato come Admin", "success")
+            return redirect(url_for('dashboard.admin_dashboard'))
+
+        if result.status == AuthStatus.INACTIVE:
+            flash(
+                "Account non ancora attivo. Attendi la conferma del nutrizionista.",
+                "warning",
+            )
+            return redirect(url_for("auth.login"))
+
+        if result.status == AuthStatus.OK_USER and result.patient is not None:
+            user = result.patient
+            session.clear()
             session['role'] = 'user'
             session['user_id'] = user.id
             session['name'] = f"{user.nome} {user.cognome}"
             session.permanent = True
-            session.modified = True  # Forza il salvataggio della sessione
-            
-            # Audit log
+            session.modified = True
+
             log_audit_event('LOGIN', 'system', details={'user_type': 'user', 'user_id': user.id})
             db.session.commit()
-            
+
             return redirect(url_for('dashboard.user_dashboard'))
-        
-        # Audit log per tentativo fallito
-        log_audit_event('LOGIN_FAILED', 'system', details={'telefono': telefono[:3] + '***'})
+
+        telefono_n = result.telefono_normalized or normalize_phone(telefono)
+        log_audit_event(
+            'LOGIN_FAILED',
+            'system',
+            details={'telefono': (telefono_n[:3] + '***') if telefono_n else '***'},
+        )
         db.session.commit()
-        
+
         flash("Credenziali non valide", "danger")
         return redirect(url_for('auth.login'))
 
@@ -115,11 +98,10 @@ def login():
 # ========================
 @auth_bp.route('/logout')
 def logout():
-    # Audit log prima di cancellare session
     user_id = session.get('user_id')
     user_role = session.get('role')
     log_audit_event('LOGOUT', 'system', details={'user_type': user_role, 'user_id': user_id})
     db.session.commit()
-    
+
     session.clear()
     return redirect(url_for('auth.login'))

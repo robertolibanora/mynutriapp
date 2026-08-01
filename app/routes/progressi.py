@@ -366,8 +366,10 @@ def modifica_check_nutrizionista(progresso_id):
 @user_required
 def lista_progressi_user():
     """Il paziente vede solo i propri progressi"""
+    from app.services.progress_service import list_for_patient
+
     user_id = session.get('user_id')
-    progressi = Progresso.query.filter_by(patient_id=user_id).order_by(Progresso.data_check.desc()).all()
+    progressi = list_for_patient(user_id)
     return render_template('user/progressi_lista.html', progressi=progressi)
 
 
@@ -414,26 +416,22 @@ def nuovo_progresso_user():
     user_id = session.get('user_id')
 
     if request.method == 'POST':
+        from app.services.progress_service import (
+            ProgressValidationError,
+            create_for_patient,
+        )
+
         try:
-            data_check = datetime.now().date()
-            peso = request.form['peso_settimanale']
-            frequenza = request.form.get('frequenza_allenamenti')
-            aderenza = request.form.get('aderenza')
-
-            nuovo = Progresso(
-                patient_id=user_id,
-                data_check=data_check,
-                peso_settimanale=peso,
-                frequenza_allenamenti=frequenza,
-                aderenza=aderenza,
-                check_richiesta=True  # segna che è stato inserito dall’utente
+            create_for_patient(
+                user_id,
+                peso_settimanale=request.form.get('peso_settimanale'),
+                frequenza_allenamenti=request.form.get('frequenza_allenamenti'),
+                aderenza=request.form.get('aderenza'),
             )
-
-            db.session.add(nuovo)
-            db.session.commit()
             flash("Check inviato ✅", "success")
             return redirect(url_for('progressi.lista_progressi_user'))
-
+        except ProgressValidationError as e:
+            flash(str(e), "danger")
         except Exception as e:
             db.session.rollback()
             flash(f"Errore durante l'invio: {e}", "danger")

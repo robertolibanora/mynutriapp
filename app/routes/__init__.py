@@ -24,9 +24,11 @@ def register_blueprints(app):
     from .consultations_audio import consultations_audio_bp
     from .diario_ui import diario_ui_bp
     from .patients_diary_api import patients_diary_api_bp
+    from app.api.v1 import api_v1_bp
     
     # Registra i blueprint
     app.register_blueprint(auth_bp)
+    app.register_blueprint(api_v1_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(patients_bp)
     app.register_blueprint(appuntamenti_bp)

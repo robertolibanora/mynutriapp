@@ -94,9 +94,11 @@ def lista_documenti_user():
         flash("Sessione non valida", "danger")
         return redirect(url_for('auth.login'))
     
+    from app.services.document_service import list_for_patient
+
     paziente = Patient.query.get_or_404(user_id)
-    documenti = Documento.query.filter_by(patient_id=user_id).order_by(Documento.data_upload.desc()).all()
-    
+    documenti = list_for_patient(user_id)
+
     return render_template('user/documenti_lista.html', paziente=paziente, documenti=documenti)
 
 

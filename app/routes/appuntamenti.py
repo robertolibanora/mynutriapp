@@ -156,9 +156,11 @@ def elimina_admin(id):
 def lista_user():
     """Mostra gli appuntamenti del paziente loggato"""
     from datetime import datetime
-    
+
+    from app.services.appointment_service import list_for_patient
+
     user_id = session.get('user_id')
-    appuntamenti = Appuntamento.query.filter_by(patient_id=user_id).order_by(Appuntamento.data_appuntamento.asc()).all()
+    appuntamenti = list_for_patient(user_id)
     return render_template('user/appuntamenti_lista.html', appuntamenti=appuntamenti, now=datetime.now())
 
 

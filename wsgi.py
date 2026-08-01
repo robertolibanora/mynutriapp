@@ -186,14 +186,16 @@ try:
     from app.routes.admin_diets import admin_diets_bp
     from app.routes.consultations_audio import consultations_audio_bp
     from app.routes.patients_diary_api import patients_diary_api_bp
+    from app.api.v1 import api_v1_bp
 
     csrf.exempt(admin_nutrition_bp)
     csrf.exempt(admin_diets_bp)
     csrf.exempt(consultations_audio_bp)
     csrf.exempt(patients_diary_api_bp)
-    logger.info("✅ API nutrizione/diete/audio/diary esenti da CSRF")
+    csrf.exempt(api_v1_bp)
+    logger.info("✅ API nutrizione/diete/audio/diary/v1 esenti da CSRF")
 except Exception as e:
-    logger.warning(f"⚠️  Impossibile esentare le API nutrizione/diete/audio/diary: {e}")
+    logger.warning(f"⚠️  Impossibile esentare le API nutrizione/diete/audio/diary/v1: {e}")
 
 # Rende disponibile csrf_token() in tutte le template
 @app.context_processor
@@ -236,7 +238,11 @@ def inject_admin_name():
 if limiter and limiter_enabled:
     try:
         for rule in app.url_map.iter_rules():
-            if rule.endpoint in ('auth.login', 'prenota_public.prenota_landing'):
+            if rule.endpoint in (
+                'auth.login',
+                'prenota_public.prenota_landing',
+                'api_v1.login',
+            ):
                 view_func = app.view_functions[rule.endpoint]
                 app.view_functions[rule.endpoint] = limiter.limit(
                     get_login_limit()

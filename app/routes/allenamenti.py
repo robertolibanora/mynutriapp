@@ -240,13 +240,20 @@ def elimina_allenamento(allenamento_id):
 def lista_allenamenti_user():
     """Mostra gli allenamenti del paziente loggato"""
     from datetime import datetime
-    
+
+    from app.services.workout_service import list_for_patient
+
     user_id = session.get('user_id')
     if not user_id:
         flash("Sessione non valida", "danger")
         return redirect(url_for('auth.login'))
-    
+
     paziente = Patient.query.get_or_404(user_id)
-    allenamenti = Allenamento.query.filter_by(patient_id=user_id).order_by(Allenamento.created_at.desc()).all()
-    
-    return render_template('user/allenamenti_lista.html', paziente=paziente, allenamenti=allenamenti, now=datetime.now().date())
+    allenamenti = list_for_patient(user_id)
+
+    return render_template(
+        'user/allenamenti_lista.html',
+        paziente=paziente,
+        allenamenti=allenamenti,
+        now=datetime.now().date(),
+    )
