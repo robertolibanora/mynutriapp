@@ -79,31 +79,83 @@ if [[ "$REBUILD" -eq 1 ]]; then
   fi
 fi
 
+pick_ios_simulator() {
+  # Usa JSON di flutter (affidabile); fallback su UUID nel testo.
+  local id=""
+  if command -v python3 >/dev/null 2>&1; then
+    id="$(
+      flutter devices --machine 2>/dev/null | python3 -c '
+import json, sys
+try:
+    devices = json.load(sys.stdin)
+except Exception:
+    sys.exit(0)
+# Preferisci iPhone simulator
+for d in devices:
+    if d.get("targetPlatform") != "ios":
+        continue
+    if not d.get("emulator", False):
+        continue
+    name = d.get("name") or ""
+    if "iPhone" in name:
+        print(d.get("id", ""))
+        sys.exit(0)
+for d in devices:
+    if d.get("targetPlatform") == "ios" and d.get("emulator", False):
+        print(d.get("id", ""))
+        sys.exit(0)
+' 2>/dev/null || true
+    )"
+  fi
+  if [[ -z "$id" ]]; then
+    id="$(
+      flutter devices 2>/dev/null \
+        | grep -E 'iPhone|simulator' \
+        | grep -Eo '[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12}' \
+        | head -n1 || true
+    )"
+  fi
+  printf '%s' "$id"
+}
+
 # Avvia il Simulator se disponibile
 if command -v open >/dev/null 2>&1 && [[ "$(uname -s)" == "Darwin" ]]; then
   open -a Simulator 2>/dev/null || true
+  # Se nessun sim è booted, avvia un iPhone di default
+  if command -v xcrun >/dev/null 2>&1; then
+    if ! xcrun simctl list devices booted 2>/dev/null | grep -q 'Booted'; then
+      BOOT_UDID="$(
+        xcrun simctl list devices available 2>/dev/null \
+          | grep -E 'iPhone' \
+          | grep -Eo '[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12}' \
+          | head -n1 || true
+      )"
+      if [[ -n "${BOOT_UDID:-}" ]]; then
+        echo "→ Boot simulator $BOOT_UDID"
+        xcrun simctl boot "$BOOT_UDID" 2>/dev/null || true
+      fi
+    fi
+  fi
 fi
 
-# Scegli device iOS
+# Scegli device iOS (attendi che Flutter lo veda)
 TARGET=""
 if [[ -n "$DEVICE" ]]; then
   TARGET="$DEVICE"
 else
-  # Preferisci un simulator iPhone già booted, altrimenti il primo iPhone disponibile
-  TARGET="$(
-    flutter devices 2>/dev/null \
-      | awk -F'•' '
-          /ios.*simulator|simulator.*ios/ {
-            gsub(/^[ \t]+|[ \t]+$/, "", $1)
-            gsub(/^[ \t]+|[ \t]+$/, "", $2)
-            name=$1; id=$2
-            if (name ~ /iPhone/) { print id; exit }
-          }
-        '
-  )"
-  if [[ -z "$TARGET" ]]; then
-    TARGET="ios"
-  fi
+  echo "→ Cerco simulatore iOS..."
+  for _ in 1 2 3 4 5 6 7 8 9 10; do
+    TARGET="$(pick_ios_simulator)"
+    [[ -n "$TARGET" ]] && break
+    sleep 1
+  done
+fi
+
+if [[ -z "$TARGET" ]]; then
+  echo "Errore: nessun simulatore iOS trovato."
+  echo "Apri Xcode → Open Developer Tool → Simulator, poi riprova."
+  flutter devices || true
+  exit 1
 fi
 
 echo "→ Run su iOS simulator (device: $TARGET)"
