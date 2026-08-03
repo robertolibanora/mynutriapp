@@ -1,0 +1,111 @@
+{% extends 'base_admin.html' %}
+{% block title %}Broadcast WhatsApp{% endblock %}
+{% block content %}
+
+<!-- GESTIONE TRIGGER -->
+<div class="triggers-section" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
+  <h3 style="color: #f0f0f0; margin-bottom: 1rem;">{{ icon('settings', 16) }} Gestione trigger automatici</h3>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+    
+    <!-- TRIGGER APPUNTAMENTI -->
+    <div class="trigger-card" style="background: rgba(255, 255, 255, 0.09); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 8px; padding: 1rem;">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 0.75rem;">
+        <h4 style="color: #ffffff; margin: 0;">{{ icon('calendar', 18) }} Appuntamenti</h4>
+        <form method="POST" action="{{ url_for('broadcast.toggle_trigger', trigger_name='appuntamenti') }}" style="display: inline;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <button type="submit" class="btn-toggle {{ 'btn-on' if stats.trigger_stats.appuntamenti else 'btn-off' }}">
+            <span class="dot"></span>{{ 'On' if stats.trigger_stats.appuntamenti else 'Off' }}
+          </button>
+        </form>
+      </div>
+      <div style="color: #d8d8d8; font-size: 0.85rem;">Invio automatico per conferma/annullamento appuntamenti</div>
+    </div>
+    
+    <!-- TRIGGER DIETE -->
+    <div class="trigger-card" style="background: rgba(255, 255, 255, 0.09); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 8px; padding: 1rem;">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 0.75rem;">
+        <h4 style="color: #ffffff; margin: 0;">Diete</h4>
+        <form method="POST" action="{{ url_for('broadcast.toggle_trigger', trigger_name='diete') }}" style="display: inline;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <button type="submit" class="btn-toggle {{ 'btn-on' if stats.trigger_stats.diete else 'btn-off' }}">
+            <span class="dot"></span>{{ 'On' if stats.trigger_stats.diete else 'Off' }}
+          </button>
+        </form>
+      </div>
+      <div style="color: #d8d8d8; font-size: 0.85rem;">Invio automatico per nuove diete caricate</div>
+    </div>
+    
+    <!-- TRIGGER ALLENAMENTI -->
+    <div class="trigger-card" style="background: rgba(255, 255, 255, 0.09); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 8px; padding: 1rem;">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 0.75rem;">
+        <h4 style="color: #ffffff; margin: 0;">{{ icon('dumbbell', 18) }} Allenamenti</h4>
+        <form method="POST" action="{{ url_for('broadcast.toggle_trigger', trigger_name='allenamenti') }}" style="display: inline;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <button type="submit" class="btn-toggle {{ 'btn-on' if stats.trigger_stats.allenamenti else 'btn-off' }}">
+            <span class="dot"></span>{{ 'On' if stats.trigger_stats.allenamenti else 'Off' }}
+          </button>
+        </form>
+      </div>
+      <div style="color: #d8d8d8; font-size: 0.85rem;">Invio automatico per nuovi allenamenti caricati</div>
+    </div>
+    
+    <!-- TRIGGER SCADENZE -->
+    <div class="trigger-card" style="background: rgba(255, 255, 255, 0.09); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 8px; padding: 1rem;">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 0.75rem;">
+        <h4 style="color: #ffffff; margin: 0;">{{ icon('clock', 16) }} Scadenze</h4>
+        <form method="POST" action="{{ url_for('broadcast.toggle_trigger', trigger_name='scadenze') }}" style="display: inline;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <button type="submit" class="btn-toggle {{ 'btn-on' if stats.trigger_stats.scadenze else 'btn-off' }}">
+            <span class="dot"></span>{{ 'On' if stats.trigger_stats.scadenze else 'Off' }}
+          </button>
+        </form>
+      </div>
+      <div style="color: #d8d8d8; font-size: 0.85rem;">Invio automatico per scadenze (10 giorni prima)</div>
+    </div>
+  </div>
+</div>
+
+<!-- TOOLBAR PRINCIPALE -->
+<div class="toolbar" style="display: flex; gap: 0.75rem; margin-bottom: 2rem; flex-wrap: wrap; align-items: center;">
+  <a href="{{ url_for('broadcast.nuovo_broadcast') }}" class="btn btn-primary btn-lg" style="display: inline-flex; align-items: center; gap: 0.6rem;">
+    {{ icon('message', 16) }} Invia messaggio
+  </a>
+  <a href="{{ url_for('broadcast.config_templates') }}" class="btn btn-outline btn-lg" title="Configura messaggi trigger">
+    {{ icon('settings', 16) }} Configura messaggi
+  </a>
+</div>
+
+<!-- GUIDA VARIABILI -->
+<div class="guide-section" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 12px; padding: 1.5rem;">
+  <h3 style="color: #e8e8e8; margin-bottom: 1rem;">{{ icon('edit', 16) }} Variabili per messaggi personalizzati</h3>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+    <div>
+      <h4 style="color: #ffffff; margin-bottom: 0.5rem;">{{ icon('user', 18) }} Dati personali</h4>
+      <ul style="color: #d8d8d8; font-size: 0.9rem; margin: 0; padding-left: 1rem;">
+        <li><code>{nome}</code> - Nome del paziente</li>
+        <li><code>{cognome}</code> - Cognome del paziente</li>
+        <li><code>{nome_completo}</code> - Nome e cognome</li>
+        <li><code>{eta}</code> - Età in anni</li>
+        <li><code>{telefono}</code> - Numero di telefono</li>
+      </ul>
+    </div>
+    <div>
+      <h4 style="color: #ffffff; margin-bottom: 0.5rem;">{{ icon('ruler', 18) }} Dati fisici</h4>
+      <ul style="color: #d8d8d8; font-size: 0.9rem; margin: 0; padding-left: 1rem;">
+        <li><code>{altezza}</code> - Altezza in cm</li>
+        <li><code>{peso_iniziale}</code> - Peso iniziale</li>
+        <li><code>{data_nascita}</code> - Data di nascita</li>
+        <li><code>{data_creazione}</code> - Data iscrizione</li>
+      </ul>
+    </div>
+  </div>
+  
+  <div style="margin-top: 1rem; padding: 1rem; background: rgba(255, 255, 255, 0.09); border-radius: 8px; border-left: 3px solid #e8e8e8;">
+    <div style="color: #d8d8d8; font-size: 0.85rem; margin-bottom: 0.5rem;">Esempio:</div>
+    <div style="color: #ffffff; font-family: monospace; font-size: 0.9rem;">
+      Ciao {nome}! Come stai? Continua a seguire il tuo percorso!
+    </div>
+  </div>
+</div>
+
+{% endblock %}

@@ -237,6 +237,14 @@ def inject_admin_icons():
     return dict(icon=admin_icon)
 
 
+@app.context_processor
+def inject_admin_name():
+    """Nome professionista in sessione (UI admin / super)."""
+    from flask import session
+
+    return dict(admin_name=session.get("name") or Config.ADMIN_NAME or "Nutrizionista")
+
+
 # 🚦 Applica rate limiting specifico al login con configurazione dinamica
 if limiter and limiter_enabled:
     try:

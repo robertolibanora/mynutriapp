@@ -33,6 +33,19 @@ def user_required(func):
     return wrapper
 
 
+def admin_required(func):
+    """Permette l'accesso solo all'admin (Enrico)"""
+    from functools import wraps
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if session.get('role') not in ('admin', 'nutrizionista'):
+            flash("Accesso non autorizzato", "danger")
+            return redirect(url_for('auth.login'))
+        return func(*args, **kwargs)
+
+    return wrapper
+
 
 def allowed_file(filename):
     """Controlla estensione file"""
@@ -51,7 +64,8 @@ def serve_file(documento_id):
     user_id = session.get('user_id')
     user_role = session.get('role')
     
-    if user_role == 'user' and documento.patient_id == user_id:
+    # Solo il proprietario o l'admin possono vedere il file
+    if user_role in ('admin', 'nutrizionista') or (user_role == 'user' and documento.patient_id == user_id):
         file_path = get_full_path(documento.file_path)
         if os.path.exists(file_path):
             # Audit log per download
@@ -216,3 +230,43 @@ def elimina_documento_user(documento_id):
         flash(f"Errore durante l'eliminazione: {e}", "danger")
     
     return redirect(url_for('documenti.lista_documenti_user'))
+
+
+# ========================
+# ADMIN: LISTA DOCUMENTI PAZIENTE
+# ========================
+@documenti_bp.route('/admin/paziente/<int:patient_id>')
+@admin_required
+def lista_documenti_admin(patient_id):
+    """L'admin può vedere tutti i documenti di un paziente specifico"""
+    paziente = Patient.query.get_or_404(patient_id)
+    documenti = Documento.query.filter_by(patient_id=patient_id).order_by(Documento.data_upload.desc()).all()
+    
+    return render_template('admin/documenti_paziente.html', paziente=paziente, documenti=documenti)
+
+
+# ========================
+# ADMIN: ELIMINA DOCUMENTO PAZIENTE
+# ========================
+@documenti_bp.route('/admin/elimina/<int:documento_id>', methods=['POST'])
+@admin_required
+def elimina_documento_admin(documento_id):
+    """L'admin può eliminare qualsiasi documento"""
+    documento = Documento.query.get_or_404(documento_id)
+    paziente_id = documento.patient_id
+    
+    try:
+        # Elimina file fisico
+        if documento.file_path and os.path.exists(documento.file_path):
+            os.remove(documento.file_path)
+        
+        db.session.delete(documento)
+        db.session.commit()
+        flash("Documento eliminato ✅", "success")
+    
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Errore durante l'eliminazione: {e}", "danger")
+    
+    return redirect(url_for('documenti.lista_documenti_admin', patient_id=paziente_id))
+

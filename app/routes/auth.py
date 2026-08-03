@@ -34,7 +34,8 @@ def _login_as_patient(user, *, via: str = "web"):
     return redirect(url_for('dashboard.user_dashboard'))
 
 
-def _login_as_utente(utente, role: str, *, via: str):
+def establish_utente_session(utente, role: str, *, via: str) -> None:
+    """Imposta la sessione web per super_admin / nutrizionista (senza redirect)."""
     session.clear()
     session['role'] = role
     session['utente_id'] = utente.id
@@ -49,9 +50,14 @@ def _login_as_utente(utente, role: str, *, via: str):
     )
     db.session.commit()
 
+
+def _login_as_utente(utente, role: str, *, via: str):
+    establish_utente_session(utente, role, via=via)
+
     if role == 'super_admin':
         return redirect(url_for('super_admin.lista_utenti'))
-    return redirect(url_for('nutri_dashboard.home'))
+    # Nutrizionista → UI admin tenant
+    return redirect(url_for('dashboard.admin_dashboard'))
 
 
 @auth_bp.route('/login', methods=['GET', 'POST'])

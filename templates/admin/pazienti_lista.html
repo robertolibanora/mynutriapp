@@ -1,0 +1,365 @@
+{% extends 'base_admin.html' %}
+{% block title %}Gestione Pazienti{% endblock %}
+{% block content %}
+
+<style>
+  .admin-app .pl-hero {
+    margin-bottom: 1.35rem;
+    padding: 1.5rem 1.65rem;
+    border-radius: 18px;
+    background: linear-gradient(120deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04) 70%, transparent);
+    border: 1px solid rgba(255,255,255,0.12);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .admin-app .pl-hero h1 {
+    margin: 0;
+    color: #fff;
+    font: 500 1.85rem var(--adm-serif, Georgia, serif);
+    line-height: 1.2;
+  }
+  .admin-app .pl-hero p {
+    margin: 0.4rem 0 0;
+    color: #a8a8a8;
+    font-size: 0.9rem;
+  }
+  .admin-app .pl-hero-actions {
+    display: flex;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+  }
+  .admin-app .pl-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+  .admin-app .pl-stat {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 0.9rem 1rem;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .admin-app .pl-stat:hover {
+    border-color: rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.07);
+  }
+  .admin-app .pl-stat.is-active {
+    border-color: rgba(255,255,255,0.28);
+    background: rgba(255,255,255,0.08);
+  }
+  .admin-app .pl-stat-num {
+    font-size: 1.35rem;
+    font-weight: 650;
+    color: #f0f0f0;
+    line-height: 1.1;
+  }
+  .admin-app .pl-stat-label {
+    margin-top: 0.25rem;
+    color: #a8a8a8;
+    font-size: 0.8rem;
+  }
+  .admin-app .pl-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.85rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+  }
+  .admin-app .pl-filters {
+    display: flex;
+    gap: 0.25rem;
+    flex-wrap: wrap;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .admin-app .pl-filter {
+    background: none;
+    border: none;
+    color: #a8a8a8;
+    padding: 0.55rem 0.85rem;
+    font: 500 0.88rem var(--adm-font, inherit);
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+  }
+  .admin-app .pl-filter.is-active {
+    color: #f0f0f0;
+    border-bottom-color: rgba(255,255,255,0.55);
+  }
+  .admin-app .pl-search {
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+  }
+  .admin-app .pl-search .input-text {
+    width: 220px;
+    font-size: 0.9rem;
+  }
+  .admin-app .pl-banner {
+    margin-bottom: 1rem;
+    padding: 0.85rem 1rem;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: #c8c8c8;
+    font-size: 0.9rem;
+  }
+  .admin-app .pl-banner a {
+    color: #e8e8e8;
+    margin-left: 0.35rem;
+  }
+  .admin-app .pl-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 0.85rem;
+  }
+  .admin-app .pl-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 14px;
+    padding: 1.15rem 1.2rem;
+    cursor: pointer;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .admin-app .pl-card:hover {
+    border-color: rgba(255,255,255,0.22);
+    background: rgba(255,255,255,0.07);
+  }
+  .admin-app .pl-card-top {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    margin-bottom: 0.85rem;
+  }
+  .admin-app .pl-avatar {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.14);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: 650;
+    color: #f0f0f0;
+  }
+  .admin-app .pl-name {
+    margin: 0;
+    color: #fff;
+    font-size: 1.05rem;
+    font-weight: 600;
+    line-height: 1.25;
+  }
+  .admin-app .pl-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.65rem;
+    margin-top: 0.3rem;
+    color: #a8a8a8;
+    font-size: 0.82rem;
+  }
+  .admin-app .pl-status {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0.15rem 0.45rem;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.1);
+    color: #d0d0d0;
+  }
+  .admin-app .pl-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 0.9rem;
+    color: #b8b8b8;
+    font-size: 0.82rem;
+    margin-bottom: 0.9rem;
+    padding-bottom: 0.9rem;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .admin-app .pl-facts span strong {
+    color: #e8e8e8;
+    font-weight: 600;
+  }
+  .admin-app .pl-actions {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .admin-app .pl-empty {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    color: #a8a8a8;
+  }
+  .admin-app .pl-empty h3 {
+    color: #e0e0e0;
+    margin: 0 0 0.5rem;
+    font-size: 1.15rem;
+  }
+  @media (max-width: 800px) {
+    .admin-app .pl-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 480px) {
+    .admin-app .pl-stats { grid-template-columns: 1fr; }
+    .admin-app .pl-search .input-text { width: 100%; }
+  }
+</style>
+
+<header class="pl-hero">
+  <div>
+    <h1>Pazienti</h1>
+    <p>Anagrafica e stato dei clienti.</p>
+  </div>
+  <div class="pl-hero-actions">
+    <a href="{{ url_for('patients.scadenze') }}" class="btn btn-ghost btn-small">{{ icon('clock', 14) }} Scadenze</a>
+    <a href="{{ url_for('patients.nuovo_paziente') }}" class="btn btn-ghost btn-small">{{ icon('plus', 14) }} Nuovo paziente</a>
+  </div>
+</header>
+
+{% set totale = n_provvisori + n_attivi + n_non_attivi %}
+<div class="pl-stats">
+  <a class="pl-stat {% if not stato_filtro %}is-active{% endif %}" href="{{ url_for('patients.lista_pazienti', search=request.args.get('search','')) }}">
+    <div class="pl-stat-num">{{ totale }}</div>
+    <div class="pl-stat-label">Totale</div>
+  </a>
+  <a class="pl-stat {% if stato_filtro == 'attivo' %}is-active{% endif %}" href="{{ url_for('patients.lista_pazienti', stato='attivo', search=request.args.get('search','')) }}">
+    <div class="pl-stat-num">{{ n_attivi }}</div>
+    <div class="pl-stat-label">Attivi</div>
+  </a>
+  <a class="pl-stat {% if stato_filtro == 'provvisorio' %}is-active{% endif %}" href="{{ url_for('patients.lista_pazienti', stato='provvisorio', search=request.args.get('search','')) }}">
+    <div class="pl-stat-num">{{ n_provvisori }}</div>
+    <div class="pl-stat-label">Provvisori</div>
+  </a>
+  <a class="pl-stat {% if stato_filtro == 'non_attivo' %}is-active{% endif %}" href="{{ url_for('patients.lista_pazienti', stato='non_attivo', search=request.args.get('search','')) }}">
+    <div class="pl-stat-num">{{ n_non_attivi }}</div>
+    <div class="pl-stat-label">Non attivi</div>
+  </a>
+</div>
+
+{% if n_provvisori and not stato_filtro %}
+<div class="pl-banner">
+  {{ n_provvisori }} cliente{{ 'i' if n_provvisori != 1 else '' }} provvisor{{ 'i' if n_provvisori != 1 else 'io' }} in attesa di approvazione.
+  <a href="{{ url_for('patients.lista_pazienti', stato='provvisorio') }}">Vedi →</a>
+</div>
+{% endif %}
+
+<div class="pl-toolbar">
+  <div class="pl-filters">
+    <a href="{{ url_for('patients.lista_pazienti', search=request.args.get('search','')) }}" class="pl-filter {% if not stato_filtro %}is-active{% endif %}">Tutti</a>
+    <a href="{{ url_for('patients.lista_pazienti', stato='provvisorio', search=request.args.get('search','')) }}" class="pl-filter {% if stato_filtro == 'provvisorio' %}is-active{% endif %}">Provvisori</a>
+    <a href="{{ url_for('patients.lista_pazienti', stato='attivo', search=request.args.get('search','')) }}" class="pl-filter {% if stato_filtro == 'attivo' %}is-active{% endif %}">Attivi</a>
+    <a href="{{ url_for('patients.lista_pazienti', stato='non_attivo', search=request.args.get('search','')) }}" class="pl-filter {% if stato_filtro == 'non_attivo' %}is-active{% endif %}">Non attivi</a>
+  </div>
+  <form method="get" class="pl-search">
+    {% if stato_filtro %}<input type="hidden" name="stato" value="{{ stato_filtro }}">{% endif %}
+    <input type="text" name="search" id="search" placeholder="Cerca…" class="input-text" value="{{ request.args.get('search', '') }}">
+    <button type="submit" class="btn btn-ghost btn-small">Cerca</button>
+    {% if request.args.get('search') or stato_filtro %}
+    <a href="{{ url_for('patients.lista_pazienti') }}" class="btn btn-ghost btn-small" title="Rimuovi filtri">{{ icon('x', 14) }}</a>
+    {% endif %}
+  </form>
+</div>
+
+{% if pazienti %}
+<div class="pl-grid">
+  {% for p in pazienti %}
+  {% set sc = p.stato_cliente or 'attivo' %}
+  <article class="pl-card" data-href="{{ url_for('patients.dettaglio_paziente', patient_id=p.id) }}">
+    <div class="pl-card-top">
+      <div class="pl-avatar" aria-hidden="true">{{ p.nome[0] }}{{ p.cognome[0] }}</div>
+      <div style="min-width:0; flex:1;">
+        <h2 class="pl-name">{{ p.nome }} {{ p.cognome }}</h2>
+        <div class="pl-meta">
+          <span class="pl-status">{{ label_stato.get(sc, sc) }}</span>
+          {% if p.telefono %}
+          <span>{{ icon('phone', 12) }} {{ p.telefono }}</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="pl-facts">
+      {% if p.eta %}<span>Età <strong>{{ p.eta }}</strong></span>{% endif %}
+      {% if p.peso_iniziale %}<span>Peso <strong>{{ p.peso_iniziale }} kg</strong></span>
+      {% elif sc == 'provvisorio' %}<span>Anagrafica da completare</span>{% endif %}
+      <span>Diete <strong>{{ p.diete|length }}</strong></span>
+      <span>Allenamenti <strong>{{ p.allenamenti|length }}</strong></span>
+      <span>Progressi <strong>{{ p.progressi|length }}</strong></span>
+    </div>
+
+    <div class="pl-actions" onclick="event.stopPropagation();">
+      {% if sc == 'provvisorio' %}
+      <form action="{{ url_for('patients.approva_cliente', patient_id=p.id) }}" method="POST" style="margin:0;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <button type="submit" class="btn btn-ghost btn-small" onclick="return confirm('Approvare {{ p.nome }} {{ p.cognome }}? Diventerà cliente attivo e l\'appuntamento verrà confermato.')">Approva</button>
+      </form>
+      <form action="{{ url_for('patients.rifiuta_cliente', patient_id=p.id) }}" method="POST" style="margin:0;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <button type="submit" class="btn btn-ghost btn-small" onclick="return confirm('Rifiutare {{ p.nome }} {{ p.cognome }}? Diventerà non attivo e l\'appuntamento verrà annullato.')">Rifiuta</button>
+      </form>
+      {% else %}
+      <a href="{{ url_for('patients.dettaglio_paziente', patient_id=p.id) }}" class="btn btn-ghost btn-small">Apri</a>
+      <a href="{{ url_for('patients.modifica_paziente', patient_id=p.id) }}" class="btn btn-ghost btn-small">{{ icon('edit', 14) }} Modifica</a>
+      <form action="{{ url_for('patients.elimina_paziente', patient_id=p.id) }}" method="POST" style="margin:0 0 0 auto;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <button type="submit" class="btn btn-ghost btn-small" title="Elimina" onclick="return confirm('Eliminare {{ p.nome }} {{ p.cognome }}?')">{{ icon('trash', 14) }}</button>
+      </form>
+      {% endif %}
+    </div>
+  </article>
+  {% endfor %}
+</div>
+
+{% else %}
+<div class="pl-empty">
+  <div class="adm-empty-icon" style="margin-bottom:0.75rem;">{{ icon('users', 40) }}</div>
+  <h3>
+    {% if request.args.get('search') or stato_filtro %}
+    Nessun paziente trovato
+    {% else %}
+    Nessun paziente registrato
+    {% endif %}
+  </h3>
+  <p style="margin:0 0 1.25rem;">
+    {% if request.args.get('search') or stato_filtro %}
+    Prova a modificare ricerca o filtro.
+    {% else %}
+    Registra il primo paziente per iniziare.
+    {% endif %}
+  </p>
+  {% if request.args.get('search') or stato_filtro %}
+  <a href="{{ url_for('patients.lista_pazienti') }}" class="btn btn-ghost btn-small">Rimuovi filtri</a>
+  {% else %}
+  <a href="{{ url_for('patients.nuovo_paziente') }}" class="btn btn-ghost btn-small">{{ icon('plus', 14) }} Nuovo paziente</a>
+  {% endif %}
+</div>
+{% endif %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.pl-card').forEach(function(card) {
+    card.addEventListener('click', function(e) {
+      if (e.target.closest('a, button, form')) return;
+      var href = this.getAttribute('data-href');
+      if (href) window.location.href = href;
+    });
+  });
+});
+</script>
+
+{% endblock %}

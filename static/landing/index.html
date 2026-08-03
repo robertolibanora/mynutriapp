@@ -265,16 +265,26 @@
     }
     .footer-inner { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; align-items: center; }
 
-    .toast {
-      position: fixed; left: 50%; bottom: 1.25rem; transform: translateX(-50%);
-      z-index: 80; max-width: min(92vw, 420px);
-      padding: 0.85rem 1.1rem; border-radius: 12px;
-      background: #1c1c1c; border: 1px solid rgba(255,154,86,0.35);
-      color: var(--text); font-size: 0.92rem; font-weight: 650;
-      box-shadow: 0 12px 40px rgba(0,0,0,0.45);
-      opacity: 0; pointer-events: none; transition: opacity .2s ease;
+    .modal[hidden] { display: none !important; }
+    .modal {
+      position: fixed; inset: 0; z-index: 80;
+      background: rgba(0,0,0,0.65); display: grid; place-items: center; padding: 1rem;
     }
-    .toast.show { opacity: 1; }
+    .modal-card {
+      width: min(100%, 440px); background: #151515; border: 1px solid var(--line);
+      border-radius: 20px; padding: 1.4rem 1.35rem 1.25rem;
+    }
+    .modal-card h3 { font-size: 1.2rem; margin-bottom: 0.35rem; }
+    .modal-card .sub { color: var(--muted); font-size: 0.9rem; margin-bottom: 1rem; }
+    .field { display: grid; gap: 0.35rem; margin-bottom: 0.75rem; }
+    .field label { font-size: 0.8rem; color: var(--muted); font-weight: 650; }
+    .field input {
+      border: 1px solid var(--line); background: rgba(0,0,0,0.35);
+      color: var(--text); border-radius: 10px; padding: 0.7rem 0.8rem; font: inherit;
+    }
+    .modal-actions { display: flex; gap: 0.6rem; margin-top: 1rem; }
+    .modal-actions .btn { flex: 1; }
+    .modal-err { color: #ffb0b0; font-size: 0.88rem; margin-top: 0.5rem; min-height: 1.2em; }
 
     @media (max-width: 960px) {
       .hero-grid, .plans, .feature-grid, .why-list, .steps, .soon-grid { grid-template-columns: 1fr 1fr; }
@@ -302,7 +312,7 @@
         <a href="#prezzo">Prezzo</a>
         <a href="#faq">FAQ</a>
         <a class="btn btn-ghost btn-sm" href="/login">Accedi</a>
-        <a class="btn btn-accent btn-sm" href="#prezzo">Inizia ora</a>
+        <a class="btn btn-accent btn-sm" href="#prezzo" data-checkout="professional">Inizia ora</a>
       </nav>
     </div>
   </header>
@@ -315,7 +325,7 @@
           <h1>Dedica più tempo ai pazienti. <em>Al resto pensa MyNutriApp.</em></h1>
           <p class="hero-lead">Appuntamenti, diete, progressi e documenti in un’unica piattaforma. Meno caos, più cura.</p>
           <div class="hero-cta">
-            <a class="btn btn-accent" href="#prezzo">Inizia ora</a>
+            <a class="btn btn-accent" href="#prezzo" data-checkout="professional">Inizia ora</a>
             <a class="btn btn-ghost" href="#funzionalita">Scopri come funziona</a>
           </div>
           <div class="hero-meta">
@@ -405,7 +415,7 @@
         <h2 class="section-title">Inizia gratuitamente.</h2>
         <p class="section-lead" style="margin-inline:auto">Configura il tuo studio in pochi minuti e inizia subito a seguire i tuoi pazienti.</p>
         <div class="hero-cta" style="justify-content:center; margin-top:1.5rem">
-          <a class="btn btn-accent" href="#prezzo">Inizia ora</a>
+          <a class="btn btn-accent" href="#prezzo" data-checkout="professional">Inizia ora</a>
           <a class="btn btn-ghost" href="/login">Ho già un account</a>
         </div>
       </div>
@@ -419,7 +429,36 @@
     </div>
   </footer>
 
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div class="modal" id="checkout-modal" hidden>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="checkout-title">
+      <h3 id="checkout-title">Attiva il piano</h3>
+      <p class="sub">Piano: <strong id="checkout-plan-label">Professional</strong> · Stripe Checkout (test)</p>
+      <form id="checkout-form">
+        <input type="hidden" name="plan" id="checkout-plan" value="professional">
+        <div class="field">
+          <label for="nome">Nome</label>
+          <input id="nome" name="nome" required autocomplete="given-name">
+        </div>
+        <div class="field">
+          <label for="cognome">Cognome</label>
+          <input id="cognome" name="cognome" required autocomplete="family-name">
+        </div>
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" required autocomplete="email">
+        </div>
+        <div class="field">
+          <label for="telefono">Telefono</label>
+          <input id="telefono" name="telefono" type="tel" required autocomplete="tel" placeholder="3401234567" inputmode="tel">
+        </div>
+        <div class="modal-err" id="checkout-err"></div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" id="checkout-cancel">Annulla</button>
+          <button type="submit" class="btn btn-accent" id="checkout-submit">Vai al pagamento</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <script>
   (function () {
@@ -484,27 +523,73 @@
       const badge = p.badge ? `<div class="plan-badge">${p.badge}</div>` : '';
       const action = p.key === 'enterprise'
         ? `<a class="btn btn-ghost" href="mailto:hello@mynutriapp.cloud?subject=Enterprise%20MyNutriApp">${p.cta}</a>`
-        : `<button type="button" class="btn ${p.hot ? 'btn-accent' : 'btn-ghost'}" data-stripe-placeholder="${p.key}">${p.cta}</button>`;
+        : `<button type="button" class="btn ${p.hot ? 'btn-accent' : 'btn-ghost'}" data-checkout="${p.key}">${p.cta}</button>`;
       return `<article class="plan ${p.hot ? 'hot' : ''}">${badge}<h3>${p.name}</h3><p class="desc">${p.desc}</p><div class="price">${p.price} <span>${p.suffix}</span></div>${feats}${action}</article>`;
     }).join('');
 
-    // Stripe: placeholder — nessun checkout finché non si collega la UI
-    const toast = document.getElementById('toast');
-    let toastTimer;
-    function showToast(msg) {
-      toast.textContent = msg;
-      toast.classList.add('show');
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => toast.classList.remove('show'), 3200);
+    const modal = document.getElementById('checkout-modal');
+    const planInput = document.getElementById('checkout-plan');
+    const planLabel = document.getElementById('checkout-plan-label');
+    const errEl = document.getElementById('checkout-err');
+    const form = document.getElementById('checkout-form');
+    const submitBtn = document.getElementById('checkout-submit');
+
+    function openCheckout(planKey) {
+      const p = PLANS.find(x => x.key === planKey);
+      if (!p || p.key === 'enterprise') return;
+      planInput.value = p.key;
+      planLabel.textContent = p.name + ' · ' + p.price + p.suffix;
+      errEl.textContent = '';
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Vai al pagamento';
+      modal.hidden = false;
+      document.getElementById('nome').focus();
     }
+    function closeCheckout() { modal.hidden = true; }
+
     document.addEventListener('click', (e) => {
-      const btn = e.target.closest('[data-stripe-placeholder]');
+      const btn = e.target.closest('[data-checkout]');
       if (!btn) return;
       e.preventDefault();
-      const plan = btn.getAttribute('data-stripe-placeholder');
-      const p = PLANS.find(x => x.key === plan);
-      showToast(`Checkout Stripe in arrivo${p ? ' · ' + p.name : ''}. Per ora è un placeholder.`);
+      openCheckout(btn.getAttribute('data-checkout'));
     });
+    document.getElementById('checkout-cancel').addEventListener('click', closeCheckout);
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeCheckout(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !modal.hidden) closeCheckout(); });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errEl.textContent = '';
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Reindirizzamento…';
+      const payload = {
+        plan: planInput.value,
+        nome: form.nome.value.trim(),
+        cognome: form.cognome.value.trim(),
+        email: form.email.value.trim(),
+        telefono: form.telefono.value.trim(),
+      };
+      try {
+        const res = await fetch('/billing/create-checkout-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.url) {
+          throw new Error(data.error || 'Checkout non disponibile. Riprova tra poco.');
+        }
+        window.location.href = data.url;
+      } catch (err) {
+        errEl.textContent = err.message || 'Errore durante il checkout';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Vai al pagamento';
+      }
+    });
+
+    if (new URLSearchParams(location.search).get('checkout') === 'success') {
+      document.title = 'Abbonamento avviato · MyNutriApp';
+    }
   })();
   </script>
 </body>

@@ -1,0 +1,683 @@
+{% extends 'base_admin.html' %}
+{% block title %}{{ paziente.nome }} {{ paziente.cognome }} - Dettaglio{% endblock %}
+{% block content %}
+
+{% set sc = paziente.stato_cliente or 'attivo' %}
+<style>
+  .admin-app .patient-panel { display: none; }
+  .admin-app .patient-panel.is-active { display: block; }
+  .admin-app .patient-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: #a8a8a8;
+    font-size: 0.85rem;
+    text-decoration: none;
+    margin-bottom: 0.85rem;
+  }
+  .admin-app .patient-back:hover { color: #e8e8e8; }
+  .admin-app .patient-hero {
+    margin-bottom: 1.5rem;
+    padding: 1.75rem 1.85rem;
+    border-radius: 18px;
+    background: linear-gradient(120deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04) 70%, transparent);
+    border: 1px solid rgba(255,255,255,0.12);
+  }
+  .admin-app .patient-hero-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.15rem;
+  }
+  .admin-app .patient-avatar {
+    width: 64px;
+    height: 64px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.16);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    font-weight: 650;
+    color: #f0f0f0;
+    letter-spacing: 0.02em;
+  }
+  .admin-app .patient-hero h1 {
+    margin: 0;
+    color: #fff;
+    font: 500 2.1rem var(--adm-serif, Georgia, serif);
+    line-height: 1.15;
+  }
+  .admin-app .patient-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.55rem 0.85rem;
+    margin-top: 0.65rem;
+    color: #b8b8b8;
+    font-size: 0.9rem;
+  }
+  .admin-app .patient-meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .admin-app .patient-status {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0.22rem 0.55rem;
+    border-radius: 999px;
+  }
+  .admin-app .patient-status.is-attivo { background: rgba(255,255,255,0.1); color: #d0d0d0; }
+  .admin-app .patient-status.is-provvisorio { background: rgba(255,255,255,0.08); color: #cfcfcf; border: 1px solid rgba(255,255,255,0.18); }
+  .admin-app .patient-status.is-non-attivo { background: rgba(255,255,255,0.06); color: #a0a0a0; }
+  .admin-app .patient-hero-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+  .admin-app .anag-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.65rem;
+  }
+  .admin-app .anag-cell {
+    padding: 0.65rem 0.85rem;
+    background: rgba(255, 255, 255, 0.09);
+    border-radius: 8px;
+  }
+  .admin-app .anag-cell-label {
+    display: block;
+    color: #d8d8d8;
+    font-size: 0.75rem;
+    margin-bottom: 0.2rem;
+  }
+  .admin-app .anag-cell-value {
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+  .admin-app .detail-nav-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+  }
+  .admin-app .detail-nav-row .tabs-minimal {
+    margin-bottom: 0;
+    flex: 1;
+  }
+  .admin-app .section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+  .admin-app .section-head h3 {
+    margin: 0;
+    color: #d4d4d4;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+  }
+  .admin-app .med-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.85rem;
+  }
+  .admin-app .mgmt-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .admin-app .mgmt-card {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 14px;
+    padding: 1.25rem 1.35rem;
+  }
+  .admin-app .mgmt-card p {
+    color: #b8b8b8;
+    margin: 0 0 1rem;
+    font-size: 0.88rem;
+  }
+  .admin-app .mgmt-actions {
+    display: flex;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+  }
+  .admin-app .alert-soft {
+    border-radius: 12px;
+    padding: 1rem 1.15rem;
+    margin-bottom: 0.75rem;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.12);
+  }
+  .admin-app .alert-soft.is-alta { border-color: rgba(229,115,115,0.35); }
+  @media (max-width: 800px) {
+    .admin-app .anag-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .admin-app .med-grid { grid-template-columns: 1fr; }
+    .admin-app .mgmt-grid { grid-template-columns: 1fr; }
+    .admin-app .patient-hero h1 { font-size: 1.7rem; }
+  }
+  @media (max-width: 480px) {
+    .admin-app .anag-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<a href="{{ url_for('patients.lista_pazienti') }}" class="patient-back">{{ icon('arrow-left', 14) }} Pazienti</a>
+
+<!-- HEADER PAZIENTE -->
+<header class="patient-hero">
+  <div class="patient-hero-top">
+    <div class="patient-avatar" aria-hidden="true">{{ paziente.nome[0] }}{{ paziente.cognome[0] }}</div>
+    <div style="min-width:0; flex:1;">
+      <h1>{{ paziente.nome }} {{ paziente.cognome }}</h1>
+      <div class="patient-meta">
+        <span class="patient-status {% if sc == 'provvisorio' %}is-provvisorio{% elif sc == 'attivo' %}is-attivo{% else %}is-non-attivo{% endif %}">
+          {% if sc == 'provvisorio' %}Provvisorio{% elif sc == 'attivo' %}Attivo{% else %}Non attivo{% endif %}
+        </span>
+        {% if paziente.telefono %}
+        <span class="patient-meta-item">{{ icon('phone', 14) }} {{ paziente.telefono }}</span>
+        {% endif %}
+        {% if paziente.data_creazione %}
+        <span class="patient-meta-item">{{ icon('calendar', 14) }} dal {{ paziente.data_creazione.strftime('%d/%m/%Y') }}</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% if sc == 'provvisorio' %}
+  <div class="patient-hero-actions">
+    <form method="POST" action="{{ url_for('patients.approva_cliente', patient_id=paziente.id) }}" style="margin:0;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+      <button type="submit" class="btn btn-ghost btn-small" onclick="return confirm('Approvare questo cliente? Diventerà attivo e l\'appuntamento verrà confermato.')">Approva cliente</button>
+    </form>
+    <form method="POST" action="{{ url_for('patients.rifiuta_cliente', patient_id=paziente.id) }}" style="margin:0;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+      <button type="submit" class="btn btn-ghost btn-small" onclick="return confirm('Rifiutare questo cliente? Diventerà non attivo.')">Rifiuta</button>
+    </form>
+  </div>
+  {% endif %}
+</header>
+
+<!-- ALERT SECTION -->
+{% if alerti %}
+<div class="alert-section" style="margin-bottom: 1.5rem;">
+  {% for alert in alerti %}
+  <div class="alert-soft {% if alert.urgenza == 'alta' %}is-alta{% endif %}">
+    <div style="display: flex; align-items: flex-start; gap: 0.85rem;">
+      <div style="color:#c8c8c8; margin-top:0.1rem;">
+        {% if alert.tipo == 'check_mancante' %}{{ icon('chart', 18) }}
+        {% elif alert.tipo == 'dieta_scadenza' %}{{ icon('diet', 18) }}
+        {% elif alert.tipo == 'allenamento_scadenza' %}{{ icon('dumbbell', 18) }}
+        {% else %}{{ icon('alert', 18) }}{% endif %}
+      </div>
+      <div style="flex:1; min-width:0;">
+        <h3 style="margin:0 0 0.3rem 0; font-size:1rem; color:#f0f0f0; font-weight:600;">{{ alert.titolo }}</h3>
+        <p style="color:#b8b8b8; margin:0; font-size:0.9rem; line-height:1.4;">{{ alert.messaggio }}</p>
+      </div>
+      <span style="font-size:0.7rem; font-weight:650; text-transform:uppercase; letter-spacing:0.04em; color:#a8a8a8; white-space:nowrap;">
+        {% if alert.urgenza == 'alta' %}Urgente{% else %}Attenzione{% endif %}
+      </span>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- NAV: TAB DINAMICHE -->
+<div class="detail-nav-row">
+  <div class="tabs-minimal">
+    <button type="button" class="tab-min is-active" data-tab="panoramica">Panoramica</button>
+    <button type="button" class="tab-min" data-tab="mediche">Info mediche</button>
+    <button type="button" class="tab-min" data-tab="diario">
+      Diario
+      {% if da_revisionare %}
+      <span style="margin-left:0.35rem; background:rgba(255,255,255,0.12); color:#d0d0d0; font-size:0.7rem; font-weight:700; padding:0.1rem 0.4rem; border-radius:999px;">{{ da_revisionare|length }}</span>
+      {% endif %}
+    </button>
+    <button type="button" class="tab-min" data-tab="percorsi">Percorsi</button>
+  </div>
+</div>
+
+<!-- ========== TAB PANORAMICA ========== -->
+<section id="panoramica-tab" class="patient-panel is-active">
+
+  <!-- STATUS PROFILO (compatto) -->
+  <div class="status-card" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1.5rem;">
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
+      <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+        <h3 style="color: #d4d4d4; margin: 0; font-size: 0.95rem;">{{ icon('chart', 14) }} Stato profilo</h3>
+        <span class="{% if paziente.intolleranze or paziente.patologie or paziente.allenamenti_descr %}status-complete{% else %}status-incomplete{% endif %}" style="padding: 0.3rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">
+          {% if paziente.intolleranze or paziente.patologie or paziente.allenamenti_descr %}
+            Completo
+          {% else %}
+            Incompleto
+          {% endif %}
+        </span>
+        <p style="color: #d8d8d8; margin: 0; font-size: 0.85rem;">
+          {% if paziente.intolleranze or paziente.patologie or paziente.allenamenti_descr %}
+            Info mediche disponibili
+          {% else %}
+            Aggiungi informazioni mediche per completare il profilo
+          {% endif %}
+        </p>
+      </div>
+      {% if not (paziente.intolleranze or paziente.patologie or paziente.allenamenti_descr) %}
+      <button type="button" class="btn btn-ghost btn-small" style="flex-shrink: 0;" onclick="document.querySelector('.tab-min[data-tab=mediche]').click();">
+        {{ icon('arrow-right', 14) }} Info mediche
+      </button>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- DATI ANAGRAFICI (compatto) -->
+  <div class="content-card" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 1.25rem; margin-bottom: 1.5rem;">
+    <div class="section-head">
+      <h3>{{ icon('user', 16) }} Dati anagrafici</h3>
+      <a href="{{ url_for('patients.modifica_paziente', patient_id=paziente.id) }}" class="btn btn-ghost btn-small">{{ icon('edit', 14) }} Modifica</a>
+    </div>
+    <div class="anag-grid">
+      <div class="anag-cell">
+        <span class="anag-cell-label">Telefono</span>
+        <span class="anag-cell-value">{{ paziente.telefono }}</span>
+      </div>
+      <div class="anag-cell">
+        <span class="anag-cell-label">Password</span>
+        <span class="anag-cell-value" style="font-family: monospace;">{{ paziente.password_plain or '—' }}</span>
+      </div>
+      <div class="anag-cell">
+        <span class="anag-cell-label">Data nascita</span>
+        <span class="anag-cell-value">{{ paziente.data_nascita.strftime('%d/%m/%Y') if paziente.data_nascita else '—' }}</span>
+      </div>
+      <div class="anag-cell">
+        <span class="anag-cell-label">Sesso</span>
+        <span class="anag-cell-value">{{ paziente.sesso or '—' }}</span>
+      </div>
+      <div class="anag-cell">
+        <span class="anag-cell-label">Altezza</span>
+        <span class="anag-cell-value">{% if paziente.altezza_cm %}{{ paziente.altezza_cm }} cm{% else %}—{% endif %}</span>
+      </div>
+      <div class="anag-cell">
+        <span class="anag-cell-label">Peso iniziale</span>
+        <span class="anag-cell-value">{% if paziente.peso_iniziale is not none %}{{ "%.1f"|format(paziente.peso_iniziale) }} kg{% else %}—{% endif %}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- GRAFICO PROGRESSI -->
+  {% if progressi %}
+  <div class="progress-chart-section" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
+      <div>
+        <h3 style="color: #d4d4d4; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+          Andamento peso e aderenza
+        </h3>
+        <p style="color: #d8d8d8; font-size: 0.9rem; margin: 0.25rem 0 0 0;">Include check paziente + nutrizionista</p>
+      </div>
+      <div style="display: flex; gap: 0.5rem;">
+        <a href="{{ url_for('progressi.check_nutrizionista_completo', patient_id=paziente.id) }}" class="btn btn-ghost btn-small">{{ icon('plus', 16) }} Nuovo check</a>
+      </div>
+    </div>
+
+    <div style="position: relative; height: 400px; background: rgba(255, 255, 255, 0.09); border-radius: 12px; padding: 1rem;">
+      <canvas id="progressChart"></canvas>
+    </div>
+
+    <div style="margin-top: 1rem; padding: 1rem; background: rgba(255, 255, 255, 0.09); border-radius: 8px;">
+      <div style="color: #d8d8d8; font-size: 0.85rem; margin-bottom: 0.5rem;">Legenda aderenza:</div>
+      <div style="display: flex; gap: 1.5rem; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <div style="width: 12px; height: 12px; background: #d8d8d8; border-radius: 50%;"></div>
+          <span style="color: #d8d8d8; font-size: 0.85rem;">8-10 (Ottima)</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <div style="width: 12px; height: 12px; background: #b0b0b0; border-radius: 50%;"></div>
+          <span style="color: #d8d8d8; font-size: 0.85rem;">5-7 (Buona)</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <div style="width: 12px; height: 12px; background: #F44336; border-radius: 50%;"></div>
+          <span style="color: #d8d8d8; font-size: 0.85rem;">1-4 (Scarsa)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- FOTO PROGRESSI -->
+  {% if foto_inviate > 0 %}
+  <div class="photos-section" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+      <h3 style="color: #d4d4d4; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+        Foto progressi
+      </h3>
+      <span style="background: rgba(255, 255, 255, 0.2); color: #909090; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">
+        {{ foto_inviate }} foto
+      </span>
+    </div>
+
+    <div class="photos-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem;">
+      {% for progresso in progressi %}
+        {% if progresso.foto_path %}
+        <div class="photo-card" style="background: rgba(255, 255, 255, 0.09); border-radius: 12px; padding: 1rem; border: 1px solid rgba(182, 177, 169, 0.1);">
+          <div style="position: relative; margin-bottom: 0.75rem;">
+            <img src="{{ url_for('static', filename=progresso.foto_path) }}"
+                 alt="Foto progresso {{ progresso.data_check.strftime('%d/%m/%Y') }}"
+                 style="width: 100%; height: 150px; object-fit: cover; border-radius: 8px; cursor: pointer;"
+                 onclick="openPhotoModal(this.src, '{{ progresso.data_check.strftime('%d/%m/%Y') }}')">
+          </div>
+          <div style="text-align: center;">
+            <div style="color: #ffffff; font-size: 0.9rem; font-weight: 600; margin-bottom: 0.25rem;">
+              {{ progresso.data_check.strftime('%d/%m/%Y') }}
+            </div>
+            <div style="color: #d8d8d8; font-size: 0.8rem;">
+              {% if progresso.tipo_check == 'nutrizionista' %}
+                {{ icon('medical', 16) }} Check nutrizionista
+              {% else %}
+                {{ icon('user', 14) }} Check Paziente
+              {% endif %}
+            </div>
+            {% if progresso.peso_settimanale %}
+            <div style="color: #d8d8d8; font-size: 0.8rem; font-weight: 600; margin-top: 0.25rem;">
+              {{ "%.1f"|format(progresso.peso_settimanale) }} kg
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+
+  <div id="photoModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; cursor: pointer;" onclick="closePhotoModal()">
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); max-width: 90%; max-height: 90%;">
+      <img id="modalImage" src="" alt="" style="max-width: 100%; max-height: 100%; border-radius: 8px;">
+      <div style="position: absolute; top: -40px; right: 0; color: white; font-size: 1.2rem; font-weight: 600;" id="modalDate"></div>
+      <div style="position: absolute; top: 20px; right: 20px; color: white; font-size: 2rem; cursor: pointer;" onclick="closePhotoModal()">×</div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- PROGRESSI + DOCUMENTI -->
+  <div class="mgmt-grid">
+    <section class="mgmt-card">
+      <div class="section-head">
+        <h3>{{ icon('medical', 16) }} Progressi</h3>
+      </div>
+      <p>Check nutrizionista e storico dei monitoraggi.</p>
+      <div class="mgmt-actions">
+        <a href="{{ url_for('progressi.check_nutrizionista_completo', patient_id=paziente.id) }}" class="btn btn-ghost btn-small">{{ icon('plus', 14) }} Nuovo check</a>
+        <a href="{{ url_for('progressi.progressi_paziente_admin', patient_id=paziente.id) }}" class="btn btn-ghost btn-small">{{ icon('eye', 14) }} Storico</a>
+      </div>
+    </section>
+
+    <section class="mgmt-card">
+      <div class="section-head">
+        <h3>{{ icon('file', 16) }} Documenti</h3>
+      </div>
+      <p>{{ documenti|length }} document{{ 'i' if documenti|length != 1 else 'o' }} caricati dal paziente.</p>
+      <div class="mgmt-actions">
+        <a href="{{ url_for('documenti.lista_documenti_admin', patient_id=paziente.id) }}" class="btn btn-ghost btn-small">{{ icon('eye', 14) }} Apri documenti</a>
+      </div>
+    </section>
+  </div>
+
+</section>
+
+<!-- ========== TAB INFO MEDICHE ========== -->
+<section id="mediche-tab" class="patient-panel">
+
+  <div class="content-card" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem;">
+    <div class="section-head" style="margin-bottom:1.25rem;">
+      <h3>{{ icon('medical', 16) }} Informazioni mediche</h3>
+      <a href="{{ url_for('patients.modifica_paziente', patient_id=paziente.id) }}#informazioni-mediche"
+         class="btn btn-ghost btn-small">
+        {% if paziente.intolleranze or paziente.cibi_da_ev or paziente.patologie or paziente.esami_biochimici %}
+          {{ icon('edit', 14) }} Modifica
+        {% else %}
+          {{ icon('plus', 14) }} Aggiungi
+        {% endif %}
+      </a>
+    </div>
+
+    <div class="med-grid">
+      <div class="medical-item {% if paziente.intolleranze %}medical-complete{% else %}medical-incomplete{% endif %}" style="padding: 1rem; background: rgba(255, 255, 255, 0.09); border-radius: 8px;">
+        <div style="color: #d8d8d8; font-size: 0.85rem; margin-bottom: 0.5rem;">Intolleranze</div>
+        <div style="color: #ffffff; font-size: 0.9rem;">
+          {{ paziente.intolleranze or 'Nessuna intolleranza registrata' }}
+        </div>
+      </div>
+
+      <div class="medical-item {% if paziente.cibi_da_ev %}medical-complete{% else %}medical-incomplete{% endif %}" style="padding: 1rem; background: rgba(255, 255, 255, 0.09); border-radius: 8px;">
+        <div style="color: #d8d8d8; font-size: 0.85rem; margin-bottom: 0.5rem;">Cibi da evitare</div>
+        <div style="color: #ffffff; font-size: 0.9rem;">
+          {{ paziente.cibi_da_ev or 'Nessuna restrizione alimentare' }}
+        </div>
+      </div>
+
+      <div class="medical-item {% if paziente.patologie %}medical-complete{% else %}medical-incomplete{% endif %}" style="padding: 1rem; background: rgba(255, 255, 255, 0.09); border-radius: 8px;">
+        <div style="color: #d8d8d8; font-size: 0.85rem; margin-bottom: 0.5rem;">Patologie</div>
+        <div style="color: #ffffff; font-size: 0.9rem;">
+          {{ paziente.patologie or 'Nessuna patologia registrata' }}
+        </div>
+      </div>
+
+      <div class="medical-item {% if paziente.esami_biochimici %}medical-complete{% else %}medical-incomplete{% endif %}" style="padding: 1rem; background: rgba(255, 255, 255, 0.09); border-radius: 8px;">
+        <div style="color: #d8d8d8; font-size: 0.85rem; margin-bottom: 0.5rem;">Esami biochimici</div>
+        <div style="color: #ffffff; font-size: 0.9rem;">
+          {{ paziente.esami_biochimici or 'Nessun esame registrato' }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ATTIVITÀ FISICA -->
+  <div class="activity-card" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem;">
+    <div class="section-head">
+      <h3>{{ icon('dumbbell', 16) }} Attività fisica</h3>
+      <a href="{{ url_for('patients.modifica_paziente', patient_id=paziente.id) }}#attivita-fisica"
+         class="btn btn-ghost btn-small">
+        {% if paziente.allenamenti_descr %}
+          {{ icon('edit', 14) }} Modifica
+        {% else %}
+          {{ icon('plus', 14) }} Aggiungi
+        {% endif %}
+      </a>
+    </div>
+
+    <div class="{% if paziente.allenamenti_descr %}medical-complete{% else %}medical-incomplete{% endif %}" style="padding: 1rem; background: rgba(255, 255, 255, 0.09); border-radius: 8px;">
+      <div style="color: #d8d8d8; font-size: 0.85rem; margin-bottom: 0.5rem;">Descrizione allenamenti</div>
+      <div style="color: #ffffff; font-size: 0.9rem;">
+        {{ paziente.allenamenti_descr or 'Nessun allenamento personalizzato registrato' }}
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ========== TAB DIARIO ========== -->
+<section id="diario-tab" class="patient-panel">
+  <div class="content-card" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem;">
+    {% include 'admin/_diario_lista_content.html' %}
+  </div>
+</section>
+
+<!-- ========== TAB PERCORSI ========== -->
+<section id="percorsi-tab" class="patient-panel">
+  {% include 'admin/_percorsi_content.html' %}
+</section>
+
+<!-- CHART.JS -->
+<script src="{{ url_for('static', filename='js/chart.umd.min.js') }}"></script>
+
+<script>
+(function () {
+  var knownTabs = { panoramica: true, mediche: true, diario: true, percorsi: true };
+  function showTab(name) {
+    if (!knownTabs[name]) name = 'panoramica';
+    document.querySelectorAll('.patient-panel').forEach(function (p) {
+      p.classList.toggle('is-active', p.id === name + '-tab');
+    });
+    document.querySelectorAll('.detail-nav-row .tab-min').forEach(function (b) {
+      b.classList.toggle('is-active', b.getAttribute('data-tab') === name);
+    });
+    var url = new URL(location.href);
+    if (name === 'panoramica') {
+      url.searchParams.delete('tab');
+    } else {
+      url.searchParams.set('tab', name);
+    }
+    history.replaceState(null, '', url);
+  }
+  document.querySelectorAll('.detail-nav-row .tab-min[data-tab]').forEach(function (btn) {
+    btn.addEventListener('click', function () { showTab(btn.getAttribute('data-tab')); });
+  });
+  var params = new URLSearchParams(location.search);
+  var initial = params.get('tab');
+  if (initial && knownTabs[initial] && initial !== 'panoramica') {
+    showTab(initial);
+  }
+})();
+
+{% if foto_inviate > 0 %}
+function openPhotoModal(imageSrc, date) {
+  document.getElementById('modalImage').src = imageSrc;
+  document.getElementById('modalDate').textContent = date;
+  document.getElementById('photoModal').style.display = 'block';
+  document.body.style.overflow = 'hidden';
+}
+
+function closePhotoModal() {
+  document.getElementById('photoModal').style.display = 'none';
+  document.body.style.overflow = 'auto';
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    closePhotoModal();
+  }
+});
+{% endif %}
+</script>
+
+{% if progressi %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('progressChart');
+    if (!ctx) return;
+
+    const dates = JSON.parse('{{ date_labels|tojson|safe }}');
+    const weights = JSON.parse('{{ pesi|tojson|safe }}');
+    const adherences = JSON.parse('{{ aderenze|tojson|safe }}');
+
+    function getAdherenceColor(aderenza) {
+        if (aderenza >= 8) return '#d8d8d8';
+        if (aderenza >= 5) return '#b0b0b0';
+        return '#F44336';
+    }
+
+    const pointColors = adherences.map(a => getAdherenceColor(a));
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: dates,
+            datasets: [{
+                label: 'Peso (kg)',
+                data: weights,
+                borderColor: '#d4d4d4',
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                borderWidth: 3,
+                tension: 0.4,
+                fill: true,
+                pointRadius: 8,
+                pointHoverRadius: 10,
+                pointBackgroundColor: pointColors,
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointHoverBorderWidth: 3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    labels: {
+                        color: '#d8d8d8',
+                        font: {
+                            size: 14,
+                            weight: '600'
+                        }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    titleColor: '#d4d4d4',
+                    bodyColor: '#ffffff',
+                    borderColor: '#d4d4d4',
+                    borderWidth: 1,
+                    padding: 12,
+                    displayColors: false,
+                    callbacks: {
+                        label: function(context) {
+                            const index = context.dataIndex;
+                            const peso = Number(weights[index]).toFixed(1);
+                            const aderenza = adherences[index];
+                            return [
+                                'Peso: ' + peso + ' kg',
+                                'Aderenza: ' + aderenza + '/10'
+                            ];
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    grid: {
+                        color: 'rgba(182, 177, 169, 0.1)'
+                    },
+                    ticks: {
+                        color: '#d8d8d8',
+                        font: {
+                            size: 12
+                        },
+                        callback: function(value) {
+                            return Number(value).toFixed(1) + ' kg';
+                        }
+                    }
+                },
+                x: {
+                    grid: {
+                        color: 'rgba(182, 177, 169, 0.1)'
+                    },
+                    ticks: {
+                        color: '#d8d8d8',
+                        font: {
+                            size: 11
+                        },
+                        maxRotation: 45,
+                        minRotation: 45
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endif %}
+
+{% endblock %}

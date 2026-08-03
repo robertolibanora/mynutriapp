@@ -1,16 +1,19 @@
 """Landing pubblica: richiesta appuntamento senza login (fuori dalla root)."""
 
 from datetime import datetime
+from functools import wraps
+
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 
 from app.models.diario import Utente
 from app.models.enums import UtenteRuolo
-from app.models.models import Appuntamento, Patient, db
+from app.models.models import Appuntamento, Patient, RichiestaAppuntamento, db
 from app.services.agenda_service import AgendaService
 from app.services.licensing_service import PlanLimitError
 from app.services.paziente_service import crea_paziente_provvisorio
 from app.utils.db_schema import ensure_patient_stato_schema, ensure_richieste_appuntamento_schema
 from app.utils.helpers import normalize_phone
+from app.utils.tenant import assert_patient_tenant, require_tenant, tenant_filter_enabled
 
 prenota_public_bp = Blueprint("prenota_public", __name__)
 
@@ -190,3 +193,131 @@ def prenota_landing():
         tipi=TIPI_PUBBLICI,
         inviato=request.args.get("ok") == "1",
     )
+
+
+def admin_required(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if session.get("role") not in ("admin", "nutrizionista"):
+            flash("Accesso non autorizzato", "danger")
+            return redirect(url_for("auth.login"))
+        return func(*args, **kwargs)
+
+    return wrapper
+
+
+@prenota_public_bp.route("/appuntamenti/admin/richieste")
+@admin_required
+def lista_richieste_admin():
+    """Elenco richieste pubbliche in attesa / recenti (tenant)."""
+    uid = require_tenant()
+    q = RichiestaAppuntamento.query
+    if tenant_filter_enabled():
+        q = q.filter(RichiestaAppuntamento.utente_id == uid)
+    richieste = q.order_by(
+        RichiestaAppuntamento.stato.asc(),
+        RichiestaAppuntamento.data_richiesta.asc(),
+    ).limit(100).all()
+
+    pq = Patient.query
+    if tenant_filter_enabled():
+        pq = pq.filter(Patient.nutrizionista_id == uid)
+    pazienti = pq.order_by(Patient.cognome.asc(), Patient.nome.asc()).all()
+    return render_template(
+        "admin/richieste_appuntamento.html",
+        richieste=richieste,
+        pazienti=pazienti,
+        tipi_label=TIPI_PUBBLICI,
+    )
+
+
+@prenota_public_bp.route(
+    "/appuntamenti/admin/richieste/<int:id>/accetta", methods=["POST"]
+)
+@admin_required
+def accetta_richiesta(id):
+    """Converte una richiesta in appuntamento e attiva il paziente collegato."""
+    uid = require_tenant()
+    richiesta = RichiestaAppuntamento.query.get_or_404(id)
+    if tenant_filter_enabled() and richiesta.utente_id != uid:
+        flash("Richiesta non trovata", "danger")
+        return redirect(url_for("prenota_public.lista_richieste_admin"))
+    if richiesta.stato != "in_attesa":
+        flash("Questa richiesta è già stata gestita", "warning")
+        return redirect(url_for("prenota_public.lista_richieste_admin"))
+
+    try:
+        patient_id = int(request.form.get("patient_id") or 0)
+        paziente = Patient.query.get(patient_id)
+        if not paziente:
+            flash("Seleziona un paziente in anagrafica", "warning")
+            return redirect(url_for("prenota_public.lista_richieste_admin"))
+        assert_patient_tenant(paziente)
+
+        if not AgendaService.is_slot_disponibile(
+            richiesta.data_richiesta,
+            escludi_richiesta_id=richiesta.id,
+            utente_id=uid,
+        ):
+            flash("Lo slot non è più disponibile", "warning")
+            return redirect(url_for("prenota_public.lista_richieste_admin"))
+
+        nuovo = Appuntamento(
+            patient_id=paziente.id,
+            utente_id=uid,
+            created_by="admin",
+            data_appuntamento=richiesta.data_richiesta,
+            tipo=richiesta.tipo,
+            stato="confermato",
+            note=richiesta.note,
+        )
+        db.session.add(nuovo)
+        db.session.flush()
+
+        paziente.stato_cliente = "attivo"
+        richiesta.stato = "accettata"
+        richiesta.patient_id = paziente.id
+        richiesta.appuntamento_id = nuovo.id
+        db.session.commit()
+
+        from app.routes.whatsapp.triggers import safe_trigger_appuntamento_stato
+
+        safe_trigger_appuntamento_stato(nuovo, "confermato")
+
+        flash("Richiesta accettata: cliente attivo e appuntamento creato ✅", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Errore: {e}", "danger")
+
+    return redirect(url_for("prenota_public.lista_richieste_admin"))
+
+
+@prenota_public_bp.route(
+    "/appuntamenti/admin/richieste/<int:id>/rifiuta", methods=["POST"]
+)
+@admin_required
+def rifiuta_richiesta(id):
+    """Rifiuta una richiesta e, se collegato, imposta il paziente non attivo."""
+    uid = require_tenant()
+    richiesta = RichiestaAppuntamento.query.get_or_404(id)
+    if tenant_filter_enabled() and richiesta.utente_id != uid:
+        flash("Richiesta non trovata", "danger")
+        return redirect(url_for("prenota_public.lista_richieste_admin"))
+    if richiesta.stato != "in_attesa":
+        flash("Questa richiesta è già stata gestita", "warning")
+        return redirect(url_for("prenota_public.lista_richieste_admin"))
+
+    try:
+        if richiesta.patient_id:
+            paziente = Patient.query.get(richiesta.patient_id)
+            if paziente and paziente.stato_cliente == "provvisorio":
+                assert_patient_tenant(paziente)
+                paziente.stato_cliente = "non_attivo"
+        richiesta.stato = "rifiutata"
+        db.session.commit()
+        flash("Richiesta rifiutata, slot liberato", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Errore: {e}", "danger")
+
+    return redirect(url_for("prenota_public.lista_richieste_admin"))

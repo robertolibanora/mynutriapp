@@ -1,0 +1,254 @@
+{% extends 'base_admin.html' %}
+{% block title %}Timeline diario — {{ paziente.nome }} {{ paziente.cognome }}{% endblock %}
+{% block content %}
+
+<style>
+  .tl-toolbar {
+    display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: end;
+    margin-bottom: 1.5rem;
+  }
+  .tl-toolbar .form-group { margin: 0; min-width: 9rem; }
+  .tl-toolbar label { display:block; color:#d8d8d8; font-size:0.75rem; margin-bottom:0.25rem; }
+  .chart-panel {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 16px;
+    padding: 1.25rem 1.35rem;
+    margin-bottom: 1.5rem;
+  }
+  .chart-wrap { position: relative; height: 280px; }
+  .tl-item {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 14px;
+    margin-bottom: 0.85rem;
+    overflow: hidden;
+  }
+  .tl-item.is-pending { border-color: rgba(255,183,77,0.35); }
+  .tl-summary {
+    display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+    align-items: center; padding: 1rem 1.15rem; cursor: pointer;
+  }
+  .tl-summary:hover { background: rgba(255,255,255,0.04); }
+  .tl-chips { display:flex; flex-wrap:wrap; gap:0.4rem; margin-top:0.45rem; }
+  .tl-chip {
+    font-size: 0.78rem; padding: 0.2rem 0.5rem; border-radius: 6px;
+    background: rgba(255,255,255,0.12); color: #d8d8d8;
+  }
+  .tl-detail {
+    display: none; padding: 0 1.15rem 1.15rem;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+  .tl-item.is-open .tl-detail { display: block; }
+  .tl-item.is-open .tl-chevron { transform: rotate(90deg); }
+  .tl-chevron { transition: transform .15s ease; color:#d8d8d8; }
+  .badge-review {
+    display: inline-block; font-size: 0.72rem; font-weight: 700;
+    letter-spacing: 0.04em; text-transform: uppercase;
+    padding: 0.28rem 0.7rem; border-radius: 999px;
+  }
+  .badge-review.confermato { background: rgba(129,199,132,0.22); color: #81C784; }
+  .badge-review.da-revisionare { background: rgba(255,183,77,0.22); color: #FFB74D; }
+  .tl-detail dl {
+    display: grid; grid-template-columns: 10rem 1fr; gap: 0.35rem 0.75rem;
+    margin: 1rem 0 0; color: #e8e8e8; font-size: 0.92rem;
+  }
+  .tl-detail dt { color: #d8d8d8; }
+  .tl-detail dd { margin: 0; }
+  .tl-empty { color:#d8d8d8; padding: 1.5rem; text-align:center; }
+  .tl-pager { display:flex; gap:0.5rem; justify-content:center; margin-top:1.25rem; }
+</style>
+
+<div style="margin-bottom: 1rem; display:flex; gap:0.5rem; flex-wrap:wrap;">
+  <a href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id) }}" class="btn btn-ghost btn-small">← Scheda paziente</a>
+  <a href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id, tab='diario') }}" class="btn btn-ghost btn-small">Coda revisione</a>
+  <a href="{{ url_for('diario_ui.nuovo_colloquio', patient_id=paziente.id) }}" class="btn btn-primary btn-small">+ Nuovo colloquio</a>
+</div>
+
+<h2 class="page-title">Timeline diario — {{ paziente.nome }} {{ paziente.cognome }}</h2>
+<p style="color:#d8d8d8; margin: 0 0 1.25rem;">
+  Di default solo voci <strong style="color:#81C784;">confermate</strong> (storico validato).
+</p>
+
+<form class="tl-toolbar" id="tl-filters" method="get">
+  <div class="form-group">
+    <label for="from">Dal</label>
+    <input type="date" id="from" name="from" class="input-text" value="{{ date_from or '' }}">
+  </div>
+  <div class="form-group">
+    <label for="to">Al</label>
+    <input type="date" id="to" name="to" class="input-text" value="{{ date_to or '' }}">
+  </div>
+  <div class="form-group">
+    <label style="display:flex; align-items:center; gap:0.4rem; cursor:pointer; margin-top:1.4rem;">
+      <input type="checkbox" id="include_pending" name="include_pending" value="1" {% if include_pending %}checked{% endif %}>
+      <span style="color:#d8d8d8; font-size:0.85rem;">Includi da revisionare</span>
+    </label>
+  </div>
+  <button type="submit" class="btn btn-primary btn-small">Filtra</button>
+</form>
+
+<section class="chart-panel">
+  <h3 style="color:#fff; margin:0 0 0.75rem; font-size:1.05rem;">Andamento peso</h3>
+  <div class="chart-wrap">
+    <canvas id="pesoChart"></canvas>
+  </div>
+  <p id="chart-empty" class="tl-empty" style="display:none;">Nessun peso confermato nell’intervallo.</p>
+</section>
+
+<section id="timeline-root">
+  {% if items %}
+    {% for item in items %}
+    <article class="tl-item {% if item.da_revisionare %}is-pending{% endif %}" data-id="{{ item.consultation_id }}">
+      <div class="tl-summary" role="button" tabindex="0">
+        <div style="min-width:0; flex:1;">
+          <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+            {% if item.confermato %}
+              <span class="badge-review confermato">Confermato</span>
+            {% else %}
+              <span class="badge-review da-revisionare">Da revisionare</span>
+            {% endif %}
+            <span style="color:#fff; font-weight:600;">
+              {% if item.data_colloquio %}{{ item.data_colloquio[:16].replace('T',' ') }}{% else %}—{% endif %}
+            </span>
+            <span style="color:#a8a8a8; font-size:0.85rem;">#{{ item.consultation_id }}</span>
+          </div>
+          <div style="color:#e0e0e0; margin-top:0.4rem;">{{ item.riassunto or 'Senza riassunto' }}</div>
+          <div class="tl-chips">
+            {% if item.peso_kg is not none %}<span class="tl-chip">{{ item.peso_kg }} kg</span>{% endif %}
+            {% if item.aderenza_piano %}<span class="tl-chip">Aderenza: {{ item.aderenza_piano }}</span>{% endif %}
+            {% if item.misure and item.misure.vita_cm is not none %}<span class="tl-chip">Vita {{ item.misure.vita_cm }} cm</span>{% endif %}
+          </div>
+        </div>
+        <div style="display:flex; gap:0.5rem; align-items:center;">
+          <a class="btn btn-ghost btn-small" href="{{ item.consultation_url }}" onclick="event.stopPropagation();">Apri</a>
+          <span class="tl-chevron">›</span>
+        </div>
+      </div>
+      <div class="tl-detail">
+        {% set c = item.contenuto_json or {} %}
+        {% set punti = c.get('punti_colloquio') or [] %}
+        {% if punti %}
+        <div style="margin-top:1rem;">
+          <div style="color:#fff; font-weight:600; font-size:0.9rem; margin-bottom:0.45rem;">Punti del colloquio</div>
+          <ul style="margin:0; padding-left:1.1rem; color:#e8e8e8; font-size:0.9rem;">
+            {% for p in punti %}
+            <li style="margin-bottom:0.35rem;">
+              <strong style="color:#fff;">{{ p.tema if p is mapping else 'Tema' }}:</strong>
+              {{ p.dettaglio if p is mapping else p }}
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+        <dl>
+          <dt>Peso</dt><dd>{{ c.peso_kg if c.peso_kg is not none else '—' }}</dd>
+          <dt>Vita / Fianchi / MG%</dt>
+          <dd>
+            {% set m = c.get('misure') or {} %}
+            {{ m.vita_cm if m.vita_cm is not none else '—' }} /
+            {{ m.fianchi_cm if m.fianchi_cm is not none else '—' }} /
+            {{ m.massa_grassa_pct if m.massa_grassa_pct is not none else '—' }}
+          </dd>
+          <dt>Aderenza</dt><dd>{{ c.aderenza_piano or '—' }}</dd>
+          <dt>Abitudini</dt><dd>{{ (c.abitudini_alimentari or [])|join(', ') or '—' }}</dd>
+          <dt>Attività fisica</dt><dd>{{ c.attivita_fisica or '—' }}</dd>
+          <dt>Sintomi</dt><dd>{{ (c.sintomi_riportati or [])|join(', ') or '—' }}</dd>
+          <dt>Difficoltà</dt><dd>{{ (c.difficolta_segnalate or [])|join(', ') or '—' }}</dd>
+          <dt>Note cliniche</dt><dd>{{ c.note_cliniche or '—' }}</dd>
+          <dt>Obiettivi</dt><dd>{{ (c.obiettivi_concordati or [])|join(', ') or '—' }}</dd>
+          <dt>Modifiche piano</dt><dd>{{ (c.modifiche_al_piano or [])|join(', ') or '—' }}</dd>
+          <dt>Prossimo controllo</dt><dd>{{ c.prossimo_controllo or '—' }}</dd>
+        </dl>
+      </div>
+    </article>
+    {% endfor %}
+
+    {% if pages > 1 %}
+    <div class="tl-pager">
+      {% if has_prev %}
+      <a class="btn btn-ghost btn-small" href="{{ url_for('diario_ui.timeline_paziente', patient_id=paziente.id, page=page-1, from=date_from, to=date_to, include_pending='1' if include_pending else None) }}">← Prec</a>
+      {% endif %}
+      <span style="color:#d8d8d8; align-self:center;">Pagina {{ page }} / {{ pages }}</span>
+      {% if has_next %}
+      <a class="btn btn-ghost btn-small" href="{{ url_for('diario_ui.timeline_paziente', patient_id=paziente.id, page=page+1, from=date_from, to=date_to, include_pending='1' if include_pending else None) }}">Succ →</a>
+      {% endif %}
+    </div>
+    {% endif %}
+  {% else %}
+    <p class="tl-empty">Nessuna voce di diario in questo intervallo.</p>
+  {% endif %}
+</section>
+
+<script src="{{ url_for('static', filename='js/chart.umd.min.js') }}"></script>
+<script>
+(function () {
+  document.querySelectorAll('.tl-summary').forEach(function (el) {
+    el.addEventListener('click', function () {
+      el.closest('.tl-item').classList.toggle('is-open');
+    });
+    el.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        el.closest('.tl-item').classList.toggle('is-open');
+      }
+    });
+  });
+
+  const trends = {{ trends_json|safe }};
+  const peso = (trends.series && trends.series.peso_kg) || [];
+  const canvas = document.getElementById('pesoChart');
+  const empty = document.getElementById('chart-empty');
+  if (!peso.length) {
+    if (canvas) canvas.style.display = 'none';
+    if (empty) empty.style.display = 'block';
+    return;
+  }
+  const labels = peso.map(function (p) {
+    return (p.date || '').slice(0, 10);
+  });
+  const values = peso.map(function (p) { return p.value; });
+  new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Peso (kg)',
+        data: values,
+        borderColor: '#d4d4d4',
+        backgroundColor: 'rgba(255,255,255,0.1)',
+        borderWidth: 3,
+        tension: 0.35,
+        fill: true,
+        pointRadius: 6,
+        pointBackgroundColor: '#81C784',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        spanGaps: false
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: '#d8d8d8' } }
+      },
+      scales: {
+        y: {
+          beginAtZero: false,
+          grid: { color: 'rgba(182,177,169,0.1)' },
+          ticks: {
+            color: '#d8d8d8',
+            callback: function (v) { return Number(v).toFixed(1) + ' kg'; }
+          }
+        },
+        x: {
+          grid: { color: 'rgba(182,177,169,0.1)' },
+          ticks: { color: '#d8d8d8', maxRotation: 45, minRotation: 0 }
+        }
+      }
+    }
+  });
+})();
+</script>
+{% endblock %}

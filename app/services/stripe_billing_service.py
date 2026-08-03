@@ -151,6 +151,36 @@ def _upsert_nutrizionista_from_checkout(
     return row
 
 
+def finalize_checkout_session(session_id: str) -> Utente:
+    """Recupera la Checkout Session da Stripe, crea/aggiorna l'utente e lo restituisce.
+
+    Usato dalla success URL: non dipende dal webhook (che resta idempotente).
+    """
+    session_id = (session_id or "").strip()
+    if not session_id.startswith("cs_"):
+        raise StripeBillingError("Session ID non valido")
+
+    stripe = _stripe()
+    session = stripe.checkout.Session.retrieve(
+        session_id,
+        expand=["line_items.data.price"],
+    )
+    status = getattr(session, "status", None)
+    payment_status = getattr(session, "payment_status", None)
+    if status != "complete" and payment_status not in ("paid", "no_payment_required"):
+        raise StripeBillingError("Pagamento non completato")
+
+    if hasattr(session, "to_dict"):
+        session_obj = session.to_dict()
+    else:
+        session_obj = dict(session)
+
+    utente = handle_checkout_session_completed(session_obj)
+    if utente is None:
+        raise StripeBillingError("Impossibile attivare l'account dopo il pagamento")
+    return utente
+
+
 def handle_checkout_session_completed(session_obj: dict[str, Any]) -> Optional[Utente]:
     metadata = session_obj.get("metadata") or {}
     plan = metadata.get("plan") or "starter"

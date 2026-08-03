@@ -1,0 +1,9 @@
+{% extends 'base_admin.html' %}
+{% block title %}Diario colloqui — {{ paziente.nome }} {{ paziente.cognome }}{% endblock %}
+{% block content %}
+{# Fallback legacy: la lista vive nella tab Diario della scheda paziente. #}
+<div style="margin-bottom: 1.25rem;">
+  <a href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id, tab='diario') }}" class="btn btn-ghost btn-small">← Scheda paziente</a>
+</div>
+{% include 'admin/_diario_lista_content.html' %}
+{% endblock %}

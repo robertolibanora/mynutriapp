@@ -14,9 +14,19 @@ _LANDING_DIR = Path(__file__).resolve().parents[2] / "static" / "landing"
 @landing_bp.route("/", methods=["GET"])
 @landing_bp.route("/landing", methods=["GET"])
 def landing():
-    """Serve la landing ufficiale. Paziente già loggato → dashboard."""
-    if session.get("role") == "user":
+    """Serve la landing ufficiale. Utenti già loggati → dashboard corretta."""
+    role = session.get("role")
+    if role == "user":
         return redirect(url_for("dashboard.user_dashboard"))
+    if role == "nutrizionista":
+        return redirect(url_for("dashboard.admin_dashboard"))
+    if role == "super_admin":
+        return redirect(url_for("super_admin.lista_utenti"))
+    # Compat: vecchia success URL Stripe → login (il flusso nuovo usa /billing/success)
+    from flask import request
+
+    if request.args.get("checkout") == "success":
+        return redirect(url_for("auth.login"))
     directory = _LANDING_DIR
     if not directory.is_dir():
         # fallback rispetto a static_folder Flask

@@ -27,7 +27,7 @@ def admin_required(func):
     """Decorator per accesso riservato all'admin"""
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if session.get('role') != 'admin':
+        if session.get('role') not in ('admin', 'nutrizionista'):
             flash("Accesso non autorizzato", "danger")
             return redirect(url_for('auth.login'))
         return func(*args, **kwargs)

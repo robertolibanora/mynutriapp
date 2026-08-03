@@ -46,7 +46,7 @@
                     <span class="user-name">Ciao, {{ session.name.split(' ')[0] if session.name else 'utente' }}</span>
                 </div>
             </div>
-            <a href="{{ url_for('patients.profilo_user') }}" class="user-avatar" aria-label="Vai al profilo">
+            <a href="{{ url_for('dashboard.user_profilo') }}" class="user-avatar" aria-label="Vai al profilo">
                 {{ session.name[0].upper() if session.name else '?' }}
             </a>
         </div>
@@ -80,7 +80,7 @@
             <span class="nav-label">Prenota</span>
         </a>
         
-        <a href="{{ url_for('patients.profilo_user') }}" class="nav-item {% if request.endpoint and 'profilo' in request.endpoint %}active{% endif %}">
+        <a href="{{ url_for('dashboard.user_profilo') }}" class="nav-item {% if request.endpoint and 'profilo' in request.endpoint %}active{% endif %}">
             <span class="nav-icon">{{ icon('user', 24, 'usr-icon usr-nav-icon', stroke=2.2) }}</span>
             <span class="nav-label">Profilo</span>
         </a>
