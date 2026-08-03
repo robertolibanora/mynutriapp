@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
-# MyNutriApp → un solo comando: pull + sim + build + run su iOS.
+# MyNutriApp iOS — clean → CocoaPods → build → install → launch
+#
+# Usa SEMPRE una DerivedData dedicata al progetto e installa sul simulatore
+# esclusivamente la Runner.app appena compilata (nessun artefatto stale).
 #
 # Uso (da root repo o da mobile_app/):
-#   ./w.sh              → pull + run
-#   ./w.sh rebuild      → pull + clean completo + run
-#   ./w.sh --device ID  → forza device
+#   ./w.sh              → clean + build + install + launch
+#   ./w.sh --no-clean   → skip flutter clean
+#   ./w.sh --device ID  → forza simulatore (UDID o nome)
+#   ./w.sh --no-pull    → non eseguire git pull
 #
 set -euo pipefail
 
@@ -16,25 +20,32 @@ elif [[ -f "$SCRIPT_DIR/mobile_app/pubspec.yaml" ]]; then
   APP_DIR="$SCRIPT_DIR/mobile_app"
   REPO_ROOT="$SCRIPT_DIR"
 else
-  echo "Errore: non trovo mobile_app/ (pubspec.yaml)"
+  echo "Errore: non trovo mobile_app/ (pubspec.yaml)" >&2
   exit 1
 fi
 
-REBUILD=0
+DO_CLEAN=1
+DO_PULL=1
 DEVICE=""
 EXTRA_ARGS=()
 BUNDLE_ID="com.mynutriapp.mynutriApp"
+API_BASE_URL="${API_BASE_URL:-https://stage.mynutriapp.cloud}"
+USE_MOCK_DATA="${USE_MOCK_DATA:-false}"
+
+# DerivedData SEMPRE sotto il progetto (mai ~/Library/Developer/Xcode/DerivedData di default)
+DERIVED_DATA="$APP_DIR/build/ios_derived_data"
 LOG_DIR="$APP_DIR/build"
-mkdir -p "$LOG_DIR"
-RUN_LOG="$LOG_DIR/w-flutter-run.log"
 BUILD_LOG="$LOG_DIR/w-xcode-build.log"
+LAUNCH_LOG="$LOG_DIR/w-launch.log"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    rebuild|--rebuild|-r) REBUILD=1; shift ;;
+    --no-clean) DO_CLEAN=0; shift ;;
+    --no-pull) DO_PULL=0; shift ;;
+    rebuild|--rebuild|-r) DO_CLEAN=1; shift ;;
     --device|-d)
       DEVICE="${2:-}"
-      [[ -n "$DEVICE" ]] || { echo "Errore: --device richiede un nome/id"; exit 1; }
+      [[ -n "$DEVICE" ]] || { echo "Errore: --device richiede un nome/id" >&2; exit 1; }
       shift 2
       ;;
     *) EXTRA_ARGS+=("$1"); shift ;;
@@ -44,50 +55,62 @@ done
 log() { echo "→ $*"; }
 die() { echo "Errore: $*" >&2; exit 1; }
 
+export PATH="${FLUTTER_ROOT:+$FLUTTER_ROOT/bin:}$HOME/development/flutter/bin:$PATH"
 command -v flutter >/dev/null 2>&1 || die "flutter non trovato nel PATH"
-[[ "$(uname -s)" == "Darwin" ]] || echo "Avviso: simulatore iOS richiede macOS"
+[[ "$(uname -s)" == "Darwin" ]] || die "Questo script richiede macOS + Xcode (simulatore iOS)"
+command -v xcrun >/dev/null 2>&1 || die "xcrun/Xcode non trovato"
+command -v pod >/dev/null 2>&1 || die "CocoaPods (pod) non trovato — installa con: sudo gem install cocoapods"
+command -v xcodebuild >/dev/null 2>&1 || die "xcodebuild non trovato"
+
+mkdir -p "$LOG_DIR"
 
 # ── 1) Codice ───────────────────────────────────────────────────────
-log "Git pull"
-(cd "$REPO_ROOT" && git pull --ff-only)
+if [[ "$DO_PULL" -eq 1 ]]; then
+  log "Git pull"
+  (cd "$REPO_ROOT" && git pull --ff-only) || log "Git pull saltato/fallito (continuo)"
+fi
 cd "$APP_DIR"
 
-# ── 2) Dipendenze Flutter / iOS ─────────────────────────────────────
-prepare_flutter() {
-  log "Flutter pub get"
-  flutter pub get
-  # Assicura artifact iOS (SPM / engine) dopo clone fresco
-  flutter precache --ios >/dev/null 2>&1 || true
-
-  # Verifica che Generated.xcconfig punti a un Flutter reale su QUESTO Mac
-  local gen="ios/Flutter/Generated.xcconfig"
-  if [[ -f "$gen" ]]; then
-    local root
-    root="$(grep '^FLUTTER_ROOT=' "$gen" | cut -d= -f2- || true)"
-    if [[ -z "$root" || ! -d "$root" ]]; then
-      log "Generated.xcconfig non valido — regenero"
-      rm -f "$gen" ios/Flutter/flutter_export_environment.sh
-      flutter pub get
-    fi
-  fi
-}
-
-deep_clean() {
-  log "Clean completo (Flutter + DerivedData Runner)"
+# ── 2) Clean ────────────────────────────────────────────────────────
+if [[ "$DO_CLEAN" -eq 1 ]]; then
+  log "Clean Flutter + DerivedData dedicata + Pods"
   flutter clean
-  rm -rf build
-  rm -rf ios/Flutter/ephemeral
-  rm -f ios/Flutter/Generated.xcconfig ios/Flutter/flutter_export_environment.sh
-  rm -rf ~/Library/Developer/Xcode/DerivedData/Runner-* 2>/dev/null || true
-  prepare_flutter
-}
-
-prepare_flutter
-if [[ "$REBUILD" -eq 1 ]]; then
-  deep_clean
+  rm -rf "$DERIVED_DATA" \
+         "$APP_DIR/build/ios" \
+         "$APP_DIR/ios/Pods" \
+         "$APP_DIR/ios/.symlinks" \
+         "$APP_DIR/ios/Flutter/ephemeral/Packages" \
+         "$APP_DIR/ios/Runner.xcworkspace/xcshareddata/swiftpm" \
+         "$APP_DIR/ios/Runner.xcodeproj/project.xcworkspace/xcshareddata/swiftpm"
+  rm -f "$APP_DIR/ios/Podfile.lock" \
+        "$APP_DIR/ios/Flutter/Flutter.podspec" \
+        "$APP_DIR/ios/Flutter/Generated.xcconfig" \
+        "$APP_DIR/ios/Flutter/flutter_export_environment.sh"
+  # Evita contaminazione da DerivedData globale di build precedenti
+  rm -rf "${HOME}/Library/Developer/Xcode/DerivedData/Runner-"* 2>/dev/null || true
 fi
 
-# ── 3) Simulatore ───────────────────────────────────────────────────
+# ── 3) Dipendenze Flutter + CocoaPods ───────────────────────────────
+log "Flutter pub get"
+flutter pub get
+flutter precache --ios >/dev/null 2>&1 || true
+
+if ! grep -q 'enable-swift-package-manager: false' "$APP_DIR/pubspec.yaml"; then
+  die "pubspec.yaml deve avere flutter.config.enable-swift-package-manager: false"
+fi
+[[ -f "$APP_DIR/ios/Podfile" ]] || die "ios/Podfile mancante"
+
+log "pod install (CocoaPods — unico gestore dipendenze iOS)"
+(
+  cd "$APP_DIR/ios"
+  pod install
+)
+
+[[ -d "$APP_DIR/ios/Pods" ]] || die "Pods/ non generato — pod install fallito"
+[[ -f "$APP_DIR/ios/Pods/Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig" ]] \
+  || die "Pods-Runner.debug.xcconfig mancante"
+
+# ── 4) Simulatore ───────────────────────────────────────────────────
 uuid_re='[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12}'
 
 pick_available_iphone() {
@@ -118,15 +141,13 @@ if best:
 }
 
 is_booted() {
-  local id="$1"
-  xcrun simctl list devices booted 2>/dev/null | grep -q "$id"
+  xcrun simctl list devices booted 2>/dev/null | grep -q "$1"
 }
 
 wait_until_booted() {
   local id="$1" i
   for i in $(seq 1 60); do
     if is_booted "$id"; then
-      # home screen / SpringBoard pronti
       sleep 2
       return 0
     fi
@@ -141,7 +162,6 @@ ensure_simulator() {
   open -a Simulator >/dev/null 2>&1 || true
 
   if ! is_booted "$id"; then
-    # Spegni eventuali altri sim booted (|| true: grep esce 1 se lista vuota)
     while IFS= read -r other; do
       [[ -z "$other" || "$other" == "$id" ]] && continue
       log "Shutdown altro sim $other"
@@ -154,80 +174,136 @@ ensure_simulator() {
     log "Simulator già Booted"
   fi
 
-  # Non usare bootstatus (spesso Status=4294967295 anche se ok)
-  log "Attendo che il sim sia Booted"
-  if ! wait_until_booted "$id"; then
-    log "Boot lento — erase + reboot"
-    xcrun simctl shutdown "$id" 2>/dev/null || true
-    xcrun simctl erase "$id" 2>/dev/null || true
-    xcrun simctl boot "$id" 2>/dev/null || true
-    open -a Simulator >/dev/null 2>&1 || true
-    wait_until_booted "$id" || die "simulatore non boota ($id)"
-  fi
+  wait_until_booted "$id" || die "simulatore non boota ($id)"
 
-  log "Sim pronto — pulisco app precedente"
+  log "Rimuovo eventuale app precedente dal sim"
   xcrun simctl terminate "$id" "$BUNDLE_ID" 2>/dev/null || true
   xcrun simctl uninstall "$id" "$BUNDLE_ID" 2>/dev/null || true
 }
 
 TARGET="${DEVICE:-}"
 if [[ -z "$TARGET" ]]; then
-  command -v xcrun >/dev/null 2>&1 || die "xcrun/Xcode non trovato"
   TARGET="$(pick_available_iphone)"
   [[ -n "$TARGET" ]] || die "nessun iPhone simulator disponibile"
 fi
 
 if [[ "$TARGET" =~ ^[A-Fa-f0-9-]{36}$ ]]; then
   ensure_simulator "$TARGET"
+  DEST="platform=iOS Simulator,id=$TARGET"
+  SIM_ID="$TARGET"
+else
+  DEST="platform=iOS Simulator,name=$TARGET"
+  SIM_ID=""
 fi
 
-# ── 4) Run ──────────────────────────────────────────────────────────
-run_flutter() {
-  log "Run su iOS simulator (device: $TARGET)"
-  # Log completo per capire exit 255
-  set +e
-  if [[ ${#EXTRA_ARGS[@]} -gt 0 ]]; then
-    flutter run -d "$TARGET" --no-pub "${EXTRA_ARGS[@]}" 2>&1 | tee "$RUN_LOG"
-  else
-    flutter run -d "$TARGET" --no-pub 2>&1 | tee "$RUN_LOG"
-  fi
-  local rc=${PIPESTATUS[0]}
-  set -e
-  return "$rc"
-}
+# ── 5) Build (DerivedData dedicata) ─────────────────────────────────
+log "Preparo config Flutter (dart-define)"
+# shellcheck disable=SC2086
+flutter build ios --simulator --debug --config-only --no-pub \
+  --dart-define="API_BASE_URL=$API_BASE_URL" \
+  --dart-define="USE_MOCK_DATA=$USE_MOCK_DATA" \
+  ${EXTRA_ARGS[@]+"${EXTRA_ARGS[@]}"}
 
-dump_xcode_error() {
-  log "Raccolgo errore Xcode dettagliato…"
-  set +e
-  flutter build ios --simulator --debug --no-pub -v >"$BUILD_LOG" 2>&1
-  set -e
+rm -rf "$DERIVED_DATA"
+mkdir -p "$DERIVED_DATA"
+
+log "xcodebuild → DerivedData=$DERIVED_DATA"
+set +e
+(
+  cd "$APP_DIR/ios"
+  xcodebuild \
+    -workspace Runner.xcworkspace \
+    -scheme Runner \
+    -configuration Debug \
+    -sdk iphonesimulator \
+    -destination "$DEST" \
+    -derivedDataPath "$DERIVED_DATA" \
+    ONLY_ACTIVE_ARCH=YES \
+    CODE_SIGNING_ALLOWED=NO \
+    CODE_SIGNING_REQUIRED=NO \
+    build
+) 2>&1 | tee "$BUILD_LOG"
+BUILD_RC=${PIPESTATUS[0]}
+set -e
+
+if [[ "$BUILD_RC" -ne 0 ]]; then
   echo
-  echo "======== Ultime righe errore (anche in $BUILD_LOG) ========"
-  # Mostra errori tipici, non tutto il verbose
-  grep -E 'error:|fatal error|❌|The following build commands failed|BUILD FAILED|Could not|Unable to|Exit|xcodebuild' "$BUILD_LOG" \
+  echo "======== Errori xcodebuild (anche in $BUILD_LOG) ========"
+  grep -E 'error:|fatal error|BUILD FAILED|The following build commands failed' "$BUILD_LOG" \
     | tail -n 40 \
     || tail -n 40 "$BUILD_LOG"
-  echo "=========================================================="
-}
+  echo "========================================================"
+  die "xcodebuild fallito (exit $BUILD_RC)"
+fi
 
-recover() {
-  log "Recovery: clean iOS + DerivedData e riprovo"
-  rm -rf build/ios
-  rm -rf ~/Library/Developer/Xcode/DerivedData/Runner-* 2>/dev/null || true
-  rm -rf ios/Flutter/ephemeral
-  rm -f ios/Flutter/Generated.xcconfig ios/Flutter/flutter_export_environment.sh
-  flutter pub get
-  if [[ "$TARGET" =~ ^[A-Fa-f0-9-]{36}$ ]]; then
-    xcrun simctl shutdown "$TARGET" 2>/dev/null || true
-    xcrun simctl erase "$TARGET" 2>/dev/null || true
-    ensure_simulator "$TARGET"
+# ── 6) Individua SOLO la build appena prodotta ──────────────────────
+APP="$DERIVED_DATA/Build/Products/Debug-iphonesimulator/Runner.app"
+if [[ ! -d "$APP" ]]; then
+  APP="$(find "$DERIVED_DATA" -path '*/Debug-iphonesimulator/Runner.app' -type d 2>/dev/null | head -n 1 || true)"
+fi
+[[ -n "${APP:-}" && -d "$APP" ]] || die "Runner.app non trovata sotto $DERIVED_DATA"
+[[ -f "$APP/Info.plist" ]] || die "Runner.app incompleta: $APP"
+[[ "$APP" == "$DERIVED_DATA"* ]] || die "Rifiuto install: $APP non è sotto la DerivedData dedicata"
+
+log "Build pronta: $APP"
+
+# Con linkage statico DK non deve restare un dylib dinamico orfano.
+if otool -L "$APP/Runner" 2>/dev/null | grep -q 'DKImagePickerController\.framework'; then
+  if [[ ! -d "$APP/Frameworks/DKImagePickerController.framework" ]]; then
+    die "DKImagePickerController linkato dinamicamente ma assente da Runner.app/Frameworks"
   fi
-}
+  log "OK: DKImagePickerController.framework presente in Runner.app/Frameworks"
+else
+  log "OK: nessun load path dinamico verso DKImagePickerController (linkage statico)"
+fi
 
-if ! run_flutter; then
-  recover
-  if ! run_flutter; then
-    dump_xcode_error
-    die "build/run fallito due volte. Apri $BUILD_LOG oppure esegui: flutter run -d $TARGET -v"
+# ── 7) Install + launch (solo questa build) ─────────────────────────
+if [[ -z "$SIM_ID" ]]; then
+  SIM_ID="$(xcrun simctl list devices booted | grep -Eo "$uuid_re" | head -n 1 || true)"
+  [[ -n "$SIM_ID" ]] || die "nessun simulatore booted per install"
+fi
+
+log "Install esclusivo della build appena compilata"
+xcrun simctl uninstall "$SIM_ID" "$BUNDLE_ID" 2>/dev/null || true
+xcrun simctl install "$SIM_ID" "$APP"
+
+log "Launch $BUNDLE_ID"
+: >"$LAUNCH_LOG"
+set +e
+LAUNCH_OUT="$(xcrun simctl launch "$SIM_ID" "$BUNDLE_ID" 2>&1)"
+LAUNCH_RC=$?
+printf '%s\n' "$LAUNCH_OUT" | tee "$LAUNCH_LOG"
+set -e
+
+if [[ "$LAUNCH_RC" -ne 0 ]]; then
+  die "simctl launch fallito: $LAUNCH_OUT"
+fi
+
+# Attendi e verifica che il processo non sia crashato (dyld missing framework)
+sleep 3
+APP_PID="$(printf '%s\n' "$LAUNCH_OUT" | awk '{print $NF}' | tr -cd '0-9')"
+STILL_ALIVE=0
+if [[ -n "$APP_PID" ]]; then
+  if xcrun simctl spawn "$SIM_ID" launchctl print "pid/$APP_PID" >/dev/null 2>&1; then
+    STILL_ALIVE=1
   fi
 fi
+# Fallback: cerca il bundle tra i processi del sim
+if [[ "$STILL_ALIVE" -eq 0 ]]; then
+  if xcrun simctl spawn "$SIM_ID" ps -A 2>/dev/null | grep -E 'Runner\.app/Runner' | grep -vq grep; then
+    STILL_ALIVE=1
+  fi
+fi
+
+if [[ "$STILL_ALIVE" -eq 0 ]]; then
+  echo "---- Diagnostica crash (log sim, ultimi 15s) ----" | tee -a "$LAUNCH_LOG"
+  xcrun simctl spawn "$SIM_ID" log show --style compact --last 15s \
+    --predicate 'eventMessage CONTAINS "DKImagePicker" OR eventMessage CONTAINS "Library not loaded" OR eventMessage CONTAINS "Terminated"' \
+    2>/dev/null | tee -a "$LAUNCH_LOG" || true
+  die "App non in esecuzione dopo il launch (probabile crash dyld). Vedi $LAUNCH_LOG"
+fi
+
+log "OK — app in esecuzione (pid=${APP_PID:-?})"
+log "Installata da: $APP"
+log "DerivedData: $DERIVED_DATA"
+log "Log build: $BUILD_LOG"

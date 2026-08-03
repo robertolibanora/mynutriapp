@@ -52,6 +52,12 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>MyNutriApp usa la libreria foto per allegare immagini ai documenti.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>MyNutriApp usa la fotocamera per scattare foto da allegare.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>MyNutriApp usa il microfono quando registri un audio da allegare.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

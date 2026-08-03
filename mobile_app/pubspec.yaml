@@ -60,6 +60,10 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
+  # iOS: solo CocoaPods. SPM + file_picker/DKImagePickerController causava
+  # crash dyld (@rpath/DKImagePickerController.framework non embeddato).
+  config:
+    enable-swift-package-manager: false
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

@@ -12,8 +12,23 @@ Al momento le feature usano **dati mock** locali. Il login API (`POST /api/v1/au
 export PATH="$HOME/development/flutter/bin:$PATH"
 cd mobile_app
 flutter pub get
+cd ios && pod install && cd ..
 flutter run
 ```
+
+### iOS (CocoaPods only)
+
+Le dipendenze native iOS usano **solo CocoaPods** (SPM disabilitato in `pubspec.yaml`).
+Serve a evitare il crash dyld `DKImagePickerController.framework` (da `file_picker`).
+
+Su Mac, il flusso consigliato:
+
+```bash
+./w.sh                 # da repo root o da mobile_app/
+# clean → pod install → xcodebuild (DerivedData dedicata) → simctl install → launch
+```
+
+DerivedData del progetto: `mobile_app/build/ios_derived_data` (mai la DerivedData globale di Xcode).
 
 ## Ambiente
 
