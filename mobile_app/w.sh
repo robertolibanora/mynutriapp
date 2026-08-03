@@ -55,12 +55,29 @@ done
 log() { echo "→ $*"; }
 die() { echo "Errore: $*" >&2; exit 1; }
 
+# Rimuove resource fork / xattr che fanno fallire codesign
+# ("resource fork, Finder information, or similar detritus not allowed").
+strip_xattrs() {
+  local p
+  for p in "$@"; do
+    [[ -e "$p" ]] || continue
+    xattr -cr "$p" 2>/dev/null || true
+  done
+}
+
 export PATH="${FLUTTER_ROOT:+$FLUTTER_ROOT/bin:}$HOME/development/flutter/bin:$PATH"
 command -v flutter >/dev/null 2>&1 || die "flutter non trovato nel PATH"
 [[ "$(uname -s)" == "Darwin" ]] || die "Questo script richiede macOS + Xcode (simulatore iOS)"
 command -v xcrun >/dev/null 2>&1 || die "xcrun/Xcode non trovato"
 command -v pod >/dev/null 2>&1 || die "CocoaPods (pod) non trovato — installa con: sudo gem install cocoapods"
 command -v xcodebuild >/dev/null 2>&1 || die "xcodebuild non trovato"
+
+# Desktop/iCloud aggiunge spesso xattr → codesign su Flutter.framework fallisce
+case "$APP_DIR" in
+  */Desktop/*|*/Desktop|*/Library/Mobile\ Documents/*|*/iCloudDrive/*)
+    log "Avviso: progetto sotto Desktop/iCloud ($APP_DIR). Se il build fallisce ancora, spostalo fuori da iCloud (es. ~/dev/)."
+    ;;
+esac
 
 mkdir -p "$LOG_DIR"
 
@@ -209,10 +226,23 @@ flutter build ios --simulator --debug --config-only --no-pub \
 rm -rf "$DERIVED_DATA"
 mkdir -p "$DERIVED_DATA"
 
+# Pulisci xattr su engine Flutter + output: evita
+# "Failed to codesign Flutter.framework ... resource fork ... not allowed"
+FLUTTER_BIN="$(command -v flutter)"
+FLUTTER_SDK="$(cd "$(dirname "$FLUTTER_BIN")/.." && pwd)"
+log "Rimuovo xattr (codesign-safe)"
+strip_xattrs \
+  "$FLUTTER_SDK/bin/cache/artifacts/engine" \
+  "$APP_DIR/ios" \
+  "$APP_DIR/build" \
+  "$DERIVED_DATA"
+
 log "xcodebuild → DerivedData=$DERIVED_DATA"
 set +e
 (
   cd "$APP_DIR/ios"
+  # NON disabilitare il code signing: Flutter unpack firma Flutter.framework
+  # con identity "-" e CODE_SIGNING_ALLOWED=NO lo fa fallire.
   xcodebuild \
     -workspace Runner.xcworkspace \
     -scheme Runner \
@@ -221,20 +251,53 @@ set +e
     -destination "$DEST" \
     -derivedDataPath "$DERIVED_DATA" \
     ONLY_ACTIVE_ARCH=YES \
-    CODE_SIGNING_ALLOWED=NO \
-    CODE_SIGNING_REQUIRED=NO \
+    CODE_SIGN_IDENTITY=- \
+    CODE_SIGNING_REQUIRED=YES \
     build
 ) 2>&1 | tee "$BUILD_LOG"
 BUILD_RC=${PIPESTATUS[0]}
 set -e
 
 if [[ "$BUILD_RC" -ne 0 ]]; then
+  # Retry una volta dopo strip xattr aggressivo (Desktop/iCloud)
+  if grep -qiE 'resource fork|Failed to codesign|Failed to copy Flutter framework' "$BUILD_LOG"; then
+    log "Retry: strip xattr + rebuild (errore codesign/resource fork)"
+    strip_xattrs \
+      "$FLUTTER_SDK/bin/cache/artifacts/engine" \
+      "$APP_DIR" \
+      "$DERIVED_DATA"
+    rm -rf "$DERIVED_DATA"
+    mkdir -p "$DERIVED_DATA"
+    set +e
+    (
+      cd "$APP_DIR/ios"
+      xcodebuild \
+        -workspace Runner.xcworkspace \
+        -scheme Runner \
+        -configuration Debug \
+        -sdk iphonesimulator \
+        -destination "$DEST" \
+        -derivedDataPath "$DERIVED_DATA" \
+        ONLY_ACTIVE_ARCH=YES \
+        CODE_SIGN_IDENTITY=- \
+        CODE_SIGNING_REQUIRED=YES \
+        build
+    ) 2>&1 | tee "$BUILD_LOG"
+    BUILD_RC=${PIPESTATUS[0]}
+    set -e
+  fi
+fi
+
+if [[ "$BUILD_RC" -ne 0 ]]; then
   echo
   echo "======== Errori xcodebuild (anche in $BUILD_LOG) ========"
-  grep -E 'error:|fatal error|BUILD FAILED|The following build commands failed' "$BUILD_LOG" \
+  grep -E 'error:|fatal error|BUILD FAILED|resource fork|Failed to codesign|Failed to copy Flutter|The following build commands failed' "$BUILD_LOG" \
     | tail -n 40 \
     || tail -n 40 "$BUILD_LOG"
   echo "========================================================"
+  if grep -qiE 'resource fork|Failed to codesign' "$BUILD_LOG"; then
+    echo "Suggerimento: il progetto è su Desktop/iCloud. Spostalo in ~/dev/mynutriapp e riprova." >&2
+  fi
   die "xcodebuild fallito (exit $BUILD_RC)"
 fi
 
