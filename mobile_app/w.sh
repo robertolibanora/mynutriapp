@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# MyNutriApp → un solo comando per aggiornare e aprire sul simulatore iOS.
+# MyNutriApp → un solo comando: pull + sim + build + run su iOS.
 #
-# Uso (da mobile_app/ o dalla root del repo):
-#   ./w.sh              → pull + build + run
-#   ./w.sh rebuild      → pull + clean + pods + build + run
-#   ./w.sh --device ID  → forza un device specifico
+# Uso (da root repo o da mobile_app/):
+#   ./w.sh              → pull + run
+#   ./w.sh rebuild      → pull + clean completo + run
+#   ./w.sh --device ID  → forza device
 #
 set -euo pipefail
 
@@ -24,22 +24,20 @@ REBUILD=0
 DEVICE=""
 EXTRA_ARGS=()
 BUNDLE_ID="com.mynutriapp.mynutriApp"
+LOG_DIR="$APP_DIR/build"
+mkdir -p "$LOG_DIR"
+RUN_LOG="$LOG_DIR/w-flutter-run.log"
+BUILD_LOG="$LOG_DIR/w-xcode-build.log"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    rebuild|--rebuild|-r)
-      REBUILD=1
-      shift
-      ;;
+    rebuild|--rebuild|-r) REBUILD=1; shift ;;
     --device|-d)
       DEVICE="${2:-}"
       [[ -n "$DEVICE" ]] || { echo "Errore: --device richiede un nome/id"; exit 1; }
       shift 2
       ;;
-    *)
-      EXTRA_ARGS+=("$1")
-      shift
-      ;;
+    *) EXTRA_ARGS+=("$1"); shift ;;
   esac
 done
 
@@ -47,150 +45,185 @@ log() { echo "→ $*"; }
 die() { echo "Errore: $*" >&2; exit 1; }
 
 command -v flutter >/dev/null 2>&1 || die "flutter non trovato nel PATH"
+[[ "$(uname -s)" == "Darwin" ]] || echo "Avviso: simulatore iOS richiede macOS"
 
-if [[ "$(uname -s)" != "Darwin" ]]; then
-  echo "Avviso: il simulatore iOS richiede macOS (ora: $(uname -s))"
-fi
-
-# ── 1) Aggiorna codice ──────────────────────────────────────────────
+# ── 1) Codice ───────────────────────────────────────────────────────
 log "Git pull"
-(
-  cd "$REPO_ROOT"
-  git pull --ff-only
-)
-
+(cd "$REPO_ROOT" && git pull --ff-only)
 cd "$APP_DIR"
 
-# ── 2) Dipendenze / rebuild ─────────────────────────────────────────
-log "Flutter pub get"
-flutter pub get
-
-if [[ "$REBUILD" -eq 1 ]]; then
-  log "Clean rebuild"
-  flutter clean
+# ── 2) Dipendenze Flutter / iOS ─────────────────────────────────────
+prepare_flutter() {
+  log "Flutter pub get"
   flutter pub get
-  if [[ -d ios ]] && command -v pod >/dev/null 2>&1; then
-    log "CocoaPods"
-    (cd ios && pod install --repo-update)
+  # Assicura artifact iOS (SPM / engine) dopo clone fresco
+  flutter precache --ios >/dev/null 2>&1 || true
+
+  # Verifica che Generated.xcconfig punti a un Flutter reale su QUESTO Mac
+  local gen="ios/Flutter/Generated.xcconfig"
+  if [[ -f "$gen" ]]; then
+    local root
+    root="$(grep '^FLUTTER_ROOT=' "$gen" | cut -d= -f2- || true)"
+    if [[ -z "$root" || ! -d "$root" ]]; then
+      log "Generated.xcconfig non valido — regenero"
+      rm -f "$gen" ios/Flutter/flutter_export_environment.sh
+      flutter pub get
+    fi
   fi
+}
+
+deep_clean() {
+  log "Clean completo (Flutter + DerivedData Runner)"
+  flutter clean
+  rm -rf build
+  rm -rf ios/Flutter/ephemeral
+  rm -f ios/Flutter/Generated.xcconfig ios/Flutter/flutter_export_environment.sh
+  rm -rf ~/Library/Developer/Xcode/DerivedData/Runner-* 2>/dev/null || true
+  prepare_flutter
+}
+
+prepare_flutter
+if [[ "$REBUILD" -eq 1 ]]; then
+  deep_clean
 fi
 
-# ── 3) Simulatore: uno solo, pronto ─────────────────────────────────
+# ── 3) Simulatore ───────────────────────────────────────────────────
 uuid_re='[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12}'
 
 pick_available_iphone() {
-  # Preferisci iPhone 17 (non Pro/Plus/Max) sull'runtime più recente.
-  local id=""
-  id="$(
-    xcrun simctl list devices available 2>/dev/null | python3 -c '
+  xcrun simctl list devices available 2>/dev/null | python3 -c '
 import re, sys
 text = sys.stdin.read()
 runtime = None
-best = None  # (runtime_name, udid)
+best = None
 udid_re = re.compile(r"([A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12})")
 for line in text.splitlines():
     m = re.search(r"--\s*(iOS[^-]+)\s*--", line)
     if m:
         runtime = m.group(1).strip()
         continue
-    if "unavailable" in line.lower():
-        continue
-    if "iPhone" not in line:
+    if "unavailable" in line.lower() or "iPhone" not in line or runtime is None:
         continue
     um = udid_re.search(line)
-    if not um or runtime is None:
+    if not um:
         continue
     name = line.split("(")[0].strip()
-    # Preferisci "iPhone 17" esatto, poi qualsiasi iPhone 17*, poi altri iPhone
-    if name == "iPhone 17":
-        score = 3
-    elif name.startswith("iPhone 17"):
-        score = 2
-    else:
-        score = 1
+    score = 3 if name == "iPhone 17" else (2 if name.startswith("iPhone 17") else 1)
     cand = (score, runtime, um.group(1))
     if best is None or cand > best:
         best = cand
 if best:
     print(best[2])
 ' 2>/dev/null || true
-  )"
-  if [[ -z "$id" ]]; then
-    id="$(
-      xcrun simctl list devices available 2>/dev/null \
-        | grep -E 'iPhone' \
-        | grep -vi 'unavailable' \
-        | grep -Eo "$uuid_re" \
-        | head -n1 || true
-    )"
-  fi
-  printf '%s' "$id"
 }
 
-TARGET=""
+is_booted() {
+  local id="$1"
+  xcrun simctl list devices booted 2>/dev/null | grep -q "$id"
+}
 
-if [[ -n "$DEVICE" ]]; then
-  TARGET="$DEVICE"
-elif [[ "$(uname -s)" == "Darwin" ]] && command -v xcrun >/dev/null 2>&1; then
-  log "Reset simulatori (ne resta uno solo)"
-  xcrun simctl shutdown all 2>/dev/null || true
-  osascript -e 'quit app "Simulator"' 2>/dev/null || true
-  sleep 1
+wait_until_booted() {
+  local id="$1" i
+  for i in $(seq 1 60); do
+    if is_booted "$id"; then
+      # home screen / SpringBoard pronti
+      sleep 2
+      return 0
+    fi
+    sleep 1
+  done
+  return 1
+}
 
-  TARGET="$(pick_available_iphone)"
-  [[ -n "$TARGET" ]] || die "nessun iPhone simulator disponibile (apri Xcode una volta)"
+ensure_simulator() {
+  local id="$1"
+  log "Preparo simulator $id"
+  open -a Simulator >/dev/null 2>&1 || true
 
-  log "Boot $TARGET"
-  xcrun simctl boot "$TARGET" 2>/dev/null || true
-  open -a Simulator
-
-  log "Attendo boot completo"
-  # bootstatus a volte esce con status strano anche se il sim è ok: non blocchiamo lo script
-  xcrun simctl bootstatus "$TARGET" -b || true
-  # Piccola pausa UI home screen
-  sleep 3
-
-  log "Pulisco app precedente sul sim"
-  xcrun simctl terminate "$TARGET" "$BUNDLE_ID" 2>/dev/null || true
-  xcrun simctl uninstall "$TARGET" "$BUNDLE_ID" 2>/dev/null || true
-else
-  TARGET="$(
-    flutter devices 2>/dev/null \
-      | grep -E 'iPhone|simulator' \
+  if ! is_booted "$id"; then
+    # Non spegnere TUTTI i sim se quello giusto è già su; spegni solo gli altri
+    xcrun simctl list devices booted 2>/dev/null \
       | grep -Eo "$uuid_re" \
-      | head -n1 || true
-  )"
-  [[ -n "$TARGET" ]] || TARGET="iphone"
+      | while read -r other; do
+          [[ "$other" == "$id" ]] && continue
+          xcrun simctl shutdown "$other" 2>/dev/null || true
+        done
+    xcrun simctl boot "$id" 2>/dev/null || true
+  fi
+
+  # bootstatus è rumoroso e a volte buggato (4294967295): usiamo lo stato Booted
+  log "Attendo che il sim sia Booted"
+  if ! wait_until_booted "$id"; then
+    log "Boot lento — erase + reboot"
+    xcrun simctl shutdown "$id" 2>/dev/null || true
+    xcrun simctl erase "$id" 2>/dev/null || true
+    xcrun simctl boot "$id" 2>/dev/null || true
+    open -a Simulator >/dev/null 2>&1 || true
+    wait_until_booted "$id" || die "simulatore non boota ($id)"
+  fi
+
+  xcrun simctl terminate "$id" "$BUNDLE_ID" 2>/dev/null || true
+  xcrun simctl uninstall "$id" "$BUNDLE_ID" 2>/dev/null || true
+}
+
+TARGET="${DEVICE:-}"
+if [[ -z "$TARGET" ]]; then
+  command -v xcrun >/dev/null 2>&1 || die "xcrun/Xcode non trovato"
+  TARGET="$(pick_available_iphone)"
+  [[ -n "$TARGET" ]] || die "nessun iPhone simulator disponibile"
 fi
 
-[[ -n "$TARGET" ]] || die "nessun simulatore iOS trovato"
+if [[ "$TARGET" =~ ^[A-Fa-f0-9-]{36}$ ]]; then
+  ensure_simulator "$TARGET"
+fi
 
-# ── 4) Build + run (con retry) ──────────────────────────────────────
-# NON chiamare "flutter devices" in loop: sul Mac può restare appeso sui wireless.
+# ── 4) Run ──────────────────────────────────────────────────────────
 run_flutter() {
   log "Run su iOS simulator (device: $TARGET)"
+  # Log completo per capire exit 255
+  set +e
   if [[ ${#EXTRA_ARGS[@]} -gt 0 ]]; then
-    flutter run -d "$TARGET" --no-pub "${EXTRA_ARGS[@]}"
+    flutter run -d "$TARGET" --no-pub "${EXTRA_ARGS[@]}" 2>&1 | tee "$RUN_LOG"
   else
-    flutter run -d "$TARGET" --no-pub
+    flutter run -d "$TARGET" --no-pub 2>&1 | tee "$RUN_LOG"
   fi
+  local rc=${PIPESTATUS[0]}
+  set -e
+  return "$rc"
 }
 
-recover_and_retry() {
-  log "Launch fallito — recovery e secondo tentativo"
-  if command -v xcrun >/dev/null 2>&1 && [[ "$TARGET" =~ ^[A-Fa-f0-9-]{36}$ ]]; then
-    xcrun simctl terminate "$TARGET" "$BUNDLE_ID" 2>/dev/null || true
-    xcrun simctl uninstall "$TARGET" "$BUNDLE_ID" 2>/dev/null || true
+dump_xcode_error() {
+  log "Raccolgo errore Xcode dettagliato…"
+  set +e
+  flutter build ios --simulator --debug --no-pub -v >"$BUILD_LOG" 2>&1
+  set -e
+  echo
+  echo "======== Ultime righe errore (anche in $BUILD_LOG) ========"
+  # Mostra errori tipici, non tutto il verbose
+  grep -E 'error:|fatal error|❌|The following build commands failed|BUILD FAILED|Could not|Unable to|Exit|xcodebuild' "$BUILD_LOG" \
+    | tail -n 40 \
+    || tail -n 40 "$BUILD_LOG"
+  echo "=========================================================="
+}
+
+recover() {
+  log "Recovery: clean iOS + DerivedData e riprovo"
+  rm -rf build/ios
+  rm -rf ~/Library/Developer/Xcode/DerivedData/Runner-* 2>/dev/null || true
+  rm -rf ios/Flutter/ephemeral
+  rm -f ios/Flutter/Generated.xcconfig ios/Flutter/flutter_export_environment.sh
+  flutter pub get
+  if [[ "$TARGET" =~ ^[A-Fa-f0-9-]{36}$ ]]; then
     xcrun simctl shutdown "$TARGET" 2>/dev/null || true
-    sleep 1
-    xcrun simctl boot "$TARGET" 2>/dev/null || true
-    xcrun simctl bootstatus "$TARGET" -b || true
-    open -a Simulator 2>/dev/null || true
-    sleep 3
+    xcrun simctl erase "$TARGET" 2>/dev/null || true
+    ensure_simulator "$TARGET"
   fi
-  run_flutter
 }
 
 if ! run_flutter; then
-  recover_and_retry
+  recover
+  if ! run_flutter; then
+    dump_xcode_error
+    die "build/run fallito due volte. Apri $BUILD_LOG oppure esegui: flutter run -d $TARGET -v"
+  fi
 fi
