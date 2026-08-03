@@ -14,7 +14,8 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+# Solo lib/ di root (Python). Non ignorare mobile_app/lib (Flutter).
+/lib/
 lib64/
 parts/
 sdist/
