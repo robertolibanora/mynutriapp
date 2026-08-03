@@ -75,42 +75,56 @@ if [[ "$REBUILD" -eq 1 ]]; then
   fi
 fi
 
-# ── 3) Simulatore: uno solo, pulito, pronto ─────────────────────────
+# ── 3) Simulatore: uno solo, pronto ─────────────────────────────────
 uuid_re='[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12}'
 
 pick_available_iphone() {
-  # Preferisci "iPhone 17" semplice, poi qualsiasi iPhone available.
-  local line id
-  line="$(
-    xcrun simctl list devices available 2>/dev/null \
-      | grep -E 'iPhone' \
-      | grep -vi 'unavailable' \
-      | grep -E 'iPhone 17 \(' \
-      | head -n1 || true
+  # Preferisci iPhone 17 (non Pro/Plus/Max) sull'runtime più recente.
+  local id=""
+  id="$(
+    xcrun simctl list devices available 2>/dev/null | python3 -c '
+import re, sys
+text = sys.stdin.read()
+runtime = None
+best = None  # (runtime_name, udid)
+udid_re = re.compile(r"([A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12})")
+for line in text.splitlines():
+    m = re.search(r"--\s*(iOS[^-]+)\s*--", line)
+    if m:
+        runtime = m.group(1).strip()
+        continue
+    if "unavailable" in line.lower():
+        continue
+    if "iPhone" not in line:
+        continue
+    um = udid_re.search(line)
+    if not um or runtime is None:
+        continue
+    name = line.split("(")[0].strip()
+    # Preferisci "iPhone 17" esatto, poi qualsiasi iPhone 17*, poi altri iPhone
+    if name == "iPhone 17":
+        score = 3
+    elif name.startswith("iPhone 17"):
+        score = 2
+    else:
+        score = 1
+    cand = (score, runtime, um.group(1))
+    if best is None or cand > best:
+        best = cand
+if best:
+    print(best[2])
+' 2>/dev/null || true
   )"
-  if [[ -z "$line" ]]; then
-    line="$(
+  if [[ -z "$id" ]]; then
+    id="$(
       xcrun simctl list devices available 2>/dev/null \
         | grep -E 'iPhone' \
         | grep -vi 'unavailable' \
+        | grep -Eo "$uuid_re" \
         | head -n1 || true
     )"
   fi
-  id="$(printf '%s' "$line" | grep -Eo "$uuid_re" | head -n1 || true)"
   printf '%s' "$id"
-}
-
-wait_flutter_device() {
-  local want="$1" found=""
-  local i
-  for i in $(seq 1 30); do
-    if flutter devices 2>/dev/null | grep -q "$want"; then
-      found="$want"
-      break
-    fi
-    sleep 1
-  done
-  printf '%s' "$found"
 }
 
 TARGET=""
@@ -119,9 +133,7 @@ if [[ -n "$DEVICE" ]]; then
   TARGET="$DEVICE"
 elif [[ "$(uname -s)" == "Darwin" ]] && command -v xcrun >/dev/null 2>&1; then
   log "Reset simulatori (ne resta uno solo)"
-  # Chiudi tutto per evitare il bug "No such process" su sim appena creati/secondari
   xcrun simctl shutdown all 2>/dev/null || true
-  # Chiudi anche l'app Simulator se aperta (stato pulito)
   osascript -e 'quit app "Simulator"' 2>/dev/null || true
   sleep 1
 
@@ -129,22 +141,19 @@ elif [[ "$(uname -s)" == "Darwin" ]] && command -v xcrun >/dev/null 2>&1; then
   [[ -n "$TARGET" ]] || die "nessun iPhone simulator disponibile (apri Xcode una volta)"
 
   log "Boot $TARGET"
-  open -a Simulator --args -CurrentDeviceUDID "$TARGET" 2>/dev/null || open -a Simulator
   xcrun simctl boot "$TARGET" 2>/dev/null || true
+  open -a Simulator
 
   log "Attendo boot completo"
-  xcrun simctl bootstatus "$TARGET" -b
+  # bootstatus a volte esce con status strano anche se il sim è ok: non blocchiamo lo script
+  xcrun simctl bootstatus "$TARGET" -b || true
+  # Piccola pausa UI home screen
+  sleep 3
 
   log "Pulisco app precedente sul sim"
   xcrun simctl terminate "$TARGET" "$BUNDLE_ID" 2>/dev/null || true
   xcrun simctl uninstall "$TARGET" "$BUNDLE_ID" 2>/dev/null || true
-
-  log "Attendo che Flutter veda il device"
-  if [[ -z "$(wait_flutter_device "$TARGET")" ]]; then
-    echo "Avviso: Flutter non elenca ancora $TARGET, provo comunque..."
-  fi
 else
-  # Fallback non-Darwin / senza xcrun
   TARGET="$(
     flutter devices 2>/dev/null \
       | grep -E 'iPhone|simulator' \
@@ -157,6 +166,7 @@ fi
 [[ -n "$TARGET" ]] || die "nessun simulatore iOS trovato"
 
 # ── 4) Build + run (con retry) ──────────────────────────────────────
+# NON chiamare "flutter devices" in loop: sul Mac può restare appeso sui wireless.
 run_flutter() {
   log "Run su iOS simulator (device: $TARGET)"
   if [[ ${#EXTRA_ARGS[@]} -gt 0 ]]; then
@@ -174,9 +184,9 @@ recover_and_retry() {
     xcrun simctl shutdown "$TARGET" 2>/dev/null || true
     sleep 1
     xcrun simctl boot "$TARGET" 2>/dev/null || true
-    xcrun simctl bootstatus "$TARGET" -b
+    xcrun simctl bootstatus "$TARGET" -b || true
     open -a Simulator 2>/dev/null || true
-    sleep 2
+    sleep 3
   fi
   run_flutter
 }
