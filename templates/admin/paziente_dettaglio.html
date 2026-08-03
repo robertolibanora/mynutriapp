@@ -16,12 +16,12 @@
   ('messaggi', 'Messaggi'),
 ] %}
 
-<a href="{{ url_for('patients.lista_pazienti') }}" class="patient-back" style="display:inline-flex;align-items:center;gap:0.35rem;color:var(--adm-text-dim);font-size:0.85rem;text-decoration:none;margin-bottom:0.75rem;">← Pazienti</a>
+<a href="{{ url_for('patients.lista_pazienti') }}" class="adm-back">← Pazienti</a>
 
 <header class="ph">
   <div class="ph-identity">
     <div class="ph-avatar" aria-hidden="true">{{ paziente.nome[0] }}{{ paziente.cognome[0] }}</div>
-    <div style="min-width:0">
+    <div class="ph-identity-text">
       <h1 class="ph-name">{{ paziente.nome }} {{ paziente.cognome }}</h1>
       <div class="ph-meta">
         {% set status = sc %}
@@ -32,7 +32,7 @@
         {% if paziente.telefono %}<span>{{ paziente.telefono }}</span>{% endif %}
         {% if paziente.email %}<span>{{ paziente.email }}</span>{% endif %}
       </div>
-      <div class="ph-stats" style="margin-top:0.5rem">
+      <div class="ph-stats">
         <span>Peso: <strong>{% if peso_attuale is not none %}{{ '%.1f'|format(peso_attuale) }} kg{% else %}—{% endif %}</strong>
           {% if delta_peso is not none %}
             <span class="text-sm">({% if delta_peso > 0 %}+{% endif %}{{ delta_peso }} vs iniziale)</span>
@@ -49,25 +49,25 @@
     <div class="ph-more" data-ph-more>
       <button type="button" class="btn btn-ghost btn-small" data-ph-more-toggle aria-haspopup="true" aria-expanded="false">Altre azioni</button>
       <div class="ph-more-menu" data-ph-more-menu hidden role="menu">
-        <a href="{{ url_for('allenamenti.nuovo_allenamento', patient_id=paziente.id) }}">Nuovo allenamento</a>
-        <a href="{{ url_for('progressi.check_nutrizionista_completo', patient_id=paziente.id) }}">Registra progresso</a>
-        <a href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id, tab='note') }}">Aggiungi nota</a>
-        <a href="{{ url_for('broadcast.nuovo_broadcast', patient_id=paziente.id) }}">Invia messaggio</a>
-        <a href="{{ url_for('patients.modifica_paziente', patient_id=paziente.id) }}">Modifica anagrafica</a>
-        <a href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id, tab='mediche') }}">Info mediche</a>
+        <a class="adm-menu-item" href="{{ url_for('allenamenti.nuovo_allenamento', patient_id=paziente.id) }}">Nuovo allenamento</a>
+        <a class="adm-menu-item" href="{{ url_for('progressi.check_nutrizionista_completo', patient_id=paziente.id) }}">Registra progresso</a>
+        <a class="adm-menu-item" href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id, tab='note') }}">Aggiungi nota</a>
+        <a class="adm-menu-item" href="{{ url_for('broadcast.nuovo_broadcast', patient_id=paziente.id) }}">Invia messaggio</a>
+        <a class="adm-menu-item" href="{{ url_for('patients.modifica_paziente', patient_id=paziente.id) }}">Modifica anagrafica</a>
+        <a class="adm-menu-item" href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id, tab='mediche') }}">Info mediche</a>
       </div>
     </div>
   </div>
 </header>
 
 {% if sc == 'provvisorio' %}
-<div class="ops-panel" style="margin-bottom:0.85rem;display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center">
+<div class="ops-panel ops-panel--block ph-approval">
   <span class="text-sm text-muted">Cliente in attesa di approvazione.</span>
-  <form method="POST" action="{{ url_for('patients.approva_cliente', patient_id=paziente.id) }}" style="margin:0">
+  <form method="POST" action="{{ url_for('patients.approva_cliente', patient_id=paziente.id) }}" class="form-zero">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
     <button type="submit" class="btn btn-primary btn-small" data-confirm="Approvare questo cliente?">Approva</button>
   </form>
-  <form method="POST" action="{{ url_for('patients.rifiuta_cliente', patient_id=paziente.id) }}" style="margin:0">
+  <form method="POST" action="{{ url_for('patients.rifiuta_cliente', patient_id=paziente.id) }}" class="form-zero">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
     <button type="submit" class="btn btn-ghost btn-small" data-confirm="Rifiutare questo cliente?">Rifiuta</button>
   </form>
@@ -75,11 +75,11 @@
 {% endif %}
 
 {% if alerti %}
-<div style="margin-bottom:0.85rem;display:flex;flex-direction:column;gap:0.4rem">
+<div class="ph-alerts">
   {% for alert in alerti[:4] %}
-  <div class="ops-panel" style="padding:0.55rem 0.85rem;border-color:{% if alert.urgenza == 'alta' %}rgba(232,138,138,0.35){% else %}var(--adm-border-soft){% endif %}">
-    <strong style="color:#f0f0f0;font-size:0.88rem">{{ alert.titolo }}</strong>
-    <span class="text-sm text-muted"> — {{ alert.messaggio }}</span>
+  <div class="adm-alert{% if alert.urgenza == 'alta' %} adm-alert--danger{% else %} adm-alert--warn{% endif %}">
+    <div><strong class="adm-alert-title">{{ alert.titolo }}</strong>
+    <span class="text-sm text-muted"> — {{ alert.messaggio }}</span></div>
   </div>
   {% endfor %}
 </div>
@@ -109,7 +109,7 @@
     </div>
     <div class="summary-cell">
       <span class="summary-label">Prossimo appuntamento</span>
-      <div class="summary-value" style="font-size:0.92rem">{% if prossimo_app %}{{ prossimo_app.data_appuntamento.strftime('%d/%m %H:%M') }}{% else %}Nessuno{% endif %}</div>
+      <div class="summary-value summary-value--sm">{% if prossimo_app %}{{ prossimo_app.data_appuntamento.strftime('%d/%m %H:%M') }}{% else %}Nessuno{% endif %}</div>
     </div>
   </div>
 
@@ -160,7 +160,11 @@
         {% endfor %}
       </ul>
       {% else %}
-      <p class="text-sm text-muted" style="margin:0">Nessuna attività pendente.</p>
+      {% set title = 'Nessuna attività pendente' %}
+      {% set description = None %}
+      {% set action_url = None %}
+      {% set action_label = None %}
+      {% include 'admin/partials/_empty_state.html' %}
       {% endif %}
     </div>
   </div>
@@ -178,7 +182,7 @@
           <span class="timeline-dot" aria-hidden="true"></span>
           <div>
             <div class="timeline-type">{{ ev.tipo_label }}</div>
-            <div class="timeline-title">{% if ev.url %}<a href="{{ ev.url }}" style="color:inherit;text-decoration:none">{{ ev.title }}</a>{% else %}{{ ev.title }}{% endif %}</div>
+            <div class="timeline-title">{% if ev.url %}<a class="adm-link timeline-link" href="{{ ev.url }}">{{ ev.title }}</a>{% else %}{{ ev.title }}{% endif %}</div>
             <p class="timeline-desc">{{ ev.description }}</p>
             <div class="timeline-when">{{ ev.at_label }}</div>
           </div>
@@ -191,7 +195,7 @@
     </div>
     <div class="ops-panel">
       <div class="ops-panel-head"><h2 class="ops-panel-title">Azioni rapide</h2></div>
-      <div style="display:flex;flex-wrap:wrap;gap:0.4rem">
+      <div class="ph-quick-actions">
         <a class="btn btn-ghost btn-small" href="{{ url_for('progressi.check_nutrizionista_completo', patient_id=paziente.id) }}">Registra progresso</a>
         <a class="btn btn-ghost btn-small" href="{{ url_for('documenti.lista_documenti_admin', patient_id=paziente.id) }}">Documenti</a>
         <a class="btn btn-ghost btn-small" href="{{ url_for('diario_ui.nuovo_colloquio', patient_id=paziente.id) }}">Nuovo colloquio</a>
@@ -205,7 +209,7 @@
 {# ========== TIMELINE ========== #}
 {% if active_tab == 'timeline' %}
 <section class="ppanel is-active">
-  <div class="ops-panel-head" style="margin-bottom:0.75rem">
+  <div class="ops-panel-head">
     <h2 class="ops-panel-title">Timeline</h2>
     <span class="text-sm text-muted">{{ timeline.total }} eventi</span>
   </div>
@@ -216,7 +220,7 @@
       <span class="timeline-dot" aria-hidden="true"></span>
       <div>
         <div class="timeline-type">{{ ev.tipo_label }}</div>
-        <div class="timeline-title">{% if ev.url %}<a href="{{ ev.url }}" style="color:inherit">{{ ev.title }}</a>{% else %}{{ ev.title }}{% endif %}</div>
+        <div class="timeline-title">{% if ev.url %}<a class="adm-link timeline-link" href="{{ ev.url }}">{{ ev.title }}</a>{% else %}{{ ev.title }}{% endif %}</div>
         {% if ev.description %}<p class="timeline-desc">{{ ev.description }}</p>{% endif %}
         <div class="timeline-when">{{ ev.at_label }}</div>
       </div>
@@ -234,17 +238,17 @@
 {# ========== DIETE ========== #}
 {% if active_tab == 'diete' %}
 <section class="ppanel is-active">
-  <div class="ops-panel-head" style="margin-bottom:0.75rem">
+  <div class="ops-panel-head">
     <h2 class="ops-panel-title">Diete</h2>
     <a class="btn btn-primary btn-small" href="{{ url_for('diete_plans.new_diet_plan', patient_id=paziente.id) }}">Nuova dieta</a>
   </div>
   {% if dieta_attiva %}
-  <div class="ops-panel" style="margin-bottom:0.75rem;border-color:rgba(255,154,86,0.35)">
+  <div class="ops-panel ops-panel--block ops-panel--accent">
     <div class="ops-panel-head">
       <h3 class="ops-panel-title">Attiva: {{ dieta_attiva.title }}</h3>
       <a class="btn btn-ghost btn-small" href="{{ url_for('diete_plans.diet_plan_detail', diet_plan_id=dieta_attiva.id) }}">Apri / modifica</a>
     </div>
-    <p class="text-sm text-muted" style="margin:0">
+    <p class="text-sm text-muted">
       {% if dieta_attiva.target_kcal %}{{ dieta_attiva.target_kcal }} kcal · {% endif %}
       {{ dieta_attiva.meals|length }} pasti ·
       aggiornata {{ dieta_attiva.updated_at.strftime('%d/%m/%Y %H:%M') if dieta_attiva.updated_at else '—' }}
@@ -252,7 +256,7 @@
   </div>
   {% endif %}
   {% if diete_bozza %}
-  <h3 class="ops-panel-title" style="margin:0.5rem 0">Bozze</h3>
+  <h3 class="ops-panel-title section-subhead">Bozze</h3>
   <ul class="ops-list">
     {% for d in diete_bozza %}
     <li class="ops-item">
@@ -265,7 +269,7 @@
     {% endfor %}
   </ul>
   {% endif %}
-  <h3 class="ops-panel-title" style="margin:1rem 0 0.5rem">Storico piani</h3>
+  <h3 class="ops-panel-title section-subhead section-subhead--spaced">Storico piani</h3>
   {% if diet_plans %}
   <div class="adm-table-wrap">
     <table class="adm-table">
@@ -296,7 +300,7 @@
     {% include 'admin/partials/_empty_state.html' %}
   {% endif %}
   {% if diete_pdf %}
-  <h3 class="ops-panel-title" style="margin:1rem 0 0.5rem">Archivio PDF</h3>
+  <h3 class="ops-panel-title section-subhead section-subhead--spaced">Archivio PDF</h3>
   <ul class="ops-list">
     {% for d in diete_pdf %}
     <li class="ops-item">
@@ -309,14 +313,14 @@
     {% endfor %}
   </ul>
   {% endif %}
-  <p class="text-sm text-muted" style="margin-top:1rem"><a href="{{ url_for('diete_plans.lista_diet_plans') }}">Vedi tutte le diete (vista globale)</a></p>
+  <p class="text-sm text-muted section-footer-link"><a class="adm-link" href="{{ url_for('diete_plans.lista_diet_plans') }}">Vedi tutte le diete (vista globale)</a></p>
 </section>
 {% endif %}
 
 {# ========== ALLENAMENTI ========== #}
 {% if active_tab == 'allenamenti' %}
 <section class="ppanel is-active">
-  <div class="ops-panel-head" style="margin-bottom:0.75rem">
+  <div class="ops-panel-head">
     <h2 class="ops-panel-title">Allenamenti</h2>
     <a class="btn btn-primary btn-small" href="{{ url_for('allenamenti.nuovo_allenamento', patient_id=paziente.id) }}">Nuovo allenamento</a>
   </div>
@@ -351,11 +355,11 @@
 {# ========== PROGRESSI ========== #}
 {% if active_tab == 'progressi' %}
 <section class="ppanel is-active">
-  <div class="ops-panel-head" style="margin-bottom:0.75rem">
+  <div class="ops-panel-head">
     <h2 class="ops-panel-title">Progressi</h2>
     <a class="btn btn-primary btn-small" href="{{ url_for('progressi.check_nutrizionista_completo', patient_id=paziente.id) }}">Registra progresso</a>
   </div>
-  <div class="summary-grid" style="margin-bottom:1rem">
+  <div class="summary-grid">
     <div class="summary-cell"><span class="summary-label">Check totali</span><div class="summary-value">{{ check_totali }}</div></div>
     <div class="summary-cell"><span class="summary-label">Aderenza media</span><div class="summary-value">{% if aderenza_media %}{{ '%.1f'|format(aderenza_media) }}{% else %}—{% endif %}</div></div>
     <div class="summary-cell"><span class="summary-label">Foto</span><div class="summary-value">{{ foto_inviate }}</div></div>
@@ -379,7 +383,7 @@
     </table>
   </div>
   {% if pesi %}
-  <div class="ops-panel" style="margin-top:1rem">
+  <div class="ops-panel ops-panel--block">
     <canvas id="pesoChart" height="100" aria-label="Grafico peso"></canvas>
   </div>
   {% endif %}
@@ -390,14 +394,14 @@
     {% set action_label = 'Registra progresso' %}
     {% include 'admin/partials/_empty_state.html' %}
   {% endif %}
-  <p style="margin-top:0.75rem"><a class="text-sm" href="{{ url_for('progressi.progressi_paziente_admin', patient_id=paziente.id) }}">Apri vista progressi completa</a></p>
+  <p class="section-footer-link"><a class="adm-link text-sm" href="{{ url_for('progressi.progressi_paziente_admin', patient_id=paziente.id) }}">Apri vista progressi completa</a></p>
 </section>
 {% endif %}
 
 {# ========== APPUNTAMENTI ========== #}
 {% if active_tab == 'appuntamenti' %}
 <section class="ppanel is-active">
-  <div class="ops-panel-head" style="margin-bottom:0.75rem">
+  <div class="ops-panel-head">
     <h2 class="ops-panel-title">Appuntamenti</h2>
     <a class="btn btn-primary btn-small" href="{{ url_for('appuntamenti.nuovo_admin', patient_id=paziente.id) }}">Nuovo appuntamento</a>
   </div>
@@ -419,7 +423,7 @@
           <td class="text-sm">{{ (a.note or '—')[:60] }}</td>
           <td class="cell-actions">
             {% if a.stato == 'in_attesa' %}
-            <form method="POST" action="{{ url_for('appuntamenti.cambia_stato_admin', id=a.id, nuovo_stato='confermato') }}" style="display:inline">
+            <form method="POST" action="{{ url_for('appuntamenti.cambia_stato_admin', id=a.id, nuovo_stato='confermato') }}" class="inline-form">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
               <button class="btn btn-primary btn-small" type="submit">Conferma</button>
             </form>
@@ -437,14 +441,14 @@
     {% set action_label = 'Nuovo appuntamento' %}
     {% include 'admin/partials/_empty_state.html' %}
   {% endif %}
-  <p style="margin-top:0.75rem"><a class="text-sm" href="{{ url_for('agenda.agenda_unificata') }}">Apri agenda</a></p>
+  <p class="section-footer-link"><a class="adm-link text-sm" href="{{ url_for('agenda.agenda_unificata') }}">Apri agenda</a></p>
 </section>
 {% endif %}
 
 {# ========== DOCUMENTI ========== #}
 {% if active_tab == 'documenti' %}
 <section class="ppanel is-active">
-  <div class="ops-panel-head" style="margin-bottom:0.75rem">
+  <div class="ops-panel-head">
     <h2 class="ops-panel-title">Documenti</h2>
     <a class="btn btn-primary btn-small" href="{{ url_for('documenti.lista_documenti_admin', patient_id=paziente.id) }}">Gestisci documenti</a>
   </div>
@@ -460,9 +464,9 @@
           <td>{% if d.data_upload %}{{ d.data_upload.strftime('%d/%m/%Y') }}{% else %}—{% endif %}</td>
           <td class="cell-actions">
             <a class="btn btn-ghost btn-small" href="{{ url_for('documenti.serve_file', documento_id=d.id) }}">Scarica</a>
-            <form method="POST" action="{{ url_for('documenti.elimina_documento_admin', documento_id=d.id) }}" style="display:inline" onsubmit="return confirm('Eliminare questo documento?');">
+            <form method="POST" action="{{ url_for('documenti.elimina_documento_admin', documento_id=d.id) }}" class="inline-form" onsubmit="return confirm('Eliminare questo documento?');">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-              <button type="submit" class="btn btn-ghost btn-small" style="color:var(--adm-danger)">Elimina</button>
+              <button type="submit" class="btn btn-danger btn-small">Elimina</button>
             </form>
           </td>
         </tr>
@@ -489,14 +493,14 @@
       {% if notes %}
       <ul class="ops-list">
         {% for n in notes %}
-        <li class="ops-item" style="align-items:flex-start">
+        <li class="ops-item ops-item--top">
           <div class="ops-item-main">
             <div class="ops-item-meta">{{ n.created_at.strftime('%d/%m/%Y %H:%M') if n.created_at else '' }}</div>
-            <div style="color:#eee;white-space:pre-wrap;margin-top:0.25rem">{{ n.body }}</div>
+            <div class="note-body">{{ n.body }}</div>
           </div>
           <form method="POST" action="{{ url_for('patients.elimina_nota', patient_id=paziente.id, note_id=n.id) }}" onsubmit="return confirm('Eliminare questa nota?');">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-            <button type="submit" class="btn btn-ghost btn-small" style="color:var(--adm-danger)">Elimina</button>
+            <button type="submit" class="btn btn-danger btn-small">Elimina</button>
           </form>
         </li>
         {% endfor %}
@@ -532,13 +536,13 @@
   <div class="ops-panel">
     <div class="ops-panel-head"><h2 class="ops-panel-title">Messaggi</h2></div>
     <p class="text-sm text-muted">I messaggi sono invii WhatsApp outbound (non chat bidirezionale).</p>
-    <div style="display:flex;gap:0.45rem;flex-wrap:wrap;margin-top:0.75rem">
+    <div class="ph-quick-actions ph-quick-actions--spaced">
       <a class="btn btn-primary btn-small" href="{{ url_for('broadcast.nuovo_broadcast', patient_id=paziente.id) }}">Invia messaggio</a>
       <a class="btn btn-ghost btn-small" href="{{ url_for('broadcast.dashboard') }}">Apri Messaggi</a>
       <a class="btn btn-ghost btn-small" href="{{ url_for('broadcast.config_templates') }}">Template e automazioni</a>
     </div>
     {% if not paziente.telefono %}
-    <p class="text-sm" style="color:var(--adm-warn);margin-top:0.75rem">Questo paziente non ha un telefono registrato.</p>
+    <p class="text-sm adm-alert adm-alert--warn">Questo paziente non ha un telefono registrato.</p>
     {% endif %}
   </div>
 </section>
@@ -547,15 +551,15 @@
 {# ========== MEDICHE (secondaria) ========== #}
 {% if active_tab == 'mediche' %}
 <section class="ppanel is-active">
-  <div class="ops-panel-head" style="margin-bottom:0.75rem">
+  <div class="ops-panel-head">
     <h2 class="ops-panel-title">Informazioni mediche</h2>
     <a class="btn btn-ghost btn-small" href="{{ url_for('patients.modifica_paziente', patient_id=paziente.id) }}">Modifica</a>
   </div>
   <div class="summary-grid">
-    <div class="summary-cell"><span class="summary-label">Intolleranze</span><div class="summary-value" style="font-size:0.9rem;font-weight:500">{{ paziente.intolleranze or '—' }}</div></div>
-    <div class="summary-cell"><span class="summary-label">Patologie</span><div class="summary-value" style="font-size:0.9rem;font-weight:500">{{ paziente.patologie or '—' }}</div></div>
-    <div class="summary-cell"><span class="summary-label">Esami</span><div class="summary-value" style="font-size:0.9rem;font-weight:500">{{ paziente.esami_biochimici or '—' }}</div></div>
-    <div class="summary-cell"><span class="summary-label">Attività fisica</span><div class="summary-value" style="font-size:0.9rem;font-weight:500">{{ paziente.allenamenti_descr or '—' }}</div></div>
+    <div class="summary-cell"><span class="summary-label">Intolleranze</span><div class="summary-value summary-value--plain">{{ paziente.intolleranze or '—' }}</div></div>
+    <div class="summary-cell"><span class="summary-label">Patologie</span><div class="summary-value summary-value--plain">{{ paziente.patologie or '—' }}</div></div>
+    <div class="summary-cell"><span class="summary-label">Esami</span><div class="summary-value summary-value--plain">{{ paziente.esami_biochimici or '—' }}</div></div>
+    <div class="summary-cell"><span class="summary-label">Attività fisica</span><div class="summary-value summary-value--plain">{{ paziente.allenamenti_descr or '—' }}</div></div>
   </div>
 </section>
 {% endif %}

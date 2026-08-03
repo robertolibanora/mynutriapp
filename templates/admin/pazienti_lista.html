@@ -26,7 +26,7 @@
   <button type="submit" class="btn btn-ghost btn-small">Applica</button>
 </form>
 
-<div class="adm-filter-chips" style="margin-bottom:0.85rem" role="group" aria-label="Filtri stato">
+<div class="adm-filter-chips adm-filter-chips--spaced" role="group" aria-label="Filtri stato">
   <a class="adm-chip{% if filtro == 'tutti' %} is-active{% endif %}" href="{{ url_for('patients.lista_pazienti', filtro='tutti', search=search_query, sort=sort) }}">Tutti <span>{{ n_totali }}</span></a>
   <a class="adm-chip{% if filtro == 'attivo' %} is-active{% endif %}" href="{{ url_for('patients.lista_pazienti', filtro='attivo', search=search_query, sort=sort) }}">Attivi <span>{{ n_attivi }}</span></a>
   <a class="adm-chip{% if filtro == 'provvisorio' %} is-active{% endif %}" href="{{ url_for('patients.lista_pazienti', filtro='provvisorio', search=search_query, sort=sort) }}">Provvisori <span>{{ n_provvisori }}</span></a>
@@ -76,9 +76,9 @@
         </td>
         <td class="adm-col-hide-sm">
           {% if row.peso is not none %}
-            <strong style="color:#fff">{{ '%.1f'|format(row.peso) }}</strong> kg
+            <strong class="cell-weight-strong">{{ '%.1f'|format(row.peso) }}</strong> kg
             {% if row.delta_peso is not none %}
-              <span class="text-sm" style="color:{% if row.delta_peso < 0 %}var(--adm-ok){% elif row.delta_peso > 0 %}var(--adm-warn){% else %}var(--adm-text-dim){% endif %}">
+              <span class="delta-peso{% if row.delta_peso < 0 %} delta-peso--down{% elif row.delta_peso > 0 %} delta-peso--up{% else %} delta-peso--flat{% endif %}">
                 ({% if row.delta_peso > 0 %}+{% endif %}{{ row.delta_peso }})
               </span>
             {% endif %}
@@ -105,16 +105,16 @@
         </td>
         <td class="cell-actions" onclick="event.stopPropagation()">
           <a class="btn btn-ghost btn-small" href="{{ url_for('patients.dettaglio_paziente', patient_id=p.id) }}" aria-label="Apri cartella">Apri</a>
-          <details style="display:inline-block;position:relative">
-            <summary class="btn btn-ghost btn-small" style="list-style:none;cursor:pointer">⋯</summary>
-            <div class="ph-more-menu" style="display:block;position:absolute;right:0;top:100%">
-              <a href="{{ url_for('appuntamenti.nuovo_admin', patient_id=p.id) }}">Nuovo appuntamento</a>
-              <a href="{{ url_for('diete_plans.new_diet_plan', patient_id=p.id) }}">Nuova dieta</a>
-              <a href="{{ url_for('allenamenti.nuovo_allenamento', patient_id=p.id) }}">Nuovo allenamento</a>
-              <a href="{{ url_for('patients.modifica_paziente', patient_id=p.id) }}">Modifica</a>
+          <details class="adm-menu-details">
+            <summary class="btn btn-ghost btn-small">⋯</summary>
+            <div class="adm-menu">
+              <a class="adm-menu-item" href="{{ url_for('appuntamenti.nuovo_admin', patient_id=p.id) }}">Nuovo appuntamento</a>
+              <a class="adm-menu-item" href="{{ url_for('diete_plans.new_diet_plan', patient_id=p.id) }}">Nuova dieta</a>
+              <a class="adm-menu-item" href="{{ url_for('allenamenti.nuovo_allenamento', patient_id=p.id) }}">Nuovo allenamento</a>
+              <a class="adm-menu-item" href="{{ url_for('patients.modifica_paziente', patient_id=p.id) }}">Modifica</a>
               <form method="POST" action="{{ url_for('patients.elimina_paziente', patient_id=p.id) }}" onsubmit="return confirm('Eliminare definitivamente {{ p.nome }} {{ p.cognome }}?');">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                <button type="submit" class="is-danger">Elimina</button>
+                <button type="submit" class="adm-menu-item is-danger">Elimina</button>
               </form>
             </div>
           </details>

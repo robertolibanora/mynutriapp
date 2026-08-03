@@ -30,21 +30,22 @@
     </div>
 
     {% if not items %}
-    <div class="adm-empty">
-      <div class="adm-empty-title">Nessuna attività qui</div>
-      <p class="adm-empty-desc">Bozze, conferme e scadenze compariranno automaticamente.</p>
-    </div>
+    {% set title = 'Nessuna attività qui' %}
+    {% set description = 'Bozze, conferme e scadenze compariranno automaticamente.' %}
+    {% set action_url = None %}
+    {% set action_label = None %}
+    {% include 'admin/partials/_empty_state.html' %}
     {% else %}
     <ul class="ops-list">
       {% for it in items %}
       <li class="activity-item">
-        <div style="display:flex;gap:0.65rem;min-width:0;flex:1;">
+        <div class="activity-item-body">
           <span class="activity-priority{% if it.priority == 'high' %} is-high{% elif it.priority == 'medium' %} is-medium{% endif %}" aria-hidden="true"></span>
           <div class="ops-item-main">
             <div class="ops-item-title">{{ it.title }}</div>
             <div class="ops-item-meta">
               {% if it.patient_name %}
-                <a href="{{ url_for('patients.dettaglio_paziente', patient_id=it.patient_id) }}">{{ it.patient_name }}</a> ·
+                <a class="adm-link" href="{{ url_for('patients.dettaglio_paziente', patient_id=it.patient_id) }}">{{ it.patient_name }}</a> ·
               {% endif %}
               <span>{{ it.tipo|replace('_', ' ') }}</span>
               {% if it.due_at %} · {{ it.due_at.strftime('%d/%m/%Y %H:%M') }}{% endif %}
@@ -57,12 +58,12 @@
           <a class="btn btn-ghost btn-small" href="{{ url_for('patients.dettaglio_paziente', patient_id=it.patient_id) }}">Paziente</a>
           {% endif %}
           {% if it.is_manual and it.status == 'open' %}
-          <form method="POST" action="{{ url_for('attivita.completa', activity_id=it.manual_id) }}" style="margin:0">
+          <form method="POST" action="{{ url_for('attivita.completa', activity_id=it.manual_id) }}" class="form-zero">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <button type="submit" class="btn btn-primary btn-small">Completa</button>
           </form>
           {% elif it.is_manual and it.status == 'done' %}
-          <form method="POST" action="{{ url_for('attivita.riapri', activity_id=it.manual_id) }}" style="margin:0">
+          <form method="POST" action="{{ url_for('attivita.riapri', activity_id=it.manual_id) }}" class="form-zero">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <button type="submit" class="btn btn-ghost btn-small">Riapri</button>
           </form>

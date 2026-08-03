@@ -15,16 +15,16 @@
   <a class="msg-tab" href="#storico">Storico</a>
 </nav>
 
-<section id="invii" class="ops-panel" style="margin-bottom:0.85rem">
+<div class="ops-stack">
+<section id="invii" class="ops-panel">
   <div class="ops-panel-head">
     <h2 class="ops-panel-title">Invii</h2>
     <span class="text-sm text-muted">{{ stats.con_telefono }}/{{ stats.totale_pazienti }} con telefono</span>
   </div>
-  <p class="text-sm text-muted" style="margin:0 0 0.65rem">Messaggio personalizzato ai pazienti del tuo studio.</p>
-  <a class="btn btn-primary btn-small" href="{{ url_for('broadcast.nuovo_broadcast') }}">Componi messaggio</a>
+  <p class="text-sm text-muted adm-empty-desc">Messaggio personalizzato ai pazienti del tuo studio.</p>
 </section>
 
-<section id="automazioni" class="ops-panel" style="margin-bottom:0.85rem">
+<section id="automazioni" class="ops-panel">
   <div class="ops-panel-head">
     <h2 class="ops-panel-title">Automazioni</h2>
     <a class="ops-panel-link" href="{{ url_for('broadcast.config_templates') }}">Modifica testi</a>
@@ -37,9 +37,9 @@
       ('scadenze', 'Scadenze', 'Promemoria 10 giorni prima'),
     ] %}
     <div class="msg-auto-card">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:0.5rem;margin-bottom:0.25rem">
+      <div class="ops-panel-head">
         <strong>{{ label }}</strong>
-        <form method="POST" action="{{ url_for('broadcast.toggle_trigger', trigger_name=key) }}" style="margin:0">
+        <form method="POST" action="{{ url_for('broadcast.toggle_trigger', trigger_name=key) }}" class="form-zero">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
           <button type="submit" class="btn btn-ghost btn-small" aria-pressed="{{ 'true' if stats.trigger_stats[key] else 'false' }}">
             {{ 'On' if stats.trigger_stats[key] else 'Off' }}
@@ -52,28 +52,34 @@
   </div>
 </section>
 
-<section id="template" class="ops-panel" style="margin-bottom:0.85rem">
+<section id="template" class="ops-panel">
   <div class="ops-panel-head">
     <h2 class="ops-panel-title">Template</h2>
     <a class="ops-panel-link" href="{{ url_for('broadcast.config_templates') }}">Configura</a>
   </div>
-  {% for key, tpl in trigger_templates.items() %}
-  <div style="padding:0.55rem 0;border-bottom:1px solid var(--adm-border-soft)">
-    <div class="text-sm" style="color:var(--adm-accent);font-weight:650;text-transform:capitalize">{{ key }}</div>
-    <div class="text-sm text-muted" style="white-space:pre-wrap;margin-top:0.2rem">{{ tpl[:160] }}{% if tpl|length > 160 %}…{% endif %}</div>
-  </div>
-  {% endfor %}
+  <ul class="msg-template-list">
+    {% for key, tpl in trigger_templates.items() %}
+    <li class="msg-template-item">
+      <div>
+        <div class="msg-template-key">{{ key }}</div>
+        <div class="text-sm text-muted">{{ tpl[:160] }}{% if tpl|length > 160 %}…{% endif %}</div>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
 </section>
 
 <section id="storico" class="ops-panel">
   <div class="ops-panel-head">
     <h2 class="ops-panel-title">Storico</h2>
   </div>
-  <div class="adm-empty">
-    <div class="adm-empty-title">Storico non ancora disponibile</div>
-    <p class="adm-empty-desc">Gli invii passano da Evolution API. Uno storico locale dedicato non è ancora supportato.</p>
-  </div>
+  {% set title = 'Storico non ancora disponibile' %}
+  {% set description = 'Gli invii passano da Evolution API. Uno storico locale dedicato non è ancora supportato.' %}
+  {% set action_url = None %}
+  {% set action_label = None %}
+  {% include 'admin/partials/_empty_state.html' %}
 </section>
+</div>
 
 {% endblock %}
 

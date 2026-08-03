@@ -2,85 +2,21 @@
 {% block title %}Agenda{% endblock %}
 {% block nav_label %}Agenda{% endblock %}
 
-{% block extra_head %}
-<style>
-  /* Critico: garantisce layout calendario anche con cache CSS vecchia */
-  .admin-app .agenda-stats {
-    display: grid !important;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 0.75rem;
-    margin-bottom: 1.25rem;
-  }
-  .admin-app .agenda-stat {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 8px;
-    padding: 0.85rem 1rem;
-  }
-  .admin-app .agenda-stat-n { display: block; font-size: 1.35rem; font-weight: 600; color: #ececec; }
-  .admin-app .agenda-stat-l { font-size: 0.75rem; color: #9a9a9a; }
-  .admin-app .cal-weekdays {
-    display: grid !important;
-    grid-template-columns: repeat(7, minmax(0, 1fr));
-    gap: 4px;
-    margin-bottom: 4px;
-    font-size: 0.72rem;
-    color: #6e6e6e;
-    text-align: center;
-  }
-  .admin-app .cal-grid {
-    display: grid !important;
-    grid-template-columns: repeat(7, minmax(0, 1fr));
-    gap: 4px;
-  }
-  .admin-app a.cal-day {
-    display: block;
-    min-height: 88px;
-    padding: 6px;
-    border-radius: 6px;
-    border: 1px solid rgba(255,255,255,0.08);
-    text-decoration: none !important;
-    color: #ececec !important;
-    background: rgba(255,255,255,0.04);
-  }
-  .admin-app a.cal-day:visited { color: #ececec !important; }
-  .admin-app .cal-day-n { color: #ececec; font-weight: 600; }
-  .admin-app .cal-ev { color: #9a9a9a; font-size: 0.65rem; }
-  .admin-app .tabs-minimal { display: flex; gap: 0.25rem; margin-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.08); }
-  .admin-app .tab-min {
-    background: none; border: none; color: #9a9a9a;
-    padding: 0.6rem 1rem; cursor: pointer;
-    border-bottom: 2px solid transparent; margin-bottom: -1px;
-  }
-  .admin-app .tab-min.is-active { color: #ececec; border-bottom-color: #d4d4d4; }
-  .admin-app .agenda-panel { display: none; }
-  .admin-app .agenda-panel.is-active { display: block; }
-  @media (max-width: 900px) {
-    .admin-app .agenda-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .admin-app .cal-grid, .admin-app .cal-weekdays { grid-template-columns: repeat(7, minmax(0, 1fr)); }
-  }
-</style>
-{% endblock %}
-
 {% block content %}
 
-<header class="agenda-top">
-  <div class="agenda-top-main">
-    <h1 class="adm-page-header-title" style="margin:0;font-size:1.25rem">Agenda</h1>
-    <p class="agenda-meta" style="margin:0.25rem 0 0">{{ oggi.strftime('%A %d %B %Y')|replace('Monday','lunedì')|replace('Tuesday','martedì')|replace('Wednesday','mercoledì')|replace('Thursday','giovedì')|replace('Friday','venerdì')|replace('Saturday','sabato')|replace('Sunday','domenica')|replace('January','gennaio')|replace('February','febbraio')|replace('March','marzo')|replace('April','aprile')|replace('May','maggio')|replace('June','giugno')|replace('July','luglio')|replace('August','agosto')|replace('September','settembre')|replace('October','ottobre')|replace('November','novembre')|replace('December','dicembre') }}</p>
-  </div>
-  <div class="agenda-actions">
-    <a href="{{ url_for('appuntamenti.nuovo_admin') }}" class="btn btn-primary btn-small">Nuovo appuntamento</a>
-    <a href="{{ url_for('agenda.agenda_unificata', tab='appuntamenti', filtro='oggi') }}" class="btn btn-ghost btn-small">Oggi</a>
-    <a href="{{ url_for('prenota_public.lista_richieste_admin') }}" class="btn btn-ghost btn-small">
-      Richieste{% if richieste_in_attesa %} ({{ richieste_in_attesa|length }}){% endif %}
-    </a>
-    <a href="{{ url_for('slot.orari_settimanali') }}" class="btn btn-ghost btn-small">Orari</a>
-    <a href="{{ url_for('slot.eccezione_agenda') }}" class="btn btn-ghost btn-small">Ferie</a>
-  </div>
-</header>
+{% set title = 'Agenda' %}
+{% set subtitle = oggi.strftime('%A %d %B %Y')|replace('Monday','lunedì')|replace('Tuesday','martedì')|replace('Wednesday','mercoledì')|replace('Thursday','giovedì')|replace('Friday','venerdì')|replace('Saturday','sabato')|replace('Sunday','domenica')|replace('January','gennaio')|replace('February','febbraio')|replace('March','marzo')|replace('April','aprile')|replace('May','maggio')|replace('June','giugno')|replace('July','luglio')|replace('August','agosto')|replace('September','settembre')|replace('October','ottobre')|replace('November','novembre')|replace('December','dicembre') %}
+{% set primary_url = url_for('appuntamenti.nuovo_admin') %}
+{% set primary_label = 'Nuovo appuntamento' %}
+{% set secondary_html %}
+<a href="{{ url_for('agenda.agenda_unificata', tab='appuntamenti', filtro='oggi') }}" class="btn btn-ghost btn-small">Oggi</a>
+<a href="{{ url_for('prenota_public.lista_richieste_admin') }}" class="btn btn-ghost btn-small">Richieste{% if richieste_in_attesa %} ({{ richieste_in_attesa|length }}){% endif %}</a>
+<a href="{{ url_for('slot.orari_settimanali') }}" class="btn btn-ghost btn-small">Orari</a>
+<a href="{{ url_for('slot.eccezione_agenda') }}" class="btn btn-ghost btn-small">Ferie</a>
+{% endset %}
+{% include 'admin/partials/_page_header.html' %}
 
-<div class="ops-kpis" style="margin-bottom:1rem">
+<div class="ops-kpis agenda-kpi-row">
   <a class="ops-kpi" href="{{ url_for('agenda.agenda_unificata', tab='appuntamenti', filtro='oggi') }}">
     <div class="ops-kpi-num">{{ appuntamenti_oggi|length }}</div>
     <div class="ops-kpi-label">Oggi</div>
@@ -102,20 +38,20 @@
 {% if richieste_in_attesa %}
 <div class="banner banner-warn">
   Ci sono <strong>{{ richieste_in_attesa|length }}</strong> richieste pubbliche da gestire.
-  <a href="{{ url_for('prenota_public.lista_richieste_admin') }}">Apri richieste</a>
+  <a class="adm-link" href="{{ url_for('prenota_public.lista_richieste_admin') }}">Apri richieste</a>
 </div>
 {% endif %}
 
 {% if not orari_settimanali_count %}
 <div class="banner banner-warn">
-  Configura prima gli <a href="{{ url_for('slot.orari_settimanali') }}">orari settimanali</a> per aprire la prenotazione ai pazienti.
+  Configura prima gli <a class="adm-link" href="{{ url_for('slot.orari_settimanali') }}">orari settimanali</a> per aprire la prenotazione ai pazienti.
 </div>
 {% endif %}
 
 <div class="tabs-minimal">
   <button type="button" class="tab-min {% if tab != 'appuntamenti' %}is-active{% endif %}" data-tab="calendario">Mese</button>
   <button type="button" class="tab-min {% if tab == 'appuntamenti' and filtro_vista == 'oggi' %}is-active{% endif %}" data-tab="appuntamenti" onclick="location.href='{{ url_for('agenda.agenda_unificata', tab='appuntamenti', filtro='oggi') }}'">Giorno</button>
-  <a class="tab-min {% if tab == 'appuntamenti' and filtro_vista == 'settimana' %}is-active{% endif %}" href="{{ url_for('agenda.agenda_unificata', tab='appuntamenti', filtro='settimana') }}" style="text-decoration:none">Settimana</a>
+  <a class="tab-min {% if tab == 'appuntamenti' and filtro_vista == 'settimana' %}is-active{% endif %}" href="{{ url_for('agenda.agenda_unificata', tab='appuntamenti', filtro='settimana') }}">Settimana</a>
   <button type="button" class="tab-min {% if tab == 'appuntamenti' and filtro_vista not in ['oggi','settimana'] %}is-active{% endif %}" data-tab="appuntamenti">
     Lista{% if appuntamenti_in_attesa|length %} <span class="tab-badge">{{ appuntamenti_in_attesa|length }}</span>{% endif %}
   </button>
@@ -124,9 +60,9 @@
 <!-- CALENDARIO -->
 <section id="calendario-tab" class="agenda-panel {% if tab != 'appuntamenti' %}is-active{% endif %}">
   <div class="cal-nav">
-    <a href="{{ url_for('agenda.agenda_unificata', mese=mese_precedente) }}" class="btn btn-ghost btn-xs">‹</a>
+    <a href="{{ url_for('agenda.agenda_unificata', mese=mese_precedente) }}" class="btn btn-ghost btn-small">‹</a>
     <span class="cal-month">{{ mese_corrente_display }}</span>
-    <a href="{{ url_for('agenda.agenda_unificata', mese=mese_successivo) }}" class="btn btn-ghost btn-xs">›</a>
+    <a href="{{ url_for('agenda.agenda_unificata', mese=mese_successivo) }}" class="btn btn-ghost btn-small">›</a>
   </div>
 
   <div class="cal-weekdays">
@@ -164,13 +100,13 @@
   <div class="appt-toolbar">
     <h2 class="panel-title">{{ vista_appuntamenti }}</h2>
     <div class="appt-filters">
-      <a href="{{ url_for('agenda.agenda_unificata', tab='appuntamenti', filtro='da_confermare') }}" class="btn btn-xs {% if filtro_vista == 'da_confermare' %}btn-primary{% else %}btn-ghost{% endif %}">Da confermare</a>
-      <a href="{{ url_for('agenda.agenda_unificata', tab='appuntamenti', filtro='oggi') }}" class="btn btn-xs {% if filtro_vista == 'oggi' %}btn-primary{% else %}btn-ghost{% endif %}">Oggi</a>
-      <a href="{{ url_for('agenda.agenda_unificata', tab='appuntamenti', filtro='settimana') }}" class="btn btn-xs {% if filtro_vista == 'settimana' %}btn-primary{% else %}btn-ghost{% endif %}">Settimana</a>
-      <a href="{{ url_for('agenda.agenda_unificata', tab='appuntamenti', filtro='mese') }}" class="btn btn-xs {% if filtro_vista == 'mese' %}btn-primary{% else %}btn-ghost{% endif %}">Mese</a>
+      <a href="{{ url_for('agenda.agenda_unificata', tab='appuntamenti', filtro='da_confermare') }}" class="btn btn-small {% if filtro_vista == 'da_confermare' %}btn-primary{% else %}btn-ghost{% endif %}">Da confermare</a>
+      <a href="{{ url_for('agenda.agenda_unificata', tab='appuntamenti', filtro='oggi') }}" class="btn btn-small {% if filtro_vista == 'oggi' %}btn-primary{% else %}btn-ghost{% endif %}">Oggi</a>
+      <a href="{{ url_for('agenda.agenda_unificata', tab='appuntamenti', filtro='settimana') }}" class="btn btn-small {% if filtro_vista == 'settimana' %}btn-primary{% else %}btn-ghost{% endif %}">Settimana</a>
+      <a href="{{ url_for('agenda.agenda_unificata', tab='appuntamenti', filtro='mese') }}" class="btn btn-small {% if filtro_vista == 'mese' %}btn-primary{% else %}btn-ghost{% endif %}">Mese</a>
       {% if filtro_vista == 'giorno' %}
-      <a href="{{ url_for('agenda.agenda_unificata', tab='appuntamenti', filtro_giorno=giorno_precedente) }}" class="btn btn-ghost btn-xs">‹</a>
-      <a href="{{ url_for('agenda.agenda_unificata', tab='appuntamenti', filtro_giorno=giorno_successivo) }}" class="btn btn-ghost btn-xs">›</a>
+      <a href="{{ url_for('agenda.agenda_unificata', tab='appuntamenti', filtro_giorno=giorno_precedente) }}" class="btn btn-ghost btn-small">‹</a>
+      <a href="{{ url_for('agenda.agenda_unificata', tab='appuntamenti', filtro_giorno=giorno_successivo) }}" class="btn btn-ghost btn-small">›</a>
       {% endif %}
     </div>
   </div>
@@ -184,7 +120,7 @@
         <div>
           <div class="appt-name">
             {% if a.patient %}
-            <a href="{{ url_for('patients.dettaglio_paziente', patient_id=a.patient_id) }}" style="color:inherit;text-decoration:none">{{ a.patient.nome }} {{ a.patient.cognome }}</a>
+            <a class="adm-link appt-patient-link" href="{{ url_for('patients.dettaglio_paziente', patient_id=a.patient_id) }}">{{ a.patient.nome }} {{ a.patient.cognome }}</a>
             {% else %}Paziente{% endif %}
           </div>
           <div class="appt-type">{{ a.tipo.replace('_', ' ') }}</div>
@@ -194,23 +130,23 @@
       {% if a.note %}<p class="appt-note">{{ a.note }}</p>{% endif %}
       <div class="appt-actions">
         {% if a.patient %}
-        <a href="{{ url_for('patients.dettaglio_paziente', patient_id=a.patient_id) }}" class="btn btn-ghost btn-sm">Cartella</a>
+        <a href="{{ url_for('patients.dettaglio_paziente', patient_id=a.patient_id) }}" class="btn btn-ghost btn-small">Cartella</a>
         {% endif %}
         {% if a.stato == 'in_attesa' %}
         <form method="POST" action="{{ url_for('appuntamenti.cambia_stato_admin', id=a.id, nuovo_stato='confermato') }}">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-          <button type="submit" class="btn btn-primary btn-sm">Conferma</button>
+          <button type="submit" class="btn btn-primary btn-small">Conferma</button>
         </form>
         {% elif a.stato == 'confermato' %}
         <form method="POST" action="{{ url_for('appuntamenti.cambia_stato_admin', id=a.id, nuovo_stato='completato') }}">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-          <button type="submit" class="btn btn-secondary btn-sm">Completa</button>
+          <button type="submit" class="btn btn-secondary btn-small">Completa</button>
         </form>
         {% endif %}
         {% if a.stato not in ['completato', 'annullato'] %}
         <form method="POST" action="{{ url_for('appuntamenti.cambia_stato_admin', id=a.id, nuovo_stato='annullato') }}">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-          <button type="submit" class="btn btn-ghost btn-xs" onclick="return confirm('Annullare?')">Annulla</button>
+          <button type="submit" class="btn btn-ghost btn-small" onclick="return confirm('Annullare?')">Annulla</button>
         </form>
         {% endif %}
       </div>
@@ -218,7 +154,11 @@
     {% endfor %}
   </div>
   {% else %}
-  <p class="text-muted" style="padding: 2rem 0;">Nessun appuntamento per questo filtro.</p>
+  {% set title = 'Nessun appuntamento per questo filtro' %}
+  {% set description = 'Prova un altro filtro o fissa un nuovo appuntamento.' %}
+  {% set action_url = url_for('appuntamenti.nuovo_admin') %}
+  {% set action_label = 'Nuovo appuntamento' %}
+  {% include 'admin/partials/_empty_state.html' %}
   {% endif %}
 </section>
 

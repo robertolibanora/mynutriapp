@@ -2,30 +2,20 @@
 {% block title %}Dashboard{% endblock %}
 {% block content %}
 
-<div class="adm-page-header">
-  <div class="adm-page-header-text">
-    <h1 class="adm-page-header-title">{{ saluto }}{% if admin_name %}, {{ admin_name.split()[0] }}{% endif %}</h1>
-    <p class="adm-page-header-sub">{{ data_oggi }} · {{ ora_ora }}
-      {% if appuntamenti_oggi %}
-        · Prossimo oggi:
-        {% set first = appuntamenti_oggi[0] %}
-        {{ first.data_appuntamento.strftime('%H:%M') }}
-        {% if first.patient %} {{ first.patient.nome }} {{ first.patient.cognome }}{% endif %}
-      {% endif %}
-    </p>
-  </div>
-  <div class="adm-page-header-actions">
-    <a class="btn btn-primary btn-small" href="{{ url_for('appuntamenti.nuovo_admin') }}">Nuovo appuntamento</a>
-    <a class="btn btn-ghost btn-small" href="{{ url_for('patients.nuovo_paziente') }}">Nuovo paziente</a>
-    <a class="btn btn-ghost btn-small" href="{{ url_for('attivita.lista_attivita') }}">Attività</a>
-  </div>
-</div>
+{% set title = (saluto ~ (', ' ~ admin_name.split()[0] if admin_name else '')) %}
+{% set subtitle %}{{ data_oggi }}{% if appuntamenti_oggi %} · Prossimo oggi: {{ appuntamenti_oggi[0].data_appuntamento.strftime('%H:%M') }}{% if appuntamenti_oggi[0].patient %} {{ appuntamenti_oggi[0].patient.nome }} {{ appuntamenti_oggi[0].patient.cognome }}{% endif %}{% endif %}{% endset %}
+{% set primary_url = url_for('appuntamenti.nuovo_admin') %}
+{% set primary_label = 'Nuovo appuntamento' %}
+{% set secondary_html %}
+<a class="btn btn-ghost btn-small" href="{{ url_for('attivita.lista_attivita') }}">Attività</a>
+{% endset %}
+{% include 'admin/partials/_page_header.html' %}
 
 {% if show_onboarding %}
-<div class="ops-panel" style="margin-bottom:1rem">
+<div class="ops-panel ops-panel--block">
   <strong>Benvenuto.</strong>
   <span class="text-sm text-muted"> Imposta gli orari settimanali e aggiungi i primi pazienti per iniziare.</span>
-  <div style="margin-top:0.5rem;display:flex;gap:0.4rem;flex-wrap:wrap">
+  <div class="ops-onboarding-actions">
     <a class="btn btn-ghost btn-small" href="{{ url_for('slot.orari_settimanali') }}">Orari</a>
     <a class="btn btn-ghost btn-small" href="{{ url_for('patients.nuovo_paziente') }}">Nuovo paziente</a>
   </div>
@@ -56,7 +46,7 @@
           <a class="btn btn-ghost btn-small" href="{{ url_for('patients.dettaglio_paziente', patient_id=a.patient_id) }}">Apri</a>
           {% endif %}
           {% if a.stato == 'in_attesa' %}
-          <form method="POST" action="{{ url_for('appuntamenti.cambia_stato_admin', id=a.id, nuovo_stato='confermato') }}" style="margin:0">
+          <form method="POST" action="{{ url_for('appuntamenti.cambia_stato_admin', id=a.id, nuovo_stato='confermato') }}" class="form-zero">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <button class="btn btn-primary btn-small" type="submit">Conferma</button>
           </form>
@@ -66,11 +56,11 @@
       {% endfor %}
     </ul>
     {% else %}
-    <div class="adm-empty">
-      <div class="adm-empty-title">Nessun appuntamento oggi</div>
-      <p class="adm-empty-desc">Organizza la giornata dalle attività o fissa un appuntamento.</p>
-      <a href="{{ url_for('appuntamenti.nuovo_admin') }}" class="btn btn-primary btn-small">Fissa appuntamento</a>
-    </div>
+    {% set title = 'Nessun appuntamento oggi' %}
+    {% set description = 'Organizza la giornata dalle attività o fissa un appuntamento.' %}
+    {% set action_url = url_for('appuntamenti.nuovo_admin') %}
+    {% set action_label = 'Fissa appuntamento' %}
+    {% include 'admin/partials/_empty_state.html' %}
     {% endif %}
   </section>
 
@@ -99,12 +89,16 @@
       {% endfor %}
     </ul>
     {% else %}
-    <p class="text-sm text-muted" style="margin:0">Nessuna attività urgente. Ottimo!</p>
+    {% set title = 'Nessuna attività urgente' %}
+    {% set description = 'Ottimo! Non ci sono azioni da sbloccare subito.' %}
+    {% set action_url = None %}
+    {% set action_label = None %}
+    {% include 'admin/partials/_empty_state.html' %}
     {% if pazienti_recenti %}
-    <div style="margin-top:0.85rem">
-      <div class="text-sm text-muted" style="margin-bottom:0.35rem">Pazienti recenti</div>
+    <div class="ops-recent-list">
+      <div class="text-sm text-muted ops-recent-label">Pazienti recenti</div>
       {% for p in pazienti_recenti %}
-      <a href="{{ url_for('patients.dettaglio_paziente', patient_id=p.id) }}" class="text-sm" style="display:block;padding:0.25rem 0;color:var(--adm-text-muted)">{{ p.cognome }} {{ p.nome }}</a>
+      <a href="{{ url_for('patients.dettaglio_paziente', patient_id=p.id) }}" class="adm-link ops-recent-link">{{ p.cognome }} {{ p.nome }}</a>
       {% endfor %}
     </div>
     {% endif %}
@@ -112,7 +106,7 @@
   </section>
 </div>
 
-<section class="ops-panel" style="margin-bottom:1rem">
+<section class="ops-panel ops-panel--block">
   <div class="ops-panel-head">
     <h2 class="ops-panel-title">Prossimi 7 giorni</h2>
     <a class="ops-panel-link" href="{{ url_for('agenda.agenda_unificata') }}">Agenda</a>
@@ -134,12 +128,16 @@
     {% endfor %}
   </ul>
   {% else %}
-  <p class="text-sm text-muted" style="margin:0">Nessun appuntamento nei prossimi giorni.</p>
+  {% set title = 'Nessun appuntamento nei prossimi giorni' %}
+  {% set description = 'Quando fisserai visite, le vedrai qui.' %}
+  {% set action_url = None %}
+  {% set action_label = None %}
+  {% include 'admin/partials/_empty_state.html' %}
   {% endif %}
 </section>
 
 {% if richieste_recenti %}
-<section class="ops-panel" style="margin-bottom:1rem">
+<section class="ops-panel ops-panel--block">
   <div class="ops-panel-head">
     <h2 class="ops-panel-title">Richieste online</h2>
     <a class="ops-panel-link" href="{{ url_for('prenota_public.lista_richieste_admin') }}">Gestisci</a>
