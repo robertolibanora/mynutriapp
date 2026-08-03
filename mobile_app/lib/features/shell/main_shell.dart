@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../widgets/empty_placeholder.dart';
 import '../home/home_screen.dart';
 import '../profile/profile_screen.dart';
 
@@ -16,21 +15,9 @@ class _MainShellState extends State<MainShell> {
 
   static const _pages = <Widget>[
     HomeScreen(),
-    _EmptyTab(
-      title: 'Le mie diete',
-      icon: Icons.restaurant_outlined,
-      message: 'Nessuna dieta assegnata ancora',
-    ),
-    _EmptyTab(
-      title: 'Appuntamenti',
-      icon: Icons.event_busy_outlined,
-      message: 'Nessun appuntamento',
-    ),
-    _EmptyTab(
-      title: 'Progressi',
-      icon: Icons.show_chart_outlined,
-      message: 'Nessun progresso da mostrare ancora',
-    ),
+    _Placeholder(title: 'Dieta'),
+    _Placeholder(title: 'Appuntamenti'),
+    _Placeholder(title: 'Progressi'),
     ProfileScreen(),
   ];
 
@@ -65,22 +52,12 @@ class _MainShellState extends State<MainShell> {
   }
 }
 
-class _EmptyTab extends StatelessWidget {
-  const _EmptyTab({
-    required this.title,
-    required this.icon,
-    required this.message,
-  });
-
+class _Placeholder extends StatelessWidget {
+  const _Placeholder({required this.title});
   final String title;
-  final IconData icon;
-  final String message;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: EmptyPlaceholder(icon: icon, message: message),
-    );
+    return Center(child: Text(title));
   }
 }
