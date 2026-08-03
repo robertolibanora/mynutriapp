@@ -20,8 +20,13 @@ def log_audit_event(action, resource_type, resource_id=None, details=None):
     try:
         from app.models.models import AuditLog
         
-        user_id = session.get('user_id')
+        user_id = session.get('user_id') or session.get('utente_id')
         user_role = session.get('role', 'anonymous')
+        # Compat enum audit_log storico
+        if user_role not in (
+            'admin', 'user', 'anonymous', 'super_admin', 'nutrizionista'
+        ):
+            user_role = 'anonymous'
         
         # Estrai IP (gestisce proxy)
         ip_address = request.headers.get('X-Forwarded-For', request.remote_addr)

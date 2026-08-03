@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}MyNutriApp{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    :root {
+      --super-bg: #0f1412;
+      --super-panel: #1a221e;
+      --super-accent: #3dcc8c;
+      --super-text: #e8f0eb;
+      --super-muted: #8aa396;
+    }
+    body.super-body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Manrope, system-ui, sans-serif;
+      background: radial-gradient(1200px 600px at 10% -10%, #1d3a2c 0%, transparent 55%),
+                  radial-gradient(900px 500px at 100% 0%, #243528 0%, transparent 50%),
+                  var(--super-bg);
+      color: var(--super-text);
+    }
+    .super-wrap { max-width: 960px; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; }
+    .super-top { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.75rem; }
+    .super-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      font-size: 1.25rem;
+    }
+    .super-brand-logo {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      object-fit: cover;
+      flex-shrink: 0;
+      background: #000;
+    }
+    .super-brand-accent { color: var(--super-accent); }
+    .super-meta { color: var(--super-muted); font-size: 0.9rem; }
+    .super-panel {
+      background: color-mix(in srgb, var(--super-panel) 92%, black);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 16px;
+      padding: 1.25rem 1.35rem;
+      margin-bottom: 1.25rem;
+    }
+    .super-panel h1, .super-panel h2 { margin: 0 0 0.75rem; font-size: 1.15rem; }
+    .super-flash { padding: 0.75rem 1rem; border-radius: 10px; margin-bottom: 1rem; }
+    .super-flash.success { background: rgba(61,204,140,0.15); color: #9be7c2; }
+    .super-flash.danger { background: rgba(255,90,90,0.15); color: #ffb0b0; }
+    .super-form { display: grid; gap: 0.75rem; grid-template-columns: 1fr 1fr; }
+    .super-form .full { grid-column: 1 / -1; }
+    .super-form label { display: grid; gap: 0.35rem; font-size: 0.85rem; color: var(--super-muted); }
+    .super-form input,
+    .super-form select,
+    table.super-table select {
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(0,0,0,0.25);
+      color: var(--super-text);
+      border-radius: 10px;
+      padding: 0.65rem 0.75rem;
+      font: inherit;
+    }
+    .super-btn {
+      border: 0;
+      border-radius: 999px;
+      padding: 0.7rem 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      background: var(--super-accent);
+      color: #062015;
+    }
+    .super-btn.secondary { background: transparent; color: var(--super-text); border: 1px solid rgba(255,255,255,0.15); }
+    table.super-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    table.super-table th, table.super-table td { text-align: left; padding: 0.65rem 0.4rem; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    table.super-table th { color: var(--super-muted); font-weight: 600; }
+    .badge { display: inline-block; padding: 0.15rem 0.55rem; border-radius: 999px; font-size: 0.75rem; }
+    .badge.on { background: rgba(61,204,140,0.2); color: #9be7c2; }
+    .badge.off { background: rgba(255,255,255,0.08); color: var(--super-muted); }
+    .plan-usage-ratio { font-size: 1.5rem; margin: 0.5rem 0 0.85rem; }
+    .plan-usage-bar {
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      overflow: hidden;
+      margin-bottom: 0.75rem;
+    }
+    .plan-usage-bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: var(--super-accent);
+      transition: width 0.25s ease;
+    }
+    .plan-usage-warn .plan-usage-bar-fill { background: #e6b84d; }
+    .plan-usage-danger .plan-usage-bar-fill { background: #e85d5d; }
+    .plan-usage-msg { margin: 0.5rem 0 0; font-size: 0.92rem; }
+    .plan-usage-msg-warn { color: #e6b84d; }
+    .plan-usage-msg-danger { color: #ffb0b0; display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; }
+    .plan-usage-card.plan-usage-warn { border-color: rgba(230,184,77,0.35); }
+    .plan-usage-card.plan-usage-danger { border-color: rgba(232,93,93,0.4); }
+    @media (max-width: 700px) { .super-form { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body class="super-body">
+  <div class="super-wrap">
+    <header class="super-top">
+      <div>
+        <div class="super-brand">
+          <img
+            class="super-brand-logo"
+            src="{{ url_for('static', filename='img/logo-128.png') }}"
+            alt=""
+            width="36"
+            height="36"
+            decoding="async"
+          >
+          <span>MyNutri<span class="super-brand-accent">App</span></span>
+        </div>
+        <div class="super-meta">{% block subtitle %}{% endblock %}</div>
+      </div>
+      <div style="display:flex;gap:0.5rem;align-items:center;">
+        <span class="super-meta">{{ admin_name }}</span>
+        <a class="super-btn secondary" href="{{ url_for('auth.logout') }}">Esci</a>
+      </div>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="super-flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </div>
+</body>
+</html>

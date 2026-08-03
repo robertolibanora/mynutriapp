@@ -32,8 +32,14 @@
     <header class="user-header">
         <div class="user-header-content">
             <div class="user-brand">
-                <div class="user-brand-mark" aria-hidden="true">
-                    {{ icon('diet', 20, 'usr-icon') }}
+                <div class="user-brand-mark">
+                    <img
+                        src="{{ url_for('static', filename='img/logo-128.png') }}"
+                        alt="MyNutriApp"
+                        width="40"
+                        height="40"
+                        decoding="async"
+                    >
                 </div>
                 <div class="user-greeting">
                     <span class="user-greeting-text">MyNutriApp</span>

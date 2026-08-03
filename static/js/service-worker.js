@@ -1,7 +1,7 @@
-const CACHE_NAME = 'nutriapp-v8';
+const CACHE_NAME = 'nutriapp-v9';
 const urlsToCache = [
-  '/',
   '/login',
+  '/prenota',
   '/user/dashboard',
   '/progressi/user',
   '/documenti/user/',

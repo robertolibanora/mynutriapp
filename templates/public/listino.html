@@ -49,10 +49,22 @@
     }
 
     .logo {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: #d4d4d4;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.65rem;
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #f2f2f2;
       text-decoration: none;
+      letter-spacing: -0.02em;
+    }
+
+    .logo img {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      object-fit: cover;
+      background: #000;
     }
 
     .container {
@@ -152,7 +164,10 @@
 <body>
   <header>
     <div class="header-content">
-      <a href="/" class="logo">MyNutriApp</a>
+      <a href="/" class="logo">
+        <img src="{{ url_for('static', filename='img/logo-128.png') }}" alt="" width="36" height="36" decoding="async">
+        MyNutriApp
+      </a>
       <div style="display:flex;gap:1rem;align-items:center;">
         <a href="{{ url_for('prenota_public.prenota_landing') }}" style="color: #d4d4d4; text-decoration: none; font-size: 0.9rem; font-weight: 600;">Prenota</a>
         <a href="{{ url_for('presentazione_roberto') }}" style="color: #d8d8d8; text-decoration: none; font-size: 0.9rem;">Chi Sono</a>

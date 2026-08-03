@@ -37,29 +37,16 @@ def register_auth_routes(bp):
 
         result = authenticate(str(telefono), str(password))
 
-        # Staging: credenziali ADMIN_*.env → paziente (store / API mobile)
-        if result.status == AuthStatus.OK_ADMIN:
-            from app.services.staging_auth import ensure_patient_for_admin_credentials
-
-            patient = ensure_patient_for_admin_credentials()
-            name = f"{patient.nome} {patient.cognome}".strip()
-            tokens = issue_token_pair(patient_id=patient.id, name=name)
-            log_audit_event(
-                "LOGIN",
-                "system",
-                details={
-                    "user_type": "user",
-                    "user_id": patient.id,
-                    "via": "api_admin_as_user",
-                },
+        if result.status in (
+            AuthStatus.OK_SUPER_ADMIN,
+            AuthStatus.OK_NUTRIZIONISTA,
+            AuthStatus.OK_ADMIN,
+        ):
+            return api_error(
+                "Accesso riservato all'area web",
+                code="staff_web_only",
+                status=403,
             )
-            db.session.commit()
-            return {
-                **tokens,
-                "token_type": "Bearer",
-                "expires_in": access_expires_seconds(),
-                "user": patient_login_user_dict(patient),
-            }, 200
 
         if result.status == AuthStatus.INACTIVE:
             return api_error(

@@ -8,13 +8,17 @@ db = SQLAlchemy()
 
 class Patient(db.Model):
     __tablename__ = "patients"  # Nome esatto della tabella MySQL
+    __table_args__ = (
+        db.UniqueConstraint("nutrizionista_id", "telefono", name="uq_patients_tenant_telefono"),
+        db.UniqueConstraint("nutrizionista_id", "email", name="uq_patients_tenant_email"),
+    )
 
     # 🔑 Chiave primaria
     id = db.Column(db.Integer, primary_key=True)
 
     # 🔐 Accesso / identificazione
     password_hash = db.Column(db.String(255), nullable=False)
-    telefono = db.Column(db.String(20), unique=True, nullable=False)
+    telefono = db.Column(db.String(20), nullable=False)
 
     # 👤 Dati anagrafici (sesso/data_nascita nullable per clienti provvisori da prenotazione)
     nome = db.Column(db.String(100), nullable=False)
@@ -41,13 +45,13 @@ class Patient(db.Model):
     )
 
     # 📧 Contatto / diario
-    email = db.Column(db.String(255), nullable=True, unique=True)
+    email = db.Column(db.String(255), nullable=True)
 
-    # 👨‍⚕️ Nutrizionista di riferimento (tabella utente)
+    # 👨‍⚕️ Nutrizionista di riferimento (tenant)
     nutrizionista_id = db.Column(
         db.Integer,
-        db.ForeignKey("utente.id", ondelete="SET NULL"),
-        nullable=True,
+        db.ForeignKey("utente.id", ondelete="RESTRICT"),
+        nullable=False,
         index=True,
     )
 
@@ -209,10 +213,13 @@ class Food(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
 
-    # Professionista proprietario (per alimenti custom). Nullable perché
-    # non esiste ancora una tabella "professionals": è un intero libero
-    # forward-compatible (in futuro potrà diventare una FK).
-    professional_id = db.Column(db.Integer, nullable=True, index=True)
+    # Professionista proprietario (alimenti custom). NULL = catalogo condiviso.
+    professional_id = db.Column(
+        db.Integer,
+        db.ForeignKey("utente.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
 
     # Provenienza dal provider esterno (NULL per alimenti custom)
     provider = db.Column(db.String(50), nullable=True, index=True)
@@ -266,7 +273,12 @@ class DietPlan(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     patient_id = db.Column(db.Integer, db.ForeignKey("patients.id", ondelete="CASCADE"), nullable=False, index=True)
-    professional_id = db.Column(db.Integer, nullable=True, index=True)
+    professional_id = db.Column(
+        db.Integer,
+        db.ForeignKey("utente.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
 
     title = db.Column(db.String(255), nullable=False)
     goal = db.Column(db.String(255), nullable=True)
@@ -561,9 +573,15 @@ class Appuntamento(db.Model):
 
     # 🔗 Relazioni esterne
     patient_id = db.Column(db.Integer, db.ForeignKey("patients.id"), nullable=False)
+    utente_id = db.Column(
+        db.Integer,
+        db.ForeignKey("utente.id", ondelete="RESTRICT"),
+        nullable=True,
+        index=True,
+    )
 
-    # 🧑‍⚕️ Creatore dell'appuntamento
-    created_by = db.Column(db.Enum("Enrico", "user"), nullable=False)
+    # 🧑‍⚕️ Creatore dell'appuntamento (legacy enum; preferire utente_id)
+    created_by = db.Column(db.Enum("Enrico", "user", "admin"), nullable=False)
 
     # 📅 Informazioni temporali
     data_appuntamento = db.Column(db.DateTime, nullable=False)
@@ -624,6 +642,12 @@ class RichiestaAppuntamento(db.Model):
 
     patient_id = db.Column(db.Integer, db.ForeignKey("patients.id"), nullable=True)
     appuntamento_id = db.Column(db.Integer, db.ForeignKey("appuntamenti.id"), nullable=True)
+    utente_id = db.Column(
+        db.Integer,
+        db.ForeignKey("utente.id", ondelete="RESTRICT"),
+        nullable=True,
+        index=True,
+    )
 
     created_at = db.Column(db.DateTime, server_default=db.func.now())
 
@@ -640,12 +664,22 @@ class RichiestaAppuntamento(db.Model):
 
 class SlotDisponibilita(db.Model):
     __tablename__ = "slot_disponibilita"
+    __table_args__ = (
+        db.UniqueConstraint("utente_id", "data_ora", name="uq_slot_utente_data_ora"),
+    )
 
     # 🔑 Chiave primaria
     id = db.Column(db.Integer, primary_key=True)
 
+    utente_id = db.Column(
+        db.Integer,
+        db.ForeignKey("utente.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
     # 📅 Data e ora dello slot
-    data_ora = db.Column(db.DateTime, nullable=False, unique=True)
+    data_ora = db.Column(db.DateTime, nullable=False)
 
     # ✅ Slot attivo o disattivato
     attivo = db.Column(db.Boolean, default=True, nullable=False)
@@ -670,6 +704,12 @@ class OrarioSettimanale(db.Model):
     __tablename__ = "orari_settimanali"
 
     id = db.Column(db.Integer, primary_key=True)
+    utente_id = db.Column(
+        db.Integer,
+        db.ForeignKey("utente.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     giorno_settimana = db.Column(db.Integer, nullable=False)  # 0=lunedì … 6=domenica
     ora = db.Column(db.Time, nullable=False)
     attivo = db.Column(db.Boolean, default=True, nullable=False)
@@ -677,7 +717,9 @@ class OrarioSettimanale(db.Model):
     created_at = db.Column(db.DateTime, server_default=db.func.now())
 
     __table_args__ = (
-        db.UniqueConstraint("giorno_settimana", "ora", name="uq_orario_settimanale_giorno_ora"),
+        db.UniqueConstraint(
+            "utente_id", "giorno_settimana", "ora", name="uq_orario_utente_giorno_ora"
+        ),
     )
 
     def __repr__(self):
@@ -694,6 +736,12 @@ class AgendaEccezione(db.Model):
     __tablename__ = "agenda_eccezioni"
 
     id = db.Column(db.Integer, primary_key=True)
+    utente_id = db.Column(
+        db.Integer,
+        db.ForeignKey("utente.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     data_inizio = db.Column(db.Date, nullable=False)
     data_fine = db.Column(db.Date, nullable=False)
     tipo = db.Column(db.String(20), nullable=False, default="chiusura")
@@ -719,7 +767,10 @@ class AuditLog(db.Model):
 
     # 👤 Utente che ha eseguito l'azione
     user_id = db.Column(db.Integer, nullable=True)  # NULL per admin o anonymous
-    user_role = db.Column(db.Enum('admin', 'user', 'anonymous'), nullable=False)
+    user_role = db.Column(
+        db.Enum('admin', 'user', 'anonymous', 'super_admin', 'nutrizionista'),
+        nullable=False,
+    )
 
     # 📋 Tipo di azione
     action = db.Column(db.String(50), nullable=False, index=True)  # VIEW, CREATE, UPDATE, DELETE, DOWNLOAD, LOGIN, LOGOUT

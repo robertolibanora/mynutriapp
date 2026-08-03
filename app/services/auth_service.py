@@ -2,19 +2,23 @@
 
 from __future__ import annotations
 
-import os
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Optional
 
 from werkzeug.security import check_password_hash
 
+from app.models.diario import Utente
+from app.models.enums import UtenteRuolo
 from app.models.models import Patient
+from app.services.utente_service import find_utente_by_phone
 from app.utils.helpers import normalize_phone
 
 
 class AuthStatus(str, Enum):
-    OK_ADMIN = "ok_admin"
+    OK_SUPER_ADMIN = "ok_super_admin"
+    OK_NUTRIZIONISTA = "ok_nutrizionista"
+    OK_ADMIN = "ok_admin"  # compat → trattato come super_admin
     OK_USER = "ok_user"
     INACTIVE = "inactive"
     INVALID = "invalid"
@@ -24,20 +28,9 @@ class AuthStatus(str, Enum):
 class AuthResult:
     status: AuthStatus
     patient: Optional[Patient] = None
+    utente: Optional[Utente] = None
     admin_name: Optional[str] = None
     telefono_normalized: str = ""
-
-
-def _admin_phone() -> str:
-    return normalize_phone(os.getenv("ADMIN_PHONE", "") or "")
-
-
-def _admin_password_hash() -> Optional[str]:
-    return os.getenv("ADMIN_PASSWORD_HASH") or None
-
-
-def _admin_name() -> str:
-    return (os.getenv("ADMIN_NAME") or "MyNutriApp").strip()
 
 
 def find_patient_by_phone(telefono: str) -> Optional[Patient]:
@@ -54,20 +47,35 @@ def find_patient_by_phone(telefono: str) -> Optional[Patient]:
 
 def authenticate(telefono: str, password: str) -> AuthResult:
     """
-    Verifica credenziali (stessa logica del login web).
+    Verifica credenziali (login da DB).
 
-    Non tocca sessioni né emette token: responsabilità del caller.
+    1) utente attivo (super_admin / nutrizionista)
+    2) paziente attivo
     """
     telefono_n = normalize_phone(telefono or "")
     password = password or ""
 
-    admin_phone = _admin_phone()
-    admin_hash = _admin_password_hash()
-    if admin_phone and admin_hash:
-        if telefono_n == admin_phone and check_password_hash(admin_hash, password):
+    utente = find_utente_by_phone(telefono_n)
+    if utente and utente.password_hash and check_password_hash(utente.password_hash, password):
+        if not utente.attivo:
             return AuthResult(
-                status=AuthStatus.OK_ADMIN,
-                admin_name=_admin_name(),
+                status=AuthStatus.INACTIVE,
+                utente=utente,
+                telefono_normalized=telefono_n,
+            )
+        name = f"{utente.nome} {utente.cognome}".strip()
+        if utente.ruolo == UtenteRuolo.SUPER_ADMIN.value:
+            return AuthResult(
+                status=AuthStatus.OK_SUPER_ADMIN,
+                utente=utente,
+                admin_name=name,
+                telefono_normalized=telefono_n,
+            )
+        if utente.ruolo == UtenteRuolo.NUTRIZIONISTA.value:
+            return AuthResult(
+                status=AuthStatus.OK_NUTRIZIONISTA,
+                utente=utente,
+                admin_name=name,
                 telefono_normalized=telefono_n,
             )
 
@@ -98,6 +106,7 @@ def patient_login_user_dict(patient: Patient) -> dict[str, Any]:
         "nome": patient.nome,
         "cognome": patient.cognome,
         "telefono": patient.telefono,
+        "nutrizionista_id": patient.nutrizionista_id,
     }
 
 
@@ -133,4 +142,5 @@ def patient_public_dict(patient: Patient) -> dict[str, Any]:
         or patient.esami_biochimici,
         "allenamenti_descr": patient.allenamenti_descr,
         "stato_cliente": getattr(patient, "stato_cliente", None) or "attivo",
+        "nutrizionista_id": patient.nutrizionista_id,
     }

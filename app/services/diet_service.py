@@ -19,6 +19,47 @@ from app.services.nutrition.service import (
 )
 
 
+def create_pdf_diet(
+    *,
+    patient_id: int,
+    data_inizio: date,
+    data_fine: date,
+    pdf_path: str,
+    kcal: int,
+    carbo=None,
+    proteine=None,
+    grassi=None,
+    note: Optional[str] = None,
+) -> Dieta:
+    """Crea una dieta PDF e applica il guard licensing se risulta attiva."""
+    from app.models.models import Patient, db
+    from app.services.licensing_service import assert_can_increase_active_patients
+
+    patient = db.session.get(Patient, patient_id)
+    if patient is None:
+        raise ValueError(f"Paziente {patient_id} inesistente")
+
+    if data_fine >= date.today():
+        nutri_id = getattr(patient, "nutrizionista_id", None)
+        if nutri_id is not None:
+            assert_can_increase_active_patients(int(nutri_id), patient_id=int(patient.id))
+
+    dieta = Dieta(
+        patient_id=patient_id,
+        data_inizio=data_inizio,
+        data_fine=data_fine,
+        pdf_path=pdf_path,
+        kcal=kcal,
+        carbo=carbo,
+        proteine=proteine,
+        grassi=grassi,
+        note=note,
+    )
+    db.session.add(dieta)
+    db.session.commit()
+    return dieta
+
+
 def list_plans_for_patient(patient_id: int) -> list[DietPlan]:
     return (
         DietPlan.query.filter_by(patient_id=patient_id, status="published")

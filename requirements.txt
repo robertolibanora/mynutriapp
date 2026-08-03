@@ -64,6 +64,9 @@ openai==1.109.1
 # Gunicorn
 gunicorn==23.0.0
 
+# Stripe Billing
+stripe>=11.0.0,<13.0.0
+
 # ========================================
 # 📝 NOTE INSTALLAZIONE:
 # 

@@ -1,20 +1,20 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from app.models.models import db
 from app.services.auth_service import AuthStatus, authenticate
-from app.services.staging_auth import ensure_patient_for_admin_credentials
 from app.utils.audit import log_audit_event
 from app.utils.helpers import normalize_phone
 import os
 
 auth_bp = Blueprint('auth', __name__)
 
+# Bootstrap seed ancora richiede ADMIN_* in .env
 ADMIN_PHONE = normalize_phone(os.getenv("ADMIN_PHONE", ""))
 ADMIN_PASSWORD_HASH = os.getenv("ADMIN_PASSWORD_HASH")
 
 if not ADMIN_PASSWORD_HASH:
-    raise ValueError("❌ ADMIN_PASSWORD_HASH deve essere definita in .env")
+    raise ValueError("❌ ADMIN_PASSWORD_HASH deve essere definita in .env (seed super_admin)")
 if not ADMIN_PHONE:
-    raise ValueError("❌ ADMIN_PHONE deve essere definita in .env")
+    raise ValueError("❌ ADMIN_PHONE deve essere definita in .env (seed super_admin)")
 
 
 def _login_as_patient(user, *, via: str = "web"):
@@ -34,6 +34,26 @@ def _login_as_patient(user, *, via: str = "web"):
     return redirect(url_for('dashboard.user_dashboard'))
 
 
+def _login_as_utente(utente, role: str, *, via: str):
+    session.clear()
+    session['role'] = role
+    session['utente_id'] = utente.id
+    session['name'] = f"{utente.nome} {utente.cognome}".strip()
+    session.permanent = True
+    session.modified = True
+
+    log_audit_event(
+        'LOGIN',
+        'system',
+        details={'user_type': role, 'utente_id': utente.id, 'via': via},
+    )
+    db.session.commit()
+
+    if role == 'super_admin':
+        return redirect(url_for('super_admin.lista_utenti'))
+    return redirect(url_for('nutri_dashboard.home'))
+
+
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -41,15 +61,17 @@ def login():
         password = request.form.get('password', '')
         result = authenticate(telefono, password)
 
-        # Staging: credenziali .env admin → sessione paziente (UI admin assente)
-        if result.status == AuthStatus.OK_ADMIN:
-            user = ensure_patient_for_admin_credentials()
+        if result.status in (AuthStatus.OK_SUPER_ADMIN, AuthStatus.OK_ADMIN) and result.utente:
+            flash("Accesso super admin", "success")
+            return _login_as_utente(result.utente, 'super_admin', via='web')
+
+        if result.status == AuthStatus.OK_NUTRIZIONISTA and result.utente:
             flash("Accesso effettuato", "success")
-            return _login_as_patient(user, via="web_admin_as_user")
+            return _login_as_utente(result.utente, 'nutrizionista', via='web')
 
         if result.status == AuthStatus.INACTIVE:
             flash(
-                "Account non ancora attivo. Attendi la conferma del nutrizionista.",
+                "Account non ancora attivo.",
                 "warning",
             )
             return redirect(url_for("auth.login"))
@@ -73,7 +95,7 @@ def login():
 
 @auth_bp.route('/logout')
 def logout():
-    user_id = session.get('user_id')
+    user_id = session.get('user_id') or session.get('utente_id')
     user_role = session.get('role')
     log_audit_event('LOGOUT', 'system', details={'user_type': user_role, 'user_id': user_id})
     db.session.commit()

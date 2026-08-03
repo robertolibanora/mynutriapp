@@ -1,0 +1,42 @@
+{% extends "super/base_super.html" %}
+{% block title %}Area nutrizionista{% endblock %}
+{% block subtitle %}Tenant nutrizionista{% endblock %}
+
+{% block content %}
+<section class="super-panel">
+  <h1>Ciao, {{ admin_name.split(' ')[0] }}</h1>
+  <p class="super-meta">Area tenant attiva. Pazienti collegati: <strong>{{ n_pazienti }}</strong>.</p>
+  <p class="super-meta">
+    <a class="super-btn secondary" href="{{ url_for('nutri_dashboard.account') }}">Account / Abbonamento</a>
+  </p>
+</section>
+
+{% set limit = usage.patient_limit %}
+{% set active = usage.active_patients %}
+{% set pct = usage.percentage %}
+{% set at_limit = limit is not none and active >= limit %}
+{% set warn = limit is not none and pct >= 80 and not at_limit %}
+<section class="super-panel plan-usage-card{% if at_limit %} plan-usage-danger{% elif warn %} plan-usage-warn{% endif %}">
+  <h2>Pazienti attivi</h2>
+  <p class="plan-usage-ratio">
+    {% if limit is none %}
+      <strong>{{ active }}</strong> / illimitati
+    {% else %}
+      <strong>{{ active }}</strong> / {{ limit }}
+    {% endif %}
+  </p>
+  {% if limit is not none %}
+  <div class="plan-usage-bar" aria-hidden="true">
+    <div class="plan-usage-bar-fill" style="width: {% if pct > 100 %}100{% else %}{{ pct }}{% endif %}%;"></div>
+  </div>
+  {% endif %}
+  {% if at_limit %}
+  <p class="plan-usage-msg plan-usage-msg-danger">
+    Hai raggiunto il limite del piano.
+    <a class="super-btn" href="{{ url_for('nutri_dashboard.account') }}">Aggiorna piano</a>
+  </p>
+  {% elif warn %}
+  <p class="plan-usage-msg plan-usage-msg-warn">Stai per raggiungere il limite del piano.</p>
+  {% endif %}
+</section>
+{% endblock %}

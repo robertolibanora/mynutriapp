@@ -2,6 +2,8 @@
 
 App paziente iOS/Android. UI allineata all’identità di `style_user.css` (dark + accent `#ff9a56`, Manrope).
 
+Logo ufficiale: `assets/branding/logo.png` — widget `AppLogo` / `AppBrandHeader` in `lib/widgets/app_logo.dart`. Icone launcher Android/iOS/web generate dallo stesso asset.
+
 Al momento le feature usano **dati mock** locali. Il login API (`POST /api/v1/auth/login`) resta predisposto; per navigare senza backend usa **Entra in demo**.
 
 ## Setup

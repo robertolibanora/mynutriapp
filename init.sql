@@ -27,11 +27,21 @@ CREATE TABLE IF NOT EXISTS utente (
     cognome VARCHAR(100) NOT NULL,
     email VARCHAR(255) NOT NULL,
     telefono VARCHAR(20) NULL,
+    ruolo VARCHAR(20) NOT NULL DEFAULT 'nutrizionista',
+    password_hash VARCHAR(255) NULL,
+    creato_da INT NULL,
     attivo TINYINT(1) NOT NULL DEFAULT 1,
+    plan VARCHAR(32) NOT NULL DEFAULT 'starter',
+    stripe_customer_id VARCHAR(255) NULL,
+    stripe_subscription_id VARCHAR(255) NULL,
+    subscription_status VARCHAR(32) NOT NULL DEFAULT 'none',
     creato_il DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     aggiornato_il DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY uq_utente_email (email),
-    UNIQUE KEY uq_utente_telefono (telefono)
+    UNIQUE KEY uq_utente_telefono (telefono),
+    UNIQUE KEY uq_utente_stripe_customer_id (stripe_customer_id),
+    INDEX ix_utente_creato_da (creato_da),
+    CONSTRAINT fk_utente_creato_da FOREIGN KEY (creato_da) REFERENCES utente(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ========================================
@@ -41,20 +51,20 @@ CREATE TABLE IF NOT EXISTS utente (
 CREATE TABLE IF NOT EXISTS patients (
     id INT AUTO_INCREMENT PRIMARY KEY,
     password_hash VARCHAR(255) NOT NULL,
-    telefono VARCHAR(20) NOT NULL UNIQUE,
+    telefono VARCHAR(20) NOT NULL,
     nome VARCHAR(100) NOT NULL,
     cognome VARCHAR(100) NOT NULL,
-    sesso ENUM('M', 'F', 'Altro') NOT NULL,
-    data_nascita DATE NOT NULL,
-    altezza_cm INT NOT NULL,
-    peso_iniziale DECIMAL(5, 2) NOT NULL,
+    sesso ENUM('M', 'F', 'Altro') NULL,
+    data_nascita DATE NULL,
+    altezza_cm INT NULL,
+    peso_iniziale DECIMAL(5, 2) NULL,
     intolleranze TEXT,
     cibi_da_ev TEXT,
     patologie TEXT,
     allenamenti_descr TEXT,
     esami_biochimici TEXT,
     email VARCHAR(255) NULL,
-    nutrizionista_id INT NULL,
+    nutrizionista_id INT NOT NULL,
     consenso_registrazione TINYINT(1) NOT NULL DEFAULT 0,
     consenso_ai TINYINT(1) NOT NULL DEFAULT 0,
     consenso_aggiornato_il DATETIME NULL,
@@ -62,10 +72,11 @@ CREATE TABLE IF NOT EXISTS patients (
     aggiornato_il DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_telefono (telefono),
     INDEX idx_nome_cognome (nome, cognome),
-    UNIQUE KEY uq_patients_email (email),
+    UNIQUE KEY uq_patients_tenant_telefono (nutrizionista_id, telefono),
+    UNIQUE KEY uq_patients_tenant_email (nutrizionista_id, email),
     INDEX ix_patients_nutrizionista_id (nutrizionista_id),
     CONSTRAINT fk_patients_nutrizionista_id_utente
-        FOREIGN KEY (nutrizionista_id) REFERENCES utente(id) ON DELETE SET NULL
+        FOREIGN KEY (nutrizionista_id) REFERENCES utente(id) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ========================================
@@ -85,7 +96,8 @@ CREATE TABLE IF NOT EXISTS diete (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
     INDEX idx_patient_id (patient_id),
-    INDEX idx_date_range (data_inizio, data_fine)
+    INDEX idx_date_range (data_inizio, data_fine),
+    INDEX idx_diete_patient_data_fine (patient_id, data_fine)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ========================================
@@ -347,7 +359,8 @@ CREATE TABLE IF NOT EXISTS diet_plans (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
     INDEX idx_diet_plan_patient (patient_id),
-    INDEX idx_diet_plan_professional (professional_id)
+    INDEX idx_diet_plan_professional (professional_id),
+    INDEX idx_diet_plan_patient_status (patient_id, status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ========================================

@@ -125,12 +125,19 @@ with app.app_context():
             ensure_nutrition_schema,
             ensure_finance_removed,
             ensure_patient_stato_schema,
+            ensure_multi_tenant_schema,
+            ensure_billing_schema,
         )
+        from app.services.utente_service import ensure_super_admin
+
         ensure_nutrition_schema()
         ensure_finance_removed()
         ensure_patient_stato_schema()
+        ensure_multi_tenant_schema()
+        ensure_billing_schema()
+        ensure_super_admin()
     except Exception as e:
-        logger.warning(f"⚠️  Impossibile verificare lo schema nutrizione al boot: {e}")
+        logger.warning(f"⚠️  Impossibile verificare schema/seed multi-tenant al boot: {e}")
 
 # ===========================================
 # 🛡️ SECURITY HEADERS (zero overhead RAM)
@@ -153,12 +160,15 @@ def set_security_headers(response):
     
     # Content-Security-Policy - Base (può essere esteso)
     # Nota: CSP può rompere app se troppo restrittivo, quindi base
+    # blob: necessario per la landing bundled (Noira) che spacchetta asset in memoria
     csp = (
         "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline'; "
-        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
-        "font-src 'self' data: https://fonts.gstatic.com; "
-        "img-src 'self' data:;"
+        "script-src 'self' 'unsafe-inline' blob:; "
+        "style-src 'self' 'unsafe-inline' blob: https://fonts.googleapis.com; "
+        "font-src 'self' data: blob: https://fonts.gstatic.com; "
+        "img-src 'self' data: blob:; "
+        "media-src 'self' data: blob:; "
+        "worker-src 'self' blob:;"
     )
     response.headers['Content-Security-Policy'] = csp
     
@@ -187,6 +197,14 @@ try:
     logger.info("✅ API /api/v1 esente da CSRF")
 except Exception as e:
     logger.warning(f"⚠️  Impossibile esentare API /api/v1: {e}")
+
+try:
+    from app.routes.billing import billing_bp
+
+    csrf.exempt(billing_bp)
+    logger.info("✅ Blueprint /billing esente da CSRF")
+except Exception as e:
+    logger.warning(f"⚠️  Impossibile esentare /billing da CSRF: {e}")
 
 # Rende disponibile csrf_token() in tutte le template
 @app.context_processor

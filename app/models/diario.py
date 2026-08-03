@@ -7,12 +7,12 @@ sono aggiunti lì. Le tabelle nuove seguono i nomi dello schema diary.
 
 from __future__ import annotations
 
-from app.models.enums import ConsultationStato
+from app.models.enums import ConsultationStato, UtenteRuolo
 from app.models.models import db
 
 
 class Utente(db.Model):
-    """Nutrizionista / operatore (FK per consultation e diary_entry)."""
+    """Super admin o nutrizionista (tenant root)."""
 
     __tablename__ = "utente"
 
@@ -21,7 +21,35 @@ class Utente(db.Model):
     cognome = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(255), unique=True, nullable=False)
     telefono = db.Column(db.String(20), unique=True, nullable=True)
+    ruolo = db.Column(
+        db.String(20),
+        nullable=False,
+        default=UtenteRuolo.NUTRIZIONISTA.value,
+        server_default=UtenteRuolo.NUTRIZIONISTA.value,
+    )
+    password_hash = db.Column(db.String(255), nullable=True)
+    creato_da = db.Column(
+        db.Integer,
+        db.ForeignKey("utente.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
     attivo = db.Column(db.Boolean, nullable=False, default=True, server_default=db.text("1"))
+    # Piano SaaS (starter / professional / studio / enterprise)
+    plan = db.Column(
+        db.String(32),
+        nullable=False,
+        default="starter",
+        server_default="starter",
+    )
+    stripe_customer_id = db.Column(db.String(255), nullable=True, unique=True)
+    stripe_subscription_id = db.Column(db.String(255), nullable=True)
+    subscription_status = db.Column(
+        db.String(32),
+        nullable=False,
+        default="none",
+        server_default="none",
+    )
     creato_il = db.Column(db.DateTime, nullable=False, server_default=db.func.now())
     aggiornato_il = db.Column(
         db.DateTime,
@@ -38,9 +66,18 @@ class Utente(db.Model):
         lazy=True,
         foreign_keys="DiaryEntry.revisionato_da",
     )
+    creatore = db.relationship("Utente", remote_side=[id], foreign_keys=[creato_da])
+
+    @property
+    def is_super_admin(self) -> bool:
+        return self.ruolo == UtenteRuolo.SUPER_ADMIN.value
+
+    @property
+    def is_nutrizionista(self) -> bool:
+        return self.ruolo == UtenteRuolo.NUTRIZIONISTA.value
 
     def __repr__(self) -> str:
-        return f"<Utente {self.id} {self.email}>"
+        return f"<Utente {self.id} {self.ruolo} {self.email}>"
 
 
 class Consultation(db.Model):

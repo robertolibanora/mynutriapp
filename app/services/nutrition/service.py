@@ -212,8 +212,15 @@ class NutritionService:
         if not title:
             raise NutritionServiceError("title è obbligatorio")
 
-        if db.session.get(Patient, patient_id) is None:
+        patient = db.session.get(Patient, patient_id)
+        if patient is None:
             raise ResourceNotFoundError(f"Paziente {patient_id} inesistente")
+
+        status = (data.get("status") or "draft").strip()
+        if status not in ("draft", "published"):
+            raise NutritionServiceError("status deve essere 'draft' o 'published'")
+        if status == "published":
+            self._assert_plan_limit_for_patient(patient)
 
         plan = DietPlan(
             patient_id=patient_id,
@@ -221,7 +228,7 @@ class NutritionService:
             title=title,
             goal=(data.get("goal") or None),
             notes=(data.get("notes") or None),
-            status=(data.get("status") or "draft"),
+            status=status,
         )
         db.session.add(plan)
         db.session.commit()
@@ -237,6 +244,11 @@ class NutritionService:
             status = (data.get("status") or "").strip()
             if status not in ("draft", "published"):
                 raise NutritionServiceError("status deve essere 'draft' o 'published'")
+            if status == "published" and plan.status != "published":
+                patient = db.session.get(Patient, plan.patient_id)
+                if patient is None:
+                    raise ResourceNotFoundError(f"Paziente {plan.patient_id} inesistente")
+                self._assert_plan_limit_for_patient(patient)
             plan.status = status
 
         if "title" in data:
@@ -254,6 +266,15 @@ class NutritionService:
 
         db.session.commit()
         return plan
+
+    @staticmethod
+    def _assert_plan_limit_for_patient(patient: Patient) -> None:
+        from app.services.licensing_service import assert_can_increase_active_patients
+
+        nutri_id = getattr(patient, "nutrizionista_id", None)
+        if nutri_id is None:
+            return
+        assert_can_increase_active_patients(int(nutri_id), patient_id=int(patient.id))
 
     @staticmethod
     def _apply_targets(plan: DietPlan, data: Dict[str, Any]) -> None:

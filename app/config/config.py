@@ -222,7 +222,25 @@ class Config:
     OPENAI_DIARY_TEMPERATURE = float(os.getenv("OPENAI_DIARY_TEMPERATURE", "0"))
 
     # Single-tenant: un solo nutrizionista admin vede tutti i pazienti/consultation
-    SINGLE_TENANT = _get_bool_env("SINGLE_TENANT", True)
+    # Staging multi-tenant: default False (isolamento per nutrizionista_id / utente_id)
+    SINGLE_TENANT = _get_bool_env("SINGLE_TENANT", False)
+
+    # ========================================
+    # 💳 STRIPE BILLING (opzionale in staging)
+    # ========================================
+    STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "").strip()
+    STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY", "").strip()
+    STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "").strip()
+    STRIPE_PRICE_STARTER = os.getenv("STRIPE_PRICE_STARTER", "").strip()
+    STRIPE_PRICE_PROFESSIONAL = os.getenv("STRIPE_PRICE_PROFESSIONAL", "").strip()
+    STRIPE_PRICE_STUDIO = os.getenv("STRIPE_PRICE_STUDIO", "").strip()
+    STRIPE_SUCCESS_URL = os.getenv(
+        "STRIPE_SUCCESS_URL", ""
+    ).strip()  # es. https://host/landing?checkout=success
+    STRIPE_CANCEL_URL = os.getenv(
+        "STRIPE_CANCEL_URL", ""
+    ).strip()  # es. https://host/landing?checkout=cancel
+
     
     # ========================================
     # 🧾 AUDIT LOG

@@ -8,6 +8,7 @@ from typing import List, Optional
 from werkzeug.security import generate_password_hash
 
 from app.models.models import Appuntamento, Patient
+from app.services.licensing_service import assert_within_plan_limit
 
 
 STATI_CLIENTE = ("provvisorio", "attivo", "non_attivo")
@@ -25,8 +26,11 @@ def crea_paziente_provvisorio(
     telefono: str,
     altezza_cm: Optional[int] = None,
     peso_iniziale=None,
+    *,
+    nutrizionista_id: int,
 ) -> Patient:
     """Crea un paziente minimale da prenotazione pubblica (non può ancora accedere)."""
+    assert_within_plan_limit(int(nutrizionista_id))
     return Patient(
         nome=nome.strip(),
         cognome=cognome.strip(),
@@ -37,6 +41,7 @@ def crea_paziente_provvisorio(
         altezza_cm=altezza_cm,
         peso_iniziale=peso_iniziale,
         stato_cliente="provvisorio",
+        nutrizionista_id=nutrizionista_id,
     )
 
 

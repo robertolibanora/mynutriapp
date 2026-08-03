@@ -44,8 +44,12 @@ def prenota_user():
                 flash("Questo orario non è più disponibile", "warning")
                 return redirect(request.url)
 
+            from app.models.models import Patient
+
+            paziente = Patient.query.get(user_id)
             nuovo = Appuntamento(
                 patient_id=user_id,
+                utente_id=paziente.nutrizionista_id if paziente else None,
                 created_by='user',
                 data_appuntamento=data_appuntamento,
                 tipo=tipo,

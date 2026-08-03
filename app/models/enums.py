@@ -14,3 +14,10 @@ class ConsultationStato(str, enum.Enum):
     ELABORATO = "ELABORATO"
     CONFERMATO = "CONFERMATO"
     ERRORE = "ERRORE"
+
+
+class UtenteRuolo(str, enum.Enum):
+    """Ruolo operatore in tabella utente (multi-tenant)."""
+
+    SUPER_ADMIN = "super_admin"
+    NUTRIZIONISTA = "nutrizionista"

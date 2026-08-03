@@ -1,0 +1,94 @@
+{% extends "super/base_super.html" %}
+{% block title %}Utenti · Super Admin{% endblock %}
+{% block subtitle %}Super admin — gestione nutrizionisti (tenant){% endblock %}
+
+{% block content %}
+<section class="super-panel">
+  <h1>Crea nutrizionista</h1>
+  <form method="POST" class="super-form" action="{{ url_for('super_admin.lista_utenti') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label>Nome
+      <input name="nome" required autocomplete="given-name">
+    </label>
+    <label>Cognome
+      <input name="cognome" required autocomplete="family-name">
+    </label>
+    <label>Telefono
+      <input name="telefono" required inputmode="tel" placeholder="3401234567" autocomplete="tel">
+    </label>
+    <label>Email
+      <input name="email" type="email" required autocomplete="email">
+    </label>
+    <label class="full">Password iniziale
+      <input name="password" type="password" required minlength="8" autocomplete="new-password">
+    </label>
+    <label>Piano
+      <select name="plan" required>
+        {% for p in plans %}
+        <option value="{{ p }}" {% if p == 'starter' %}selected{% endif %}>{{ p }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <div class="full">
+      <button type="submit" class="super-btn">Crea utente</button>
+    </div>
+  </form>
+</section>
+
+<section class="super-panel">
+  <h2>Nutrizionisti</h2>
+  {% if utenti %}
+  <table class="super-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nome</th>
+        <th>Telefono</th>
+        <th>Email</th>
+        <th>Piano</th>
+        <th>Stato</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in utenti %}
+      <tr>
+        <td>{{ u.id }}</td>
+        <td>{{ u.nome }} {{ u.cognome }}</td>
+        <td>{{ u.telefono or '—' }}</td>
+        <td>{{ u.email }}</td>
+        <td>
+          <form method="POST" action="{{ url_for('super_admin.set_utente_plan', utente_id=u.id) }}" style="display:flex;gap:0.35rem;align-items:center;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <select name="plan">
+              {% for p in plans %}
+              <option value="{{ p }}" {% if u.plan == p %}selected{% endif %}>{{ p }}</option>
+              {% endfor %}
+            </select>
+            <button type="submit" class="super-btn secondary">OK</button>
+          </form>
+        </td>
+        <td>
+          {% if u.attivo %}
+            <span class="badge on">attivo</span>
+          {% else %}
+            <span class="badge off">disattivo</span>
+          {% endif %}
+        </td>
+        <td>
+          <form method="POST" action="{{ url_for('super_admin.toggle_utente', utente_id=u.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="super-btn secondary">
+              {% if u.attivo %}Disattiva{% else %}Attiva{% endif %}
+            </button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="super-meta">Nessun nutrizionista ancora. Creane uno sopra.</p>
+  {% endif %}
+</section>
+{% endblock %}
