@@ -160,10 +160,10 @@ def set_security_headers(response):
     
     # Content-Security-Policy - Base (può essere esteso)
     # Nota: CSP può rompere app se troppo restrittivo, quindi base
-    # blob: necessario per la landing bundled (Noira) che spacchetta asset in memoria
+    # blob: + unsafe-eval: landing Noira bundled (spacchetta template via eval)
     csp = (
         "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline' blob:; "
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; "
         "style-src 'self' 'unsafe-inline' blob: https://fonts.googleapis.com; "
         "font-src 'self' data: blob: https://fonts.gstatic.com; "
         "img-src 'self' data: blob:; "
