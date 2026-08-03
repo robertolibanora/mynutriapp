@@ -102,9 +102,14 @@ else
         '
   )"
   if [[ -z "$TARGET" ]]; then
-    TARGET="iphone"
+    TARGET="ios"
   fi
 fi
 
 echo "→ Run su iOS simulator (device: $TARGET)"
-exec flutter run -d "$TARGET" "${EXTRA_ARGS[@]}"
+# macOS bash + set -u: array vuoto → unbound variable
+if [[ ${#EXTRA_ARGS[@]} -gt 0 ]]; then
+  exec flutter run -d "$TARGET" "${EXTRA_ARGS[@]}"
+else
+  exec flutter run -d "$TARGET"
+fi
