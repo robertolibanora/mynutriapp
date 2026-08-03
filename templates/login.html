@@ -25,17 +25,19 @@
     <main class="login-shell">
         <section class="login-container" aria-labelledby="login-heading">
             <header class="login-brand">
-                <div class="login-mark">
+                <div class="login-mark" aria-hidden="true">
                     <img
-                        src="{{ url_for('static', filename='img/logo-256.png') }}"
-                        alt="MyNutriApp"
-                        width="72"
-                        height="72"
+                        src="{{ url_for('static', filename='img/logo-small.png') }}"
+                        alt=""
+                        width="96"
+                        height="96"
                         decoding="async"
                     >
                 </div>
-                <h1 id="login-heading" class="login-title">MyNutriApp</h1>
-                <p class="login-subtitle">Nutrizione e benessere, in un unico spazio</p>
+                <div class="login-brand-copy">
+                    <h1 id="login-heading" class="login-title">MyNutriApp</h1>
+                    <p class="login-subtitle">Nutrizione e benessere, in un unico spazio</p>
+                </div>
             </header>
 
             {% with messages = get_flashed_messages(with_categories=true) %}
