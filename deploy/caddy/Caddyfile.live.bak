@@ -1,0 +1,152 @@
+####################################
+# BIKES / RANA AGILE GO
+####################################
+ranaagilego.com {
+	encode gzip zstd
+	reverse_proxy 127.0.0.1:9200
+}
+
+www.ranaagilego.com {
+	redir https://ranaagilego.com{uri} permanent
+}
+
+####################################
+# MALIBU
+####################################
+atticoclub.space {
+	encode gzip zstd
+	reverse_proxy 127.0.0.1:8050
+}
+
+www.atticoclub.space {
+	redir https://atticoclub.space{uri} permanent
+}
+
+####################################
+# WILD SOCIETY
+####################################
+wildsociety.space {
+	encode gzip zstd
+	reverse_proxy 127.0.0.1:8100
+}
+
+www.wildsociety.space {
+	redir https://wildsociety.space{uri} permanent
+}
+
+libaspacetest.site {
+	redir https://wildsociety.space{uri} permanent
+}
+
+www.libaspacetest.site {
+	redir https://wildsociety.space{uri} permanent
+}
+####################################
+# PORTFOLIO
+####################################
+robertolibanora.it {
+	encode gzip zstd
+	reverse_proxy 127.0.0.1:8060
+}
+
+www.robertolibanora.it {
+	redir https://robertolibanora.it{uri} permanent
+}
+
+####################################
+# SAMU
+####################################
+samu27.my.id {
+	encode gzip zstd
+	reverse_proxy 127.0.0.1:8027
+}
+
+www.samu27.my.id {
+	redir https://samu27.my.id{uri} permanent
+}
+
+####################################
+# SARTO APP
+####################################
+mysarto.space {
+	encode gzip zstd
+	reverse_proxy 127.0.0.1:1234
+}
+
+www.mysarto.space {
+	redir https://mysarto.space{uri} permanent
+}
+####################################
+# PUTTANTOUR
+####################################
+puttantour.online {
+	encode gzip zstd
+	reverse_proxy 127.0.0.1:8999
+}
+
+www.puttantour.online {
+	redir https://puttantour.online{uri} permanent
+}
+
+####################################
+# EVOLUTION
+####################################
+
+evolution.libaspacetest.site {
+	reverse_proxy 127.0.0.1:9018
+}
+
+####################################
+# MYNUTRIAPP
+####################################
+mynutriapp.cloud {
+	encode gzip zstd
+
+	@static path /static/*
+	handle @static {
+		root * /var/www/mynutriapp/static
+		uri strip_prefix /static
+		file_server
+	}
+
+	handle {
+		reverse_proxy 127.0.0.1:8099
+	}
+
+	request_body {
+		max_size 100MB
+	}
+}
+
+www.mynutriapp.cloud {
+	redir https://mynutriapp.cloud{uri} permanent
+}
+####################################
+# ALBASHORE
+####################################
+alba.puttantour.online {
+	encode gzip zstd
+	reverse_proxy 127.0.0.1:8998
+}
+
+####################################
+# MYNUTRIAPP STAGING
+####################################
+stage.mynutriapp.cloud {
+	encode gzip zstd
+
+	@static path /static/*
+	handle @static {
+		root * /var/www/staging-mynutriapp/static
+		uri strip_prefix /static
+		file_server
+	}
+
+	handle {
+		reverse_proxy 127.0.0.1:8199
+	}
+
+	request_body {
+		max_size 100MB
+	}
+}

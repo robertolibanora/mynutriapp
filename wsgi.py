@@ -194,6 +194,19 @@ def set_security_headers(response):
     
     # Permissions-Policy (ex Feature-Policy)
     response.headers['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=()'
+
+    # CORS per API mobile (Flutter web / debug cross-origin). Native iOS non usa CORS,
+    # ma OPTIONS preflight e Origin da localhost devono funzionare in QA.
+    if request.path.startswith('/api/v1'):
+        origin = request.headers.get('Origin') or '*'
+        response.headers['Access-Control-Allow-Origin'] = origin
+        response.headers['Access-Control-Allow-Headers'] = (
+            'Authorization, Content-Type, Accept'
+        )
+        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PATCH, PUT, DELETE, OPTIONS'
+        response.headers['Access-Control-Max-Age'] = '86400'
+        if origin != '*':
+            response.headers['Vary'] = 'Origin'
     
     return response
 

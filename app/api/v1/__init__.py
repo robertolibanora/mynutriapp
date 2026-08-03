@@ -1,6 +1,6 @@
 """Blueprint API v1 — url_prefix=/api/v1."""
 
-from flask import Blueprint
+from flask import Blueprint, jsonify
 
 from app.api.v1.appointments_routes import register_appointments_routes
 from app.api.v1.auth_routes import register_auth_routes
@@ -22,3 +22,16 @@ register_progress_routes(api_v1_bp)
 register_workouts_routes(api_v1_bp)
 register_documents_routes(api_v1_bp)
 register_subscription_routes(api_v1_bp)
+
+
+@api_v1_bp.get("/health")
+def health():
+    """Ping pubblico per verificare raggiungibilità da app mobile."""
+    return jsonify({"ok": True, "service": "mynutriapp-api-v1"})
+
+
+@api_v1_bp.route("/<path:_any>", methods=["OPTIONS"])
+@api_v1_bp.route("", methods=["OPTIONS"])
+def api_options(_any=None):
+    """Risposta preflight CORS (header impostati in after_request)."""
+    return ("", 204)
