@@ -1,41 +1,40 @@
 #!/usr/bin/env bash
-# Avvia MyNutriApp sul simulatore iOS puntando allo staging.
-# Uso (da root repo o da mobile_app/): ./w.sh
-set -euo pipefail
+set -e
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-if [[ -f "$SCRIPT_DIR/pubspec.yaml" ]]; then
-  APP_DIR="$SCRIPT_DIR"
-elif [[ -f "$SCRIPT_DIR/mobile_app/pubspec.yaml" ]]; then
-  APP_DIR="$SCRIPT_DIR/mobile_app"
-else
-  echo "Errore: non trovo mobile_app/" >&2
-  exit 1
-fi
+SIM_ID="D9C690E1-279C-42FF-B3E4-6859F104FBCE"
+BUNDLE_ID="com.mynutriapp.mynutriApp"
 
-SIM_ID="${SIM_ID:-D9C690E1-279C-42FF-B3E4-6859F104FBCE}"
-API_BASE_URL="${API_BASE_URL:-https://stage.mynutriapp.cloud}"
+cd "$(dirname "$0")/ios"
 
-cd "$APP_DIR"
-
-echo "▶ Check API staging..."
-if ! curl -fsS --max-time 8 "$API_BASE_URL/api/v1/health" >/dev/null; then
-  echo "Avviso: $API_BASE_URL/api/v1/health non risponde. Continuo comunque." >&2
-else
-  echo "   OK $API_BASE_URL/api/v1/health"
-fi
-
-echo "▶ Avvio simulatore $SIM_ID..."
+echo "▶ Avvio simulatore..."
 xcrun simctl boot "$SIM_ID" 2>/dev/null || true
-open -a Simulator >/dev/null 2>&1 || true
+open -a Simulator
 xcrun simctl bootstatus "$SIM_ID" -b
 
-echo "▶ flutter pub get..."
-flutter pub get
+echo "▶ Compilo..."
+xcodebuild \
+  -workspace Runner.xcworkspace \
+  -scheme Runner \
+  -configuration Debug \
+  -sdk iphonesimulator \
+  -destination "platform=iOS Simulator,id=$SIM_ID" \
+  CODE_SIGNING_ALLOWED=NO
 
-echo "▶ flutter run (API_BASE_URL=$API_BASE_URL)..."
-exec flutter run \
-  -d "$SIM_ID" \
-  --dart-define="API_BASE_URL=$API_BASE_URL" \
-  --dart-define=USE_MOCK_DATA=false \
-  "$@"
+APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData \
+  -path "*/Build/Products/Debug-iphonesimulator/Runner.app" \
+  | head -n1)
+
+if [ -z "$APP_PATH" ]; then
+    echo "❌ Runner.app non trovato."
+    exit 1
+fi
+
+echo "▶ Installo..."
+xcrun simctl uninstall "$SIM_ID" "$BUNDLE_ID" >/dev/null 2>&1 || true
+xcrun simctl install "$SIM_ID" "$APP_PATH"
+
+echo "▶ Avvio..."
+xcrun simctl launch "$SIM_ID" "$BUNDLE_ID"
+
+echo
+echo "✅ MyNutriApp avviata."
