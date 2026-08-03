@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """
-Popola il database MyNutriApp con dati di test.
+Popola il database MyNutriApp con dati di test multi-tenant.
 
 Uso:
-    python scripts/seed_test_data.py            # additivo: non cancella, salta telefoni già presenti
-    python scripts/seed_test_data.py --reset    # svuota e ripopola
+    ./venv/bin/python scripts/seed_test_data.py
+    ./venv/bin/python scripts/seed_test_data.py --nutrizionista-id 4
+    ./venv/bin/python scripts/seed_test_data.py --reset   # solo pazienti/dati del tenant scelto
 """
 from __future__ import annotations
 
@@ -20,17 +21,22 @@ if str(ROOT) not in sys.path:
 from dotenv import load_dotenv
 from werkzeug.security import generate_password_hash
 
-load_dotenv()
+load_dotenv(ROOT / ".env")
 
 from wsgi import app
+from app.models.diario import Utente
+from app.models.enums import UtenteRuolo
 from app.models.models import (
+    Activity,
     Allenamento,
     Appuntamento,
     ComposizioneCorporea,
     Dieta,
+    DietPlan,
     Documento,
     MisureAntropometriche,
     Patient,
+    PatientNote,
     Progresso,
     SlotDisponibilita,
     db,
@@ -46,6 +52,7 @@ PATIENTS_DATA = [
         "sesso": "F",
         "data_nascita": date(1990, 3, 15),
         "telefono": "3401234567",
+        "email": "maria.rossi@test.mynutriapp.local",
         "altezza_cm": 165,
         "peso_iniziale": 72.5,
         "intolleranze": "Lattosio",
@@ -60,6 +67,7 @@ PATIENTS_DATA = [
         "sesso": "M",
         "data_nascita": date(1985, 7, 22),
         "telefono": "3409876543",
+        "email": "luca.bianchi@test.mynutriapp.local",
         "altezza_cm": 178,
         "peso_iniziale": 88.0,
         "intolleranze": None,
@@ -74,6 +82,7 @@ PATIENTS_DATA = [
         "sesso": "F",
         "data_nascita": date(1998, 11, 8),
         "telefono": "3471122334",
+        "email": "giulia.verdi@test.mynutriapp.local",
         "altezza_cm": 170,
         "peso_iniziale": 63.0,
         "intolleranze": "Glutine",
@@ -88,6 +97,7 @@ PATIENTS_DATA = [
         "sesso": "M",
         "data_nascita": date(1978, 1, 30),
         "telefono": "3334455667",
+        "email": "marco.ferrari@test.mynutriapp.local",
         "altezza_cm": 182,
         "peso_iniziale": 95.5,
         "intolleranze": None,
@@ -102,6 +112,7 @@ PATIENTS_DATA = [
         "sesso": "F",
         "data_nascita": date(1995, 6, 12),
         "telefono": "3395566778",
+        "email": "sofia.neri@test.mynutriapp.local",
         "altezza_cm": 168,
         "peso_iniziale": 68.0,
         "intolleranze": "Nichel",
@@ -116,6 +127,7 @@ PATIENTS_DATA = [
         "sesso": "M",
         "data_nascita": date(1992, 9, 5),
         "telefono": "3386677889",
+        "email": "andrea.romano@test.mynutriapp.local",
         "altezza_cm": 175,
         "peso_iniziale": 82.0,
         "intolleranze": None,
@@ -126,30 +138,76 @@ PATIENTS_DATA = [
     },
 ]
 
+TEST_PHONES = {d["telefono"] for d in PATIENTS_DATA}
 
-def clear_test_data() -> None:
-    for model in (
-        Appuntamento,
-        MisureAntropometriche,
-        ComposizioneCorporea,
-        Progresso,
-        Documento,
-        Dieta,
-        Allenamento,
-        Patient,
-        SlotDisponibilita,
-    ):
-        db.session.query(model).delete()
+
+def _resolve_nutrizionista(nutrizionista_id: int | None) -> Utente:
+    if nutrizionista_id:
+        u = Utente.query.get(nutrizionista_id)
+        if not u or u.ruolo != UtenteRuolo.NUTRIZIONISTA.value:
+            raise SystemExit(f"Nutrizionista id={nutrizionista_id} non trovato")
+        return u
+
+    # Preferisci nutrizionisti con telefono (login web)
+    u = (
+        Utente.query.filter_by(ruolo=UtenteRuolo.NUTRIZIONISTA.value, attivo=True)
+        .filter(Utente.telefono.isnot(None))
+        .order_by(Utente.id.desc())
+        .first()
+    )
+    if u:
+        return u
+    u = (
+        Utente.query.filter_by(ruolo=UtenteRuolo.NUTRIZIONISTA.value, attivo=True)
+        .order_by(Utente.id)
+        .first()
+    )
+    if not u:
+        raise SystemExit("Nessun nutrizionista attivo nel DB")
+    return u
+
+
+def clear_tenant_test_data(nutrizionista_id: int) -> None:
+    """Elimina solo i pazienti seed (telefoni noti) e i loro dati correlati del tenant."""
+    patients = Patient.query.filter(
+        Patient.nutrizionista_id == nutrizionista_id,
+        Patient.telefono.in_(list(TEST_PHONES)),
+    ).all()
+    pids = [p.id for p in patients]
+    if pids:
+        for model in (
+            Appuntamento,
+            MisureAntropometriche,
+            ComposizioneCorporea,
+            Progresso,
+            Documento,
+            Dieta,
+            Allenamento,
+            PatientNote,
+            Activity,
+            DietPlan,
+        ):
+            if hasattr(model, "patient_id"):
+                db.session.query(model).filter(model.patient_id.in_(pids)).delete(
+                    synchronize_session=False
+                )
+        Patient.query.filter(Patient.id.in_(pids)).delete(synchronize_session=False)
+
+    SlotDisponibilita.query.filter(
+        SlotDisponibilita.utente_id == nutrizionista_id,
+        SlotDisponibilita.note.like("%test%"),
+    ).delete(synchronize_session=False)
     db.session.commit()
 
 
-def _create_patient(data: dict, pwd_hash: str) -> Patient:
+def _create_patient(data: dict, pwd_hash: str, nutrizionista_id: int) -> Patient:
     return Patient(
         nome=data["nome"],
         cognome=data["cognome"],
         sesso=data["sesso"],
         data_nascita=data["data_nascita"],
         telefono=data["telefono"],
+        email=data.get("email"),
         password_hash=pwd_hash,
         altezza_cm=data["altezza_cm"],
         peso_iniziale=data["peso_iniziale"],
@@ -159,10 +217,19 @@ def _create_patient(data: dict, pwd_hash: str) -> Patient:
         allenamenti_descr=data["allenamenti_descr"],
         esami_biochimici=encrypt_field(data["esami_biochimici"]) if data["esami_biochimici"] else None,
         stato_cliente="attivo",
+        nutrizionista_id=nutrizionista_id,
+        consenso_privacy=True,
+        consenso_marketing=True,
     )
 
 
-def _seed_related_for_patients(patients: list[Patient], today: date, now: datetime) -> None:
+def _seed_related_for_patients(
+    patients: list[Patient],
+    *,
+    nutrizionista_id: int,
+    today: date,
+    now: datetime,
+) -> None:
     for i, p in enumerate(patients):
         db.session.add(
             Dieta(
@@ -186,11 +253,33 @@ def _seed_related_for_patients(patients: list[Patient], today: date, now: dateti
                 note=f"Scheda allenamento test per {p.nome}",
             )
         )
+        db.session.add(
+            DietPlan(
+                patient_id=p.id,
+                professional_id=nutrizionista_id,
+                title=f"Piano {p.cognome}",
+                goal="Riccomposizione",
+                notes="Piano strutturato di test",
+                status="published" if i % 2 == 0 else "draft",
+                target_kcal=1800 + i * 100,
+                target_protein_pct=30,
+                target_carbs_pct=40,
+                target_fat_pct=30,
+            )
+        )
+        db.session.add(
+            PatientNote(
+                patient_id=p.id,
+                utente_id=nutrizionista_id,
+                body=f"Nota di test: {p.nome} sta rispondendo bene al piano. Check settimanale ok.",
+            )
+        )
 
     if not patients:
         return
 
     appuntamenti_specs = [
+        (0, "check", "confermato", 0),
         (0, "check", "confermato", 3),
         (1 % len(patients), "rinnovo_dieta", "completato", -7),
         (2 % len(patients), "allenamento_1to1", "in_attesa", 5),
@@ -201,7 +290,8 @@ def _seed_related_for_patients(patients: list[Patient], today: date, now: dateti
         db.session.add(
             Appuntamento(
                 patient_id=patients[p_idx].id,
-                created_by="Enrico",
+                utente_id=nutrizionista_id,
+                created_by="admin",
                 data_appuntamento=now + timedelta(days=days_ahead, hours=10),
                 tipo=tipo,
                 stato=stato,
@@ -263,8 +353,35 @@ def _seed_related_for_patients(patients: list[Patient], today: date, now: dateti
             )
         )
 
+    # Attività manuali per inbox operativa
+    db.session.add(
+        Activity(
+            utente_id=nutrizionista_id,
+            patient_id=patients[0].id,
+            title=f"Ricontattare {patients[0].nome} per check dieta",
+            tipo="manuale",
+            priority="high",
+            due_at=now + timedelta(hours=6),
+            status="open",
+            source="manual",
+            notes="Seed test",
+        )
+    )
+    db.session.add(
+        Activity(
+            utente_id=nutrizionista_id,
+            patient_id=patients[1].id if len(patients) > 1 else patients[0].id,
+            title="Preparare piano settimana prossima",
+            tipo="manuale",
+            priority="medium",
+            due_at=now + timedelta(days=2),
+            status="open",
+            source="manual",
+        )
+    )
 
-def _seed_slots(now: datetime) -> int:
+
+def _seed_slots(now: datetime, nutrizionista_id: int) -> int:
     created = 0
     for day in (2, 4, 9, 11, 16):
         for hour, minute, note in (
@@ -274,10 +391,14 @@ def _seed_slots(now: datetime) -> int:
             slot_dt = (now + timedelta(days=day)).replace(
                 hour=hour, minute=minute, second=0, microsecond=0
             )
-            if SlotDisponibilita.query.filter_by(data_ora=slot_dt).first():
+            exists = SlotDisponibilita.query.filter_by(
+                utente_id=nutrizionista_id, data_ora=slot_dt
+            ).first()
+            if exists:
                 continue
             db.session.add(
                 SlotDisponibilita(
+                    utente_id=nutrizionista_id,
                     data_ora=slot_dt,
                     attivo=True,
                     note=note,
@@ -287,45 +408,76 @@ def _seed_slots(now: datetime) -> int:
     return created
 
 
-def seed(*, additive: bool = True) -> None:
+def seed(*, nutrizionista: Utente, additive: bool = True) -> None:
     today = date.today()
     now = datetime.now()
     pwd_hash = generate_password_hash(TEST_PASSWORD)
+    nutri_id = nutrizionista.id
 
     patients: list[Patient] = []
     skipped: list[str] = []
+    reset_pwd: list[str] = []
 
     for data in PATIENTS_DATA:
-        existing = Patient.query.filter_by(telefono=data["telefono"]).first()
+        existing = Patient.query.filter_by(
+            telefono=data["telefono"],
+            nutrizionista_id=nutri_id,
+        ).first()
         if existing:
+            # Assicura password nota per i pazienti seed già presenti
+            existing.password_hash = pwd_hash
+            existing.email = data.get("email") or existing.email
+            existing.stato_cliente = "attivo"
             skipped.append(f"{data['nome']} {data['cognome']} ({data['telefono']})")
+            reset_pwd.append(f"{existing.nome} {existing.cognome}")
             continue
-        p = _create_patient(data, pwd_hash)
+        p = _create_patient(data, pwd_hash, nutri_id)
         db.session.add(p)
         patients.append(p)
 
     if patients:
         db.session.flush()
-        _seed_related_for_patients(patients, today, now)
+        _seed_related_for_patients(
+            patients,
+            nutrizionista_id=nutri_id,
+            today=today,
+            now=now,
+        )
 
-    slots_created = _seed_slots(now)
+    slots_created = _seed_slots(now, nutri_id)
     db.session.commit()
 
-    if patients:
-        print("✅ Dati di test inseriti (senza cancellare i record esistenti)" if additive else "✅ Database popolato con dati di test")
-        print(f"   Nuovi pazienti: {len(patients)}")
-        print(f"   Password pazienti: {TEST_PASSWORD}")
-        print()
-        print("   Account pazienti (telefono / password):")
-        for p in patients:
-            print(f"   - {p.nome} {p.cognome}: {p.telefono} / {TEST_PASSWORD}")
-    else:
-        print("ℹ️  Nessun nuovo paziente da inserire (telefoni già presenti).")
+    print(f"Tenant nutrizionista: #{nutri_id} {nutrizionista.nome} {nutrizionista.cognome}")
+    if nutrizionista.telefono:
+        print(f"  Login admin: telefono {nutrizionista.telefono} / (password già in uso)")
+    if nutrizionista.email:
+        print(f"  Email: {nutrizionista.email}")
 
-    if skipped:
-        print(f"   Saltati (già presenti): {len(skipped)}")
-        for s in skipped:
-            print(f"   - {s}")
+    if patients:
+        print(
+            "✅ Dati di test inseriti (senza cancellare i record esistenti)"
+            if additive
+            else "✅ Database popolato con dati di test"
+        )
+        print(f"   Nuovi pazienti: {len(patients)}")
+    else:
+        print("ℹ️  Nessun nuovo paziente da inserire (telefoni già presenti su questo tenant).")
+
+    if reset_pwd:
+        print(f"   Password aggiornata a '{TEST_PASSWORD}' per: {', '.join(reset_pwd)}")
+
+    print()
+    print(f"   Password pazienti seed: {TEST_PASSWORD}")
+    print("   Account pazienti (telefono / password) — UI paziente su /login:")
+    all_seed = Patient.query.filter(
+        Patient.nutrizionista_id == nutri_id,
+        Patient.telefono.in_(list(TEST_PHONES)),
+    ).order_by(Patient.id).all()
+    for p in all_seed:
+        print(f"   - {p.nome} {p.cognome}: {p.telefono} / {TEST_PASSWORD}")
+
+    if skipped and patients:
+        print(f"   Saltati (già presenti, pwd aggiornata): {len(skipped)}")
 
     print(f"   Slot disponibilità creati: {slots_created}")
 
@@ -335,17 +487,24 @@ def main() -> None:
     parser.add_argument(
         "--reset",
         action="store_true",
-        help="Svuota le tabelle principali prima di inserire i dati",
+        help="Elimina i pazienti seed del tenant e ripopola",
+    )
+    parser.add_argument(
+        "--nutrizionista-id",
+        type=int,
+        default=None,
+        help="ID nutrizionista tenant (default: ultimo attivo con telefono)",
     )
     args = parser.parse_args()
 
     with app.app_context():
+        nutri = _resolve_nutrizionista(args.nutrizionista_id)
         if args.reset:
-            print("🗑️  Pulizia dati esistenti...")
-            clear_test_data()
-            seed(additive=False)
+            print(f"🗑️  Pulizia dati seed del tenant #{nutri.id}...")
+            clear_tenant_test_data(nutri.id)
+            seed(nutrizionista=nutri, additive=False)
         else:
-            seed(additive=True)
+            seed(nutrizionista=nutri, additive=True)
 
 
 if __name__ == "__main__":
