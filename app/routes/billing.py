@@ -17,7 +17,9 @@ from flask import (
 
 from app.models.diario import Utente
 from app.services.stripe_billing_service import (
+    StaleStripeCustomerError,
     StripeBillingError,
+    clear_stale_stripe_link,
     complete_account_setup,
     construct_webhook_event,
     create_billing_portal_session,
@@ -160,6 +162,10 @@ def customer_portal():
             or url_for("dashboard.admin_dashboard", _external=True),
         )
         return redirect(portal["url"])
+    except StaleStripeCustomerError as exc:
+        clear_stale_stripe_link(utente)
+        flash(str(exc), "warning")
+        return redirect(url_for("landing.landing") + "#pricing")
     except StripeBillingError as exc:
         flash(str(exc), "danger")
         return redirect(url_for("dashboard.admin_dashboard"))

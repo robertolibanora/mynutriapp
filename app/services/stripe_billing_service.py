@@ -99,6 +99,20 @@ def create_checkout_session(
     return {"id": session.id, "url": session.url}
 
 
+class StaleStripeCustomerError(StripeBillingError):
+    """Customer ID presente in DB ma assente sull'account Stripe corrente."""
+
+
+def clear_stale_stripe_link(utente: Utente) -> None:
+    """Rimuove riferimenti Stripe non più validi (es. dopo cambio account)."""
+    utente.stripe_customer_id = None
+    utente.stripe_subscription_id = None
+    if (utente.subscription_status or "") not in ("none", ""):
+        utente.subscription_status = "none"
+    db.session.commit()
+    logger.warning("Cleared stale Stripe link for utente_id=%s", utente.id)
+
+
 def create_billing_portal_session(
     *,
     stripe_customer_id: str,
@@ -114,6 +128,19 @@ def create_billing_portal_session(
         raise StripeBillingError("STRIPE_PORTAL_RETURN_URL non configurata")
 
     stripe = _stripe()
+    try:
+        stripe.Customer.retrieve(customer_id)
+    except Exception as exc:  # noqa: BLE001
+        err_code = getattr(exc, "code", None)
+        if err_code == "resource_missing" or "No such customer" in str(exc):
+            raise StaleStripeCustomerError(
+                "Il collegamento Stripe di questo account non è più valido "
+                "(probabile migrazione da sandbox/account precedente). "
+                "Sottoscrivi di nuovo un piano dalla landing per riattivare "
+                "la gestione abbonamento."
+            ) from exc
+        raise
+
     params: dict[str, Any] = {
         "customer": customer_id,
         "return_url": ret,
@@ -122,7 +149,16 @@ def create_billing_portal_session(
     if config_id:
         params["configuration"] = config_id
 
-    portal = stripe.billing_portal.Session.create(**params)
+    try:
+        portal = stripe.billing_portal.Session.create(**params)
+    except Exception as exc:  # noqa: BLE001
+        err_code = getattr(exc, "code", None)
+        if err_code == "resource_missing" or "No such customer" in str(exc):
+            raise StaleStripeCustomerError(
+                "Il collegamento Stripe di questo account non è più valido. "
+                "Sottoscrivi di nuovo un piano dalla landing."
+            ) from exc
+        raise
     return {"url": portal.url}
 
 
