@@ -147,6 +147,8 @@ with app.app_context():
 @app.after_request
 def set_security_headers(response):
     """Aggiunge security headers a tutte le risposte."""
+    from flask import request
+
     # HSTS - Force HTTPS (se configurato)
     if app.config.get('SESSION_COOKIE_SECURE'):
         response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
@@ -163,15 +165,28 @@ def set_security_headers(response):
     # Content-Security-Policy - Base (può essere esteso)
     # Nota: CSP può rompere app se troppo restrittivo, quindi base
     # blob: + unsafe-eval: landing Noira bundled (spacchetta template via eval)
-    csp = (
-        "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; "
-        "style-src 'self' 'unsafe-inline' blob: https://fonts.googleapis.com; "
-        "font-src 'self' data: blob: https://fonts.gstatic.com; "
-        "img-src 'self' data: blob:; "
-        "media-src 'self' data: blob:; "
-        "worker-src 'self' blob:;"
-    )
+    # /m/ = Flutter web PWA (wasm + connect API)
+    if request.path.startswith('/m/'):
+        csp = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob:; "
+            "style-src 'self' 'unsafe-inline' blob: https://fonts.googleapis.com; "
+            "font-src 'self' data: blob: https://fonts.gstatic.com; "
+            "img-src 'self' data: blob: https:; "
+            "media-src 'self' data: blob:; "
+            "connect-src 'self'; "
+            "worker-src 'self' blob:;"
+        )
+    else:
+        csp = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; "
+            "style-src 'self' 'unsafe-inline' blob: https://fonts.googleapis.com; "
+            "font-src 'self' data: blob: https://fonts.gstatic.com; "
+            "img-src 'self' data: blob:; "
+            "media-src 'self' data: blob:; "
+            "worker-src 'self' blob:;"
+        )
     response.headers['Content-Security-Policy'] = csp
     
     # Referrer-Policy

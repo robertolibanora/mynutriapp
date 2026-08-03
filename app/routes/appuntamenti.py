@@ -93,7 +93,13 @@ def nuovo_admin():
             safe_trigger_appuntamento_stato(nuovo, 'confermato')
             
             flash("Appuntamento aggiunto ✅", "success")
-            return redirect(url_for('agenda.agenda_unificata', tab='appuntamenti', filtro='da_confermare'))
+            # Creato già come 'confermato': non aprire il filtro 'Da confermare' (solo in_attesa)
+            return redirect(url_for(
+                'agenda.agenda_unificata',
+                tab='appuntamenti',
+                mese=data_appuntamento.strftime('%Y-%m'),
+                filtro_giorno=data_appuntamento.strftime('%Y-%m-%d'),
+            ))
 
         except Exception as e:
             db.session.rollback()

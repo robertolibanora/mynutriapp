@@ -37,6 +37,21 @@ Dev locale:
 flutter run --dart-define=API_BASE_URL=http://10.0.2.2:5000 --dart-define=USE_MOCK_DATA=true
 ```
 
+## Preview iPhone (PWA web)
+
+Build e URL:
+
+```bash
+export PATH="$HOME/development/flutter/bin:$PATH"
+cd mobile_app
+flutter build web --release --base-href=/m/ \
+  --dart-define=API_BASE_URL=https://stage.mynutriapp.cloud \
+  --dart-define=USE_MOCK_DATA=false
+```
+
+Poi apri su iPhone (QR): https://stage.mynutriapp.cloud/static/img/mobile-qr.html  
+App: https://stage.mynutriapp.cloud/m/
+
 ## Navigazione
 
 Bottom nav: Home · Dieta · Appuntamenti · Progressi · Profilo  
