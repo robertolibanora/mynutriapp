@@ -1,0 +1,156 @@
+{% extends 'base_admin.html' %}
+{% block title %}Impostazioni{% endblock %}
+{% block nav_label %}Account{% endblock %}
+{% block content %}
+
+<style>
+  .set-grid {
+    display: grid;
+    gap: 1rem;
+    max-width: 720px;
+  }
+  .set-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    padding: 1.25rem 1.35rem;
+  }
+  .set-card h2 {
+    margin: 0 0 0.85rem;
+    font: 700 1.05rem/1.25 var(--adm-font, Manrope, sans-serif);
+    color: #f2f2f2;
+  }
+  .set-rows {
+    display: grid;
+    gap: 0.7rem;
+  }
+  .set-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: baseline;
+    padding-bottom: 0.65rem;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+  .set-row:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+  .set-label {
+    color: #8a8a8a;
+    font-size: 0.84rem;
+    font-weight: 600;
+  }
+  .set-value {
+    color: #f0f0f0;
+    font-size: 0.95rem;
+    font-weight: 650;
+    text-align: right;
+  }
+  .set-muted {
+    margin: 0.85rem 0 0;
+    color: #9a9a9a;
+    font-size: 0.88rem;
+    line-height: 1.45;
+  }
+  .set-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    margin-top: 1.1rem;
+  }
+  .set-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    border: 1px solid rgba(255,255,255,0.14);
+    background: rgba(255,255,255,0.06);
+    color: #e8e8e8;
+  }
+  .set-badge--ok {
+    border-color: rgba(120, 200, 140, 0.35);
+    color: #9ed6ab;
+    background: rgba(120, 200, 140, 0.1);
+  }
+  .set-badge--warn {
+    border-color: rgba(255, 180, 90, 0.4);
+    color: #ffc48a;
+    background: rgba(255, 180, 90, 0.12);
+  }
+</style>
+
+<div class="set-grid">
+  <section class="set-card">
+    <h2>Account</h2>
+    <div class="set-rows">
+      <div class="set-row">
+        <span class="set-label">Nome</span>
+        <span class="set-value">{{ utente.nome }} {{ utente.cognome }}</span>
+      </div>
+      <div class="set-row">
+        <span class="set-label">Email</span>
+        <span class="set-value">{{ utente.email or '—' }}</span>
+      </div>
+      <div class="set-row">
+        <span class="set-label">Telefono</span>
+        <span class="set-value">{{ utente.telefono or '—' }}</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="set-card">
+    <h2>Abbonamento</h2>
+    <div class="set-rows">
+      <div class="set-row">
+        <span class="set-label">Piano</span>
+        <span class="set-value">{{ (usage.plan or 'starter')|capitalize }}</span>
+      </div>
+      <div class="set-row">
+        <span class="set-label">Stato</span>
+        <span class="set-value">
+          {% if subscription_status == 'active' or subscription_status == 'trialing' %}
+            <span class="set-badge set-badge--ok">{{ subscription_status_label }}</span>
+          {% elif subscription_status in ('past_due', 'unpaid', 'canceled') %}
+            <span class="set-badge set-badge--warn">{{ subscription_status_label }}</span>
+          {% else %}
+            <span class="set-badge">{{ subscription_status_label }}</span>
+          {% endif %}
+        </span>
+      </div>
+      <div class="set-row">
+        <span class="set-label">Pazienti attivi</span>
+        <span class="set-value">
+          {% if usage.patient_limit is none %}
+            {{ usage.active_patients }} / illimitati
+          {% else %}
+            {{ usage.active_patients }} / {{ usage.patient_limit }}
+          {% endif %}
+        </span>
+      </div>
+    </div>
+
+    {% if has_stripe_customer %}
+    <p class="set-muted">
+      Puoi aggiornare il metodo di pagamento, cambiare piano o scaricare le fatture dal portale Stripe.
+    </p>
+    <div class="set-actions">
+      <form method="post" action="{{ url_for('billing.customer_portal') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="adm-btn-cta">Gestisci abbonamento</button>
+      </form>
+    </div>
+    {% else %}
+    <p class="set-muted">
+      Nessun abbonamento Stripe collegato. Scegli un piano dalla landing per attivarlo.
+    </p>
+    <div class="set-actions">
+      <a class="adm-btn-cta" href="{{ url_for('landing.landing') }}#pricing">Vedi piani</a>
+    </div>
+    {% endif %}
+  </section>
+</div>
+
+{% endblock %}

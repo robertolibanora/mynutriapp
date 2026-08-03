@@ -146,6 +146,51 @@ def admin_dashboard():
 
 
 # ============================
+# IMPOSTAZIONI NUTRIZIONISTA
+# ============================
+@dashboard_bp.route("/admin/impostazioni")
+def admin_impostazioni():
+    if session.get("role") not in ("admin", "nutrizionista"):
+        flash("Accesso non autorizzato", "danger")
+        return redirect(url_for("auth.login"))
+
+    from app.models.diario import Utente
+    from app.services.licensing_service import get_subscription_usage
+    from app.utils.tenant import current_utente_id
+
+    uid = current_utente_id()
+    if not uid:
+        flash("Sessione non valida", "danger")
+        return redirect(url_for("auth.login"))
+
+    utente = Utente.query.get(int(uid))
+    if utente is None:
+        flash("Account non trovato", "danger")
+        return redirect(url_for("auth.login"))
+
+    usage = get_subscription_usage(int(uid))
+    status = (getattr(utente, "subscription_status", None) or "none").strip().lower()
+    status_labels = {
+        "active": "Attivo",
+        "trialing": "In prova",
+        "past_due": "Pagamento in ritardo",
+        "canceled": "Annullato",
+        "unpaid": "Non pagato",
+        "incomplete": "Incompleto",
+        "incomplete_expired": "Scaduto",
+        "none": "Non collegato",
+    }
+    return render_template(
+        "admin/impostazioni.html",
+        utente=utente,
+        usage=usage,
+        subscription_status=status,
+        subscription_status_label=status_labels.get(status, status),
+        has_stripe_customer=bool(getattr(utente, "stripe_customer_id", None)),
+    )
+
+
+# ============================
 # PROFILO USER (alias path pubblico)
 # ============================
 @dashboard_bp.route('/user/profilo')

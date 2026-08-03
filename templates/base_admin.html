@@ -25,6 +25,8 @@
   {% set auto_nav_label = 'Allenamento' %}
 {% elif 'patients' in ep or 'progressi' in ep or 'documenti' in ep %}
   {% set auto_nav_label = 'Pazienti' %}
+{% elif ep == 'dashboard.admin_impostazioni' %}
+  {% set auto_nav_label = 'Impostazioni' %}
 {% else %}
   {% set auto_nav_label = 'Generale' %}
 {% endif %}
@@ -75,13 +77,10 @@
                     <div class="admin-user-role">Nutrizionista</div>
                 </div>
             </div>
-            <form method="post" action="{{ url_for('billing.customer_portal') }}" style="margin:0">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button type="submit" class="admin-logout" style="width:100%;border:0;background:transparent;cursor:pointer;font:inherit;color:inherit;text-align:left">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
-                    <span>Abbonamento</span>
-                </button>
-            </form>
+            <a href="{{ url_for('dashboard.admin_impostazioni') }}" class="admin-nav-link{% if ep == 'dashboard.admin_impostazioni' %} is-active{% endif %}" style="margin-bottom:4px">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                <span>Impostazioni</span>
+            </a>
             <a href="{{ url_for('auth.logout') }}" class="admin-logout">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>
                 <span>Esci</span>
