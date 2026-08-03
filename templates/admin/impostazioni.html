@@ -4,67 +4,191 @@
 {% block content %}
 
 <style>
-  .set-grid {
+  .set {
+    --set-line: rgba(255,255,255,0.1);
+    --set-soft: rgba(255,255,255,0.045);
+    --set-muted: #9a9a9a;
+    --set-faint: #6f6f6f;
+    display: grid;
+    grid-template-columns: 200px minmax(0, 1fr);
+    gap: 1.5rem;
+    align-items: start;
+  }
+  @media (max-width: 920px) {
+    .set { grid-template-columns: 1fr; }
+    .set-nav { position: static !important; display: flex; flex-wrap: wrap; gap: 0.35rem; }
+    .set-nav a { padding: 0.4rem 0.7rem; border: 1px solid var(--set-line); border-radius: 999px; }
+  }
+  .set-nav {
+    position: sticky;
+    top: 84px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+  .set-nav-label {
+    margin: 0 0 0.45rem;
+    font: 700 0.68rem/1 var(--adm-font, Manrope, sans-serif);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--set-faint);
+  }
+  .set-nav a {
+    display: block;
+    padding: 0.45rem 0.55rem;
+    border-radius: 9px;
+    color: #bdbdbd;
+    text-decoration: none;
+    font: 600 0.86rem/1.25 var(--adm-font, Manrope, sans-serif);
+  }
+  .set-nav a:hover { background: rgba(255,255,255,0.05); color: #fff; }
+  .set-main {
     display: grid;
     gap: 1rem;
-    max-width: 720px;
+    max-width: 860px;
   }
   .set-card {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.1);
+    background: var(--set-soft);
+    border: 1px solid var(--set-line);
     border-radius: 16px;
-    padding: 1.25rem 1.35rem;
+    padding: 1.2rem 1.3rem 1.3rem;
+    scroll-margin-top: 92px;
   }
-  .set-card h2 {
-    margin: 0 0 0.85rem;
-    font: 700 1.05rem/1.25 var(--adm-font, Manrope, sans-serif);
-    color: #f2f2f2;
-  }
-  .set-rows {
-    display: grid;
-    gap: 0.7rem;
-  }
-  .set-row {
+  .set-card-head {
     display: flex;
+    align-items: flex-start;
     justify-content: space-between;
     gap: 1rem;
-    align-items: baseline;
-    padding-bottom: 0.65rem;
+    margin-bottom: 1rem;
+  }
+  .set-card h2 {
+    margin: 0;
+    font: 700 1.05rem/1.25 var(--adm-font, Manrope, sans-serif);
+    color: #f4f4f4;
+  }
+  .set-card-desc {
+    margin: 0.3rem 0 0;
+    color: var(--set-muted);
+    font-size: 0.86rem;
+    line-height: 1.4;
+    max-width: 52ch;
+  }
+  .set-chip {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.22rem 0.55rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255,154,86,0.28);
+    background: rgba(255,154,86,0.1);
+    color: #ffb57a;
+    font: 700 0.7rem/1 var(--adm-font, Manrope, sans-serif);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .set-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem 1rem;
+  }
+  @media (max-width: 640px) {
+    .set-grid-2 { grid-template-columns: 1fr; }
+  }
+  .set-field { display: flex; flex-direction: column; gap: 0.35rem; }
+  .set-field--full { grid-column: 1 / -1; }
+  .set-label {
+    color: #8f8f8f;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+  .set-input,
+  .set-select,
+  .set-textarea {
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 44px;
+    padding: 0.7rem 0.85rem;
+    border-radius: 11px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(0,0,0,0.28);
+    color: #f2f2f2;
+    font: 500 0.92rem/1.3 var(--adm-font, Manrope, sans-serif);
+  }
+  .set-textarea { min-height: 92px; resize: vertical; }
+  .set-input:disabled,
+  .set-select:disabled,
+  .set-textarea:disabled {
+    opacity: 0.72;
+    cursor: not-allowed;
+  }
+  .set-input::placeholder,
+  .set-textarea::placeholder { color: #666; }
+  .set-rows { display: grid; gap: 0.55rem; }
+  .set-row {
+    display: grid;
+    grid-template-columns: 140px minmax(0, 1fr);
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.55rem 0;
     border-bottom: 1px solid rgba(255,255,255,0.07);
   }
-  .set-row:last-child {
-    border-bottom: 0;
-    padding-bottom: 0;
+  .set-row:last-child { border-bottom: 0; }
+  @media (max-width: 520px) {
+    .set-row { grid-template-columns: 1fr; gap: 0.2rem; }
   }
-  .set-label {
-    color: #8a8a8a;
-    font-size: 0.84rem;
-    font-weight: 600;
-  }
-  .set-value {
-    color: #f0f0f0;
-    font-size: 0.95rem;
-    font-weight: 650;
-    text-align: right;
-  }
+  .set-k { color: #8a8a8a; font-size: 0.82rem; font-weight: 600; }
+  .set-v { color: #f0f0f0; font-size: 0.93rem; font-weight: 650; }
   .set-muted {
     margin: 0.85rem 0 0;
-    color: #9a9a9a;
-    font-size: 0.88rem;
+    color: var(--set-muted);
+    font-size: 0.86rem;
     line-height: 1.45;
   }
   .set-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.55rem;
-    margin-top: 1.1rem;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+  .set-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding: 0.65rem 1rem;
+    border-radius: 11px;
+    border: 1px solid rgba(255,255,255,0.14);
+    background: rgba(255,255,255,0.06);
+    color: #eee;
+    font: 700 0.88rem/1 var(--adm-font, Manrope, sans-serif);
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .set-btn:hover { background: rgba(255,255,255,0.1); }
+  .set-btn:disabled,
+  .set-btn.is-disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+  .set-btn--primary {
+    border: 0;
+    background: linear-gradient(135deg, #ff9a56, #ff7a28);
+    color: #1a0f08;
+    box-shadow: 0 8px 22px rgba(255, 122, 40, 0.22);
+  }
+  .set-btn--danger {
+    border-color: rgba(226,114,91,0.4);
+    color: #e88a8a;
+    background: rgba(226,114,91,0.08);
   }
   .set-badge {
     display: inline-flex;
     align-items: center;
     padding: 0.2rem 0.55rem;
     border-radius: 999px;
-    font-size: 0.78rem;
+    font-size: 0.76rem;
     font-weight: 700;
     border: 1px solid rgba(255,255,255,0.14);
     background: rgba(255,255,255,0.06);
@@ -80,77 +204,457 @@
     color: #ffc48a;
     background: rgba(255, 180, 90, 0.12);
   }
+  .set-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 0.55rem;
+  }
+  .set-list li {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: baseline;
+    padding: 0.65rem 0.75rem;
+    border-radius: 11px;
+    background: rgba(0,0,0,0.18);
+    border: 1px solid rgba(255,255,255,0.07);
+  }
+  .set-list strong { color: #f0f0f0; font-size: 0.9rem; }
+  .set-list span { color: var(--set-muted); font-size: 0.82rem; text-align: right; }
+  .set-note {
+    margin-top: 0.85rem;
+    padding: 0.75rem 0.85rem;
+    border-radius: 11px;
+    border: 1px dashed rgba(255,255,255,0.14);
+    color: #a8a8a8;
+    font-size: 0.84rem;
+    line-height: 1.45;
+    background: rgba(255,255,255,0.02);
+  }
+  .set-links { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-top: 0.85rem; }
+  .set-links a {
+    color: #ffb57a;
+    font-size: 0.86rem;
+    font-weight: 650;
+    text-decoration: none;
+  }
+  .set-links a:hover { text-decoration: underline; }
 </style>
 
-<div class="set-grid">
-  <section class="set-card">
-    <h2>Account</h2>
-    <div class="set-rows">
-      <div class="set-row">
-        <span class="set-label">Nome</span>
-        <span class="set-value">{{ utente.nome }} {{ utente.cognome }}</span>
-      </div>
-      <div class="set-row">
-        <span class="set-label">Email</span>
-        <span class="set-value">{{ utente.email or '—' }}</span>
-      </div>
-      <div class="set-row">
-        <span class="set-label">Telefono</span>
-        <span class="set-value">{{ utente.telefono or '—' }}</span>
-      </div>
-    </div>
-  </section>
+<div class="set">
+  <nav class="set-nav" aria-label="Sezioni impostazioni">
+    <div class="set-nav-label">Sezioni</div>
+    <a href="#account">Account</a>
+    <a href="#sicurezza">Sicurezza</a>
+    <a href="#studio">Studio</a>
+    <a href="#abbonamento">Abbonamento</a>
+    <a href="#fatturazione">Fatturazione</a>
+    <a href="#preferenze">Preferenze</a>
+    <a href="#documenti-legali">Documenti legali</a>
+    <a href="#tuoi-dati">I tuoi dati</a>
+    <a href="#privacy-pazienti">Privacy pazienti</a>
+    <a href="#fornitori">Fornitori</a>
+    <a href="#supporto">Supporto</a>
+  </nav>
 
-  <section class="set-card">
-    <h2>Abbonamento</h2>
-    <div class="set-rows">
-      <div class="set-row">
-        <span class="set-label">Piano</span>
-        <span class="set-value">{{ (usage.plan or 'starter')|capitalize }}</span>
-      </div>
-      <div class="set-row">
-        <span class="set-label">Stato</span>
-        <span class="set-value">
-          {% if subscription_status == 'active' or subscription_status == 'trialing' %}
-            <span class="set-badge set-badge--ok">{{ subscription_status_label }}</span>
-          {% elif subscription_status in ('past_due', 'unpaid', 'canceled') %}
-            <span class="set-badge set-badge--warn">{{ subscription_status_label }}</span>
-          {% else %}
-            <span class="set-badge">{{ subscription_status_label }}</span>
-          {% endif %}
-        </span>
-      </div>
-      <div class="set-row">
-        <span class="set-label">Pazienti attivi</span>
-        <span class="set-value">
-          {% if usage.patient_limit is none %}
-            {{ usage.active_patients }} / illimitati
-          {% else %}
-            {{ usage.active_patients }} / {{ usage.patient_limit }}
-          {% endif %}
-        </span>
-      </div>
-    </div>
+  <div class="set-main">
 
-    {% if has_stripe_customer %}
-    <p class="set-muted">
-      Puoi aggiornare il metodo di pagamento, cambiare piano o scaricare le fatture dal portale Stripe.
-    </p>
-    <div class="set-actions">
-      <form method="post" action="{{ url_for('billing.customer_portal') }}">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <button type="submit" class="adm-btn-cta">Gestisci abbonamento</button>
+    {# —— ACCOUNT —— #}
+    <section class="set-card" id="account">
+      <div class="set-card-head">
+        <div>
+          <h2>Account</h2>
+          <p class="set-card-desc">Dati anagrafici del professionista collegato a MyNutriApp.</p>
+        </div>
+      </div>
+      <form class="set-grid-2" onsubmit="return false;">
+        <div class="set-field">
+          <label class="set-label" for="set-nome">Nome</label>
+          <input class="set-input" id="set-nome" value="{{ utente.nome or '' }}" disabled>
+        </div>
+        <div class="set-field">
+          <label class="set-label" for="set-cognome">Cognome</label>
+          <input class="set-input" id="set-cognome" value="{{ utente.cognome or '' }}" disabled>
+        </div>
+        <div class="set-field">
+          <label class="set-label" for="set-email">Email</label>
+          <input class="set-input" id="set-email" type="email" value="{{ utente.email or '' }}" disabled>
+        </div>
+        <div class="set-field">
+          <label class="set-label" for="set-telefono">Telefono</label>
+          <input class="set-input" id="set-telefono" value="{{ utente.telefono or '' }}" disabled>
+        </div>
       </form>
-    </div>
-    {% else %}
-    <p class="set-muted">
-      Nessun abbonamento Stripe collegato. Scegli un piano dalla landing per attivarlo.
-    </p>
-    <div class="set-actions">
-      <a class="adm-btn-cta" href="{{ url_for('landing.landing') }}#pricing">Vedi piani</a>
-    </div>
-    {% endif %}
-  </section>
+      <div class="set-actions">
+        <button type="button" class="set-btn is-disabled" disabled>Salva modifiche</button>
+        <span class="set-chip">Placeholder</span>
+      </div>
+    </section>
+
+    {# —— SICUREZZA —— #}
+    <section class="set-card" id="sicurezza">
+      <div class="set-card-head">
+        <div>
+          <h2>Sicurezza</h2>
+          <p class="set-card-desc">Protezione dell’account e controllo accessi.</p>
+        </div>
+        <span class="set-chip">Placeholder</span>
+      </div>
+      <form class="set-grid-2" onsubmit="return false;">
+        <div class="set-field">
+          <label class="set-label" for="set-pwd-old">Password attuale</label>
+          <input class="set-input" id="set-pwd-old" type="password" placeholder="••••••••" disabled>
+        </div>
+        <div class="set-field">
+          <label class="set-label" for="set-pwd-new">Nuova password</label>
+          <input class="set-input" id="set-pwd-new" type="password" placeholder="Minimo 8 caratteri" disabled>
+        </div>
+        <div class="set-field set-field--full">
+          <label class="set-label" for="set-pwd-confirm">Conferma nuova password</label>
+          <input class="set-input" id="set-pwd-confirm" type="password" placeholder="Ripeti la nuova password" disabled>
+        </div>
+      </form>
+      <div class="set-actions">
+        <button type="button" class="set-btn is-disabled" disabled>Aggiorna password</button>
+        <button type="button" class="set-btn is-disabled" disabled>Esci da tutte le sessioni</button>
+        <button type="button" class="set-btn is-disabled" disabled>Attiva 2FA</button>
+      </div>
+      <p class="set-note">In arrivo: cambio password, revoca sessioni e autenticazione a due fattori.</p>
+    </section>
+
+    {# —— STUDIO —— #}
+    <section class="set-card" id="studio">
+      <div class="set-card-head">
+        <div>
+          <h2>Studio / branding</h2>
+          <p class="set-card-desc">Come appare il tuo studio a pazienti e nelle comunicazioni.</p>
+        </div>
+        <span class="set-chip">Placeholder</span>
+      </div>
+      <form class="set-grid-2" onsubmit="return false;">
+        <div class="set-field">
+          <label class="set-label" for="set-studio">Nome studio</label>
+          <input class="set-input" id="set-studio" placeholder="Es. Studio Nutrizione Libanora" disabled>
+        </div>
+        <div class="set-field">
+          <label class="set-label" for="set-piva">Partita IVA</label>
+          <input class="set-input" id="set-piva" placeholder="IT00000000000" disabled>
+        </div>
+        <div class="set-field">
+          <label class="set-label" for="set-pec">PEC</label>
+          <input class="set-input" id="set-pec" type="email" placeholder="studio@pec.it" disabled>
+        </div>
+        <div class="set-field">
+          <label class="set-label" for="set-logo">Logo</label>
+          <input class="set-input" id="set-logo" type="file" disabled>
+        </div>
+        <div class="set-field set-field--full">
+          <label class="set-label" for="set-indirizzo">Indirizzo studio</label>
+          <input class="set-input" id="set-indirizzo" placeholder="Via, CAP, Città" disabled>
+        </div>
+        <div class="set-field set-field--full">
+          <label class="set-label" for="set-firma">Firma email / messaggi</label>
+          <textarea class="set-textarea" id="set-firma" placeholder="Es. Dott.ssa … — Nutrizione clinica" disabled></textarea>
+        </div>
+      </form>
+      <div class="set-actions">
+        <button type="button" class="set-btn is-disabled" disabled>Salva profilo studio</button>
+      </div>
+    </section>
+
+    {# —— ABBONAMENTO —— #}
+    <section class="set-card" id="abbonamento">
+      <div class="set-card-head">
+        <div>
+          <h2>Abbonamento</h2>
+          <p class="set-card-desc">Piano MyNutriApp, limiti e gestione pagamenti Stripe.</p>
+        </div>
+      </div>
+      <div class="set-rows">
+        <div class="set-row">
+          <span class="set-k">Piano</span>
+          <span class="set-v">{{ (usage.plan or 'starter')|capitalize }}</span>
+        </div>
+        <div class="set-row">
+          <span class="set-k">Stato</span>
+          <span class="set-v">
+            {% if subscription_status in ('active', 'trialing') %}
+              <span class="set-badge set-badge--ok">{{ subscription_status_label }}</span>
+            {% elif subscription_status in ('past_due', 'unpaid', 'canceled') %}
+              <span class="set-badge set-badge--warn">{{ subscription_status_label }}</span>
+            {% else %}
+              <span class="set-badge">{{ subscription_status_label }}</span>
+            {% endif %}
+          </span>
+        </div>
+        <div class="set-row">
+          <span class="set-k">Pazienti attivi</span>
+          <span class="set-v">
+            {% if usage.patient_limit is none %}
+              {{ usage.active_patients }} / illimitati
+            {% else %}
+              {{ usage.active_patients }} / {{ usage.patient_limit }}
+            {% endif %}
+          </span>
+        </div>
+      </div>
+      {% if has_stripe_customer %}
+      <p class="set-muted">Metodo di pagamento, cambio piano e fatture sono gestiti nel portale Stripe.</p>
+      <div class="set-actions">
+        <form method="post" action="{{ url_for('billing.customer_portal') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="set-btn set-btn--primary">Gestisci abbonamento</button>
+        </form>
+      </div>
+      {% else %}
+      <p class="set-muted">Nessun abbonamento Stripe collegato. Scegli un piano per attivarlo.</p>
+      <div class="set-actions">
+        <a class="set-btn set-btn--primary" href="{{ url_for('landing.landing') }}#pricing">Vedi piani</a>
+      </div>
+      {% endif %}
+    </section>
+
+    {# —— FATTURAZIONE —— #}
+    <section class="set-card" id="fatturazione">
+      <div class="set-card-head">
+        <div>
+          <h2>Fatturazione</h2>
+          <p class="set-card-desc">Dati fiscali usati su fatture e documenti di pagamento.</p>
+        </div>
+        <span class="set-chip">Placeholder</span>
+      </div>
+      <form class="set-grid-2" onsubmit="return false;">
+        <div class="set-field">
+          <label class="set-label" for="set-ragione">Ragione sociale</label>
+          <input class="set-input" id="set-ragione" placeholder="Come in fattura" disabled>
+        </div>
+        <div class="set-field">
+          <label class="set-label" for="set-cf">Codice fiscale</label>
+          <input class="set-input" id="set-cf" placeholder="Codice fiscale" disabled>
+        </div>
+        <div class="set-field">
+          <label class="set-label" for="set-sdi">Codice SDI / PEC fatture</label>
+          <input class="set-input" id="set-sdi" placeholder="XXXXXXX o PEC" disabled>
+        </div>
+        <div class="set-field">
+          <label class="set-label" for="set-billing-email">Email fatture</label>
+          <input class="set-input" id="set-billing-email" type="email" placeholder="{{ utente.email or 'fatture@studio.it' }}" disabled>
+        </div>
+      </form>
+      <div class="set-actions">
+        <button type="button" class="set-btn is-disabled" disabled>Salva dati fiscali</button>
+        {% if has_stripe_customer %}
+        <form method="post" action="{{ url_for('billing.customer_portal') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="set-btn">Apri storico fatture Stripe</button>
+        </form>
+        {% else %}
+        <button type="button" class="set-btn is-disabled" disabled>Storico fatture</button>
+        {% endif %}
+      </div>
+    </section>
+
+    {# —— PREFERENZE —— #}
+    <section class="set-card" id="preferenze">
+      <div class="set-card-head">
+        <div>
+          <h2>Preferenze</h2>
+          <p class="set-card-desc">Lingua, fuso orario e canali di notifica.</p>
+        </div>
+        <span class="set-chip">Placeholder</span>
+      </div>
+      <form class="set-grid-2" onsubmit="return false;">
+        <div class="set-field">
+          <label class="set-label" for="set-lang">Lingua</label>
+          <select class="set-select" id="set-lang" disabled>
+            <option selected>Italiano</option>
+            <option>English</option>
+          </select>
+        </div>
+        <div class="set-field">
+          <label class="set-label" for="set-tz">Fuso orario</label>
+          <select class="set-select" id="set-tz" disabled>
+            <option selected>Europe/Rome</option>
+          </select>
+        </div>
+        <div class="set-field">
+          <label class="set-label" for="set-notify-email">Notifiche email</label>
+          <select class="set-select" id="set-notify-email" disabled>
+            <option selected>Attive</option>
+            <option>Solo essenziali</option>
+            <option>Disattivate</option>
+          </select>
+        </div>
+        <div class="set-field">
+          <label class="set-label" for="set-notify-wa">Notifiche WhatsApp</label>
+          <select class="set-select" id="set-notify-wa" disabled>
+            <option selected>Come da trigger</option>
+            <option>Disattivate</option>
+          </select>
+        </div>
+      </form>
+      <div class="set-actions">
+        <button type="button" class="set-btn is-disabled" disabled>Salva preferenze</button>
+      </div>
+    </section>
+
+    {# —— DOCUMENTI LEGALI —— #}
+    <section class="set-card" id="documenti-legali">
+      <div class="set-card-head">
+        <div>
+          <h2>Documenti legali</h2>
+          <p class="set-card-desc">Informativa, termini e versione privacy accettata.</p>
+        </div>
+      </div>
+      <div class="set-rows">
+        <div class="set-row">
+          <span class="set-k">Policy version</span>
+          <span class="set-v">{{ privacy_policy_version }}</span>
+        </div>
+        <div class="set-row">
+          <span class="set-k">Ruolo MyNutriApp</span>
+          <span class="set-v">Fornitore SaaS / responsabile del trattamento (placeholder)</span>
+        </div>
+        <div class="set-row">
+          <span class="set-k">Titolare</span>
+          <span class="set-v">Il professionista / studio (tu) sui dati dei pazienti</span>
+        </div>
+      </div>
+      <div class="set-links">
+        <a href="#" aria-disabled="true" onclick="return false;">Informativa privacy</a>
+        <a href="#" aria-disabled="true" onclick="return false;">Termini di servizio</a>
+        <a href="#" aria-disabled="true" onclick="return false;">Cookie policy</a>
+        <a href="#" aria-disabled="true" onclick="return false;">DPA / atto di nomina</a>
+      </div>
+      <p class="set-note">I link legali sono placeholder: andranno puntati alle pagine pubbliche definitive.</p>
+    </section>
+
+    {# —— I TUOI DATI —— #}
+    <section class="set-card" id="tuoi-dati">
+      <div class="set-card-head">
+        <div>
+          <h2>I tuoi dati (GDPR)</h2>
+          <p class="set-card-desc">Diritti dell’interessato sul tuo account professionista.</p>
+        </div>
+        <span class="set-chip">Placeholder</span>
+      </div>
+      <p class="set-muted">
+        Puoi richiedere una copia dei dati del tuo account o la cancellazione.
+        La cancellazione comporta la chiusura dell’account e l’impatto sui pazienti collegati.
+      </p>
+      <div class="set-actions">
+        <button type="button" class="set-btn is-disabled" disabled>Esporta i miei dati</button>
+        <button type="button" class="set-btn set-btn--danger is-disabled" disabled>Richiedi cancellazione account</button>
+      </div>
+      <p class="set-note">Placeholder: export JSON account + workflow di oblio nutrizionista (con conferma e grace period).</p>
+    </section>
+
+    {# —— PRIVACY PAZIENTI —— #}
+    <section class="set-card" id="privacy-pazienti">
+      <div class="set-card-head">
+        <div>
+          <h2>Privacy pazienti</h2>
+          <p class="set-card-desc">Cabina di regia sui trattamenti dei pazienti del tuo studio.</p>
+        </div>
+      </div>
+      <div class="set-rows">
+        <div class="set-row">
+          <span class="set-k">Retention dati</span>
+          <span class="set-v">{{ patient_retention_days }} giorni (~{{ (patient_retention_days / 365)|round(1) }} anni)</span>
+        </div>
+        <div class="set-row">
+          <span class="set-k">Retention audio</span>
+          <span class="set-v">{{ audio_retention_days }} giorni</span>
+        </div>
+        <div class="set-row">
+          <span class="set-k">Retention audit</span>
+          <span class="set-v">{{ audit_retention_days }} giorni</span>
+        </div>
+        <div class="set-row">
+          <span class="set-k">Consensi in onboarding</span>
+          <span class="set-v">Privacy (obbligatorio), marketing, registrazione, AI</span>
+        </div>
+      </div>
+      <p class="set-muted">
+        Export e richieste di oblio paziente sono già disponibili nella scheda del singolo paziente.
+      </p>
+      <div class="set-actions">
+        <a class="set-btn set-btn--primary" href="{{ url_for('patients.lista_pazienti') }}">Vai ai pazienti</a>
+        <button type="button" class="set-btn is-disabled" disabled>Coda richieste oblio</button>
+        <button type="button" class="set-btn is-disabled" disabled>Registro trattamenti</button>
+      </div>
+      <p class="set-note">Placeholder: elenco richieste GDPR aperte, export massivo e registro delle attività di trattamento.</p>
+    </section>
+
+    {# —— FORNITORI —— #}
+    <section class="set-card" id="fornitori">
+      <div class="set-card-head">
+        <div>
+          <h2>Fornitori / sub-responsabili</h2>
+          <p class="set-card-desc">Servizi terzi che possono trattare dati per erogare MyNutriApp.</p>
+        </div>
+        <span class="set-chip">Placeholder</span>
+      </div>
+      <ul class="set-list">
+        <li>
+          <strong>Stripe</strong>
+          <span>Pagamenti, abbonamenti, fatture</span>
+        </li>
+        <li>
+          <strong>Hosting / infrastruttura</strong>
+          <span>Server applicazione e database (da specificare)</span>
+        </li>
+        <li>
+          <strong>WhatsApp / messaggistica</strong>
+          <span>Reminder e comunicazioni pazienti</span>
+        </li>
+        <li>
+          <strong>OpenAI</strong>
+          <span>Funzioni AI (es. diario / audio), se abilitate</span>
+        </li>
+        <li>
+          <strong>Email provider</strong>
+          <span>Invio notifiche e messaggi transazionali</span>
+        </li>
+      </ul>
+      <div class="set-links">
+        <a href="#" aria-disabled="true" onclick="return false;">Come trattiamo i dati dei tuoi pazienti</a>
+      </div>
+    </section>
+
+    {# —— SUPPORTO —— #}
+    <section class="set-card" id="supporto">
+      <div class="set-card-head">
+        <div>
+          <h2>Supporto e conformità</h2>
+          <p class="set-card-desc">Contatti per assistenza e segnalazioni privacy.</p>
+        </div>
+        <span class="set-chip">Placeholder</span>
+      </div>
+      <div class="set-rows">
+        <div class="set-row">
+          <span class="set-k">Supporto</span>
+          <span class="set-v">hello@mynutriapp.cloud</span>
+        </div>
+        <div class="set-row">
+          <span class="set-k">Privacy / DPO</span>
+          <span class="set-v">privacy@mynutriapp.cloud (placeholder)</span>
+        </div>
+        <div class="set-row">
+          <span class="set-k">Incidente privacy</span>
+          <span class="set-v">Segnalazione entro 24–72h (procedura placeholder)</span>
+        </div>
+      </div>
+      <div class="set-actions">
+        <a class="set-btn" href="mailto:hello@mynutriapp.cloud">Contatta supporto</a>
+        <button type="button" class="set-btn is-disabled" disabled>Apri ticket</button>
+        <button type="button" class="set-btn is-disabled" disabled>Segnala incidente</button>
+      </div>
+    </section>
+
+  </div>
 </div>
 
 {% endblock %}

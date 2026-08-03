@@ -168,6 +168,8 @@ def admin_impostazioni():
         flash("Account non trovato", "danger")
         return redirect(url_for("auth.login"))
 
+    from app.config.config import Config
+
     usage = get_subscription_usage(int(uid))
     status = (getattr(utente, "subscription_status", None) or "none").strip().lower()
     status_labels = {
@@ -187,6 +189,10 @@ def admin_impostazioni():
         subscription_status=status,
         subscription_status_label=status_labels.get(status, status),
         has_stripe_customer=bool(getattr(utente, "stripe_customer_id", None)),
+        privacy_policy_version=Config.PRIVACY_POLICY_VERSION,
+        patient_retention_days=Config.PATIENT_DATA_RETENTION_DAYS,
+        audio_retention_days=Config.AUDIO_RETENTION_DAYS,
+        audit_retention_days=Config.AUDIT_LOG_RETENTION_DAYS,
     )
 
 
