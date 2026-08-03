@@ -3,7 +3,7 @@
 {% block content %}
 
 {% set title = 'Messaggi' %}
-{% set subtitle = 'Invii WhatsApp, automazioni e template. Non è una chat bidirezionale.' %}
+{% set subtitle = 'Invii WhatsApp e automazioni. Non è una chat bidirezionale.' %}
 {% set primary_url = url_for('broadcast.nuovo_broadcast') %}
 {% set primary_label = 'Nuovo invio' %}
 {% include 'admin/partials/_page_header.html' %}
@@ -15,41 +15,30 @@
   <a class="msg-tab" href="#storico">Storico</a>
 </nav>
 
-<section id="invii" class="ops-panel" style="margin-bottom:1rem">
+<section id="invii" class="ops-panel" style="margin-bottom:0.85rem">
   <div class="ops-panel-head">
     <h2 class="ops-panel-title">Invii</h2>
+    <span class="text-sm text-muted">{{ stats.con_telefono }}/{{ stats.totale_pazienti }} con telefono</span>
   </div>
-  <p class="text-sm text-muted">Invia un messaggio personalizzato ai pazienti con telefono registrato.</p>
-  <div style="display:flex;gap:0.45rem;flex-wrap:wrap;margin-top:0.75rem">
-    <a class="btn btn-primary btn-small" href="{{ url_for('broadcast.nuovo_broadcast') }}">Componi messaggio</a>
-  </div>
-  <div class="ops-kpis" style="margin-top:1rem">
-    <div class="ops-kpi">
-      <div class="ops-kpi-num">{{ stats.totale_pazienti }}</div>
-      <div class="ops-kpi-label">Pazienti</div>
-    </div>
-    <div class="ops-kpi">
-      <div class="ops-kpi-num">{{ stats.con_telefono }}</div>
-      <div class="ops-kpi-label">Con telefono</div>
-    </div>
-  </div>
+  <p class="text-sm text-muted" style="margin:0 0 0.65rem">Messaggio personalizzato ai pazienti del tuo studio.</p>
+  <a class="btn btn-primary btn-small" href="{{ url_for('broadcast.nuovo_broadcast') }}">Componi messaggio</a>
 </section>
 
-<section id="automazioni" class="ops-panel" style="margin-bottom:1rem">
+<section id="automazioni" class="ops-panel" style="margin-bottom:0.85rem">
   <div class="ops-panel-head">
     <h2 class="ops-panel-title">Automazioni</h2>
     <a class="ops-panel-link" href="{{ url_for('broadcast.config_templates') }}">Modifica testi</a>
   </div>
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:0.65rem">
+  <div class="msg-auto-grid">
     {% for key, label, desc in [
       ('appuntamenti', 'Appuntamenti', 'Conferma / annullamento'),
       ('diete', 'Diete', 'Nuova dieta caricata'),
-      ('allenamenti', 'Allenamenti', 'Nuovo allenamento caricato'),
+      ('allenamenti', 'Allenamenti', 'Nuovo allenamento'),
       ('scadenze', 'Scadenze', 'Promemoria 10 giorni prima'),
     ] %}
-    <div style="padding:0.85rem;background:rgba(255,255,255,0.03);border:1px solid var(--adm-border-soft);border-radius:var(--adm-radius-sm)">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:0.5rem;margin-bottom:0.35rem">
-        <strong style="color:#eee;font-size:0.9rem">{{ label }}</strong>
+    <div class="msg-auto-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:0.5rem;margin-bottom:0.25rem">
+        <strong>{{ label }}</strong>
         <form method="POST" action="{{ url_for('broadcast.toggle_trigger', trigger_name=key) }}" style="margin:0">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
           <button type="submit" class="btn btn-ghost btn-small" aria-pressed="{{ 'true' if stats.trigger_stats[key] else 'false' }}">
@@ -63,16 +52,15 @@
   </div>
 </section>
 
-<section id="template" class="ops-panel" style="margin-bottom:1rem">
+<section id="template" class="ops-panel" style="margin-bottom:0.85rem">
   <div class="ops-panel-head">
     <h2 class="ops-panel-title">Template</h2>
-    <a class="btn btn-ghost btn-small" href="{{ url_for('broadcast.config_templates') }}">Configura</a>
+    <a class="ops-panel-link" href="{{ url_for('broadcast.config_templates') }}">Configura</a>
   </div>
-  <p class="text-sm text-muted" style="margin-bottom:0.75rem">Testi usati dalle automazioni. Variabili disponibili nella pagina di configurazione.</p>
   {% for key, tpl in trigger_templates.items() %}
-  <div style="padding:0.65rem 0;border-bottom:1px solid var(--adm-border-soft)">
+  <div style="padding:0.55rem 0;border-bottom:1px solid var(--adm-border-soft)">
     <div class="text-sm" style="color:var(--adm-accent);font-weight:650;text-transform:capitalize">{{ key }}</div>
-    <div class="text-sm text-muted" style="white-space:pre-wrap;margin-top:0.25rem">{{ tpl[:180] }}{% if tpl|length > 180 %}…{% endif %}</div>
+    <div class="text-sm text-muted" style="white-space:pre-wrap;margin-top:0.2rem">{{ tpl[:160] }}{% if tpl|length > 160 %}…{% endif %}</div>
   </div>
   {% endfor %}
 </section>
@@ -81,9 +69,10 @@
   <div class="ops-panel-head">
     <h2 class="ops-panel-title">Storico</h2>
   </div>
-  {% set title = 'Storico invii non ancora persistito' %}
-  {% set description = 'Gli invii WhatsApp passano da Evolution API. Uno storico locale dedicato non è ancora disponibile: usa i log del provider e le automazioni attive.' %}
-  {% include 'admin/partials/_empty_state.html' %}
+  <div class="adm-empty">
+    <div class="adm-empty-title">Storico non ancora disponibile</div>
+    <p class="adm-empty-desc">Gli invii passano da Evolution API. Uno storico locale dedicato non è ancora supportato.</p>
+  </div>
 </section>
 
 {% endblock %}
@@ -91,7 +80,7 @@
 {% block extra_scripts %}
 <script>
 document.querySelectorAll('.msg-tab').forEach(function (tab) {
-  tab.addEventListener('click', function (e) {
+  tab.addEventListener('click', function () {
     document.querySelectorAll('.msg-tab').forEach(function (t) { t.classList.remove('is-active'); });
     tab.classList.add('is-active');
   });

@@ -11,28 +11,28 @@
 <form method="GET" class="adm-filter-bar" action="{{ url_for('patients.lista_pazienti') }}">
   <div class="adm-search-inline">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-    <input type="search" name="search" value="{{ search_query }}" placeholder="Cerca nome, telefono, email…" aria-label="Cerca pazienti">
+    <input type="search" name="search" value="{{ search_query }}" placeholder="Filtra elenco…" aria-label="Filtra pazienti">
   </div>
   <input type="hidden" name="filtro" value="{{ filtro }}">
-  <label class="field" style="flex:none;margin:0;flex-direction:row;align-items:center;gap:0.4rem">
+  <label class="field">
     <span class="text-sm text-muted">Ordina</span>
-    <select name="sort" class="input-text" style="height:var(--adm-control-h);width:auto;min-width:140px" onchange="this.form.submit()">
+    <select name="sort" class="input-text" onchange="this.form.submit()" aria-label="Ordina pazienti">
       <option value="nome"{% if sort == 'nome' %} selected{% endif %}>Nome</option>
       <option value="ultima_visita"{% if sort == 'ultima_visita' %} selected{% endif %}>Ultima visita</option>
       <option value="prossimo_appuntamento"{% if sort == 'prossimo_appuntamento' %} selected{% endif %}>Prossimo appuntamento</option>
       <option value="creazione"{% if sort == 'creazione' %} selected{% endif %}>Data creazione</option>
     </select>
   </label>
-  <button type="submit" class="btn btn-ghost btn-small">Cerca</button>
+  <button type="submit" class="btn btn-ghost btn-small">Applica</button>
 </form>
 
-<div class="adm-filter-chips" style="margin-bottom:1rem">
-  <a class="adm-chip{% if filtro == 'tutti' %} is-active{% endif %}" href="{{ url_for('patients.lista_pazienti', filtro='tutti', search=search_query, sort=sort) }}">Tutti ({{ n_totali }})</a>
-  <a class="adm-chip{% if filtro == 'attivo' %} is-active{% endif %}" href="{{ url_for('patients.lista_pazienti', filtro='attivo', search=search_query, sort=sort) }}">Attivi ({{ n_attivi }})</a>
-  <a class="adm-chip{% if filtro == 'provvisorio' %} is-active{% endif %}" href="{{ url_for('patients.lista_pazienti', filtro='provvisorio', search=search_query, sort=sort) }}">Provvisori ({{ n_provvisori }})</a>
-  <a class="adm-chip{% if filtro == 'non_attivo' %} is-active{% endif %}" href="{{ url_for('patients.lista_pazienti', filtro='non_attivo', search=search_query, sort=sort) }}">Non attivi ({{ n_non_attivi }})</a>
-  <a class="adm-chip{% if filtro == 'senza_appuntamento' %} is-active{% endif %}" href="{{ url_for('patients.lista_pazienti', filtro='senza_appuntamento', search=search_query, sort=sort) }}">Senza appuntamento futuro</a>
-  <a class="adm-chip{% if filtro == 'con_attivita' %} is-active{% endif %}" href="{{ url_for('patients.lista_pazienti', filtro='con_attivita', search=search_query, sort=sort) }}">Con attività da completare</a>
+<div class="adm-filter-chips" style="margin-bottom:0.85rem" role="group" aria-label="Filtri stato">
+  <a class="adm-chip{% if filtro == 'tutti' %} is-active{% endif %}" href="{{ url_for('patients.lista_pazienti', filtro='tutti', search=search_query, sort=sort) }}">Tutti <span>{{ n_totali }}</span></a>
+  <a class="adm-chip{% if filtro == 'attivo' %} is-active{% endif %}" href="{{ url_for('patients.lista_pazienti', filtro='attivo', search=search_query, sort=sort) }}">Attivi <span>{{ n_attivi }}</span></a>
+  <a class="adm-chip{% if filtro == 'provvisorio' %} is-active{% endif %}" href="{{ url_for('patients.lista_pazienti', filtro='provvisorio', search=search_query, sort=sort) }}">Provvisori <span>{{ n_provvisori }}</span></a>
+  <a class="adm-chip{% if filtro == 'non_attivo' %} is-active{% endif %}" href="{{ url_for('patients.lista_pazienti', filtro='non_attivo', search=search_query, sort=sort) }}">Non attivi <span>{{ n_non_attivi }}</span></a>
+  <a class="adm-chip{% if filtro == 'senza_appuntamento' %} is-active{% endif %}" href="{{ url_for('patients.lista_pazienti', filtro='senza_appuntamento', search=search_query, sort=sort) }}">Senza appuntamento</a>
+  <a class="adm-chip{% if filtro == 'con_attivita' %} is-active{% endif %}" href="{{ url_for('patients.lista_pazienti', filtro='con_attivita', search=search_query, sort=sort) }}">Con attività</a>
 </div>
 
 {% if not rows %}

@@ -17,7 +17,7 @@
   </div>
 </div>
 
-<div class="ops-grid">
+<div class="ops-grid ops-grid--attivita">
   <section class="ops-panel">
     <div class="ops-panel-head">
       <h2 class="ops-panel-title">
@@ -26,15 +26,14 @@
         {% elif bucket == 'prossime' %}Prossime
         {% else %}Completate{% endif %}
       </h2>
-      <span class="text-sm text-muted">{{ items|length }} elementi</span>
+      <span class="text-sm text-muted">{{ items|length }}</span>
     </div>
 
     {% if not items %}
-      {% set title = 'Nessuna attività in questa vista' %}
-      {% set description = 'Quando ci sono diete in bozza, appuntamenti da confermare o scadenze, appariranno qui.' %}
-      {% set action_url = url_for('patients.lista_pazienti') %}
-      {% set action_label = 'Vai ai pazienti' %}
-      {% include 'admin/partials/_empty_state.html' %}
+    <div class="adm-empty">
+      <div class="adm-empty-title">Nessuna attività qui</div>
+      <p class="adm-empty-desc">Bozze, conferme e scadenze compariranno automaticamente.</p>
+    </div>
     {% else %}
     <ul class="ops-list">
       {% for it in items %}
@@ -49,7 +48,7 @@
               {% endif %}
               <span>{{ it.tipo|replace('_', ' ') }}</span>
               {% if it.due_at %} · {{ it.due_at.strftime('%d/%m/%Y %H:%M') }}{% endif %}
-              {% if it.source == 'auto' %} · automatica{% endif %}
+              {% if it.source == 'auto' %} · auto{% endif %}
             </div>
           </div>
         </div>
@@ -77,7 +76,7 @@
     {% endif %}
   </section>
 
-  <section class="ops-panel">
+  <section class="ops-panel ops-panel--form">
     <div class="ops-panel-head">
       <h2 class="ops-panel-title">Nuova attività</h2>
     </div>
@@ -86,7 +85,7 @@
       <label class="field">Titolo
         <input class="input-text" type="text" name="title" required maxlength="255" placeholder="Es. Ricontattare per check">
       </label>
-      <label class="field">Paziente (opzionale)
+      <label class="field">Paziente
         <select class="input-text" name="patient_id">
           <option value="">— Nessuno —</option>
           {% for p in pazienti %}
@@ -105,9 +104,9 @@
         </select>
       </label>
       <label class="field">Note
-        <textarea class="input-text" name="notes" rows="3"></textarea>
+        <textarea class="input-text" name="notes" rows="2"></textarea>
       </label>
-      <button type="submit" class="btn btn-primary btn-small">Crea attività</button>
+      <button type="submit" class="btn btn-primary btn-small">Crea</button>
     </form>
   </section>
 </div>

@@ -2599,3 +2599,267 @@
   .adm-table tbody tr,
   .gs-field { transition: none; }
 }
+
+/* === DESIGN FIX: link, densità, controlli === */
+.admin-app,
+.admin-app * {
+  color-scheme: dark;
+}
+
+.admin-app a,
+.admin-app a:link,
+.admin-app a:visited {
+  color: var(--adm-text-muted);
+  text-decoration: none;
+}
+.admin-app a:hover {
+  color: var(--adm-accent);
+}
+
+.admin-app .ops-panel-link,
+.admin-app .ops-panel-link:link,
+.admin-app .ops-panel-link:visited {
+  color: var(--adm-accent) !important;
+  font-size: 0.78rem;
+  font-weight: 650;
+  text-decoration: none !important;
+}
+.admin-app .ops-panel-link:hover {
+  color: var(--adm-accent-hover) !important;
+  text-decoration: underline !important;
+}
+
+.admin-app .adm-chip,
+.admin-app .adm-chip:link,
+.admin-app .adm-chip:visited {
+  color: var(--adm-text-dim) !important;
+  text-decoration: none !important;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--adm-border-soft);
+}
+.admin-app .adm-chip:hover {
+  color: #fff !important;
+  background: rgba(255,255,255,0.08);
+  border-color: var(--adm-border);
+}
+.admin-app .adm-chip.is-active,
+.admin-app .adm-chip.is-active:link,
+.admin-app .adm-chip.is-active:visited {
+  color: var(--adm-accent) !important;
+  background: var(--adm-accent-soft) !important;
+  border-color: rgba(255,154,86,0.35) !important;
+}
+.admin-app .adm-chip span {
+  opacity: 0.75;
+  font-weight: 500;
+  margin-left: 0.15rem;
+}
+
+.admin-app .msg-tab,
+.admin-app .msg-tab:link,
+.admin-app .msg-tab:visited {
+  color: var(--adm-text-dim) !important;
+  text-decoration: none !important;
+}
+.admin-app .msg-tab:hover { color: #fff !important; }
+.admin-app .msg-tab.is-active,
+.admin-app .msg-tab.is-active:link,
+.admin-app .msg-tab.is-active:visited {
+  color: var(--adm-accent) !important;
+  border-bottom-color: var(--adm-accent);
+}
+
+.admin-app .ops-item-meta a,
+.admin-app .ops-item-meta a:link,
+.admin-app .ops-item-meta a:visited,
+.admin-app .activity-item a:not(.btn),
+.admin-app .activity-item a:not(.btn):link,
+.admin-app .activity-item a:not(.btn):visited {
+  color: var(--adm-text-muted) !important;
+  text-decoration: none !important;
+  font-weight: 600;
+}
+.admin-app .ops-item-meta a:hover,
+.admin-app .activity-item a:not(.btn):hover {
+  color: var(--adm-accent) !important;
+}
+
+.admin-app .btn,
+.admin-app .btn:link,
+.admin-app .btn:visited {
+  text-decoration: none !important;
+}
+.admin-app .btn-primary,
+.admin-app .btn-primary:link,
+.admin-app .btn-primary:visited {
+  color: #1a1208 !important;
+}
+.admin-app .btn-ghost,
+.admin-app .btn-ghost:link,
+.admin-app .btn-ghost:visited {
+  color: var(--adm-text-muted) !important;
+}
+.admin-app .btn-ghost:hover {
+  color: #fff !important;
+}
+
+/* Empty state più compatto */
+.adm-empty {
+  text-align: left;
+  padding: 0.85rem 0.15rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.adm-empty-title {
+  font: 600 0.9rem var(--adm-font);
+  color: var(--adm-text-muted);
+  margin-bottom: 0.25rem;
+}
+.adm-empty-desc {
+  margin: 0 0 0.65rem;
+  color: var(--adm-label);
+  font-size: 0.82rem;
+  line-height: 1.4;
+  max-width: 28rem;
+}
+
+/* Controlli form coerenti dark */
+.admin-app .gs-input,
+.admin-app .adm-search-inline input,
+.admin-app input[type="search"],
+.admin-app input[type="text"],
+.admin-app input[type="datetime-local"],
+.admin-app select.input-text,
+.admin-app .field .input-text,
+.admin-app textarea.input-text {
+  background: rgba(255,255,255,0.06) !important;
+  color: var(--adm-text) !important;
+  border-color: var(--adm-border-soft) !important;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.admin-app .gs-input {
+  background: transparent !important;
+  border: 0 !important;
+}
+.admin-app select.input-text,
+.admin-app .adm-filter-bar select {
+  height: var(--adm-control-h);
+  padding: 0 2rem 0 0.75rem !important;
+  min-width: 140px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a3a3a3' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.7rem center;
+}
+
+.admin-app .adm-filter-bar .field {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0 0.15rem 0 0.65rem;
+  height: var(--adm-control-h);
+  border-radius: var(--adm-radius-sm);
+  border: 1px solid var(--adm-border-soft);
+  background: rgba(255,255,255,0.04);
+}
+.admin-app .adm-filter-bar .field select {
+  border: 0 !important;
+  background-color: transparent !important;
+  height: 100%;
+  box-shadow: none !important;
+}
+
+/* Dashboard densità */
+.ops-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+}
+.ops-panel {
+  min-height: 0;
+}
+.ops-item {
+  padding: 0.5rem 0;
+}
+.ops-item-actions .btn-small {
+  padding: 0.28rem 0.55rem;
+  font-size: 0.75rem;
+}
+.ops-kpis {
+  margin-top: 0.75rem;
+}
+.ops-kpi {
+  padding: 0.45rem 0.65rem;
+}
+.ops-kpi-num { font-size: 1rem; }
+
+.adm-page-header {
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.65rem;
+}
+.adm-page-header-title {
+  font-size: 1.25rem;
+}
+
+/* Attività: form non full-bleed */
+.ops-grid--attivita {
+  grid-template-columns: minmax(0, 1.5fr) minmax(260px, 0.85fr);
+}
+.ops-panel--form .form-stack {
+  max-width: 100%;
+}
+.ops-panel--form .field {
+  font-size: 0.8rem;
+  color: var(--adm-text-dim);
+}
+.ops-panel--form .input-text {
+  width: 100%;
+}
+
+/* Messaggi: meno ripetizione */
+.msg-hero-actions {
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+.msg-auto-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+.msg-auto-card {
+  padding: 0.75rem 0.85rem;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--adm-border-soft);
+  border-radius: var(--adm-radius-sm);
+}
+.msg-auto-card strong {
+  color: #eee;
+  font-size: 0.88rem;
+}
+
+/* Hamburger solo tablet/mobile */
+.admin-sidebar-toggle {
+  display: none !important;
+}
+@media (max-width: 960px) {
+  .admin-sidebar-toggle {
+    display: inline-flex !important;
+  }
+  .ops-grid,
+  .ops-grid--attivita {
+    grid-template-columns: 1fr;
+  }
+  .msg-auto-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 961px) {
+  .ops-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+  }
+}

@@ -66,11 +66,11 @@
       {% endfor %}
     </ul>
     {% else %}
-      {% set title = 'Nessun appuntamento oggi' %}
-      {% set description = 'Usa le attività o i pazienti recenti per organizzare la giornata.' %}
-      {% set action_url = url_for('appuntamenti.nuovo_admin') %}
-      {% set action_label = 'Fissa appuntamento' %}
-      {% include 'admin/partials/_empty_state.html' %}
+    <div class="adm-empty">
+      <div class="adm-empty-title">Nessun appuntamento oggi</div>
+      <p class="adm-empty-desc">Organizza la giornata dalle attività o fissa un appuntamento.</p>
+      <a href="{{ url_for('appuntamenti.nuovo_admin') }}" class="btn btn-primary btn-small">Fissa appuntamento</a>
+    </div>
     {% endif %}
   </section>
 
