@@ -32,11 +32,14 @@ BUNDLE_ID="com.mynutriapp.mynutriApp"
 API_BASE_URL="${API_BASE_URL:-https://stage.mynutriapp.cloud}"
 USE_MOCK_DATA="${USE_MOCK_DATA:-false}"
 
-# DerivedData dedicata (come da piano): mai la DerivedData globale di Xcode
-DERIVED_DATA="$APP_DIR/build/ios/DerivedData"
+# DerivedData dedicata al progetto, MAI sotto Desktop/iCloud (resource fork → codesign fail)
+# e mai la DerivedData globale Xcode Runner-*.
+DERIVED_DATA="${HOME}/Library/Caches/mynutriapp-ios-DerivedData"
 LOG_DIR="$APP_DIR/build"
 BUILD_LOG="$LOG_DIR/w-xcode-build.log"
 LAUNCH_LOG="$LOG_DIR/w-launch.log"
+# Link locale per ispezione (opzionale; la build usa sempre DERIVED_DATA in Caches)
+LOCAL_DD_LINK="$APP_DIR/build/ios/DerivedData"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -72,27 +75,35 @@ command -v xcrun >/dev/null 2>&1 || die "xcrun/Xcode non trovato"
 command -v pod >/dev/null 2>&1 || die "CocoaPods (pod) non trovato — installa con: sudo gem install cocoapods"
 command -v xcodebuild >/dev/null 2>&1 || die "xcodebuild non trovato"
 
-# Desktop/iCloud aggiunge spesso xattr → codesign su Flutter.framework fallisce
+# Desktop/iCloud: ok per i sorgenti se DerivedData è in ~/Library/Caches;
+# meglio comunque lavorare da ~/dev/mynutriapp.
 case "$APP_DIR" in
   */Desktop/*|*/Desktop|*/Library/Mobile\ Documents/*|*/iCloudDrive/*)
-    log "Avviso: progetto sotto Desktop/iCloud ($APP_DIR). Se il build fallisce ancora, spostalo fuori da iCloud (es. ~/dev/)."
+    log "Avviso: sorgenti sotto Desktop/iCloud. DerivedData → $DERIVED_DATA (Caches). Consigliato: ~/dev/mynutriapp"
     ;;
 esac
 
-mkdir -p "$LOG_DIR"
+mkdir -p "$LOG_DIR" "$(dirname "$DERIVED_DATA")"
 
 # ── 1) Codice ───────────────────────────────────────────────────────
 if [[ "$DO_PULL" -eq 1 ]]; then
   log "Git pull"
-  (cd "$REPO_ROOT" && git pull --ff-only) || log "Git pull saltato/fallito (continuo)"
+  (
+    cd "$REPO_ROOT"
+    # pod install sporca pbxproj: ripristina prima del pull per non abortire
+    git checkout -- mobile_app/ios/Runner.xcodeproj/project.pbxproj 2>/dev/null || true
+    git checkout -- mobile_app/ios/Podfile.lock 2>/dev/null || true
+    git pull --ff-only
+  ) || log "Git pull saltato/fallito (continuo con il tree locale)"
 fi
 cd "$APP_DIR"
 
 # ── 2) Clean ────────────────────────────────────────────────────────
 if [[ "$DO_CLEAN" -eq 1 ]]; then
-  log "Clean Flutter + DerivedData di progetto + Pods"
+  log "Clean Flutter + DerivedData dedicata + Pods"
   flutter clean
   rm -rf "$DERIVED_DATA" \
+         "$LOCAL_DD_LINK" \
          "$APP_DIR/build/ios" \
          "$APP_DIR/ios/Pods" \
          "$APP_DIR/ios/.symlinks" \
@@ -223,8 +234,9 @@ flutter build ios --simulator --debug --config-only --no-pub \
   --dart-define="USE_MOCK_DATA=$USE_MOCK_DATA" \
   ${EXTRA_ARGS[@]+"${EXTRA_ARGS[@]}"}
 
-rm -rf "$DERIVED_DATA"
-mkdir -p "$DERIVED_DATA"
+rm -rf "$DERIVED_DATA" "$LOCAL_DD_LINK"
+mkdir -p "$DERIVED_DATA" "$(dirname "$LOCAL_DD_LINK")"
+ln -sfn "$DERIVED_DATA" "$LOCAL_DD_LINK"
 
 # Pulisci xattr su engine Flutter + output: evita
 # "Failed to codesign Flutter.framework ... resource fork ... not allowed"
@@ -296,7 +308,7 @@ if [[ "$BUILD_RC" -ne 0 ]]; then
     || tail -n 40 "$BUILD_LOG"
   echo "========================================================"
   if grep -qiE 'resource fork|Failed to codesign' "$BUILD_LOG"; then
-    echo "Suggerimento: il progetto è su Desktop/iCloud. Spostalo in ~/dev/mynutriapp e riprova." >&2
+    echo "Suggerimento: DerivedData deve stare fuori da iCloud ($DERIVED_DATA). Poi: xattr -cr \"\$(dirname \"\$(dirname \"\$(which flutter)\")\")/bin/cache/artifacts/engine\"" >&2
   fi
   die "xcodebuild fallito (exit $BUILD_RC)"
 fi
