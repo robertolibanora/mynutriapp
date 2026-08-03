@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Avvia / rebuilda MyNutriApp sul simulatore Apple (iOS).
-# Uso:
-#   ./w.sh              → git pull + pub get + run sul simulator
-#   ./w.sh rebuild      → pull + clean + pods + rebuild + run
-#   ./w.sh --device "iPhone 16"   → device specifico
+# MyNutriApp → un solo comando per aggiornare e aprire sul simulatore iOS.
 #
-# Funziona dalla root del repo o da mobile_app/.
+# Uso (da mobile_app/ o dalla root del repo):
+#   ./w.sh              → pull + build + run
+#   ./w.sh rebuild      → pull + clean + pods + build + run
+#   ./w.sh --device ID  → forza un device specifico
+#
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -23,6 +23,7 @@ fi
 REBUILD=0
 DEVICE=""
 EXTRA_ARGS=()
+BUNDLE_ID="com.mynutriapp.mynutriApp"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -32,7 +33,7 @@ while [[ $# -gt 0 ]]; do
       ;;
     --device|-d)
       DEVICE="${2:-}"
-      [[ -n "$DEVICE" ]] || { echo "Errore: --device richiede un nome"; exit 1; }
+      [[ -n "$DEVICE" ]] || { echo "Errore: --device richiede un nome/id"; exit 1; }
       shift 2
       ;;
     *)
@@ -42,16 +43,17 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if ! command -v flutter >/dev/null 2>&1; then
-  echo "Errore: flutter non trovato nel PATH"
-  exit 1
-fi
+log() { echo "→ $*"; }
+die() { echo "Errore: $*" >&2; exit 1; }
+
+command -v flutter >/dev/null 2>&1 || die "flutter non trovato nel PATH"
 
 if [[ "$(uname -s)" != "Darwin" ]]; then
   echo "Avviso: il simulatore iOS richiede macOS (ora: $(uname -s))"
 fi
 
-echo "→ Git pull"
+# ── 1) Aggiorna codice ──────────────────────────────────────────────
+log "Git pull"
 (
   cd "$REPO_ROOT"
   git pull --ff-only
@@ -59,109 +61,126 @@ echo "→ Git pull"
 
 cd "$APP_DIR"
 
-echo "→ Flutter pub get"
+# ── 2) Dipendenze / rebuild ─────────────────────────────────────────
+log "Flutter pub get"
 flutter pub get
 
 if [[ "$REBUILD" -eq 1 ]]; then
-  echo "→ Clean rebuild"
+  log "Clean rebuild"
   flutter clean
   flutter pub get
-  if [[ -d ios ]]; then
-    echo "→ CocoaPods"
-    (
-      cd ios
-      if command -v pod >/dev/null 2>&1; then
-        pod install --repo-update
-      else
-        echo "Avviso: pod non trovato, salto pod install"
-      fi
-    )
+  if [[ -d ios ]] && command -v pod >/dev/null 2>&1; then
+    log "CocoaPods"
+    (cd ios && pod install --repo-update)
   fi
 fi
 
-pick_ios_simulator() {
-  # Usa JSON di flutter (affidabile); fallback su UUID nel testo.
-  local id=""
-  if command -v python3 >/dev/null 2>&1; then
-    id="$(
-      flutter devices --machine 2>/dev/null | python3 -c '
-import json, sys
-try:
-    devices = json.load(sys.stdin)
-except Exception:
-    sys.exit(0)
-# Preferisci iPhone simulator
-for d in devices:
-    if d.get("targetPlatform") != "ios":
-        continue
-    if not d.get("emulator", False):
-        continue
-    name = d.get("name") or ""
-    if "iPhone" in name:
-        print(d.get("id", ""))
-        sys.exit(0)
-for d in devices:
-    if d.get("targetPlatform") == "ios" and d.get("emulator", False):
-        print(d.get("id", ""))
-        sys.exit(0)
-' 2>/dev/null || true
-    )"
-  fi
-  if [[ -z "$id" ]]; then
-    id="$(
-      flutter devices 2>/dev/null \
-        | grep -E 'iPhone|simulator' \
-        | grep -Eo '[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12}' \
+# ── 3) Simulatore: uno solo, pulito, pronto ─────────────────────────
+uuid_re='[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12}'
+
+pick_available_iphone() {
+  # Preferisci "iPhone 17" semplice, poi qualsiasi iPhone available.
+  local line id
+  line="$(
+    xcrun simctl list devices available 2>/dev/null \
+      | grep -E 'iPhone' \
+      | grep -vi 'unavailable' \
+      | grep -E 'iPhone 17 \(' \
+      | head -n1 || true
+  )"
+  if [[ -z "$line" ]]; then
+    line="$(
+      xcrun simctl list devices available 2>/dev/null \
+        | grep -E 'iPhone' \
+        | grep -vi 'unavailable' \
         | head -n1 || true
     )"
   fi
+  id="$(printf '%s' "$line" | grep -Eo "$uuid_re" | head -n1 || true)"
   printf '%s' "$id"
 }
 
-# Avvia il Simulator se disponibile
-if command -v open >/dev/null 2>&1 && [[ "$(uname -s)" == "Darwin" ]]; then
-  open -a Simulator 2>/dev/null || true
-  # Se nessun sim è booted, avvia un iPhone di default
-  if command -v xcrun >/dev/null 2>&1; then
-    if ! xcrun simctl list devices booted 2>/dev/null | grep -q 'Booted'; then
-      BOOT_UDID="$(
-        xcrun simctl list devices available 2>/dev/null \
-          | grep -E 'iPhone' \
-          | grep -Eo '[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12}' \
-          | head -n1 || true
-      )"
-      if [[ -n "${BOOT_UDID:-}" ]]; then
-        echo "→ Boot simulator $BOOT_UDID"
-        xcrun simctl boot "$BOOT_UDID" 2>/dev/null || true
-      fi
+wait_flutter_device() {
+  local want="$1" found=""
+  local i
+  for i in $(seq 1 30); do
+    if flutter devices 2>/dev/null | grep -q "$want"; then
+      found="$want"
+      break
     fi
-  fi
-fi
-
-# Scegli device iOS (attendi che Flutter lo veda)
-TARGET=""
-if [[ -n "$DEVICE" ]]; then
-  TARGET="$DEVICE"
-else
-  echo "→ Cerco simulatore iOS..."
-  for _ in 1 2 3 4 5 6 7 8 9 10; do
-    TARGET="$(pick_ios_simulator)"
-    [[ -n "$TARGET" ]] && break
     sleep 1
   done
-fi
+  printf '%s' "$found"
+}
 
-if [[ -z "$TARGET" ]]; then
-  echo "Errore: nessun simulatore iOS trovato."
-  echo "Apri Xcode → Open Developer Tool → Simulator, poi riprova."
-  flutter devices || true
-  exit 1
-fi
+TARGET=""
 
-echo "→ Run su iOS simulator (device: $TARGET)"
-# macOS bash + set -u: array vuoto → unbound variable
-if [[ ${#EXTRA_ARGS[@]} -gt 0 ]]; then
-  exec flutter run -d "$TARGET" "${EXTRA_ARGS[@]}"
+if [[ -n "$DEVICE" ]]; then
+  TARGET="$DEVICE"
+elif [[ "$(uname -s)" == "Darwin" ]] && command -v xcrun >/dev/null 2>&1; then
+  log "Reset simulatori (ne resta uno solo)"
+  # Chiudi tutto per evitare il bug "No such process" su sim appena creati/secondari
+  xcrun simctl shutdown all 2>/dev/null || true
+  # Chiudi anche l'app Simulator se aperta (stato pulito)
+  osascript -e 'quit app "Simulator"' 2>/dev/null || true
+  sleep 1
+
+  TARGET="$(pick_available_iphone)"
+  [[ -n "$TARGET" ]] || die "nessun iPhone simulator disponibile (apri Xcode una volta)"
+
+  log "Boot $TARGET"
+  open -a Simulator --args -CurrentDeviceUDID "$TARGET" 2>/dev/null || open -a Simulator
+  xcrun simctl boot "$TARGET" 2>/dev/null || true
+
+  log "Attendo boot completo"
+  xcrun simctl bootstatus "$TARGET" -b
+
+  log "Pulisco app precedente sul sim"
+  xcrun simctl terminate "$TARGET" "$BUNDLE_ID" 2>/dev/null || true
+  xcrun simctl uninstall "$TARGET" "$BUNDLE_ID" 2>/dev/null || true
+
+  log "Attendo che Flutter veda il device"
+  if [[ -z "$(wait_flutter_device "$TARGET")" ]]; then
+    echo "Avviso: Flutter non elenca ancora $TARGET, provo comunque..."
+  fi
 else
-  exec flutter run -d "$TARGET"
+  # Fallback non-Darwin / senza xcrun
+  TARGET="$(
+    flutter devices 2>/dev/null \
+      | grep -E 'iPhone|simulator' \
+      | grep -Eo "$uuid_re" \
+      | head -n1 || true
+  )"
+  [[ -n "$TARGET" ]] || TARGET="iphone"
+fi
+
+[[ -n "$TARGET" ]] || die "nessun simulatore iOS trovato"
+
+# ── 4) Build + run (con retry) ──────────────────────────────────────
+run_flutter() {
+  log "Run su iOS simulator (device: $TARGET)"
+  if [[ ${#EXTRA_ARGS[@]} -gt 0 ]]; then
+    flutter run -d "$TARGET" --no-pub "${EXTRA_ARGS[@]}"
+  else
+    flutter run -d "$TARGET" --no-pub
+  fi
+}
+
+recover_and_retry() {
+  log "Launch fallito — recovery e secondo tentativo"
+  if command -v xcrun >/dev/null 2>&1 && [[ "$TARGET" =~ ^[A-Fa-f0-9-]{36}$ ]]; then
+    xcrun simctl terminate "$TARGET" "$BUNDLE_ID" 2>/dev/null || true
+    xcrun simctl uninstall "$TARGET" "$BUNDLE_ID" 2>/dev/null || true
+    xcrun simctl shutdown "$TARGET" 2>/dev/null || true
+    sleep 1
+    xcrun simctl boot "$TARGET" 2>/dev/null || true
+    xcrun simctl bootstatus "$TARGET" -b
+    open -a Simulator 2>/dev/null || true
+    sleep 2
+  fi
+  run_flutter
+}
+
+if ! run_flutter; then
+  recover_and_retry
 fi
