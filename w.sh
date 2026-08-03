@@ -136,22 +136,25 @@ wait_until_booted() {
 }
 
 ensure_simulator() {
-  local id="$1"
+  local id="$1" other
   log "Preparo simulator $id"
   open -a Simulator >/dev/null 2>&1 || true
 
   if ! is_booted "$id"; then
-    # Non spegnere TUTTI i sim se quello giusto è già su; spegni solo gli altri
-    xcrun simctl list devices booted 2>/dev/null \
-      | grep -Eo "$uuid_re" \
-      | while read -r other; do
-          [[ "$other" == "$id" ]] && continue
-          xcrun simctl shutdown "$other" 2>/dev/null || true
-        done
+    # Spegni eventuali altri sim booted (|| true: grep esce 1 se lista vuota)
+    while IFS= read -r other; do
+      [[ -z "$other" || "$other" == "$id" ]] && continue
+      log "Shutdown altro sim $other"
+      xcrun simctl shutdown "$other" 2>/dev/null || true
+    done < <(xcrun simctl list devices booted 2>/dev/null | grep -Eo "$uuid_re" || true)
+
+    log "Boot $id"
     xcrun simctl boot "$id" 2>/dev/null || true
+  else
+    log "Simulator già Booted"
   fi
 
-  # bootstatus è rumoroso e a volte buggato (4294967295): usiamo lo stato Booted
+  # Non usare bootstatus (spesso Status=4294967295 anche se ok)
   log "Attendo che il sim sia Booted"
   if ! wait_until_booted "$id"; then
     log "Boot lento — erase + reboot"
@@ -162,6 +165,7 @@ ensure_simulator() {
     wait_until_booted "$id" || die "simulatore non boota ($id)"
   fi
 
+  log "Sim pronto — pulisco app precedente"
   xcrun simctl terminate "$id" "$BUNDLE_ID" 2>/dev/null || true
   xcrun simctl uninstall "$id" "$BUNDLE_ID" 2>/dev/null || true
 }
