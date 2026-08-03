@@ -28,7 +28,7 @@ Su Mac, il flusso consigliato:
 # clean → pod install → xcodebuild (DerivedData dedicata) → simctl install → launch
 ```
 
-DerivedData del progetto: `mobile_app/build/ios_derived_data` (mai la DerivedData globale di Xcode).
+DerivedData del progetto: `mobile_app/build/ios/DerivedData` (mai la DerivedData globale di Xcode).
 
 ## Ambiente
 

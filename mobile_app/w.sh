@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # MyNutriApp iOS — clean → CocoaPods → build → install → launch
 #
-# Usa SEMPRE una DerivedData dedicata al progetto e installa sul simulatore
-# esclusivamente la Runner.app appena compilata (nessun artefatto stale).
+# Usa SEMPRE DerivedData di progetto e installa sul simulatore
+# esclusivamente la Runner.app appena compilata.
 #
-# Uso (da root repo o da mobile_app/):
+# Uso (da repo root o da mobile_app/):
 #   ./w.sh              → clean + build + install + launch
 #   ./w.sh --no-clean   → skip flutter clean
 #   ./w.sh --device ID  → forza simulatore (UDID o nome)
@@ -26,14 +26,14 @@ fi
 
 DO_CLEAN=1
 DO_PULL=1
-DEVICE=""
+DEVICE="${SIM_ID:-}"
 EXTRA_ARGS=()
 BUNDLE_ID="com.mynutriapp.mynutriApp"
 API_BASE_URL="${API_BASE_URL:-https://stage.mynutriapp.cloud}"
 USE_MOCK_DATA="${USE_MOCK_DATA:-false}"
 
-# DerivedData SEMPRE sotto il progetto (mai ~/Library/Developer/Xcode/DerivedData di default)
-DERIVED_DATA="$APP_DIR/build/ios_derived_data"
+# DerivedData dedicata (come da piano): mai la DerivedData globale di Xcode
+DERIVED_DATA="$APP_DIR/build/ios/DerivedData"
 LOG_DIR="$APP_DIR/build"
 BUILD_LOG="$LOG_DIR/w-xcode-build.log"
 LAUNCH_LOG="$LOG_DIR/w-launch.log"
@@ -73,7 +73,7 @@ cd "$APP_DIR"
 
 # ── 2) Clean ────────────────────────────────────────────────────────
 if [[ "$DO_CLEAN" -eq 1 ]]; then
-  log "Clean Flutter + DerivedData dedicata + Pods"
+  log "Clean Flutter + DerivedData di progetto + Pods"
   flutter clean
   rm -rf "$DERIVED_DATA" \
          "$APP_DIR/build/ios" \
@@ -82,12 +82,9 @@ if [[ "$DO_CLEAN" -eq 1 ]]; then
          "$APP_DIR/ios/Flutter/ephemeral/Packages" \
          "$APP_DIR/ios/Runner.xcworkspace/xcshareddata/swiftpm" \
          "$APP_DIR/ios/Runner.xcodeproj/project.xcworkspace/xcshareddata/swiftpm"
-  rm -f "$APP_DIR/ios/Podfile.lock" \
-        "$APP_DIR/ios/Flutter/Flutter.podspec" \
+  rm -f "$APP_DIR/ios/Flutter/Flutter.podspec" \
         "$APP_DIR/ios/Flutter/Generated.xcconfig" \
         "$APP_DIR/ios/Flutter/flutter_export_environment.sh"
-  # Evita contaminazione da DerivedData globale di build precedenti
-  rm -rf "${HOME}/Library/Developer/Xcode/DerivedData/Runner-"* 2>/dev/null || true
 fi
 
 # ── 3) Dipendenze Flutter + CocoaPods ───────────────────────────────
@@ -109,6 +106,12 @@ log "pod install (CocoaPods — unico gestore dipendenze iOS)"
 [[ -d "$APP_DIR/ios/Pods" ]] || die "Pods/ non generato — pod install fallito"
 [[ -f "$APP_DIR/ios/Pods/Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig" ]] \
   || die "Pods-Runner.debug.xcconfig mancante"
+
+# Verifica che CocoaPods abbia aggiunto la fase di embed
+if ! grep -q 'Embed Pods Frameworks' "$APP_DIR/ios/Runner.xcodeproj/project.pbxproj" \
+   && ! grep -rq 'Embed Pods Frameworks' "$APP_DIR/ios/Pods" 2>/dev/null; then
+  log "Avviso: stringa Embed Pods Frameworks non trovata (verifico comunque Frameworks/ dopo build)"
+fi
 
 # ── 4) Simulatore ───────────────────────────────────────────────────
 uuid_re='[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12}'
@@ -190,15 +193,14 @@ fi
 if [[ "$TARGET" =~ ^[A-Fa-f0-9-]{36}$ ]]; then
   ensure_simulator "$TARGET"
   DEST="platform=iOS Simulator,id=$TARGET"
-  SIM_ID="$TARGET"
+  SIM_UDID="$TARGET"
 else
   DEST="platform=iOS Simulator,name=$TARGET"
-  SIM_ID=""
+  SIM_UDID=""
 fi
 
 # ── 5) Build (DerivedData dedicata) ─────────────────────────────────
-log "Preparo config Flutter (dart-define)"
-# shellcheck disable=SC2086
+log "Preparo config Flutter (dart-define staging)"
 flutter build ios --simulator --debug --config-only --no-pub \
   --dart-define="API_BASE_URL=$API_BASE_URL" \
   --dart-define="USE_MOCK_DATA=$USE_MOCK_DATA" \
@@ -243,34 +245,38 @@ if [[ ! -d "$APP" ]]; then
 fi
 [[ -n "${APP:-}" && -d "$APP" ]] || die "Runner.app non trovata sotto $DERIVED_DATA"
 [[ -f "$APP/Info.plist" ]] || die "Runner.app incompleta: $APP"
-[[ "$APP" == "$DERIVED_DATA"* ]] || die "Rifiuto install: $APP non è sotto la DerivedData dedicata"
+case "$APP" in
+  "$DERIVED_DATA"*) ;;
+  *) die "Rifiuto install: $APP non è sotto la DerivedData dedicata" ;;
+esac
 
 log "Build pronta: $APP"
 
-# Con linkage statico DK non deve restare un dylib dinamico orfano.
-if otool -L "$APP/Runner" 2>/dev/null | grep -q 'DKImagePickerController\.framework'; then
-  if [[ ! -d "$APP/Frameworks/DKImagePickerController.framework" ]]; then
-    die "DKImagePickerController linkato dinamicamente ma assente da Runner.app/Frameworks"
-  fi
-  log "OK: DKImagePickerController.framework presente in Runner.app/Frameworks"
-else
-  log "OK: nessun load path dinamico verso DKImagePickerController (linkage statico)"
+# Verifica post-build obbligatoria (piano): DK deve essere embeddato
+DK_FW="$APP/Frameworks/DKImagePickerController.framework"
+if [[ ! -d "$DK_FW" ]]; then
+  echo "---- Contenuto Frameworks/ ----"
+  ls -la "$APP/Frameworks" 2>/dev/null || echo "(nessuna cartella Frameworks)"
+  echo "---- otool -L Runner (DK*) ----"
+  otool -L "$APP/Runner" 2>/dev/null | grep -i DK || true
+  die "Manca $DK_FW — [CP] Embed Pods Frameworks non ha incorporato DKImagePickerController"
 fi
+log "OK: trovato $DK_FW"
 
 # ── 7) Install + launch (solo questa build) ─────────────────────────
-if [[ -z "$SIM_ID" ]]; then
-  SIM_ID="$(xcrun simctl list devices booted | grep -Eo "$uuid_re" | head -n 1 || true)"
-  [[ -n "$SIM_ID" ]] || die "nessun simulatore booted per install"
+if [[ -z "${SIM_UDID:-}" ]]; then
+  SIM_UDID="$(xcrun simctl list devices booted | grep -Eo "$uuid_re" | head -n 1 || true)"
+  [[ -n "$SIM_UDID" ]] || die "nessun simulatore booted per install"
 fi
 
 log "Install esclusivo della build appena compilata"
-xcrun simctl uninstall "$SIM_ID" "$BUNDLE_ID" 2>/dev/null || true
-xcrun simctl install "$SIM_ID" "$APP"
+xcrun simctl uninstall "$SIM_UDID" "$BUNDLE_ID" 2>/dev/null || true
+xcrun simctl install "$SIM_UDID" "$APP"
 
 log "Launch $BUNDLE_ID"
 : >"$LAUNCH_LOG"
 set +e
-LAUNCH_OUT="$(xcrun simctl launch "$SIM_ID" "$BUNDLE_ID" 2>&1)"
+LAUNCH_OUT="$(xcrun simctl launch "$SIM_UDID" "$BUNDLE_ID" 2>&1)"
 LAUNCH_RC=$?
 printf '%s\n' "$LAUNCH_OUT" | tee "$LAUNCH_LOG"
 set -e
@@ -279,25 +285,21 @@ if [[ "$LAUNCH_RC" -ne 0 ]]; then
   die "simctl launch fallito: $LAUNCH_OUT"
 fi
 
-# Attendi e verifica che il processo non sia crashato (dyld missing framework)
 sleep 3
 APP_PID="$(printf '%s\n' "$LAUNCH_OUT" | awk '{print $NF}' | tr -cd '0-9')"
 STILL_ALIVE=0
-if [[ -n "$APP_PID" ]]; then
-  if xcrun simctl spawn "$SIM_ID" launchctl print "pid/$APP_PID" >/dev/null 2>&1; then
-    STILL_ALIVE=1
-  fi
+if [[ -n "$APP_PID" ]] && xcrun simctl spawn "$SIM_UDID" launchctl print "pid/$APP_PID" >/dev/null 2>&1; then
+  STILL_ALIVE=1
 fi
-# Fallback: cerca il bundle tra i processi del sim
 if [[ "$STILL_ALIVE" -eq 0 ]]; then
-  if xcrun simctl spawn "$SIM_ID" ps -A 2>/dev/null | grep -E 'Runner\.app/Runner' | grep -vq grep; then
+  if xcrun simctl spawn "$SIM_UDID" ps -A 2>/dev/null | grep -E 'Runner\.app/Runner' | grep -vq grep; then
     STILL_ALIVE=1
   fi
 fi
 
 if [[ "$STILL_ALIVE" -eq 0 ]]; then
   echo "---- Diagnostica crash (log sim, ultimi 15s) ----" | tee -a "$LAUNCH_LOG"
-  xcrun simctl spawn "$SIM_ID" log show --style compact --last 15s \
+  xcrun simctl spawn "$SIM_UDID" log show --style compact --last 15s \
     --predicate 'eventMessage CONTAINS "DKImagePicker" OR eventMessage CONTAINS "Library not loaded" OR eventMessage CONTAINS "Terminated"' \
     2>/dev/null | tee -a "$LAUNCH_LOG" || true
   die "App non in esecuzione dopo il launch (probabile crash dyld). Vedi $LAUNCH_LOG"
