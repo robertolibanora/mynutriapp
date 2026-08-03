@@ -28,6 +28,7 @@ def register_blueprints(app):
     from .billing import billing_bp
     from .landing import landing_bp
     from .mobile_web import mobile_web_bp
+    from .attivita import attivita_bp
     from app.api.v1 import api_v1_bp
 
     app.register_blueprint(landing_bp)
@@ -53,3 +54,4 @@ def register_blueprints(app):
     app.register_blueprint(patients_diary_api_bp)
     app.register_blueprint(super_admin_bp)
     app.register_blueprint(billing_bp)
+    app.register_blueprint(attivita_bp)

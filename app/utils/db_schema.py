@@ -16,6 +16,7 @@ _AGENDA_SCHEMA_OK = False
 _RICHIESTE_SCHEMA_OK = False
 _PATIENT_STATO_OK = False
 _GDPR_SCHEMA_OK = False
+_ACTIVITY_NOTES_SCHEMA_OK = False
 
 
 def ensure_finance_removed() -> None:
@@ -686,3 +687,71 @@ def ensure_billing_schema() -> None:
     except Exception as exc:  # noqa: BLE001
         db.session.rollback()
         logger.warning("Impossibile aggiornare schema billing: %s", exc)
+
+
+def ensure_activity_notes_schema() -> None:
+    """Crea tabelle patient_notes e activities se assenti."""
+    global _ACTIVITY_NOTES_SCHEMA_OK
+    if _ACTIVITY_NOTES_SCHEMA_OK:
+        return
+    try:
+        insp = inspect(db.engine)
+        tables = set(insp.get_table_names())
+        with db.engine.begin() as conn:
+            if "patient_notes" not in tables:
+                conn.execute(
+                    text(
+                        """
+                        CREATE TABLE patient_notes (
+                          id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                          patient_id INT NOT NULL,
+                          utente_id INT NOT NULL,
+                          body TEXT NOT NULL,
+                          created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                          updated_at DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                          INDEX ix_patient_notes_patient_id (patient_id),
+                          INDEX ix_patient_notes_utente_id (utente_id),
+                          CONSTRAINT fk_patient_notes_patient
+                            FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
+                          CONSTRAINT fk_patient_notes_utente
+                            FOREIGN KEY (utente_id) REFERENCES utente(id) ON DELETE RESTRICT
+                        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+                        """
+                    )
+                )
+                logger.info("Creata tabella patient_notes")
+
+            if "activities" not in tables:
+                conn.execute(
+                    text(
+                        """
+                        CREATE TABLE activities (
+                          id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                          utente_id INT NOT NULL,
+                          patient_id INT NULL,
+                          title VARCHAR(255) NOT NULL,
+                          tipo VARCHAR(40) NOT NULL DEFAULT 'manuale',
+                          priority VARCHAR(20) NOT NULL DEFAULT 'medium',
+                          due_at DATETIME NULL,
+                          status VARCHAR(20) NOT NULL DEFAULT 'open',
+                          source VARCHAR(20) NOT NULL DEFAULT 'manual',
+                          notes TEXT NULL,
+                          created_at DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+                          completed_at DATETIME NULL,
+                          INDEX ix_activities_utente_id (utente_id),
+                          INDEX ix_activities_patient_id (patient_id),
+                          INDEX ix_activities_due_at (due_at),
+                          INDEX ix_activities_status (status),
+                          CONSTRAINT fk_activities_utente
+                            FOREIGN KEY (utente_id) REFERENCES utente(id) ON DELETE CASCADE,
+                          CONSTRAINT fk_activities_patient
+                            FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE SET NULL
+                        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+                        """
+                    )
+                )
+                logger.info("Creata tabella activities")
+        _ACTIVITY_NOTES_SCHEMA_OK = True
+    except Exception as exc:  # noqa: BLE001
+        db.session.rollback()
+        logger.warning("Impossibile aggiornare schema activity/notes: %s", exc)

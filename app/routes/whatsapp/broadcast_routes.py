@@ -84,26 +84,55 @@ def config_templates():
 @broadcast_bp.route('/nuovo', methods=['GET', 'POST'])
 @admin_required
 def nuovo_broadcast():
-    """Invia messaggio personalizzato a tutti i pazienti"""
+    """Invia messaggio personalizzato a tutti i pazienti o a uno solo."""
+    from app.utils.tenant import assert_patient_tenant
+    from app.routes.whatsapp.broadcast import sostituisci_variabili
+    from app.routes.whatsapp.sender import invia_whatsapp
+
+    selected_patient_id = request.args.get('patient_id', type=int) or request.form.get('patient_id', type=int)
+    selected_patient = None
+    if selected_patient_id:
+        selected_patient = Patient.query.get(selected_patient_id)
+        if selected_patient:
+            try:
+                assert_patient_tenant(selected_patient)
+            except Exception:
+                selected_patient = None
+                selected_patient_id = None
+
     if request.method == 'POST':
         try:
             messaggio = request.form['messaggio']
-            
+
             if not messaggio.strip():
                 flash("Inserisci un messaggio", "danger")
-                return render_template('admin/broadcast_nuovo.html')
-            
-            # Invia a tutti i pazienti
+                return render_template(
+                    'admin/broadcast_nuovo.html',
+                    selected_patient=selected_patient,
+                    selected_patient_id=selected_patient_id,
+                )
+
+            if selected_patient and selected_patient.telefono:
+                testo = sostituisci_variabili(messaggio, selected_patient)
+                ok = invia_whatsapp(selected_patient.telefono, testo)
+                if ok:
+                    flash(f"Messaggio inviato a {selected_patient.nome} {selected_patient.cognome}", "success")
+                else:
+                    flash("Invio non riuscito", "danger")
+                return redirect(url_for('patients.dettaglio_paziente', patient_id=selected_patient.id, tab='messaggi'))
+
             stats = invia_broadcast_personalizzato(messaggio)
-            
-            # Messaggio di successo
             flash(f"Messaggio inviato! Inviati: {stats['inviati']}, Errori: {stats['errori']}", "success")
             return redirect(url_for('broadcast.dashboard'))
-            
+
         except Exception as e:
             flash(f"Errore durante l'invio: {e}", "danger")
-    
-    return render_template('admin/broadcast_nuovo.html')
+
+    return render_template(
+        'admin/broadcast_nuovo.html',
+        selected_patient=selected_patient,
+        selected_patient_id=selected_patient_id,
+    )
 
 @broadcast_bp.route('/anteprima', methods=['POST'])
 @admin_required

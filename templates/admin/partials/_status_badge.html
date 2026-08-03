@@ -1,0 +1,25 @@
+{# Usage: {% include 'admin/partials/_status_badge.html' with context %}
+   Expects: status (str), optional status_label, optional kind (cliente|appuntamento|dieta|generic)
+#}
+{% set kind = kind|default('cliente') %}
+{% set label = status_label|default(status) %}
+{% set cls = 'adm-badge' %}
+{% if kind == 'cliente' %}
+  {% if status == 'attivo' %}{% set cls = cls ~ ' adm-badge--ok' %}
+  {% elif status == 'provvisorio' %}{% set cls = cls ~ ' adm-badge--warn' %}
+  {% elif status == 'non_attivo' %}{% set cls = cls ~ ' adm-badge--muted' %}
+  {% else %}{% set cls = cls ~ ' adm-badge--muted' %}{% endif %}
+{% elif kind == 'appuntamento' %}
+  {% if status == 'confermato' %}{% set cls = cls ~ ' adm-badge--ok' %}
+  {% elif status == 'in_attesa' %}{% set cls = cls ~ ' adm-badge--warn' %}
+  {% elif status == 'completato' %}{% set cls = cls ~ ' adm-badge--info' %}
+  {% elif status == 'annullato' %}{% set cls = cls ~ ' adm-badge--danger' %}
+  {% else %}{% set cls = cls ~ ' adm-badge--muted' %}{% endif %}
+{% elif kind == 'dieta' %}
+  {% if status == 'published' %}{% set cls = cls ~ ' adm-badge--ok' %}
+  {% elif status == 'draft' %}{% set cls = cls ~ ' adm-badge--warn' %}
+  {% else %}{% set cls = cls ~ ' adm-badge--muted' %}{% endif %}
+{% else %}
+  {% set cls = cls ~ ' adm-badge--muted' %}
+{% endif %}
+<span class="{{ cls }}">{{ label }}</span>

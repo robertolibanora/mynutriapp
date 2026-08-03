@@ -164,7 +164,7 @@ class AuthController extends ChangeNotifier {
       if (noResponse) {
         error =
             'Impossibile contattare il server (${Env.apiBaseUrl}). '
-            'Verifica rete/Simulator e che API_BASE_URL sia corretto.';
+            'Verifica che Flask sia in esecuzione e che API_BASE_URL sia corretto.';
         return false;
       }
       final code = e.response?.data is Map

@@ -1,0 +1,13 @@
+{# JS-free confirm via native confirm() wrapper attributes:
+   data-confirm="Messaggio" on forms/buttons.
+   Optional visual helper styles only. #}
+<dialog class="adm-dialog" id="adm-confirm-dialog" aria-labelledby="adm-confirm-title">
+  <form method="dialog" class="adm-dialog-body">
+    <h2 id="adm-confirm-title" class="adm-dialog-title">Conferma</h2>
+    <p class="adm-dialog-msg" data-confirm-msg></p>
+    <div class="adm-dialog-actions">
+      <button value="cancel" class="btn btn-ghost btn-small">Annulla</button>
+      <button value="ok" class="btn btn-danger btn-small">Conferma</button>
+    </div>
+  </form>
+</dialog>

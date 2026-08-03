@@ -7,6 +7,19 @@ import 'privacy_screen.dart';
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
+  static String _initials(String? name) {
+    final parts = (name ?? '')
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((p) => p.isNotEmpty)
+        .toList();
+    if (parts.isEmpty) return '?';
+    if (parts.length == 1) {
+      return parts.first.substring(0, 1).toUpperCase();
+    }
+    return (parts[0].substring(0, 1) + parts[1].substring(0, 1)).toUpperCase();
+  }
+
   @override
   Widget build(BuildContext context) {
     final auth = AppScope.of(context).auth;
@@ -33,30 +46,60 @@ class ProfileScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: AppColors.border),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Row(
                     children: [
-                      Text(
-                        user?.displayName ?? '—',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
+                      CircleAvatar(
+                        radius: 26,
+                        backgroundColor:
+                            AppColors.accent.withValues(alpha: 0.18),
+                        child: Text(
+                          _initials(user?.displayName),
+                          style: const TextStyle(
+                            color: AppColors.accent,
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
                       ),
-                      if (user?.telefono != null) ...[
-                        const SizedBox(height: 6),
-                        Text(
-                          user!.telefono!,
-                          style: const TextStyle(color: AppColors.muted),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              user?.displayName ?? '—',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            if (auth.isDemo) ...[
+                              const SizedBox(height: 4),
+                              const Text(
+                                'Account demo',
+                                style: TextStyle(
+                                  color: AppColors.accent,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                            if (user?.telefono != null) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                user!.telefono!,
+                                style: const TextStyle(color: AppColors.muted),
+                              ),
+                            ],
+                            if (user?.email != null) ...[
+                              const SizedBox(height: 2),
+                              Text(
+                                user!.email!,
+                                style: const TextStyle(color: AppColors.muted),
+                              ),
+                            ],
+                          ],
                         ),
-                      ],
-                      if (user?.email != null) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          user!.email!,
-                          style: const TextStyle(color: AppColors.muted),
-                        ),
-                      ],
+                      ),
                     ],
                   ),
                 ),

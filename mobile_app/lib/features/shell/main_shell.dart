@@ -42,21 +42,29 @@ class _MainShellState extends State<MainShell> {
         selectedIndex: _index,
         onDestinationSelected: (i) => setState(() => _index = i),
         destinations: const [
-          NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Home'),
+          NavigationDestination(
+            icon: Icon(Icons.home_outlined),
+            selectedIcon: Icon(Icons.home),
+            label: 'Home',
+          ),
           NavigationDestination(
             icon: Icon(Icons.restaurant_outlined),
+            selectedIcon: Icon(Icons.restaurant),
             label: 'Dieta',
           ),
           NavigationDestination(
             icon: Icon(Icons.calendar_month_outlined),
+            selectedIcon: Icon(Icons.calendar_month),
             label: 'Appuntamenti',
           ),
           NavigationDestination(
             icon: Icon(Icons.show_chart_outlined),
+            selectedIcon: Icon(Icons.show_chart),
             label: 'Progressi',
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outline),
+            selectedIcon: Icon(Icons.person),
             label: 'Profilo',
           ),
         ],
@@ -79,7 +87,12 @@ class _EmptyTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
+      appBar: AppBar(
+        title: Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.w700),
+        ),
+      ),
       body: EmptyPlaceholder(icon: icon, message: message),
     );
   }

@@ -2,589 +2,176 @@
 {% block title %}Dashboard{% endblock %}
 {% block content %}
 
-<style>
-  .admin-app .db {
-    --db-line: rgba(255,255,255,0.1);
-    --db-soft: rgba(255,255,255,0.05);
-    --db-soft-2: rgba(255,255,255,0.07);
-    --db-muted: #a8a8a8;
-    --db-faint: #7a7a7a;
-    width: 100%;
-  }
-
-  .admin-app .db-hero {
-    margin-bottom: 1.25rem;
-    padding: 1.5rem 1.65rem;
-    border-radius: 18px;
-    background: linear-gradient(120deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04) 70%, transparent);
-    border: 1px solid rgba(255,255,255,0.12);
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    gap: 1.25rem;
-    flex-wrap: wrap;
-  }
-  .admin-app .db-hero h1 {
-    margin: 0;
-    color: #fff;
-    font: 500 1.85rem / 1.2 var(--adm-serif, Georgia, serif);
-  }
-  .admin-app .db-hero p {
-    margin: 0.45rem 0 0;
-    color: var(--db-muted);
-    font-size: 0.92rem;
-    max-width: 42rem;
-    line-height: 1.45;
-  }
-  .admin-app .db-hero-meta {
-    margin: 0 0 0.4rem;
-    color: var(--db-faint);
-    font-size: 0.75rem;
-    font-weight: 650;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-  }
-  .admin-app .db-hero-actions {
-    display: flex;
-    gap: 0.45rem;
-    flex-wrap: wrap;
-  }
-
-  .admin-app .db-stats {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 0.75rem;
-    margin-bottom: 1.25rem;
-  }
-  .admin-app .db-stat {
-    background: var(--db-soft);
-    border: 1px solid var(--db-line);
-    border-radius: 14px;
-    padding: 1rem 1.1rem;
-    text-decoration: none;
-    color: inherit;
-    transition: border-color .15s ease, background .15s ease;
-  }
-  .admin-app .db-stat:hover {
-    border-color: rgba(255,255,255,0.2);
-    background: var(--db-soft-2);
-  }
-  .admin-app .db-stat-num {
-    font-size: 1.45rem;
-    font-weight: 650;
-    color: #f2f2f2;
-    line-height: 1.1;
-  }
-  .admin-app .db-stat-label {
-    margin-top: 0.3rem;
-    color: var(--db-muted);
-    font-size: 0.82rem;
-  }
-
-  .admin-app .db-banner {
-    margin-bottom: 1.25rem;
-    padding: 0.95rem 1.1rem;
-    border-radius: 14px;
-    background: var(--db-soft);
-    border: 1px solid var(--db-line);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 1rem;
-    flex-wrap: wrap;
-  }
-  .admin-app .db-banner strong {
-    color: #f0f0f0;
-    font-weight: 600;
-  }
-  .admin-app .db-banner p {
-    margin: 0.2rem 0 0;
-    color: var(--db-muted);
-    font-size: 0.88rem;
-  }
-  .admin-app .db-banner-actions {
-    display: flex;
-    gap: 0.4rem;
-    flex-wrap: wrap;
-  }
-
-  .admin-app .db-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
-    gap: 0.9rem;
-    margin-bottom: 0.9rem;
-  }
-  @media (max-width: 960px) {
-    .admin-app .db-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .admin-app .db-grid { grid-template-columns: 1fr; }
-  }
-  @media (max-width: 520px) {
-    .admin-app .db-stats { grid-template-columns: 1fr; }
-  }
-
-  .admin-app .db-panel {
-    background: var(--db-soft);
-    border: 1px solid var(--db-line);
-    border-radius: 16px;
-    padding: 1.15rem 1.25rem;
-  }
-  .admin-app .db-panel-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: 0.75rem;
-    margin-bottom: 0.85rem;
-  }
-  .admin-app .db-panel-title {
-    margin: 0;
-    color: #f0f0f0;
-    font-size: 1rem;
-    font-weight: 650;
-    display: flex;
-    align-items: center;
-    gap: 0.45rem;
-  }
-  .admin-app .db-count {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 1.4rem;
-    height: 1.4rem;
-    padding: 0 0.4rem;
-    border-radius: 999px;
-    background: rgba(255,255,255,0.1);
-    color: #d8d8d8;
-    font-size: 0.72rem;
-    font-weight: 700;
-  }
-  .admin-app .db-panel-link {
-    color: var(--db-muted);
-    font-size: 0.84rem;
-    text-decoration: none;
-    transition: color .15s ease;
-  }
-  .admin-app .db-panel-link:hover { color: #fff; }
-
-  .admin-app .db-list {
-    display: flex;
-    flex-direction: column;
-  }
-  .admin-app .db-item {
-    display: flex;
-    align-items: center;
-    gap: 0.85rem;
-    padding: 0.75rem 0.15rem;
-    border-top: 1px solid var(--db-line);
-    text-decoration: none;
-    color: inherit;
-    transition: background .15s ease;
-    border-radius: 8px;
-  }
-  .admin-app .db-item:first-child { border-top: none; }
-  .admin-app .db-item:hover { background: rgba(255,255,255,0.04); }
-  .admin-app .db-time {
-    flex-shrink: 0;
-    width: 3.4rem;
-    color: #e8e8e8;
-    font-size: 0.92rem;
-    font-weight: 650;
-    font-variant-numeric: tabular-nums;
-  }
-  .admin-app .db-item-body { flex: 1; min-width: 0; }
-  .admin-app .db-name {
-    color: #fff;
-    font-size: 0.95rem;
-    font-weight: 600;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .admin-app .db-type {
-    margin-top: 0.15rem;
-    color: var(--db-muted);
-    font-size: 0.82rem;
-  }
-  .admin-app .db-pill {
-    flex-shrink: 0;
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--db-muted);
-    border: 1px solid var(--db-line);
-    padding: 0.2rem 0.5rem;
-    border-radius: 999px;
-  }
-  .admin-app .db-empty {
-    padding: 1.5rem 0.25rem;
-    color: var(--db-muted);
-    font-size: 0.9rem;
-  }
-  .admin-app .db-empty p { margin: 0 0 0.85rem; }
-
-  /* Mini tutorial post-abbonamento */
-  .ob-root {
-    position: fixed;
-    inset: 0;
-    z-index: 80;
-    display: grid;
-    place-items: center;
-    padding: 1.25rem;
-    background: rgba(0, 0, 0, 0.62);
-    backdrop-filter: blur(6px);
-    animation: obFade .28s ease;
-  }
-  .ob-root[hidden] { display: none !important; }
-  @keyframes obFade { from { opacity: 0; } to { opacity: 1; } }
-  @keyframes obUp {
-    from { opacity: 0; transform: translateY(12px) scale(.98); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
-  }
-  .ob-card {
-    width: min(440px, 100%);
-    border-radius: 18px;
-    border: 1px solid rgba(255,255,255,0.14);
-    background: linear-gradient(165deg, #242424 0%, #171717 100%);
-    box-shadow: 0 24px 60px rgba(0,0,0,.45);
-    padding: 1.45rem 1.5rem 1.25rem;
-    animation: obUp .34s ease;
-  }
-  .ob-kicker {
-    margin: 0 0 .35rem;
-    color: var(--adm-accent, #ff9a56);
-    font-size: .72rem;
-    font-weight: 700;
-    letter-spacing: .08em;
-    text-transform: uppercase;
-  }
-  .ob-card h2 {
-    margin: 0;
-    font: 600 1.35rem/1.25 var(--adm-font);
-    color: #fff;
-  }
-  .ob-card p {
-    margin: .55rem 0 0;
-    color: #bdbdbd;
-    font-size: .95rem;
-    line-height: 1.5;
-  }
-  .ob-dots {
-    display: flex;
-    gap: .4rem;
-    margin: 1.15rem 0 1.1rem;
-  }
-  .ob-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 999px;
-    background: rgba(255,255,255,.2);
-    transition: width .2s ease, background .2s ease;
-  }
-  .ob-dot.is-on {
-    width: 22px;
-    background: var(--adm-accent, #ff9a56);
-  }
-  .ob-actions {
-    display: flex;
-    gap: .5rem;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-  }
-  .ob-actions-right {
-    display: flex;
-    gap: .45rem;
-    margin-left: auto;
-  }
-  .ob-skip {
-    border: 0;
-    background: transparent;
-    color: #8f8f8f;
-    font: 500 .85rem var(--adm-font);
-    cursor: pointer;
-    padding: .4rem .2rem;
-  }
-  .ob-skip:hover { color: #ddd; }
-</style>
-
-<div class="db">
-  <header class="db-hero">
-    <div>
-      <div class="db-hero-meta">{{ data_oggi }} · {{ ora_ora }}</div>
-      <h1>{{ saluto }}, {{ admin_name }}</h1>
-      <p>
-        {% if n_appuntamenti_oggi %}
-          Oggi hai {{ n_appuntamenti_oggi }} appuntament{{ 'o' if n_appuntamenti_oggi == 1 else 'i' }}
-        {% else %}
-          Nessun appuntamento in agenda per oggi
-        {% endif %}
-        {% if n_richieste %}
-          · {{ n_richieste }} richiest{{ 'a' if n_richieste == 1 else 'e' }} online
-        {% endif %}
-        {% if n_appuntamenti_settimana %}
-          · {{ n_appuntamenti_settimana }} nei prossimi 7 giorni
-        {% endif %}
-      </p>
-    </div>
-    <div class="db-hero-actions">
-      <a href="{{ url_for('appuntamenti.nuovo_admin') }}" class="btn btn-ghost btn-small">{{ icon('calendar', 14) }} Appuntamento</a>
-      <a href="{{ url_for('diete_plans.new_diet_plan_standalone') }}" class="btn btn-ghost btn-small">{{ icon('diet', 14) }} Dieta</a>
-      <a href="{{ url_for('allenamenti.nuovo_allenamento_standalone') }}" class="btn btn-ghost btn-small">{{ icon('dumbbell', 14) }} Allenamento</a>
-      <a href="{{ url_for('patients.nuovo_paziente') }}" class="btn btn-ghost btn-small">{{ icon('plus', 14) }} Paziente</a>
-    </div>
-  </header>
-
-  <div class="db-stats">
-    <a class="db-stat" href="{{ url_for('agenda.agenda_unificata') }}">
-      <div class="db-stat-num">{{ n_appuntamenti_oggi }}</div>
-      <div class="db-stat-label">Appuntamenti oggi</div>
-    </a>
-    <a class="db-stat" href="{{ url_for('prenota_public.lista_richieste_admin') }}">
-      <div class="db-stat-num">{{ n_richieste }}</div>
-      <div class="db-stat-label">Richieste online</div>
-    </a>
-    <a class="db-stat" href="{{ url_for('agenda.agenda_unificata') }}">
-      <div class="db-stat-num">{{ n_da_confermare or 0 }}</div>
-      <div class="db-stat-label">Da confermare</div>
-    </a>
-    <a class="db-stat" href="{{ url_for('agenda.agenda_unificata') }}">
-      <div class="db-stat-num">{{ n_appuntamenti_settimana }}</div>
-      <div class="db-stat-label">Prossimi 7 giorni</div>
-    </a>
-  </div>
-
-  {% if n_da_gestire %}
-  <div class="db-banner">
-    <div>
-      <strong>Richiede attenzione</strong>
-      <p>
-        {% if n_da_confermare %}{{ n_da_confermare }} appuntament{{ 'o' if n_da_confermare == 1 else 'i' }} da confermare{% endif %}
-        {% if n_da_confermare and n_richieste %} · {% endif %}
-        {% if n_richieste %}{{ n_richieste }} richiest{{ 'a' if n_richieste == 1 else 'e' }} dalla prenotazione online{% endif %}
-      </p>
-    </div>
-    <div class="db-banner-actions">
-      {% if n_da_confermare %}
-      <a href="{{ url_for('agenda.agenda_unificata') }}" class="btn btn-ghost btn-small">Apri agenda</a>
+<div class="adm-page-header">
+  <div class="adm-page-header-text">
+    <h1 class="adm-page-header-title">{{ saluto }}{% if admin_name %}, {{ admin_name.split()[0] }}{% endif %}</h1>
+    <p class="adm-page-header-sub">{{ data_oggi }} · {{ ora_ora }}
+      {% if appuntamenti_oggi %}
+        · Prossimo oggi:
+        {% set first = appuntamenti_oggi[0] %}
+        {{ first.data_appuntamento.strftime('%H:%M') }}
+        {% if first.patient %} {{ first.patient.nome }} {{ first.patient.cognome }}{% endif %}
       {% endif %}
-      {% if n_richieste %}
-      <a href="{{ url_for('prenota_public.lista_richieste_admin') }}" class="btn btn-ghost btn-small">Vedi richieste</a>
-      {% endif %}
-    </div>
+    </p>
   </div>
-  {% endif %}
-
-  {% if deviazione is defined %}
-  {% include 'admin/_deviazione_widget.html' %}
-  {% endif %}
-
-  <div class="db-grid">
-    <section class="db-panel">
-      <div class="db-panel-head">
-        <h2 class="db-panel-title">
-          Appuntamenti di oggi
-          {% if n_appuntamenti_oggi %}<span class="db-count">{{ n_appuntamenti_oggi }}</span>{% endif %}
-        </h2>
-        <a href="{{ url_for('agenda.agenda_unificata') }}" class="db-panel-link">Vedi agenda</a>
-      </div>
-      <div class="db-list">
-        {% if appuntamenti_oggi %}
-          {% for appt in appuntamenti_oggi %}
-          {% set paziente = appt.patient %}
-          {% set tipo = tipo_labels.get(appt.tipo, appt.tipo|replace('_', ' ')|title) %}
-          <a href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id) }}" class="db-item">
-            <span class="db-time">{{ appt.data_appuntamento.strftime('%H:%M') }}</span>
-            <div class="db-item-body">
-              <div class="db-name">{{ paziente.nome }} {{ paziente.cognome }}</div>
-              <div class="db-type">{{ tipo }}</div>
-            </div>
-            <span class="db-pill">
-              {% if appt.stato == 'completato' %}Fatto
-              {% elif appt.stato == 'confermato' %}Confermato
-              {% elif appt.stato == 'in_attesa' %}Da confermare
-              {% else %}{{ appt.stato|replace('_', ' ')|title }}{% endif %}
-            </span>
-          </a>
-          {% endfor %}
-        {% else %}
-          <div class="db-empty">
-            <p>Nessun appuntamento in programma per oggi.</p>
-            <a href="{{ url_for('appuntamenti.nuovo_admin') }}" class="btn btn-ghost btn-small">Nuovo appuntamento</a>
-          </div>
-        {% endif %}
-      </div>
-    </section>
-
-    <section class="db-panel">
-      <div class="db-panel-head">
-        <h2 class="db-panel-title">
-          Richieste
-          {% if n_richieste %}<span class="db-count">{{ n_richieste }}</span>{% endif %}
-        </h2>
-        <a href="{{ url_for('prenota_public.lista_richieste_admin') }}" class="db-panel-link">Gestisci</a>
-      </div>
-      <div class="db-list">
-        {% if richieste_recenti %}
-          {% for r in richieste_recenti %}
-          {% set tipo = tipo_labels.get(r.tipo, r.tipo|replace('_', ' ')|title) %}
-          <a href="{{ url_for('prenota_public.lista_richieste_admin') }}" class="db-item">
-            <span class="db-time">{{ r.data_richiesta.strftime('%d/%m') if r.data_richiesta else '—' }}</span>
-            <div class="db-item-body">
-              <div class="db-name">{{ r.nome }} {{ r.cognome }}</div>
-              <div class="db-type">
-                {{ tipo }}{% if r.data_richiesta %} · {{ r.data_richiesta.strftime('%H:%M') }}{% endif %}
-              </div>
-            </div>
-            <span class="db-pill">Nuova</span>
-          </a>
-          {% endfor %}
-        {% else %}
-          <div class="db-empty">
-            <p>Nessuna richiesta in attesa dalla prenotazione online.</p>
-          </div>
-        {% endif %}
-      </div>
-    </section>
+  <div class="adm-page-header-actions">
+    <a class="btn btn-primary btn-small" href="{{ url_for('appuntamenti.nuovo_admin') }}">Nuovo appuntamento</a>
+    <a class="btn btn-ghost btn-small" href="{{ url_for('patients.nuovo_paziente') }}">Nuovo paziente</a>
+    <a class="btn btn-ghost btn-small" href="{{ url_for('attivita.lista_attivita') }}">Attività</a>
   </div>
+</div>
 
-  <section class="db-panel">
-    <div class="db-panel-head">
-      <h2 class="db-panel-title">
-        Prossimi 7 giorni
-        {% if n_appuntamenti_settimana %}<span class="db-count">{{ n_appuntamenti_settimana }}</span>{% endif %}
-      </h2>
-      <a href="{{ url_for('agenda.agenda_unificata') }}" class="db-panel-link">Apri agenda</a>
+{% if show_onboarding %}
+<div class="ops-panel" style="margin-bottom:1rem">
+  <strong>Benvenuto.</strong>
+  <span class="text-sm text-muted"> Imposta gli orari settimanali e aggiungi i primi pazienti per iniziare.</span>
+  <div style="margin-top:0.5rem;display:flex;gap:0.4rem;flex-wrap:wrap">
+    <a class="btn btn-ghost btn-small" href="{{ url_for('slot.orari_settimanali') }}">Orari</a>
+    <a class="btn btn-ghost btn-small" href="{{ url_for('patients.nuovo_paziente') }}">Nuovo paziente</a>
+  </div>
+</div>
+{% endif %}
+
+<div class="ops-grid">
+  <section class="ops-panel">
+    <div class="ops-panel-head">
+      <h2 class="ops-panel-title">Oggi</h2>
+      <a class="ops-panel-link" href="{{ url_for('agenda.agenda_unificata', tab='appuntamenti', filtro='oggi') }}">Agenda</a>
     </div>
-    <div class="db-list">
-      {% if prossimi_appuntamenti %}
-        {% for appt in prossimi_appuntamenti %}
-        {% set paziente = appt.patient %}
-        {% set tipo = tipo_labels.get(appt.tipo, appt.tipo|replace('_', ' ')|title) %}
-        <a href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id) }}" class="db-item">
-          <span class="db-time">{{ appt.data_appuntamento.strftime('%d/%m') }}</span>
-          <div class="db-item-body">
-            <div class="db-name">{{ paziente.nome }} {{ paziente.cognome }}</div>
-            <div class="db-type">{{ appt.data_appuntamento.strftime('%H:%M') }} · {{ tipo }}</div>
+    {% if appuntamenti_oggi %}
+    <ul class="ops-list">
+      {% for a in appuntamenti_oggi %}
+      <li class="ops-item">
+        <div class="ops-item-main">
+          <div class="ops-item-title">
+            {{ a.data_appuntamento.strftime('%H:%M') }}
+            {% if a.patient %} · {{ a.patient.nome }} {{ a.patient.cognome }}{% endif %}
           </div>
-          {% if appt.stato == 'in_attesa' %}
-          <span class="db-pill">Da conf.</span>
-          {% endif %}
-        </a>
-        {% endfor %}
-      {% else %}
-        <div class="db-empty">
-          <p>Nessun appuntamento nei prossimi 7 giorni.</p>
-          <a href="{{ url_for('agenda.agenda_unificata') }}" class="btn btn-ghost btn-small">Apri agenda</a>
+          <div class="ops-item-meta">
+            {{ tipo_labels.get(a.tipo, a.tipo) }} · {{ a.stato|replace('_',' ') }}
+          </div>
         </div>
-      {% endif %}
+        <div class="ops-item-actions">
+          {% if a.patient %}
+          <a class="btn btn-ghost btn-small" href="{{ url_for('patients.dettaglio_paziente', patient_id=a.patient_id) }}">Apri</a>
+          {% endif %}
+          {% if a.stato == 'in_attesa' %}
+          <form method="POST" action="{{ url_for('appuntamenti.cambia_stato_admin', id=a.id, nuovo_stato='confermato') }}" style="margin:0">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <button class="btn btn-primary btn-small" type="submit">Conferma</button>
+          </form>
+          {% endif %}
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+      {% set title = 'Nessun appuntamento oggi' %}
+      {% set description = 'Usa le attività o i pazienti recenti per organizzare la giornata.' %}
+      {% set action_url = url_for('appuntamenti.nuovo_admin') %}
+      {% set action_label = 'Fissa appuntamento' %}
+      {% include 'admin/partials/_empty_state.html' %}
+    {% endif %}
+  </section>
+
+  <section class="ops-panel">
+    <div class="ops-panel-head">
+      <h2 class="ops-panel-title">Da fare</h2>
+      <a class="ops-panel-link" href="{{ url_for('attivita.lista_attivita') }}">Tutte</a>
     </div>
+    {% if todo_items %}
+    <ul class="ops-list">
+      {% for it in todo_items %}
+      <li class="ops-item">
+        <div class="ops-item-main">
+          <div class="ops-item-title">{{ it.title }}</div>
+          <div class="ops-item-meta">
+            {% if it.patient_name %}{{ it.patient_name }} · {% endif %}{{ it.tipo|replace('_',' ') }}
+          </div>
+        </div>
+        <div class="ops-item-actions">
+          {% if it.patient_id %}
+          <a class="btn btn-ghost btn-small" href="{{ url_for('patients.dettaglio_paziente', patient_id=it.patient_id) }}">Paziente</a>
+          {% endif %}
+          <a class="btn btn-primary btn-small" href="{{ it.action_url }}">{{ it.action_label }}</a>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="text-sm text-muted" style="margin:0">Nessuna attività urgente. Ottimo!</p>
+    {% if pazienti_recenti %}
+    <div style="margin-top:0.85rem">
+      <div class="text-sm text-muted" style="margin-bottom:0.35rem">Pazienti recenti</div>
+      {% for p in pazienti_recenti %}
+      <a href="{{ url_for('patients.dettaglio_paziente', patient_id=p.id) }}" class="text-sm" style="display:block;padding:0.25rem 0;color:var(--adm-text-muted)">{{ p.cognome }} {{ p.nome }}</a>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% endif %}
   </section>
 </div>
 
-{% if show_onboarding %}
-<div class="ob-root" id="onboarding" role="dialog" aria-modal="true" aria-labelledby="ob-title">
-  <div class="ob-card">
-    <p class="ob-kicker" id="ob-kicker">Passo 1 di 4</p>
-    <h2 id="ob-title">Abbonamento attivo</h2>
-    <p id="ob-text">Il tuo spazio professionale è pronto. In due minuti vedi dove gestire pazienti, agenda e piani.</p>
-    <div class="ob-dots" id="ob-dots" aria-hidden="true"></div>
-    <div class="ob-actions">
-      <button type="button" class="ob-skip" id="ob-skip">Salta</button>
-      <div class="ob-actions-right">
-        <button type="button" class="btn btn-ghost btn-small" id="ob-prev" hidden>Indietro</button>
-        <button type="button" class="btn btn-ghost btn-small" id="ob-next" style="background:var(--adm-accent);color:#1a1a1a;border-color:transparent;">Continua</button>
-      </div>
-    </div>
+<section class="ops-panel" style="margin-bottom:1rem">
+  <div class="ops-panel-head">
+    <h2 class="ops-panel-title">Prossimi 7 giorni</h2>
+    <a class="ops-panel-link" href="{{ url_for('agenda.agenda_unificata') }}">Agenda</a>
   </div>
+  {% if prossimi_appuntamenti %}
+  <ul class="ops-list">
+    {% for a in prossimi_appuntamenti %}
+    <li class="ops-item">
+      <div class="ops-item-main">
+        <div class="ops-item-title">{{ a.data_appuntamento.strftime('%a %d/%m %H:%M') }}
+          {% if a.patient %} · {{ a.patient.nome }} {{ a.patient.cognome }}{% endif %}
+        </div>
+        <div class="ops-item-meta">{{ tipo_labels.get(a.tipo, a.tipo) }} · {{ a.stato|replace('_',' ') }}</div>
+      </div>
+      {% if a.patient %}
+      <a class="btn btn-ghost btn-small" href="{{ url_for('patients.dettaglio_paziente', patient_id=a.patient_id) }}">Apri</a>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="text-sm text-muted" style="margin:0">Nessun appuntamento nei prossimi giorni.</p>
+  {% endif %}
+</section>
+
+{% if richieste_recenti %}
+<section class="ops-panel" style="margin-bottom:1rem">
+  <div class="ops-panel-head">
+    <h2 class="ops-panel-title">Richieste online</h2>
+    <a class="ops-panel-link" href="{{ url_for('prenota_public.lista_richieste_admin') }}">Gestisci</a>
+  </div>
+  <ul class="ops-list">
+    {% for r in richieste_recenti %}
+    <li class="ops-item">
+      <div class="ops-item-title">{{ r.nome }} {{ r.cognome }}</div>
+      <div class="ops-item-meta">{{ r.data_richiesta.strftime('%d/%m/%Y %H:%M') if r.data_richiesta else '' }}</div>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+<div class="ops-kpis">
+  <a class="ops-kpi" href="{{ url_for('agenda.agenda_unificata', tab='appuntamenti', filtro='oggi') }}">
+    <div class="ops-kpi-num">{{ n_appuntamenti_oggi }}</div>
+    <div class="ops-kpi-label">Oggi</div>
+  </a>
+  <a class="ops-kpi" href="{{ url_for('agenda.agenda_unificata') }}">
+    <div class="ops-kpi-num">{{ n_appuntamenti_settimana }}</div>
+    <div class="ops-kpi-label">7 giorni</div>
+  </a>
+  <a class="ops-kpi" href="{{ url_for('agenda.agenda_unificata', tab='appuntamenti', filtro='da_confermare') }}">
+    <div class="ops-kpi-num">{{ n_da_confermare }}</div>
+    <div class="ops-kpi-label">Da confermare</div>
+  </a>
+  <a class="ops-kpi" href="{{ url_for('prenota_public.lista_richieste_admin') }}">
+    <div class="ops-kpi-num">{{ n_richieste }}</div>
+    <div class="ops-kpi-label">Richieste</div>
+  </a>
 </div>
-{% endif %}
 
-{% endblock %}
-
-{% block extra_scripts %}
-{% if show_onboarding %}
-<script>
-(function () {
-  var root = document.getElementById('onboarding');
-  if (!root) return;
-
-  var steps = [
-    {
-      kicker: 'Passo 1 di 4',
-      title: 'Abbonamento attivo',
-      text: 'Il tuo spazio professionale è pronto. In due minuti vedi dove gestire pazienti, agenda e piani.'
-    },
-    {
-      kicker: 'Passo 2 di 4',
-      title: 'Aggiungi i pazienti',
-      text: 'Da Pazienti crei l’anagrafica, attivi l’accesso all’app e segui diete, progressi e documenti in un’unica scheda.'
-    },
-    {
-      kicker: 'Passo 3 di 4',
-      title: 'Configura l’agenda',
-      text: 'Imposta gli orari settimanali, gestisci le richieste online e conferma gli appuntamenti dalla sezione Agenda.'
-    },
-    {
-      kicker: 'Passo 4 di 4',
-      title: 'Crea dieta e allenamento',
-      text: 'Dalla dashboard puoi subito pubblicare un piano alimentare o di allenamento e condividerlo con il paziente.'
-    }
-  ];
-
-  var i = 0;
-  var kicker = document.getElementById('ob-kicker');
-  var title = document.getElementById('ob-title');
-  var text = document.getElementById('ob-text');
-  var dots = document.getElementById('ob-dots');
-  var prev = document.getElementById('ob-prev');
-  var next = document.getElementById('ob-next');
-  var skip = document.getElementById('ob-skip');
-
-  for (var d = 0; d < steps.length; d++) {
-    var el = document.createElement('span');
-    el.className = 'ob-dot' + (d === 0 ? ' is-on' : '');
-    dots.appendChild(el);
-  }
-
-  function render() {
-    var s = steps[i];
-    kicker.textContent = s.kicker;
-    title.textContent = s.title;
-    text.textContent = s.text;
-    prev.hidden = i === 0;
-    next.textContent = i === steps.length - 1 ? 'Inizia' : 'Continua';
-    Array.prototype.forEach.call(dots.children, function (dot, idx) {
-      dot.classList.toggle('is-on', idx === i);
-    });
-  }
-
-  function close() {
-    root.hidden = true;
-    root.setAttribute('aria-hidden', 'true');
-  }
-
-  prev.addEventListener('click', function () {
-    if (i > 0) { i -= 1; render(); }
-  });
-  next.addEventListener('click', function () {
-    if (i < steps.length - 1) {
-      i += 1;
-      render();
-    } else {
-      close();
-      window.location.href = {{ url_for('patients.nuovo_paziente')|tojson }};
-    }
-  });
-  skip.addEventListener('click', close);
-  root.addEventListener('click', function (e) {
-    if (e.target === root) close();
-  });
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') close();
-  });
-
-  render();
-})();
-</script>
-{% endif %}
 {% endblock %}

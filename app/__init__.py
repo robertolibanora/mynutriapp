@@ -27,6 +27,7 @@ def create_app():
         watched = [
             os.path.join(static_root, "css", "admin-theme.css"),
             os.path.join(static_root, "js", "diet_builder.js"),
+            os.path.join(static_root, "js", "global_patient_search.js"),
         ]
         mtimes = []
         for path in watched:

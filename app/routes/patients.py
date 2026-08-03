@@ -1,6 +1,6 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session, Response
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, Response, jsonify
 from werkzeug.security import generate_password_hash
-from app.models.models import db, Patient, Dieta, Allenamento, Progresso
+from app.models.models import db, Patient, Dieta, Allenamento, Progresso, PatientNote, Appuntamento, DietPlan, Documento
 from app.services.paziente_service import (
     LABEL_STATO_CLIENTE,
     STATI_CLIENTE,
@@ -14,15 +14,19 @@ from app.services.gdpr_service import (
     purge_patient,
     request_erasure,
 )
-from app.utils.db_schema import ensure_gdpr_schema, ensure_patient_stato_schema
+from app.services.patient_search_service import search_patients
+from app.services.patient_list_service import list_patients_enriched
+from app.services.patient_timeline_service import get_patient_timeline
+from app.utils.db_schema import ensure_gdpr_schema, ensure_patient_stato_schema, ensure_activity_notes_schema
 from app.utils.tenant import (
     assert_patient_tenant,
     patients_query_for_tenant,
     require_tenant,
     tenant_filter_enabled,
 )
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from sqlalchemy import case
+from sqlalchemy.orm import joinedload
 
 # ========================
 # BLUEPRINT
@@ -34,6 +38,7 @@ patients_bp = Blueprint('patients', __name__, url_prefix='/admin/pazienti')
 def _ensure_patient_schema():
     ensure_patient_stato_schema()
     ensure_gdpr_schema()
+    ensure_activity_notes_schema()
 
 
 # ========================
@@ -81,48 +86,39 @@ def _get_tenant_patient(patient_id: int) -> Patient:
 def lista_pazienti():
     search_query = request.args.get('search', '').strip()
     stato_filtro = request.args.get('stato', '').strip()
+    filtro = request.args.get('filtro', '').strip() or stato_filtro or 'tutti'
+    sort = request.args.get('sort', 'nome').strip() or 'nome'
 
-    query = Patient.query
-    if tenant_filter_enabled():
-        query = query.filter(Patient.nutrizionista_id == require_tenant())
-    if search_query:
-        query = query.filter(
-            db.or_(
-                Patient.nome.ilike(f'%{search_query}%'),
-                Patient.cognome.ilike(f'%{search_query}%'),
-                Patient.telefono.ilike(f'%{search_query}%')
-            )
-        )
-    if stato_filtro in STATI_CLIENTE:
-        query = query.filter(Patient.stato_cliente == stato_filtro)
-
-    ordine_stato = case(
-        (Patient.stato_cliente == 'provvisorio', 0),
-        (Patient.stato_cliente == 'attivo', 1),
-        else_=2,
-    )
-    pazienti = query.order_by(ordine_stato.asc(), Patient.data_creazione.desc()).all()
-
-    oggi = date.today()
-    for paziente in pazienti:
-        if paziente.data_nascita:
-            eta = oggi.year - paziente.data_nascita.year - (
-                (oggi.month, oggi.day) < (paziente.data_nascita.month, paziente.data_nascita.day)
-            )
-            paziente.eta = eta
-        else:
-            paziente.eta = None
+    rows = list_patients_enriched(search=search_query, filtro=filtro, sort=sort)
 
     base_counts = patients_query_for_tenant()
     return render_template(
         'admin/pazienti_lista.html',
-        pazienti=pazienti,
-        stato_filtro=stato_filtro,
+        rows=rows,
+        search_query=search_query,
+        filtro=filtro,
+        sort=sort,
         label_stato=LABEL_STATO_CLIENTE,
         n_provvisori=base_counts.filter_by(stato_cliente='provvisorio').count(),
         n_attivi=base_counts.filter_by(stato_cliente='attivo').count(),
         n_non_attivi=base_counts.filter_by(stato_cliente='non_attivo').count(),
+        n_totali=base_counts.count(),
     )
+
+
+# ========================
+# API RICERCA GLOBALE
+# ========================
+@patients_bp.route('/api/search')
+@admin_required
+def api_search_pazienti():
+    q = request.args.get('q', '')
+    try:
+        limit = int(request.args.get('limit', 8))
+    except ValueError:
+        limit = 8
+    results = search_patients(q, limit=limit)
+    return jsonify({"results": results, "q": q})
 
 
 # ========================
@@ -303,34 +299,178 @@ def dettaglio_paziente(patient_id):
             i for i in diary_items
             if not i["da_revisionare"] and not i["valido_storico"]
         ]
-    
-    return render_template('admin/paziente_dettaglio.html', 
-                         paziente=paziente,
-                         progressi=progressi,
-                         progressi_paziente=progressi_paziente,
-                         progressi_nutrizionista=progressi_nutrizionista,
-                         documenti=documenti,
-                         alerti=alerti,
-                         variazione_peso_media=variazione_peso_media,
-                         aderenza_media=aderenza_media,
-                         check_totali=check_totali,
-                         foto_inviate=foto_inviate,
-                         date_labels=date_labels,
-                         pesi=pesi,
-                         aderenze=aderenze,
-                         diary_items=diary_items,
-                         da_revisionare=da_revisionare,
-                         confermati=confermati,
-                         altri=altri)
+
+    now = datetime.now()
+    eta = None
+    if paziente.data_nascita:
+        eta = oggi.year - paziente.data_nascita.year - (
+            (oggi.month, oggi.day) < (paziente.data_nascita.month, paziente.data_nascita.day)
+        )
+
+    peso_attuale = None
+    if progressi_con_peso:
+        ultimo_peso = max(progressi_con_peso, key=lambda p: p.data_check)
+        peso_attuale = float(ultimo_peso.peso_settimanale)
+
+    delta_peso = None
+    if peso_attuale is not None and paziente.peso_iniziale is not None:
+        delta_peso = round(peso_attuale - float(paziente.peso_iniziale), 1)
+
+    app_q = Appuntamento.query.filter_by(patient_id=patient_id)
+    if tenant_filter_enabled():
+        app_q = app_q.filter(Appuntamento.utente_id == require_tenant())
+    appuntamenti = app_q.order_by(Appuntamento.data_appuntamento.desc()).limit(50).all()
+    prossimo_app = (
+        app_q.filter(
+            Appuntamento.data_appuntamento >= now,
+            Appuntamento.stato.in_(("in_attesa", "confermato")),
+        )
+        .order_by(Appuntamento.data_appuntamento.asc())
+        .first()
+    )
+    ultima_visita = (
+        app_q.filter(
+            Appuntamento.data_appuntamento < now,
+            Appuntamento.stato != "annullato",
+        )
+        .order_by(Appuntamento.data_appuntamento.desc())
+        .first()
+    )
+
+    diet_plans = (
+        DietPlan.query.filter_by(patient_id=patient_id)
+        .order_by(DietPlan.updated_at.desc())
+        .all()
+    )
+    dieta_attiva = next((d for d in diet_plans if d.status == "published"), None)
+    diete_bozza = [d for d in diet_plans if d.status == "draft"]
+    diete_pdf = (
+        Dieta.query.filter_by(patient_id=patient_id)
+        .order_by(Dieta.data_inizio.desc())
+        .all()
+    )
+
+    allenamenti = (
+        Allenamento.query.filter_by(patient_id=patient_id)
+        .order_by(Allenamento.created_at.desc())
+        .all()
+    )
+    allenamento_attivo = None
+    for a in allenamenti:
+        if a.data_fine and a.data_fine >= oggi:
+            allenamento_attivo = a
+            break
+    if allenamento_attivo is None and allenamenti:
+        allenamento_attivo = allenamenti[0]
+
+    notes = (
+        PatientNote.query.filter_by(patient_id=patient_id)
+        .order_by(PatientNote.created_at.desc())
+        .all()
+    )
+
+    timeline = get_patient_timeline(patient=paziente, page=1, per_page=40)
+
+    pending = []
+    for d in diete_bozza:
+        pending.append({"title": f"Dieta in bozza: {d.title}", "url": url_for("diete_plans.diet_plan_detail", diet_plan_id=d.id)})
+    for a in appuntamenti:
+        if a.stato == "in_attesa" and a.data_appuntamento >= now:
+            pending.append({"title": "Appuntamento da confermare", "url": url_for("patients.dettaglio_paziente", patient_id=patient_id, tab="appuntamenti")})
+            break
+    if paziente.stato_cliente == "attivo" and not prossimo_app:
+        pending.append({"title": "Senza appuntamento futuro", "url": f"/appuntamenti/admin/nuovo?patient_id={patient_id}"})
+    pending.extend({"title": al["titolo"], "url": None} for al in alerti[:3])
+
+    active_tab = (request.args.get("tab") or "panoramica").strip()
+    allowed_tabs = {
+        "panoramica", "timeline", "diete", "allenamenti", "progressi",
+        "appuntamenti", "documenti", "note", "diario", "messaggi", "mediche", "percorsi",
+    }
+    if active_tab == "percorsi":
+        active_tab = "diete"
+    if active_tab not in allowed_tabs:
+        active_tab = "panoramica"
+
+    return render_template(
+        "admin/paziente_dettaglio.html",
+        paziente=paziente,
+        eta=eta,
+        progressi=list(reversed(progressi)),
+        progressi_paziente=progressi_paziente,
+        progressi_nutrizionista=progressi_nutrizionista,
+        documenti=documenti,
+        alerti=alerti,
+        pending=pending,
+        variazione_peso_media=variazione_peso_media,
+        aderenza_media=aderenza_media,
+        check_totali=check_totali,
+        foto_inviate=foto_inviate,
+        date_labels=date_labels,
+        pesi=pesi,
+        aderenze=aderenze,
+        diary_items=diary_items,
+        da_revisionare=da_revisionare,
+        confermati=confermati,
+        altri=altri,
+        peso_attuale=peso_attuale,
+        delta_peso=delta_peso,
+        prossimo_app=prossimo_app,
+        ultima_visita=ultima_visita,
+        diet_plans=diet_plans,
+        dieta_attiva=dieta_attiva,
+        diete_bozza=diete_bozza,
+        diete_pdf=diete_pdf,
+        allenamenti=allenamenti,
+        allenamento_attivo=allenamento_attivo,
+        appuntamenti=appuntamenti,
+        notes=notes,
+        timeline=timeline,
+        active_tab=active_tab,
+        label_stato=LABEL_STATO_CLIENTE,
+    )
+
+
+@patients_bp.route('/<int:patient_id>/note', methods=['POST'])
+@admin_required
+def aggiungi_nota(patient_id):
+    paziente = _get_tenant_patient(patient_id)
+    body = (request.form.get("body") or "").strip()
+    if not body:
+        flash("La nota non può essere vuota", "warning")
+        return redirect(url_for("patients.dettaglio_paziente", patient_id=patient_id, tab="note"))
+    note = PatientNote(
+        patient_id=paziente.id,
+        utente_id=require_tenant(),
+        body=body,
+    )
+    db.session.add(note)
+    db.session.commit()
+    flash("Nota salvata", "success")
+    return redirect(url_for("patients.dettaglio_paziente", patient_id=patient_id, tab="note"))
+
+
+@patients_bp.route('/<int:patient_id>/note/<int:note_id>/elimina', methods=['POST'])
+@admin_required
+def elimina_nota(patient_id, note_id):
+    _get_tenant_patient(patient_id)
+    note = PatientNote.query.get_or_404(note_id)
+    if note.patient_id != patient_id or note.utente_id != require_tenant():
+        flash("Nota non trovata", "danger")
+        return redirect(url_for("patients.dettaglio_paziente", patient_id=patient_id, tab="note"))
+    db.session.delete(note)
+    db.session.commit()
+    flash("Nota eliminata", "success")
+    return redirect(url_for("patients.dettaglio_paziente", patient_id=patient_id, tab="note"))
 
 
 @patients_bp.route('/<int:patient_id>/percorsi')
 @admin_required
 def percorsi_paziente(patient_id):
-    """Redirect alla scheda paziente, tab Percorsi."""
+    """Redirect alla scheda paziente, tab Diete."""
     _get_tenant_patient(patient_id)
     return redirect(
-        url_for('patients.dettaglio_paziente', patient_id=patient_id, tab='percorsi')
+        url_for('patients.dettaglio_paziente', patient_id=patient_id, tab='diete')
     )
 
 
@@ -587,125 +727,10 @@ def request_erasure_user():
 
 
 # ========================
-# ADMIN: SCADENZE
+# ADMIN: SCADENZE → Attività
 # ========================
 @patients_bp.route('/scadenze')
 @admin_required
 def scadenze():
-    """Visualizza tutte le scadenze con filtri"""
-    oggi = date.today()
-    
-    # Filtri dalla query string
-    tipo_filtro = request.args.get('tipo', 'tutti')
-    giorni_filtro = int(request.args.get('giorni', 30))
-    
-    # Calcola la data limite
-    data_limite = oggi + timedelta(days=giorni_filtro)
-    
-    scadenze = []
-    uid = require_tenant() if tenant_filter_enabled() else None
-
-    # SCADENZE DIETE
-    if tipo_filtro in ['tutti', 'diete']:
-        q_diete = db.session.query(Dieta, Patient).join(Patient).filter(
-            Dieta.data_fine >= oggi,
-            Dieta.data_fine <= data_limite
-        )
-        if uid is not None:
-            q_diete = q_diete.filter(Patient.nutrizionista_id == uid)
-        diete_scadenti = q_diete.all()
-        
-        for dieta, paziente in diete_scadenti:
-            giorni_alla_scadenza = (dieta.data_fine - oggi).days
-            scadenze.append({
-                'tipo': 'dieta',
-                'titolo': '🍽️ Dieta',
-                'descrizione': (dieta.note[:50] + '...' if dieta.note and len(dieta.note) > 50 else dieta.note) if dieta.note else 'Dieta senza note',
-                'paziente': f"{paziente.nome} {paziente.cognome}",
-                'data_scadenza': dieta.data_fine,
-                'giorni_rimanenti': giorni_alla_scadenza,
-                'urgenza': 'alta' if giorni_alla_scadenza <= 7 else 'media' if giorni_alla_scadenza <= 14 else 'bassa',
-                'colore': '#F44336' if giorni_alla_scadenza <= 7 else '#FF9800' if giorni_alla_scadenza <= 14 else '#c8c8c8',
-                'link': url_for('patients.dettaglio_paziente', patient_id=paziente.id)
-            })
-    
-    # SCADENZE ALLENAMENTI
-    if tipo_filtro in ['tutti', 'allenamenti']:
-        q_all = db.session.query(Allenamento, Patient).join(Patient).filter(
-            Allenamento.data_fine >= oggi,
-            Allenamento.data_fine <= data_limite
-        )
-        if uid is not None:
-            q_all = q_all.filter(Patient.nutrizionista_id == uid)
-        allenamenti_scadenti = q_all.all()
-        
-        for allenamento, paziente in allenamenti_scadenti:
-            giorni_alla_scadenza = (allenamento.data_fine - oggi).days
-            scadenze.append({
-                'tipo': 'allenamento',
-                'titolo': '🏋️ Allenamento',
-                'descrizione': (allenamento.note[:50] + '...' if allenamento.note and len(allenamento.note) > 50 else allenamento.note) if allenamento.note else 'Allenamento senza note',
-                'paziente': f"{paziente.nome} {paziente.cognome}",
-                'data_scadenza': allenamento.data_fine,
-                'giorni_rimanenti': giorni_alla_scadenza,
-                'urgenza': 'alta' if giorni_alla_scadenza <= 7 else 'media' if giorni_alla_scadenza <= 14 else 'bassa',
-                'colore': '#F44336' if giorni_alla_scadenza <= 7 else '#FF9800' if giorni_alla_scadenza <= 14 else '#c8c8c8',
-                'link': url_for('patients.dettaglio_paziente', patient_id=paziente.id)
-            })
-    
-    # CHECK MANCANTI
-    if tipo_filtro in ['tutti', 'check']:
-        # Trova pazienti con ultimo check oltre 30 giorni
-        q_check = db.session.query(Patient).outerjoin(Progresso)
-        if uid is not None:
-            q_check = q_check.filter(Patient.nutrizionista_id == uid)
-        check_mancanti = q_check.group_by(Patient.id).having(
-            db.func.max(Progresso.data_check) < oggi - timedelta(days=30)
-        ).all()
-        
-        # Trova anche pazienti senza progressi
-        q_no = db.session.query(Patient).outerjoin(Progresso).filter(
-            Progresso.id.is_(None)
-        )
-        if uid is not None:
-            q_no = q_no.filter(Patient.nutrizionista_id == uid)
-        pazienti_senza_progressi = q_no.all()
-        
-        for paziente in check_mancanti + pazienti_senza_progressi:
-            if paziente in pazienti_senza_progressi:
-                giorni_senza_check = 999  # Valore alto per pazienti senza progressi
-                ultimo_check = "Mai effettuato"
-            else:
-                ultimo_progresso = Progresso.query.filter_by(patient_id=paziente.id).order_by(Progresso.data_check.desc()).first()
-                giorni_senza_check = (oggi - ultimo_progresso.data_check.date()).days
-                ultimo_check = ultimo_progresso.data_check.strftime('%d/%m/%Y')
-            
-            scadenze.append({
-                'tipo': 'check',
-                'titolo': '📈 Check Mancante',
-                'descrizione': f"Ultimo check: {ultimo_check}",
-                'paziente': f"{paziente.nome} {paziente.cognome}",
-                'data_scadenza': None,
-                'giorni_rimanenti': giorni_senza_check,
-                'urgenza': 'alta' if giorni_senza_check > 60 else 'media',
-                'colore': '#F44336' if giorni_senza_check > 60 else '#FF9800',
-                'link': url_for('patients.dettaglio_paziente', patient_id=paziente.id)
-            })
-    
-    # Ordina per urgenza e giorni rimanenti
-    scadenze.sort(key=lambda x: (x['urgenza'] == 'bassa', x['giorni_rimanenti']))
-    
-    # Statistiche
-    stats = {
-        'totali': len(scadenze),
-        'diete': len([s for s in scadenze if s['tipo'] == 'dieta']),
-        'allenamenti': len([s for s in scadenze if s['tipo'] == 'allenamento']),
-        'check': len([s for s in scadenze if s['tipo'] == 'check']),
-        'urgenti': len([s for s in scadenze if s['urgenza'] == 'alta'])
-    }
-    
-    return render_template('admin/scadenze.html', 
-                         scadenze=scadenze, 
-                         stats=stats,
-                         tipo_filtro=tipo_filtro,
-                         giorni_filtro=giorni_filtro)
+    """Compatibilità: le scadenze sono confluite nella sezione Attività."""
+    return redirect(url_for('attivita.lista_attivita', bucket='prossime'))

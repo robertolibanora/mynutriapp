@@ -767,6 +767,83 @@ class AgendaEccezione(db.Model):
 
 
 # ========================
+#   MODEL: PatientNote
+# ========================
+
+class PatientNote(db.Model):
+    """Nota operativa del professionista sulla cartella paziente."""
+
+    __tablename__ = "patient_notes"
+
+    id = db.Column(db.Integer, primary_key=True)
+    patient_id = db.Column(
+        db.Integer,
+        db.ForeignKey("patients.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    utente_id = db.Column(
+        db.Integer,
+        db.ForeignKey("utente.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
+    body = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, server_default=db.func.now(), nullable=False)
+    updated_at = db.Column(
+        db.DateTime,
+        server_default=db.func.now(),
+        onupdate=db.func.now(),
+    )
+
+    patient = db.relationship(
+        "Patient",
+        backref=db.backref("notes", lazy=True, cascade="all, delete-orphan"),
+    )
+
+    def __repr__(self):
+        return f"<PatientNote {self.id} patient={self.patient_id}>"
+
+
+# ========================
+#   MODEL: Activity (manuali)
+# ========================
+
+class Activity(db.Model):
+    """Attività manuale multi-tenant. Le attività automatiche non vengono persistite."""
+
+    __tablename__ = "activities"
+
+    id = db.Column(db.Integer, primary_key=True)
+    utente_id = db.Column(
+        db.Integer,
+        db.ForeignKey("utente.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    patient_id = db.Column(
+        db.Integer,
+        db.ForeignKey("patients.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    title = db.Column(db.String(255), nullable=False)
+    tipo = db.Column(db.String(40), nullable=False, server_default="manuale")
+    priority = db.Column(db.String(20), nullable=False, server_default="medium")
+    due_at = db.Column(db.DateTime, nullable=True, index=True)
+    status = db.Column(db.String(20), nullable=False, server_default="open", index=True)
+    source = db.Column(db.String(20), nullable=False, server_default="manual")
+    notes = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
+    completed_at = db.Column(db.DateTime, nullable=True)
+
+    patient = db.relationship("Patient", lazy=True)
+
+    def __repr__(self):
+        return f"<Activity {self.id} {self.title}>"
+
+
+# ========================
 #   MODEL: AuditLog
 # ========================
 

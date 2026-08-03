@@ -1,0 +1,115 @@
+{% extends 'base_admin.html' %}
+{% block title %}Attività{% endblock %}
+{% block content %}
+
+{% set title = 'Attività' %}
+{% set subtitle = 'Inbox operativa: bozze, conferme, scadenze e attività manuali' %}
+{% set primary_url = None %}
+{% set primary_label = None %}
+{% include 'admin/partials/_page_header.html' %}
+
+<div class="adm-filter-bar">
+  <div class="adm-filter-chips" role="tablist" aria-label="Filtri attività">
+    <a class="adm-chip{% if bucket == 'oggi' %} is-active{% endif %}" href="{{ url_for('attivita.lista_attivita', bucket='oggi') }}">Oggi <span>{{ counts.oggi }}</span></a>
+    <a class="adm-chip{% if bucket == 'ritardo' %} is-active{% endif %}" href="{{ url_for('attivita.lista_attivita', bucket='ritardo') }}">In ritardo <span>{{ counts.ritardo }}</span></a>
+    <a class="adm-chip{% if bucket == 'prossime' %} is-active{% endif %}" href="{{ url_for('attivita.lista_attivita', bucket='prossime') }}">Prossime <span>{{ counts.prossime }}</span></a>
+    <a class="adm-chip{% if bucket == 'completate' %} is-active{% endif %}" href="{{ url_for('attivita.lista_attivita', bucket='completate') }}">Completate <span>{{ counts.completate }}</span></a>
+  </div>
+</div>
+
+<div class="ops-grid">
+  <section class="ops-panel">
+    <div class="ops-panel-head">
+      <h2 class="ops-panel-title">
+        {% if bucket == 'oggi' %}Da fare oggi
+        {% elif bucket == 'ritardo' %}In ritardo
+        {% elif bucket == 'prossime' %}Prossime
+        {% else %}Completate{% endif %}
+      </h2>
+      <span class="text-sm text-muted">{{ items|length }} elementi</span>
+    </div>
+
+    {% if not items %}
+      {% set title = 'Nessuna attività in questa vista' %}
+      {% set description = 'Quando ci sono diete in bozza, appuntamenti da confermare o scadenze, appariranno qui.' %}
+      {% set action_url = url_for('patients.lista_pazienti') %}
+      {% set action_label = 'Vai ai pazienti' %}
+      {% include 'admin/partials/_empty_state.html' %}
+    {% else %}
+    <ul class="ops-list">
+      {% for it in items %}
+      <li class="activity-item">
+        <div style="display:flex;gap:0.65rem;min-width:0;flex:1;">
+          <span class="activity-priority{% if it.priority == 'high' %} is-high{% elif it.priority == 'medium' %} is-medium{% endif %}" aria-hidden="true"></span>
+          <div class="ops-item-main">
+            <div class="ops-item-title">{{ it.title }}</div>
+            <div class="ops-item-meta">
+              {% if it.patient_name %}
+                <a href="{{ url_for('patients.dettaglio_paziente', patient_id=it.patient_id) }}">{{ it.patient_name }}</a> ·
+              {% endif %}
+              <span>{{ it.tipo|replace('_', ' ') }}</span>
+              {% if it.due_at %} · {{ it.due_at.strftime('%d/%m/%Y %H:%M') }}{% endif %}
+              {% if it.source == 'auto' %} · automatica{% endif %}
+            </div>
+          </div>
+        </div>
+        <div class="ops-item-actions">
+          {% if it.patient_id %}
+          <a class="btn btn-ghost btn-small" href="{{ url_for('patients.dettaglio_paziente', patient_id=it.patient_id) }}">Paziente</a>
+          {% endif %}
+          {% if it.is_manual and it.status == 'open' %}
+          <form method="POST" action="{{ url_for('attivita.completa', activity_id=it.manual_id) }}" style="margin:0">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <button type="submit" class="btn btn-primary btn-small">Completa</button>
+          </form>
+          {% elif it.is_manual and it.status == 'done' %}
+          <form method="POST" action="{{ url_for('attivita.riapri', activity_id=it.manual_id) }}" style="margin:0">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <button type="submit" class="btn btn-ghost btn-small">Riapri</button>
+          </form>
+          {% else %}
+          <a class="btn btn-primary btn-small" href="{{ it.action_url }}">{{ it.action_label }}</a>
+          {% endif %}
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </section>
+
+  <section class="ops-panel">
+    <div class="ops-panel-head">
+      <h2 class="ops-panel-title">Nuova attività</h2>
+    </div>
+    <form method="POST" action="{{ url_for('attivita.nuova_attivita') }}" class="form-stack">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+      <label class="field">Titolo
+        <input class="input-text" type="text" name="title" required maxlength="255" placeholder="Es. Ricontattare per check">
+      </label>
+      <label class="field">Paziente (opzionale)
+        <select class="input-text" name="patient_id">
+          <option value="">— Nessuno —</option>
+          {% for p in pazienti %}
+          <option value="{{ p.id }}">{{ p.cognome }} {{ p.nome }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label class="field">Scadenza
+        <input class="input-text" type="datetime-local" name="due_at">
+      </label>
+      <label class="field">Priorità
+        <select class="input-text" name="priority">
+          <option value="medium">Media</option>
+          <option value="high">Alta</option>
+          <option value="low">Bassa</option>
+        </select>
+      </label>
+      <label class="field">Note
+        <textarea class="input-text" name="notes" rows="3"></textarea>
+      </label>
+      <button type="submit" class="btn btn-primary btn-small">Crea attività</button>
+    </form>
+  </section>
+</div>
+
+{% endblock %}

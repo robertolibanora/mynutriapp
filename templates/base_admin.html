@@ -6,7 +6,7 @@
     <title>{% block title %}Pannello{% endblock %}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Newsreader:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/admin-theme.css') }}?v={{ static_version }}">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     {% block extra_head %}{% endblock %}
@@ -17,22 +17,28 @@
 {% set ep = request.endpoint or '' %}
 {% if 'broadcast' in ep %}
   {% set auto_nav_label = 'Messaggi' %}
+{% elif 'attivita' in ep or ep == 'patients.scadenze' %}
+  {% set auto_nav_label = 'Attività' %}
 {% elif 'agenda' in ep or 'slot' in ep or 'appuntament' in ep or 'prenota' in ep %}
   {% set auto_nav_label = 'Agenda' %}
-{% elif 'diete_plans' in ep or ep.startswith('diete.') %}
-  {% set auto_nav_label = 'Dieta' %}
-{% elif 'allenamenti' in ep %}
-  {% set auto_nav_label = 'Allenamento' %}
-{% elif 'patients' in ep or 'progressi' in ep or 'documenti' in ep %}
+{% elif 'diete_plans' in ep or ep.startswith('diete.') or 'allenamenti' in ep %}
+  {% set auto_nav_label = 'Pazienti' %}
+{% elif 'patients' in ep or 'progressi' in ep or 'documenti' in ep or 'diario' in ep %}
   {% set auto_nav_label = 'Pazienti' %}
 {% elif ep == 'dashboard.admin_impostazioni' %}
   {% set auto_nav_label = 'Impostazioni' %}
+{% elif ep == 'dashboard.admin_dashboard' %}
+  {% set auto_nav_label = 'Dashboard' %}
 {% else %}
   {% set auto_nav_label = 'Generale' %}
 {% endif %}
 
+{% set nav_pazienti = ('patients' in ep) or ('progressi' in ep) or ('documenti' in ep) or ('diario' in ep) or ('diete_plans' in ep) or ep.startswith('diete.') or ('allenamenti' in ep) %}
+{% set nav_agenda = ('agenda' in ep) or ('slot' in ep) or ('appuntament' in ep) or ('prenota' in ep) %}
+{% set nav_attivita = ('attivita' in ep) or (ep == 'patients.scadenze') %}
+
 <div class="admin-shell">
-    <aside class="admin-sidebar">
+    <aside class="admin-sidebar" id="admin-sidebar">
     <div class="admin-brand admin-brand--anon">
       <span class="admin-brand-icon" aria-hidden="true">{{ icon('diet', 20, 'adm-icon') }}</span>
       <div class="admin-brand-text">
@@ -41,30 +47,26 @@
       </div>
     </div>
 
-        <div class="admin-nav-label">Generale</div>
-        <nav class="admin-nav">
+        <div class="admin-nav-label">Operativo</div>
+        <nav class="admin-nav" aria-label="Navigazione principale">
             <a href="{{ url_for('dashboard.admin_dashboard') }}" class="admin-nav-link{% if ep == 'dashboard.admin_dashboard' %} is-active{% endif %}">
-                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
                 <span>Dashboard</span>
             </a>
-            <a href="{{ url_for('patients.lista_pazienti') }}" class="admin-nav-link{% if 'patients' in ep or 'progressi' in ep or 'documenti' in ep %} is-active{% endif %}">
-                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 19v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1"/><circle cx="9.5" cy="7.5" r="3.2"/><path d="M21 19v-1a4 4 0 0 0-3-3.85"/></svg>
+            <a href="{{ url_for('patients.lista_pazienti') }}" class="admin-nav-link{% if nav_pazienti %} is-active{% endif %}">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 19v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1"/><circle cx="9.5" cy="7.5" r="3.2"/><path d="M21 19v-1a4 4 0 0 0-3-3.85"/></svg>
                 <span>Pazienti</span>
             </a>
-            <a href="{{ url_for('diete_plans.lista_diet_plans') }}" class="admin-nav-link{% if 'diete_plans' in ep or ep.startswith('diete.') %} is-active{% endif %}">
-                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19h16M7 16V8l5-3 5 3v8M9 16v-4h6v4"/></svg>
-                <span>Dieta</span>
-            </a>
-            <a href="{{ url_for('allenamenti.lista_allenamenti') }}" class="admin-nav-link{% if 'allenamenti' in ep %} is-active{% endif %}">
-                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m6.5 6.5 11 11"/><path d="m8 8-2-2"/><path d="m16 16 2 2"/><path d="m18 6-2 2"/><path d="m6 18 2-2"/></svg>
-                <span>Allenamento</span>
-            </a>
-            <a href="{{ url_for('agenda.agenda_unificata') }}" class="admin-nav-link{% if 'agenda' in ep or 'slot' in ep or 'appuntament' in ep %} is-active{% endif %}">
-                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="16" rx="2.5"/><path d="M3.5 9h17M8 3v4M16 3v4"/></svg>
+            <a href="{{ url_for('agenda.agenda_unificata') }}" class="admin-nav-link{% if nav_agenda %} is-active{% endif %}">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="16" rx="2.5"/><path d="M3.5 9h17M8 3v4M16 3v4"/></svg>
                 <span>Agenda</span>
             </a>
+            <a href="{{ url_for('attivita.lista_attivita') }}" class="admin-nav-link{% if nav_attivita %} is-active{% endif %}">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                <span>Attività</span>
+            </a>
             <a href="{{ url_for('broadcast.dashboard') }}" class="admin-nav-link{% if 'broadcast' in ep %} is-active{% endif %}">
-                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a7.5 7.5 0 0 1-11 6.6L4 20l1.4-5.3A7.5 7.5 0 1 1 21 11.5z"/></svg>
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a7.5 7.5 0 0 1-11 6.6L4 20l1.4-5.3A7.5 7.5 0 1 1 21 11.5z"/></svg>
                 <span>Messaggi</span>
             </a>
         </nav>
@@ -78,25 +80,64 @@
                 </div>
             </div>
             <a href="{{ url_for('dashboard.admin_impostazioni') }}" class="admin-nav-link{% if ep == 'dashboard.admin_impostazioni' %} is-active{% endif %}" style="margin-bottom:4px">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
                 <span>Impostazioni</span>
             </a>
             <a href="{{ url_for('auth.logout') }}" class="admin-logout">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>
                 <span>Esci</span>
             </a>
         </div>
     </aside>
 
     <div class="admin-main">
-        <header class="admin-topbar">
-            <div style="min-width:0">
-                <div class="admin-topbar-label">{% block nav_label %}{{ auto_nav_label }}{% endblock %}</div>
-                <h1 class="admin-topbar-title">{{ self.title()|striptags }}</h1>
+        <header class="admin-topbar admin-topbar--compact">
+            <button type="button" class="admin-sidebar-toggle" id="admin-sidebar-toggle" aria-label="Apri o chiudi menu" aria-controls="admin-sidebar" aria-expanded="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+            </button>
+
+            <div class="admin-topbar-search" data-global-search data-search-url="{{ url_for('patients.api_search_pazienti') }}">
+              <label class="visually-hidden" for="global-patient-search">Cerca paziente</label>
+              <div class="gs-field">
+                <svg class="gs-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+                <input
+                  id="global-patient-search"
+                  type="search"
+                  class="gs-input"
+                  data-gs-input
+                  placeholder="Cerca paziente…"
+                  autocomplete="off"
+                  aria-autocomplete="list"
+                  aria-controls="global-patient-results"
+                  aria-expanded="false"
+                  role="combobox"
+                />
+                <kbd class="gs-kbd" aria-hidden="true">⌘K</kbd>
+              </div>
+              <div class="gs-panel" data-gs-panel hidden role="listbox" id="global-patient-results">
+                <p class="gs-hint" data-gs-hint>Cerca per nome, telefono o email. Scorciatoia Ctrl/⌘ K.</p>
+                <p class="gs-empty" data-gs-empty hidden></p>
+                <ul class="gs-list" data-gs-list></ul>
+              </div>
             </div>
-            <div class="admin-topbar-meta">
+
+            <div class="admin-topbar-right">
+              <div class="admin-quick-new" data-quick-new>
+                <button type="button" class="btn btn-primary btn-small admin-quick-new-btn" data-quick-new-toggle aria-haspopup="true" aria-expanded="false">
+                  Nuovo
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+                <div class="admin-quick-new-menu" data-quick-new-menu hidden role="menu">
+                  <a role="menuitem" href="{{ url_for('patients.nuovo_paziente') }}">Nuovo paziente</a>
+                  <a role="menuitem" href="{{ url_for('appuntamenti.nuovo_admin') }}">Nuovo appuntamento</a>
+                  <a role="menuitem" href="{{ url_for('diete_plans.new_diet_plan_standalone') }}">Nuova dieta</a>
+                  <a role="menuitem" href="{{ url_for('allenamenti.nuovo_allenamento_standalone') }}">Nuovo allenamento</a>
+                </div>
+              </div>
+              <div class="admin-topbar-meta">
                 <div class="admin-topbar-date" id="admin-date"></div>
                 <div class="admin-topbar-time" id="admin-time"></div>
+              </div>
             </div>
         </header>
 
@@ -114,10 +155,12 @@
         </main>
 
         <footer class="admin-footer">
-            Pannello di gestione
+            MyNutriApp · Gestionale
         </footer>
     </div>
 </div>
+
+{% include 'admin/partials/_confirm_dialog.html' %}
 
 <script>
 (function () {
@@ -126,7 +169,7 @@
     var dateEl = document.getElementById('admin-date');
     var timeEl = document.getElementById('admin-time');
     if (dateEl) {
-      dateEl.textContent = d.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+      dateEl.textContent = d.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short' });
     }
     if (timeEl) {
       timeEl.textContent = d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
@@ -134,8 +177,45 @@
   }
   tick();
   setInterval(tick, 30000);
+
+  var toggle = document.getElementById('admin-sidebar-toggle');
+  var shell = document.querySelector('.admin-shell');
+  if (toggle && shell) {
+    toggle.addEventListener('click', function () {
+      var collapsed = shell.classList.toggle('sidebar-collapsed');
+      toggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+    });
+  }
+
+  var qn = document.querySelector('[data-quick-new]');
+  if (qn) {
+    var btn = qn.querySelector('[data-quick-new-toggle]');
+    var menu = qn.querySelector('[data-quick-new-menu]');
+    if (btn && menu) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var open = menu.hidden;
+        menu.hidden = !open;
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+      document.addEventListener('click', function () {
+        menu.hidden = true;
+        btn.setAttribute('aria-expanded', 'false');
+      });
+    }
+  }
+
+  document.querySelectorAll('[data-confirm]').forEach(function (el) {
+    el.addEventListener('click', function (e) {
+      var msg = el.getAttribute('data-confirm');
+      if (msg && !window.confirm(msg)) {
+        e.preventDefault();
+      }
+    });
+  });
 })();
 </script>
+<script src="{{ url_for('static', filename='js/global_patient_search.js') }}?v={{ static_version }}"></script>
 {% block extra_scripts %}{% endblock %}
 </body>
 </html>

@@ -126,6 +126,22 @@ def admin_dashboard():
 
     show_onboarding = bool(session.pop("show_onboarding", False))
 
+    from app.services.activity_service import dashboard_todo_preview
+    from app.utils.db_schema import ensure_activity_notes_schema
+
+    ensure_activity_notes_schema()
+    try:
+        todo_items = dashboard_todo_preview(limit=8)
+    except Exception:  # noqa: BLE001
+        todo_items = []
+
+    pazienti_recenti = (
+        Patient.query.filter(Patient.nutrizionista_id == uid)
+        .order_by(Patient.data_creazione.desc())
+        .limit(5)
+        .all()
+    )
+
     return render_template(
         'admin/dashboard.html',
         n_appuntamenti_oggi=n_appuntamenti_oggi,
@@ -142,6 +158,8 @@ def admin_dashboard():
         ora_ora=oggi.strftime("%H:%M"),
         oggi=oggi,
         show_onboarding=show_onboarding,
+        todo_items=todo_items,
+        pazienti_recenti=pazienti_recenti,
     )
 
 

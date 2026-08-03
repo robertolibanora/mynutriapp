@@ -109,7 +109,12 @@ def nuovo_admin():
     if tenant_filter_enabled():
         q = q.filter(Patient.nutrizionista_id == require_tenant())
     pazienti = q.order_by(Patient.nome.asc()).all()
-    return render_template('admin/appuntamento_nuovo.html', pazienti=pazienti)
+    selected_patient_id = request.args.get("patient_id", type=int)
+    return render_template(
+        "admin/appuntamento_nuovo.html",
+        pazienti=pazienti,
+        selected_patient_id=selected_patient_id,
+    )
 
 
 # ========================

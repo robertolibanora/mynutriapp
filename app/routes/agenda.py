@@ -1,6 +1,8 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from datetime import datetime, date, timedelta
 
+from sqlalchemy.orm import joinedload
+
 from app.models.models import db, Appuntamento, RichiestaAppuntamento
 from app.services.agenda_service import AgendaService
 from app.utils.db_schema import ensure_agenda_schema, ensure_richieste_appuntamento_schema
@@ -110,7 +112,7 @@ def agenda_unificata():
     slot_mese = AgendaService.genera_slot(inizio_dt, fine_dt, utente_id=uid)
     slot_liberi_mese = [s for s in slot_mese if not s.occupato and s.data_ora >= oggi]
 
-    appuntamenti_mese = Appuntamento.query.filter(
+    appuntamenti_mese = Appuntamento.query.options(joinedload(Appuntamento.patient)).filter(
         Appuntamento.utente_id == uid,
         Appuntamento.data_appuntamento >= inizio_dt,
         Appuntamento.data_appuntamento < fine_dt + timedelta(days=1),
@@ -142,6 +144,25 @@ def agenda_unificata():
     elif filtro_vista == 'oggi':
         appuntamenti = appuntamenti_oggi
         vista_appuntamenti = 'Oggi'
+    elif filtro_vista == 'settimana':
+        fine_sett = oggi.date() + timedelta(days=7)
+        appuntamenti = [
+            a for a in appuntamenti_mese
+            if oggi.date() <= a.data_appuntamento.date() <= fine_sett
+        ]
+        # include also next days outside current month window
+        extra = Appuntamento.query.filter(
+            Appuntamento.utente_id == uid,
+            Appuntamento.data_appuntamento >= oggi,
+            Appuntamento.data_appuntamento < datetime.combine(fine_sett + timedelta(days=1), datetime.min.time()),
+            Appuntamento.stato != 'annullato',
+        ).order_by(Appuntamento.data_appuntamento.asc()).all()
+        seen = {a.id for a in appuntamenti}
+        for a in extra:
+            if a.id not in seen:
+                appuntamenti.append(a)
+        appuntamenti.sort(key=lambda x: x.data_appuntamento)
+        vista_appuntamenti = 'Prossimi 7 giorni'
     else:
         appuntamenti = appuntamenti_in_attesa
         vista_appuntamenti = 'Da confermare'

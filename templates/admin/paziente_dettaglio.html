@@ -1,688 +1,615 @@
 {% extends 'base_admin.html' %}
-{% block title %}{{ paziente.nome }} {{ paziente.cognome }} - Dettaglio{% endblock %}
+{% block title %}{{ paziente.nome }} {{ paziente.cognome }}{% endblock %}
 {% block content %}
 
 {% set sc = paziente.stato_cliente or 'attivo' %}
-<style>
-  .admin-app .patient-panel { display: none; }
-  .admin-app .patient-panel.is-active { display: block; }
-  .admin-app .patient-back {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    color: #a8a8a8;
-    font-size: 0.85rem;
-    text-decoration: none;
-    margin-bottom: 0.85rem;
-  }
-  .admin-app .patient-back:hover { color: #e8e8e8; }
-  .admin-app .patient-hero {
-    margin-bottom: 1.5rem;
-    padding: 1.75rem 1.85rem;
-    border-radius: 18px;
-    background: linear-gradient(120deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04) 70%, transparent);
-    border: 1px solid rgba(255,255,255,0.12);
-  }
-  .admin-app .patient-hero-top {
-    display: flex;
-    align-items: flex-start;
-    gap: 1.15rem;
-  }
-  .admin-app .patient-avatar {
-    width: 64px;
-    height: 64px;
-    flex-shrink: 0;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.12);
-    border: 1px solid rgba(255,255,255,0.16);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.35rem;
-    font-weight: 650;
-    color: #f0f0f0;
-    letter-spacing: 0.02em;
-  }
-  .admin-app .patient-hero h1 {
-    margin: 0;
-    color: #fff;
-    font: 500 2.1rem var(--adm-serif, Georgia, serif);
-    line-height: 1.15;
-  }
-  .admin-app .patient-meta {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.55rem 0.85rem;
-    margin-top: 0.65rem;
-    color: #b8b8b8;
-    font-size: 0.9rem;
-  }
-  .admin-app .patient-meta-item {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-  }
-  .admin-app .patient-status {
-    font-size: 0.72rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    padding: 0.22rem 0.55rem;
-    border-radius: 999px;
-  }
-  .admin-app .patient-status.is-attivo { background: rgba(255,255,255,0.1); color: #d0d0d0; }
-  .admin-app .patient-status.is-provvisorio { background: rgba(255,255,255,0.08); color: #cfcfcf; border: 1px solid rgba(255,255,255,0.18); }
-  .admin-app .patient-status.is-non-attivo { background: rgba(255,255,255,0.06); color: #a0a0a0; }
-  .admin-app .patient-hero-actions {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid rgba(255,255,255,0.08);
-  }
-  .admin-app .anag-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.65rem;
-  }
-  .admin-app .anag-cell {
-    padding: 0.65rem 0.85rem;
-    background: rgba(255, 255, 255, 0.09);
-    border-radius: 8px;
-  }
-  .admin-app .anag-cell-label {
-    display: block;
-    color: #d8d8d8;
-    font-size: 0.75rem;
-    margin-bottom: 0.2rem;
-  }
-  .admin-app .anag-cell-value {
-    color: #ffffff;
-    font-weight: 600;
-    font-size: 0.95rem;
-  }
-  .admin-app .detail-nav-row {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    flex-wrap: wrap;
-    margin-bottom: 1.25rem;
-  }
-  .admin-app .detail-nav-row .tabs-minimal {
-    margin-bottom: 0;
-    flex: 1;
-  }
-  .admin-app .section-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 1rem;
-    flex-wrap: wrap;
-  }
-  .admin-app .section-head h3 {
-    margin: 0;
-    color: #d4d4d4;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 1rem;
-  }
-  .admin-app .med-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.85rem;
-  }
-  .admin-app .mgmt-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1rem;
-    margin-bottom: 2rem;
-  }
-  .admin-app .mgmt-card {
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 14px;
-    padding: 1.25rem 1.35rem;
-  }
-  .admin-app .mgmt-card p {
-    color: #b8b8b8;
-    margin: 0 0 1rem;
-    font-size: 0.88rem;
-  }
-  .admin-app .mgmt-actions {
-    display: flex;
-    gap: 0.45rem;
-    flex-wrap: wrap;
-  }
-  .admin-app .alert-soft {
-    border-radius: 12px;
-    padding: 1rem 1.15rem;
-    margin-bottom: 0.75rem;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.12);
-  }
-  .admin-app .alert-soft.is-alta { border-color: rgba(229,115,115,0.35); }
-  @media (max-width: 800px) {
-    .admin-app .anag-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .admin-app .med-grid { grid-template-columns: 1fr; }
-    .admin-app .mgmt-grid { grid-template-columns: 1fr; }
-    .admin-app .patient-hero h1 { font-size: 1.7rem; }
-  }
-  @media (max-width: 480px) {
-    .admin-app .anag-grid { grid-template-columns: 1fr; }
-  }
-</style>
+{% set tabs = [
+  ('panoramica', 'Panoramica'),
+  ('timeline', 'Timeline'),
+  ('diete', 'Diete'),
+  ('allenamenti', 'Allenamenti'),
+  ('progressi', 'Progressi'),
+  ('appuntamenti', 'Appuntamenti'),
+  ('documenti', 'Documenti'),
+  ('note', 'Note'),
+  ('diario', 'Diario'),
+  ('messaggi', 'Messaggi'),
+] %}
 
-<a href="{{ url_for('patients.lista_pazienti') }}" class="patient-back">{{ icon('arrow-left', 14) }} Pazienti</a>
+<a href="{{ url_for('patients.lista_pazienti') }}" class="patient-back" style="display:inline-flex;align-items:center;gap:0.35rem;color:var(--adm-text-dim);font-size:0.85rem;text-decoration:none;margin-bottom:0.75rem;">← Pazienti</a>
 
-<!-- HEADER PAZIENTE -->
-<header class="patient-hero">
-  <div class="patient-hero-top">
-    <div class="patient-avatar" aria-hidden="true">{{ paziente.nome[0] }}{{ paziente.cognome[0] }}</div>
-    <div style="min-width:0; flex:1;">
-      <h1>{{ paziente.nome }} {{ paziente.cognome }}</h1>
-      <div class="patient-meta">
-        <span class="patient-status {% if sc == 'provvisorio' %}is-provvisorio{% elif sc == 'attivo' %}is-attivo{% else %}is-non-attivo{% endif %}">
-          {% if sc == 'provvisorio' %}Provvisorio{% elif sc == 'attivo' %}Attivo{% else %}Non attivo{% endif %}
+<header class="ph">
+  <div class="ph-identity">
+    <div class="ph-avatar" aria-hidden="true">{{ paziente.nome[0] }}{{ paziente.cognome[0] }}</div>
+    <div style="min-width:0">
+      <h1 class="ph-name">{{ paziente.nome }} {{ paziente.cognome }}</h1>
+      <div class="ph-meta">
+        {% set status = sc %}
+        {% set status_label = label_stato.get(sc, sc) %}
+        {% set kind = 'cliente' %}
+        {% include 'admin/partials/_status_badge.html' %}
+        {% if eta %}<span>{{ eta }} anni</span>{% endif %}
+        {% if paziente.telefono %}<span>{{ paziente.telefono }}</span>{% endif %}
+        {% if paziente.email %}<span>{{ paziente.email }}</span>{% endif %}
+      </div>
+      <div class="ph-stats" style="margin-top:0.5rem">
+        <span>Peso: <strong>{% if peso_attuale is not none %}{{ '%.1f'|format(peso_attuale) }} kg{% else %}—{% endif %}</strong>
+          {% if delta_peso is not none %}
+            <span class="text-sm">({% if delta_peso > 0 %}+{% endif %}{{ delta_peso }} vs iniziale)</span>
+          {% endif %}
         </span>
-        {% if paziente.telefono %}
-        <span class="patient-meta-item">{{ icon('phone', 14) }} {{ paziente.telefono }}</span>
-        {% endif %}
-        {% if paziente.data_creazione %}
-        <span class="patient-meta-item">{{ icon('calendar', 14) }} dal {{ paziente.data_creazione.strftime('%d/%m/%Y') }}</span>
-        {% endif %}
+        <span>Ultima visita: <strong>{% if ultima_visita %}{{ ultima_visita.data_appuntamento.strftime('%d/%m/%Y') }}{% else %}—{% endif %}</strong></span>
+        <span>Prossimo: <strong>{% if prossimo_app %}{{ prossimo_app.data_appuntamento.strftime('%d/%m/%Y %H:%M') }}{% else %}—{% endif %}</strong></span>
       </div>
     </div>
   </div>
-  {% if sc == 'provvisorio' %}
-  <div class="patient-hero-actions">
-    <form method="POST" action="{{ url_for('patients.approva_cliente', patient_id=paziente.id) }}" style="margin:0;">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-      <button type="submit" class="btn btn-ghost btn-small" onclick="return confirm('Approvare questo cliente? Diventerà attivo e l\'appuntamento verrà confermato.')">Approva cliente</button>
-    </form>
-    <form method="POST" action="{{ url_for('patients.rifiuta_cliente', patient_id=paziente.id) }}" style="margin:0;">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-      <button type="submit" class="btn btn-ghost btn-small" onclick="return confirm('Rifiutare questo cliente? Diventerà non attivo.')">Rifiuta</button>
-    </form>
+  <div class="ph-actions">
+    <a class="btn btn-primary btn-small" href="{{ url_for('appuntamenti.nuovo_admin', patient_id=paziente.id) }}">Nuovo appuntamento</a>
+    <a class="btn btn-ghost btn-small" href="{{ url_for('diete_plans.new_diet_plan', patient_id=paziente.id) }}">Nuova dieta</a>
+    <div class="ph-more" data-ph-more>
+      <button type="button" class="btn btn-ghost btn-small" data-ph-more-toggle aria-haspopup="true" aria-expanded="false">Altre azioni</button>
+      <div class="ph-more-menu" data-ph-more-menu hidden role="menu">
+        <a href="{{ url_for('allenamenti.nuovo_allenamento', patient_id=paziente.id) }}">Nuovo allenamento</a>
+        <a href="{{ url_for('progressi.check_nutrizionista_completo', patient_id=paziente.id) }}">Registra progresso</a>
+        <a href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id, tab='note') }}">Aggiungi nota</a>
+        <a href="{{ url_for('broadcast.nuovo_broadcast', patient_id=paziente.id) }}">Invia messaggio</a>
+        <a href="{{ url_for('patients.modifica_paziente', patient_id=paziente.id) }}">Modifica anagrafica</a>
+        <a href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id, tab='mediche') }}">Info mediche</a>
+      </div>
+    </div>
   </div>
-  {% endif %}
 </header>
 
-<!-- ALERT SECTION -->
+{% if sc == 'provvisorio' %}
+<div class="ops-panel" style="margin-bottom:0.85rem;display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center">
+  <span class="text-sm text-muted">Cliente in attesa di approvazione.</span>
+  <form method="POST" action="{{ url_for('patients.approva_cliente', patient_id=paziente.id) }}" style="margin:0">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <button type="submit" class="btn btn-primary btn-small" data-confirm="Approvare questo cliente?">Approva</button>
+  </form>
+  <form method="POST" action="{{ url_for('patients.rifiuta_cliente', patient_id=paziente.id) }}" style="margin:0">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <button type="submit" class="btn btn-ghost btn-small" data-confirm="Rifiutare questo cliente?">Rifiuta</button>
+  </form>
+</div>
+{% endif %}
+
 {% if alerti %}
-<div class="alert-section" style="margin-bottom: 1.5rem;">
-  {% for alert in alerti %}
-  <div class="alert-soft {% if alert.urgenza == 'alta' %}is-alta{% endif %}">
-    <div style="display: flex; align-items: flex-start; gap: 0.85rem;">
-      <div style="color:#c8c8c8; margin-top:0.1rem;">
-        {% if alert.tipo == 'check_mancante' %}{{ icon('chart', 18) }}
-        {% elif alert.tipo == 'dieta_scadenza' %}{{ icon('diet', 18) }}
-        {% elif alert.tipo == 'allenamento_scadenza' %}{{ icon('dumbbell', 18) }}
-        {% else %}{{ icon('alert', 18) }}{% endif %}
-      </div>
-      <div style="flex:1; min-width:0;">
-        <h3 style="margin:0 0 0.3rem 0; font-size:1rem; color:#f0f0f0; font-weight:600;">{{ alert.titolo }}</h3>
-        <p style="color:#b8b8b8; margin:0; font-size:0.9rem; line-height:1.4;">{{ alert.messaggio }}</p>
-      </div>
-      <span style="font-size:0.7rem; font-weight:650; text-transform:uppercase; letter-spacing:0.04em; color:#a8a8a8; white-space:nowrap;">
-        {% if alert.urgenza == 'alta' %}Urgente{% else %}Attenzione{% endif %}
-      </span>
-    </div>
+<div style="margin-bottom:0.85rem;display:flex;flex-direction:column;gap:0.4rem">
+  {% for alert in alerti[:4] %}
+  <div class="ops-panel" style="padding:0.55rem 0.85rem;border-color:{% if alert.urgenza == 'alta' %}rgba(232,138,138,0.35){% else %}var(--adm-border-soft){% endif %}">
+    <strong style="color:#f0f0f0;font-size:0.88rem">{{ alert.titolo }}</strong>
+    <span class="text-sm text-muted"> — {{ alert.messaggio }}</span>
   </div>
   {% endfor %}
 </div>
 {% endif %}
 
-<!-- NAV: TAB DINAMICHE -->
-<div class="detail-nav-row">
-  <div class="tabs-minimal">
-    <button type="button" class="tab-min is-active" data-tab="panoramica">Panoramica</button>
-    <button type="button" class="tab-min" data-tab="mediche">Info mediche</button>
-    <button type="button" class="tab-min" data-tab="diario">
-      Diario
-      {% if da_revisionare %}
-      <span style="margin-left:0.35rem; background:rgba(255,255,255,0.12); color:#d0d0d0; font-size:0.7rem; font-weight:700; padding:0.1rem 0.4rem; border-radius:999px;">{{ da_revisionare|length }}</span>
-      {% endif %}
-    </button>
-    <button type="button" class="tab-min" data-tab="percorsi">Percorsi</button>
+<nav class="ptabs" aria-label="Sezioni paziente">
+  {% for key, label in tabs %}
+  <a class="ptab{% if active_tab == key %} is-active{% endif %}" href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id, tab=key) }}">{{ label }}{% if key == 'diario' and da_revisionare %} <span class="adm-badge adm-badge--warn">{{ da_revisionare|length }}</span>{% endif %}</a>
+  {% endfor %}
+</nav>
+
+{# ========== PANORAMICA ========== #}
+{% if active_tab == 'panoramica' %}
+<section class="ppanel is-active">
+  <div class="summary-grid">
+    <div class="summary-cell">
+      <span class="summary-label">Peso iniziale</span>
+      <div class="summary-value">{% if paziente.peso_iniziale is not none %}{{ paziente.peso_iniziale }} kg{% else %}—{% endif %}</div>
+    </div>
+    <div class="summary-cell">
+      <span class="summary-label">Peso attuale</span>
+      <div class="summary-value">{% if peso_attuale is not none %}{{ '%.1f'|format(peso_attuale) }} kg{% else %}—{% endif %}</div>
+    </div>
+    <div class="summary-cell">
+      <span class="summary-label">Differenza</span>
+      <div class="summary-value">{% if delta_peso is not none %}{% if delta_peso > 0 %}+{% endif %}{{ delta_peso }} kg{% else %}—{% endif %}</div>
+    </div>
+    <div class="summary-cell">
+      <span class="summary-label">Prossimo appuntamento</span>
+      <div class="summary-value" style="font-size:0.92rem">{% if prossimo_app %}{{ prossimo_app.data_appuntamento.strftime('%d/%m %H:%M') }}{% else %}Nessuno{% endif %}</div>
+    </div>
   </div>
-</div>
 
-<!-- ========== TAB PANORAMICA ========== -->
-<section id="panoramica-tab" class="patient-panel is-active">
+  <div class="ops-grid">
+    <div class="ops-panel">
+      <div class="ops-panel-head"><h2 class="ops-panel-title">Piano attivo</h2></div>
+      <ul class="ops-list">
+        <li class="ops-item">
+          <div class="ops-item-main">
+            <div class="ops-item-title">Dieta</div>
+            <div class="ops-item-meta">
+              {% if dieta_attiva %}{{ dieta_attiva.title }} · aggiornata {{ dieta_attiva.updated_at.strftime('%d/%m/%Y') if dieta_attiva.updated_at else '—' }}
+              {% else %}Nessuna dieta pubblicata{% endif %}
+            </div>
+          </div>
+          {% if dieta_attiva %}
+          <a class="btn btn-ghost btn-small" href="{{ url_for('diete_plans.diet_plan_detail', diet_plan_id=dieta_attiva.id) }}">Apri</a>
+          {% else %}
+          <a class="btn btn-primary btn-small" href="{{ url_for('diete_plans.new_diet_plan', patient_id=paziente.id) }}">Crea</a>
+          {% endif %}
+        </li>
+        <li class="ops-item">
+          <div class="ops-item-main">
+            <div class="ops-item-title">Allenamento</div>
+            <div class="ops-item-meta">
+              {% if allenamento_attivo %}Fino al {{ allenamento_attivo.data_fine.strftime('%d/%m/%Y') }}
+              {% else %}Nessun piano attivo{% endif %}
+            </div>
+          </div>
+          {% if allenamento_attivo %}
+          <a class="btn btn-ghost btn-small" href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id, tab='allenamenti') }}">Apri</a>
+          {% else %}
+          <a class="btn btn-primary btn-small" href="{{ url_for('allenamenti.nuovo_allenamento', patient_id=paziente.id) }}">Crea</a>
+          {% endif %}
+        </li>
+      </ul>
+    </div>
 
-  <!-- STATUS PROFILO (compatto) -->
-  <div class="status-card" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1.5rem;">
-    <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
-      <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
-        <h3 style="color: #d4d4d4; margin: 0; font-size: 0.95rem;">{{ icon('chart', 14) }} Stato profilo</h3>
-        <span class="{% if paziente.intolleranze or paziente.patologie or paziente.allenamenti_descr %}status-complete{% else %}status-incomplete{% endif %}" style="padding: 0.3rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">
-          {% if paziente.intolleranze or paziente.patologie or paziente.allenamenti_descr %}
-            Completo
-          {% else %}
-            Incompleto
-          {% endif %}
-        </span>
-        <p style="color: #d8d8d8; margin: 0; font-size: 0.85rem;">
-          {% if paziente.intolleranze or paziente.patologie or paziente.allenamenti_descr %}
-            Info mediche disponibili
-          {% else %}
-            Aggiungi informazioni mediche per completare il profilo
-          {% endif %}
-        </p>
-      </div>
-      {% if not (paziente.intolleranze or paziente.patologie or paziente.allenamenti_descr) %}
-      <button type="button" class="btn btn-ghost btn-small" style="flex-shrink: 0;" onclick="document.querySelector('.tab-min[data-tab=mediche]').click();">
-        {{ icon('arrow-right', 14) }} Info mediche
-      </button>
+    <div class="ops-panel">
+      <div class="ops-panel-head"><h2 class="ops-panel-title">Attività pendenti</h2></div>
+      {% if pending %}
+      <ul class="ops-list">
+        {% for item in pending[:6] %}
+        <li class="ops-item">
+          <div class="ops-item-title">{{ item.title }}</div>
+          {% if item.url %}<a class="btn btn-ghost btn-small" href="{{ item.url }}">Vai</a>{% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="text-sm text-muted" style="margin:0">Nessuna attività pendente.</p>
       {% endif %}
     </div>
   </div>
 
-  <!-- DATI ANAGRAFICI (compatto) -->
-  <div class="content-card" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 1.25rem; margin-bottom: 1.5rem;">
-    <div class="section-head">
-      <h3>{{ icon('user', 16) }} Dati anagrafici</h3>
-      <a href="{{ url_for('patients.modifica_paziente', patient_id=paziente.id) }}" class="btn btn-ghost btn-small">{{ icon('edit', 14) }} Modifica</a>
-      <a href="{{ url_for('patients.export_paziente', patient_id=paziente.id) }}" class="btn btn-ghost btn-small">Export dati</a>
-      <form method="POST" action="{{ url_for('patients.erasure_paziente', patient_id=paziente.id) }}" style="display:inline;" onsubmit="return confirm('Confermi l\'oblio GDPR di questo paziente? I file e i dati personali verranno rimossi.');">
+  <div class="ops-grid">
+    <div class="ops-panel">
+      <div class="ops-panel-head">
+        <h2 class="ops-panel-title">Attività recenti</h2>
+        <a class="ops-panel-link" href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id, tab='timeline') }}">Timeline</a>
+      </div>
+      {% if timeline.events %}
+      <ul class="timeline">
+        {% for ev in timeline.events[:5] %}
+        <li class="timeline-item">
+          <span class="timeline-dot" aria-hidden="true"></span>
+          <div>
+            <div class="timeline-type">{{ ev.tipo_label }}</div>
+            <div class="timeline-title">{% if ev.url %}<a href="{{ ev.url }}" style="color:inherit;text-decoration:none">{{ ev.title }}</a>{% else %}{{ ev.title }}{% endif %}</div>
+            <p class="timeline-desc">{{ ev.description }}</p>
+            <div class="timeline-when">{{ ev.at_label }}</div>
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="text-sm text-muted">Nessun evento recente.</p>
+      {% endif %}
+    </div>
+    <div class="ops-panel">
+      <div class="ops-panel-head"><h2 class="ops-panel-title">Azioni rapide</h2></div>
+      <div style="display:flex;flex-wrap:wrap;gap:0.4rem">
+        <a class="btn btn-ghost btn-small" href="{{ url_for('progressi.check_nutrizionista_completo', patient_id=paziente.id) }}">Registra progresso</a>
+        <a class="btn btn-ghost btn-small" href="{{ url_for('documenti.lista_documenti_admin', patient_id=paziente.id) }}">Documenti</a>
+        <a class="btn btn-ghost btn-small" href="{{ url_for('diario_ui.nuovo_colloquio', patient_id=paziente.id) }}">Nuovo colloquio</a>
+        <a class="btn btn-ghost btn-small" href="{{ url_for('patients.dettaglio_paziente', patient_id=paziente.id, tab='note') }}">Nota</a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{# ========== TIMELINE ========== #}
+{% if active_tab == 'timeline' %}
+<section class="ppanel is-active">
+  <div class="ops-panel-head" style="margin-bottom:0.75rem">
+    <h2 class="ops-panel-title">Timeline</h2>
+    <span class="text-sm text-muted">{{ timeline.total }} eventi</span>
+  </div>
+  {% if timeline.events %}
+  <ul class="timeline">
+    {% for ev in timeline.events %}
+    <li class="timeline-item">
+      <span class="timeline-dot" aria-hidden="true"></span>
+      <div>
+        <div class="timeline-type">{{ ev.tipo_label }}</div>
+        <div class="timeline-title">{% if ev.url %}<a href="{{ ev.url }}" style="color:inherit">{{ ev.title }}</a>{% else %}{{ ev.title }}{% endif %}</div>
+        {% if ev.description %}<p class="timeline-desc">{{ ev.description }}</p>{% endif %}
+        <div class="timeline-when">{{ ev.at_label }}</div>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+    {% set title = 'Nessun evento in timeline' %}
+    {% set description = 'Gli eventi si popolano da appuntamenti, diete, progressi, documenti e note.' %}
+    {% include 'admin/partials/_empty_state.html' %}
+  {% endif %}
+</section>
+{% endif %}
+
+{# ========== DIETE ========== #}
+{% if active_tab == 'diete' %}
+<section class="ppanel is-active">
+  <div class="ops-panel-head" style="margin-bottom:0.75rem">
+    <h2 class="ops-panel-title">Diete</h2>
+    <a class="btn btn-primary btn-small" href="{{ url_for('diete_plans.new_diet_plan', patient_id=paziente.id) }}">Nuova dieta</a>
+  </div>
+  {% if dieta_attiva %}
+  <div class="ops-panel" style="margin-bottom:0.75rem;border-color:rgba(255,154,86,0.35)">
+    <div class="ops-panel-head">
+      <h3 class="ops-panel-title">Attiva: {{ dieta_attiva.title }}</h3>
+      <a class="btn btn-ghost btn-small" href="{{ url_for('diete_plans.diet_plan_detail', diet_plan_id=dieta_attiva.id) }}">Apri / modifica</a>
+    </div>
+    <p class="text-sm text-muted" style="margin:0">
+      {% if dieta_attiva.target_kcal %}{{ dieta_attiva.target_kcal }} kcal · {% endif %}
+      {{ dieta_attiva.meals|length }} pasti ·
+      aggiornata {{ dieta_attiva.updated_at.strftime('%d/%m/%Y %H:%M') if dieta_attiva.updated_at else '—' }}
+    </p>
+  </div>
+  {% endif %}
+  {% if diete_bozza %}
+  <h3 class="ops-panel-title" style="margin:0.5rem 0">Bozze</h3>
+  <ul class="ops-list">
+    {% for d in diete_bozza %}
+    <li class="ops-item">
+      <div class="ops-item-main">
+        <div class="ops-item-title">{{ d.title }}</div>
+        <div class="ops-item-meta">In bozza · {{ d.updated_at.strftime('%d/%m/%Y') if d.updated_at else '' }}</div>
+      </div>
+      <a class="btn btn-ghost btn-small" href="{{ url_for('diete_plans.diet_plan_detail', diet_plan_id=d.id) }}">Apri</a>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+  <h3 class="ops-panel-title" style="margin:1rem 0 0.5rem">Storico piani</h3>
+  {% if diet_plans %}
+  <div class="adm-table-wrap">
+    <table class="adm-table">
+      <thead><tr><th>Titolo</th><th>Stato</th><th>Pasti</th><th>Aggiornata</th><th></th></tr></thead>
+      <tbody>
+        {% for d in diet_plans %}
+        <tr onclick="window.location='{{ url_for('diete_plans.diet_plan_detail', diet_plan_id=d.id) }}'">
+          <td class="cell-primary">{{ d.title }}</td>
+          <td>
+            {% set status = d.status %}
+            {% set status_label = 'Pubblicata' if d.status == 'published' else 'Bozza' %}
+            {% set kind = 'dieta' %}
+            {% include 'admin/partials/_status_badge.html' %}
+          </td>
+          <td>{{ d.meals|length }}</td>
+          <td>{% if d.updated_at %}{{ d.updated_at.strftime('%d/%m/%Y') }}{% else %}—{% endif %}</td>
+          <td class="cell-actions" onclick="event.stopPropagation()"><a class="btn btn-ghost btn-small" href="{{ url_for('diete_plans.diet_plan_detail', diet_plan_id=d.id) }}">Apri</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    {% set title = 'Nessuna dieta' %}
+    {% set description = 'Crea la prima dieta per questo paziente.' %}
+    {% set action_url = url_for('diete_plans.new_diet_plan', patient_id=paziente.id) %}
+    {% set action_label = 'Nuova dieta' %}
+    {% include 'admin/partials/_empty_state.html' %}
+  {% endif %}
+  {% if diete_pdf %}
+  <h3 class="ops-panel-title" style="margin:1rem 0 0.5rem">Archivio PDF</h3>
+  <ul class="ops-list">
+    {% for d in diete_pdf %}
+    <li class="ops-item">
+      <div class="ops-item-main">
+        <div class="ops-item-title">{{ d.data_inizio.strftime('%d/%m/%Y') }} – {{ d.data_fine.strftime('%d/%m/%Y') }}</div>
+        <div class="ops-item-meta">{% if d.kcal %}{{ d.kcal }} kcal{% else %}PDF{% endif %}</div>
+      </div>
+      <a class="btn btn-ghost btn-small" href="{{ url_for('diete.serve_file', dieta_id=d.id) }}">Scarica</a>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+  <p class="text-sm text-muted" style="margin-top:1rem"><a href="{{ url_for('diete_plans.lista_diet_plans') }}">Vedi tutte le diete (vista globale)</a></p>
+</section>
+{% endif %}
+
+{# ========== ALLENAMENTI ========== #}
+{% if active_tab == 'allenamenti' %}
+<section class="ppanel is-active">
+  <div class="ops-panel-head" style="margin-bottom:0.75rem">
+    <h2 class="ops-panel-title">Allenamenti</h2>
+    <a class="btn btn-primary btn-small" href="{{ url_for('allenamenti.nuovo_allenamento', patient_id=paziente.id) }}">Nuovo allenamento</a>
+  </div>
+  {% if allenamenti %}
+  <div class="adm-table-wrap">
+    <table class="adm-table">
+      <thead><tr><th>Periodo</th><th>Stato</th><th>Note</th><th></th></tr></thead>
+      <tbody>
+        {% for a in allenamenti %}
+        <tr>
+          <td class="cell-primary">{{ a.data_inizio.strftime('%d/%m/%Y') }} – {{ a.data_fine.strftime('%d/%m/%Y') }}</td>
+          <td>{% if allenamento_attivo and a.id == allenamento_attivo.id %}<span class="adm-badge adm-badge--ok">Attivo</span>{% else %}<span class="adm-badge adm-badge--muted">Storico</span>{% endif %}</td>
+          <td class="text-sm">{{ (a.note or '—')[:80] }}</td>
+          <td class="cell-actions">
+            <a class="btn btn-ghost btn-small" href="{{ url_for('allenamenti.serve_file', allenamento_id=a.id) }}">PDF</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    {% set title = 'Nessun allenamento' %}
+    {% set description = 'Carica un piano di allenamento PDF per questo paziente.' %}
+    {% set action_url = url_for('allenamenti.nuovo_allenamento', patient_id=paziente.id) %}
+    {% set action_label = 'Nuovo allenamento' %}
+    {% include 'admin/partials/_empty_state.html' %}
+  {% endif %}
+</section>
+{% endif %}
+
+{# ========== PROGRESSI ========== #}
+{% if active_tab == 'progressi' %}
+<section class="ppanel is-active">
+  <div class="ops-panel-head" style="margin-bottom:0.75rem">
+    <h2 class="ops-panel-title">Progressi</h2>
+    <a class="btn btn-primary btn-small" href="{{ url_for('progressi.check_nutrizionista_completo', patient_id=paziente.id) }}">Registra progresso</a>
+  </div>
+  <div class="summary-grid" style="margin-bottom:1rem">
+    <div class="summary-cell"><span class="summary-label">Check totali</span><div class="summary-value">{{ check_totali }}</div></div>
+    <div class="summary-cell"><span class="summary-label">Aderenza media</span><div class="summary-value">{% if aderenza_media %}{{ '%.1f'|format(aderenza_media) }}{% else %}—{% endif %}</div></div>
+    <div class="summary-cell"><span class="summary-label">Foto</span><div class="summary-value">{{ foto_inviate }}</div></div>
+    <div class="summary-cell"><span class="summary-label">Δ peso medio</span><div class="summary-value">{% if variazione_peso_media %}{{ '%.1f'|format(variazione_peso_media) }} kg{% else %}—{% endif %}</div></div>
+  </div>
+  {% if progressi %}
+  <div class="adm-table-wrap">
+    <table class="adm-table">
+      <thead><tr><th>Data</th><th>Tipo</th><th>Peso</th><th>Aderenza</th><th></th></tr></thead>
+      <tbody>
+        {% for p in progressi %}
+        <tr onclick="window.location='{{ url_for('progressi.dettaglio_check', progresso_id=p.id) }}'">
+          <td class="cell-primary">{{ p.data_check.strftime('%d/%m/%Y') }}</td>
+          <td>{{ p.tipo_check or '—' }}</td>
+          <td>{% if p.peso_settimanale %}{{ p.peso_settimanale }} kg{% else %}—{% endif %}</td>
+          <td>{% if p.aderenza is not none %}{{ p.aderenza }}{% else %}—{% endif %}</td>
+          <td class="cell-actions" onclick="event.stopPropagation()"><a class="btn btn-ghost btn-small" href="{{ url_for('progressi.dettaglio_check', progresso_id=p.id) }}">Dettaglio</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if pesi %}
+  <div class="ops-panel" style="margin-top:1rem">
+    <canvas id="pesoChart" height="100" aria-label="Grafico peso"></canvas>
+  </div>
+  {% endif %}
+  {% else %}
+    {% set title = 'Nessun progresso' %}
+    {% set description = 'Registra il primo check per iniziare il monitoraggio.' %}
+    {% set action_url = url_for('progressi.check_nutrizionista_completo', patient_id=paziente.id) %}
+    {% set action_label = 'Registra progresso' %}
+    {% include 'admin/partials/_empty_state.html' %}
+  {% endif %}
+  <p style="margin-top:0.75rem"><a class="text-sm" href="{{ url_for('progressi.progressi_paziente_admin', patient_id=paziente.id) }}">Apri vista progressi completa</a></p>
+</section>
+{% endif %}
+
+{# ========== APPUNTAMENTI ========== #}
+{% if active_tab == 'appuntamenti' %}
+<section class="ppanel is-active">
+  <div class="ops-panel-head" style="margin-bottom:0.75rem">
+    <h2 class="ops-panel-title">Appuntamenti</h2>
+    <a class="btn btn-primary btn-small" href="{{ url_for('appuntamenti.nuovo_admin', patient_id=paziente.id) }}">Nuovo appuntamento</a>
+  </div>
+  {% if appuntamenti %}
+  <div class="adm-table-wrap">
+    <table class="adm-table">
+      <thead><tr><th>Data</th><th>Tipo</th><th>Stato</th><th>Note</th><th></th></tr></thead>
+      <tbody>
+        {% for a in appuntamenti %}
+        <tr>
+          <td class="cell-primary">{{ a.data_appuntamento.strftime('%d/%m/%Y %H:%M') }}</td>
+          <td>{{ a.tipo|replace('_', ' ') }}</td>
+          <td>
+            {% set status = a.stato %}
+            {% set status_label = a.stato|replace('_', ' ') %}
+            {% set kind = 'appuntamento' %}
+            {% include 'admin/partials/_status_badge.html' %}
+          </td>
+          <td class="text-sm">{{ (a.note or '—')[:60] }}</td>
+          <td class="cell-actions">
+            {% if a.stato == 'in_attesa' %}
+            <form method="POST" action="{{ url_for('appuntamenti.cambia_stato_admin', id=a.id, nuovo_stato='confermato') }}" style="display:inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <button class="btn btn-primary btn-small" type="submit">Conferma</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    {% set title = 'Nessun appuntamento' %}
+    {% set description = 'Fissa il prossimo appuntamento per questo paziente.' %}
+    {% set action_url = url_for('appuntamenti.nuovo_admin', patient_id=paziente.id) %}
+    {% set action_label = 'Nuovo appuntamento' %}
+    {% include 'admin/partials/_empty_state.html' %}
+  {% endif %}
+  <p style="margin-top:0.75rem"><a class="text-sm" href="{{ url_for('agenda.agenda_unificata') }}">Apri agenda</a></p>
+</section>
+{% endif %}
+
+{# ========== DOCUMENTI ========== #}
+{% if active_tab == 'documenti' %}
+<section class="ppanel is-active">
+  <div class="ops-panel-head" style="margin-bottom:0.75rem">
+    <h2 class="ops-panel-title">Documenti</h2>
+    <a class="btn btn-primary btn-small" href="{{ url_for('documenti.lista_documenti_admin', patient_id=paziente.id) }}">Gestisci documenti</a>
+  </div>
+  {% if documenti %}
+  <div class="adm-table-wrap">
+    <table class="adm-table">
+      <thead><tr><th>Tipo</th><th>Descrizione</th><th>Data</th><th></th></tr></thead>
+      <tbody>
+        {% for d in documenti %}
+        <tr>
+          <td class="cell-primary">{{ d.tipo }}</td>
+          <td>{{ d.descrizione or '—' }}</td>
+          <td>{% if d.data_upload %}{{ d.data_upload.strftime('%d/%m/%Y') }}{% else %}—{% endif %}</td>
+          <td class="cell-actions">
+            <a class="btn btn-ghost btn-small" href="{{ url_for('documenti.serve_file', documento_id=d.id) }}">Scarica</a>
+            <form method="POST" action="{{ url_for('documenti.elimina_documento_admin', documento_id=d.id) }}" style="display:inline" onsubmit="return confirm('Eliminare questo documento?');">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <button type="submit" class="btn btn-ghost btn-small" style="color:var(--adm-danger)">Elimina</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    {% set title = 'Nessun documento' %}
+    {% set description = 'Carica referti, analisi o altri file dalla gestione documenti.' %}
+    {% set action_url = url_for('documenti.lista_documenti_admin', patient_id=paziente.id) %}
+    {% set action_label = 'Apri documenti' %}
+    {% include 'admin/partials/_empty_state.html' %}
+  {% endif %}
+</section>
+{% endif %}
+
+{# ========== NOTE ========== #}
+{% if active_tab == 'note' %}
+<section class="ppanel is-active">
+  <div class="ops-grid">
+    <div class="ops-panel">
+      <div class="ops-panel-head"><h2 class="ops-panel-title">Note</h2></div>
+      {% if notes %}
+      <ul class="ops-list">
+        {% for n in notes %}
+        <li class="ops-item" style="align-items:flex-start">
+          <div class="ops-item-main">
+            <div class="ops-item-meta">{{ n.created_at.strftime('%d/%m/%Y %H:%M') if n.created_at else '' }}</div>
+            <div style="color:#eee;white-space:pre-wrap;margin-top:0.25rem">{{ n.body }}</div>
+          </div>
+          <form method="POST" action="{{ url_for('patients.elimina_nota', patient_id=paziente.id, note_id=n.id) }}" onsubmit="return confirm('Eliminare questa nota?');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <button type="submit" class="btn btn-ghost btn-small" style="color:var(--adm-danger)">Elimina</button>
+          </form>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="text-sm text-muted">Nessuna nota ancora.</p>
+      {% endif %}
+    </div>
+    <div class="ops-panel">
+      <div class="ops-panel-head"><h2 class="ops-panel-title">Aggiungi nota</h2></div>
+      <form method="POST" action="{{ url_for('patients.aggiungi_nota', patient_id=paziente.id) }}" class="form-stack">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-        <button type="submit" class="btn btn-ghost btn-small">Oblio GDPR</button>
+        <label class="field">Testo
+          <textarea class="input-text" name="body" rows="6" required placeholder="Annotazione operativa sul paziente…"></textarea>
+        </label>
+        <button type="submit" class="btn btn-primary btn-small">Salva nota</button>
       </form>
     </div>
-    <div class="anag-grid">
-      <div class="anag-cell">
-        <span class="anag-cell-label">Telefono</span>
-        <span class="anag-cell-value">{{ paziente.telefono }}</span>
-      </div>
-      <div class="anag-cell">
-        <span class="anag-cell-label">Password</span>
-        <span class="anag-cell-value" style="font-family: monospace;">{{ paziente.password_plain or '—' }}</span>
-      </div>
-      <div class="anag-cell">
-        <span class="anag-cell-label">Data nascita</span>
-        <span class="anag-cell-value">{{ paziente.data_nascita.strftime('%d/%m/%Y') if paziente.data_nascita else '—' }}</span>
-      </div>
-      <div class="anag-cell">
-        <span class="anag-cell-label">Sesso</span>
-        <span class="anag-cell-value">{{ paziente.sesso or '—' }}</span>
-      </div>
-      <div class="anag-cell">
-        <span class="anag-cell-label">Altezza</span>
-        <span class="anag-cell-value">{% if paziente.altezza_cm %}{{ paziente.altezza_cm }} cm{% else %}—{% endif %}</span>
-      </div>
-      <div class="anag-cell">
-        <span class="anag-cell-label">Peso iniziale</span>
-        <span class="anag-cell-value">{% if paziente.peso_iniziale is not none %}{{ "%.1f"|format(paziente.peso_iniziale) }} kg{% else %}—{% endif %}</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- GRAFICO PROGRESSI -->
-  {% if progressi %}
-  <div class="progress-chart-section" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem;">
-    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
-      <div>
-        <h3 style="color: #d4d4d4; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
-          Andamento peso e aderenza
-        </h3>
-        <p style="color: #d8d8d8; font-size: 0.9rem; margin: 0.25rem 0 0 0;">Include check paziente + nutrizionista</p>
-      </div>
-      <div style="display: flex; gap: 0.5rem;">
-        <a href="{{ url_for('progressi.check_nutrizionista_completo', patient_id=paziente.id) }}" class="btn btn-ghost btn-small">{{ icon('plus', 16) }} Nuovo check</a>
-      </div>
-    </div>
-
-    <div style="position: relative; height: 400px; background: rgba(255, 255, 255, 0.09); border-radius: 12px; padding: 1rem;">
-      <canvas id="progressChart"></canvas>
-    </div>
-
-    <div style="margin-top: 1rem; padding: 1rem; background: rgba(255, 255, 255, 0.09); border-radius: 8px;">
-      <div style="color: #d8d8d8; font-size: 0.85rem; margin-bottom: 0.5rem;">Legenda aderenza:</div>
-      <div style="display: flex; gap: 1.5rem; flex-wrap: wrap;">
-        <div style="display: flex; align-items: center; gap: 0.5rem;">
-          <div style="width: 12px; height: 12px; background: #d8d8d8; border-radius: 50%;"></div>
-          <span style="color: #d8d8d8; font-size: 0.85rem;">8-10 (Ottima)</span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 0.5rem;">
-          <div style="width: 12px; height: 12px; background: #b0b0b0; border-radius: 50%;"></div>
-          <span style="color: #d8d8d8; font-size: 0.85rem;">5-7 (Buona)</span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 0.5rem;">
-          <div style="width: 12px; height: 12px; background: #F44336; border-radius: 50%;"></div>
-          <span style="color: #d8d8d8; font-size: 0.85rem;">1-4 (Scarsa)</span>
-        </div>
-      </div>
-    </div>
-  </div>
-  {% endif %}
-
-  <!-- FOTO PROGRESSI -->
-  {% if foto_inviate > 0 %}
-  <div class="photos-section" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-      <h3 style="color: #d4d4d4; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
-        Foto progressi
-      </h3>
-      <span style="background: rgba(255, 255, 255, 0.2); color: #909090; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">
-        {{ foto_inviate }} foto
-      </span>
-    </div>
-
-    <div class="photos-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem;">
-      {% for progresso in progressi %}
-        {% if progresso.foto_path %}
-        <div class="photo-card" style="background: rgba(255, 255, 255, 0.09); border-radius: 12px; padding: 1rem; border: 1px solid rgba(182, 177, 169, 0.1);">
-          <div style="position: relative; margin-bottom: 0.75rem;">
-            <img src="{{ url_for('static', filename=progresso.foto_path) }}"
-                 alt="Foto progresso {{ progresso.data_check.strftime('%d/%m/%Y') }}"
-                 style="width: 100%; height: 150px; object-fit: cover; border-radius: 8px; cursor: pointer;"
-                 onclick="openPhotoModal(this.src, '{{ progresso.data_check.strftime('%d/%m/%Y') }}')">
-          </div>
-          <div style="text-align: center;">
-            <div style="color: #ffffff; font-size: 0.9rem; font-weight: 600; margin-bottom: 0.25rem;">
-              {{ progresso.data_check.strftime('%d/%m/%Y') }}
-            </div>
-            <div style="color: #d8d8d8; font-size: 0.8rem;">
-              {% if progresso.tipo_check == 'nutrizionista' %}
-                {{ icon('medical', 16) }} Check nutrizionista
-              {% else %}
-                {{ icon('user', 14) }} Check Paziente
-              {% endif %}
-            </div>
-            {% if progresso.peso_settimanale %}
-            <div style="color: #d8d8d8; font-size: 0.8rem; font-weight: 600; margin-top: 0.25rem;">
-              {{ "%.1f"|format(progresso.peso_settimanale) }} kg
-            </div>
-            {% endif %}
-          </div>
-        </div>
-        {% endif %}
-      {% endfor %}
-    </div>
-  </div>
-
-  <div id="photoModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; cursor: pointer;" onclick="closePhotoModal()">
-    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); max-width: 90%; max-height: 90%;">
-      <img id="modalImage" src="" alt="" style="max-width: 100%; max-height: 100%; border-radius: 8px;">
-      <div style="position: absolute; top: -40px; right: 0; color: white; font-size: 1.2rem; font-weight: 600;" id="modalDate"></div>
-      <div style="position: absolute; top: 20px; right: 20px; color: white; font-size: 2rem; cursor: pointer;" onclick="closePhotoModal()">×</div>
-    </div>
-  </div>
-  {% endif %}
-
-  <!-- PROGRESSI + DOCUMENTI -->
-  <div class="mgmt-grid">
-    <section class="mgmt-card">
-      <div class="section-head">
-        <h3>{{ icon('medical', 16) }} Progressi</h3>
-      </div>
-      <p>Check nutrizionista e storico dei monitoraggi.</p>
-      <div class="mgmt-actions">
-        <a href="{{ url_for('progressi.check_nutrizionista_completo', patient_id=paziente.id) }}" class="btn btn-ghost btn-small">{{ icon('plus', 14) }} Nuovo check</a>
-        <a href="{{ url_for('progressi.progressi_paziente_admin', patient_id=paziente.id) }}" class="btn btn-ghost btn-small">{{ icon('eye', 14) }} Storico</a>
-      </div>
-    </section>
-
-    <section class="mgmt-card">
-      <div class="section-head">
-        <h3>{{ icon('file', 16) }} Documenti</h3>
-      </div>
-      <p>{{ documenti|length }} document{{ 'i' if documenti|length != 1 else 'o' }} caricati dal paziente.</p>
-      <div class="mgmt-actions">
-        <a href="{{ url_for('documenti.lista_documenti_admin', patient_id=paziente.id) }}" class="btn btn-ghost btn-small">{{ icon('eye', 14) }} Apri documenti</a>
-      </div>
-    </section>
-  </div>
-
-</section>
-
-<!-- ========== TAB INFO MEDICHE ========== -->
-<section id="mediche-tab" class="patient-panel">
-
-  <div class="content-card" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem;">
-    <div class="section-head" style="margin-bottom:1.25rem;">
-      <h3>{{ icon('medical', 16) }} Informazioni mediche</h3>
-      <a href="{{ url_for('patients.modifica_paziente', patient_id=paziente.id) }}#informazioni-mediche"
-         class="btn btn-ghost btn-small">
-        {% if paziente.intolleranze or paziente.cibi_da_ev or paziente.patologie or paziente.esami_biochimici %}
-          {{ icon('edit', 14) }} Modifica
-        {% else %}
-          {{ icon('plus', 14) }} Aggiungi
-        {% endif %}
-      </a>
-    </div>
-
-    <div class="med-grid">
-      <div class="medical-item {% if paziente.intolleranze %}medical-complete{% else %}medical-incomplete{% endif %}" style="padding: 1rem; background: rgba(255, 255, 255, 0.09); border-radius: 8px;">
-        <div style="color: #d8d8d8; font-size: 0.85rem; margin-bottom: 0.5rem;">Intolleranze</div>
-        <div style="color: #ffffff; font-size: 0.9rem;">
-          {{ paziente.intolleranze or 'Nessuna intolleranza registrata' }}
-        </div>
-      </div>
-
-      <div class="medical-item {% if paziente.cibi_da_ev %}medical-complete{% else %}medical-incomplete{% endif %}" style="padding: 1rem; background: rgba(255, 255, 255, 0.09); border-radius: 8px;">
-        <div style="color: #d8d8d8; font-size: 0.85rem; margin-bottom: 0.5rem;">Cibi da evitare</div>
-        <div style="color: #ffffff; font-size: 0.9rem;">
-          {{ paziente.cibi_da_ev or 'Nessuna restrizione alimentare' }}
-        </div>
-      </div>
-
-      <div class="medical-item {% if paziente.patologie %}medical-complete{% else %}medical-incomplete{% endif %}" style="padding: 1rem; background: rgba(255, 255, 255, 0.09); border-radius: 8px;">
-        <div style="color: #d8d8d8; font-size: 0.85rem; margin-bottom: 0.5rem;">Patologie</div>
-        <div style="color: #ffffff; font-size: 0.9rem;">
-          {{ paziente.patologie or 'Nessuna patologia registrata' }}
-        </div>
-      </div>
-
-      <div class="medical-item {% if paziente.esami_biochimici %}medical-complete{% else %}medical-incomplete{% endif %}" style="padding: 1rem; background: rgba(255, 255, 255, 0.09); border-radius: 8px;">
-        <div style="color: #d8d8d8; font-size: 0.85rem; margin-bottom: 0.5rem;">Esami biochimici</div>
-        <div style="color: #ffffff; font-size: 0.9rem;">
-          {{ paziente.esami_biochimici or 'Nessun esame registrato' }}
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ATTIVITÀ FISICA -->
-  <div class="activity-card" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem;">
-    <div class="section-head">
-      <h3>{{ icon('dumbbell', 16) }} Attività fisica</h3>
-      <a href="{{ url_for('patients.modifica_paziente', patient_id=paziente.id) }}#attivita-fisica"
-         class="btn btn-ghost btn-small">
-        {% if paziente.allenamenti_descr %}
-          {{ icon('edit', 14) }} Modifica
-        {% else %}
-          {{ icon('plus', 14) }} Aggiungi
-        {% endif %}
-      </a>
-    </div>
-
-    <div class="{% if paziente.allenamenti_descr %}medical-complete{% else %}medical-incomplete{% endif %}" style="padding: 1rem; background: rgba(255, 255, 255, 0.09); border-radius: 8px;">
-      <div style="color: #d8d8d8; font-size: 0.85rem; margin-bottom: 0.5rem;">Descrizione allenamenti</div>
-      <div style="color: #ffffff; font-size: 0.9rem;">
-        {{ paziente.allenamenti_descr or 'Nessun allenamento personalizzato registrato' }}
-      </div>
-    </div>
-  </div>
-
-</section>
-
-<!-- ========== TAB DIARIO ========== -->
-<section id="diario-tab" class="patient-panel">
-  <div class="content-card" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem;">
-    {% include 'admin/_diario_lista_content.html' %}
   </div>
 </section>
+{% endif %}
 
-<!-- ========== TAB PERCORSI ========== -->
-<section id="percorsi-tab" class="patient-panel">
-  {% include 'admin/_percorsi_content.html' %}
+{# ========== DIARIO ========== #}
+{% if active_tab == 'diario' %}
+<section class="ppanel is-active">
+  {% include 'admin/_diario_lista_content.html' %}
 </section>
+{% endif %}
 
-<!-- CHART.JS -->
-<script src="{{ url_for('static', filename='js/chart.umd.min.js') }}"></script>
+{# ========== MESSAGGI ========== #}
+{% if active_tab == 'messaggi' %}
+<section class="ppanel is-active">
+  <div class="ops-panel">
+    <div class="ops-panel-head"><h2 class="ops-panel-title">Messaggi</h2></div>
+    <p class="text-sm text-muted">I messaggi sono invii WhatsApp outbound (non chat bidirezionale).</p>
+    <div style="display:flex;gap:0.45rem;flex-wrap:wrap;margin-top:0.75rem">
+      <a class="btn btn-primary btn-small" href="{{ url_for('broadcast.nuovo_broadcast', patient_id=paziente.id) }}">Invia messaggio</a>
+      <a class="btn btn-ghost btn-small" href="{{ url_for('broadcast.dashboard') }}">Apri Messaggi</a>
+      <a class="btn btn-ghost btn-small" href="{{ url_for('broadcast.config_templates') }}">Template e automazioni</a>
+    </div>
+    {% if not paziente.telefono %}
+    <p class="text-sm" style="color:var(--adm-warn);margin-top:0.75rem">Questo paziente non ha un telefono registrato.</p>
+    {% endif %}
+  </div>
+</section>
+{% endif %}
 
+{# ========== MEDICHE (secondaria) ========== #}
+{% if active_tab == 'mediche' %}
+<section class="ppanel is-active">
+  <div class="ops-panel-head" style="margin-bottom:0.75rem">
+    <h2 class="ops-panel-title">Informazioni mediche</h2>
+    <a class="btn btn-ghost btn-small" href="{{ url_for('patients.modifica_paziente', patient_id=paziente.id) }}">Modifica</a>
+  </div>
+  <div class="summary-grid">
+    <div class="summary-cell"><span class="summary-label">Intolleranze</span><div class="summary-value" style="font-size:0.9rem;font-weight:500">{{ paziente.intolleranze or '—' }}</div></div>
+    <div class="summary-cell"><span class="summary-label">Patologie</span><div class="summary-value" style="font-size:0.9rem;font-weight:500">{{ paziente.patologie or '—' }}</div></div>
+    <div class="summary-cell"><span class="summary-label">Esami</span><div class="summary-value" style="font-size:0.9rem;font-weight:500">{{ paziente.esami_biochimici or '—' }}</div></div>
+    <div class="summary-cell"><span class="summary-label">Attività fisica</span><div class="summary-value" style="font-size:0.9rem;font-weight:500">{{ paziente.allenamenti_descr or '—' }}</div></div>
+  </div>
+</section>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_scripts %}
 <script>
 (function () {
-  var knownTabs = { panoramica: true, mediche: true, diario: true, percorsi: true };
-  function showTab(name) {
-    if (!knownTabs[name]) name = 'panoramica';
-    document.querySelectorAll('.patient-panel').forEach(function (p) {
-      p.classList.toggle('is-active', p.id === name + '-tab');
+  var more = document.querySelector('[data-ph-more]');
+  if (more) {
+    var btn = more.querySelector('[data-ph-more-toggle]');
+    var menu = more.querySelector('[data-ph-more-menu]');
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var open = menu.hidden;
+      menu.hidden = !open;
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
     });
-    document.querySelectorAll('.detail-nav-row .tab-min').forEach(function (b) {
-      b.classList.toggle('is-active', b.getAttribute('data-tab') === name);
+    document.addEventListener('click', function () {
+      menu.hidden = true;
+      btn.setAttribute('aria-expanded', 'false');
     });
-    var url = new URL(location.href);
-    if (name === 'panoramica') {
-      url.searchParams.delete('tab');
-    } else {
-      url.searchParams.set('tab', name);
-    }
-    history.replaceState(null, '', url);
-  }
-  document.querySelectorAll('.detail-nav-row .tab-min[data-tab]').forEach(function (btn) {
-    btn.addEventListener('click', function () { showTab(btn.getAttribute('data-tab')); });
-  });
-  var params = new URLSearchParams(location.search);
-  var initial = params.get('tab');
-  if (initial && knownTabs[initial] && initial !== 'panoramica') {
-    showTab(initial);
   }
 })();
-
-{% if foto_inviate > 0 %}
-function openPhotoModal(imageSrc, date) {
-  document.getElementById('modalImage').src = imageSrc;
-  document.getElementById('modalDate').textContent = date;
-  document.getElementById('photoModal').style.display = 'block';
-  document.body.style.overflow = 'hidden';
-}
-
-function closePhotoModal() {
-  document.getElementById('photoModal').style.display = 'none';
-  document.body.style.overflow = 'auto';
-}
-
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') {
-    closePhotoModal();
-  }
-});
-{% endif %}
 </script>
-
-{% if progressi %}
+{% if active_tab == 'progressi' and pesi %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const ctx = document.getElementById('progressChart');
-    if (!ctx) return;
-
-    const dates = JSON.parse('{{ date_labels|tojson|safe }}');
-    const weights = JSON.parse('{{ pesi|tojson|safe }}');
-    const adherences = JSON.parse('{{ aderenze|tojson|safe }}');
-
-    function getAdherenceColor(aderenza) {
-        if (aderenza >= 8) return '#d8d8d8';
-        if (aderenza >= 5) return '#b0b0b0';
-        return '#F44336';
+(function () {
+  var ctx = document.getElementById('pesoChart');
+  if (!ctx || typeof Chart === 'undefined') return;
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: {{ date_labels|tojson }},
+      datasets: [{
+        label: 'Peso (kg)',
+        data: {{ pesi|tojson }},
+        borderColor: '#ff9a56',
+        backgroundColor: 'rgba(255,154,86,0.15)',
+        tension: 0.25,
+        fill: true
+      }]
+    },
+    options: {
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: '#8f8f8f' }, grid: { color: 'rgba(255,255,255,0.06)' } },
+        y: { ticks: { color: '#8f8f8f' }, grid: { color: 'rgba(255,255,255,0.06)' } }
+      }
     }
-
-    const pointColors = adherences.map(a => getAdherenceColor(a));
-
-    new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: dates,
-            datasets: [{
-                label: 'Peso (kg)',
-                data: weights,
-                borderColor: '#d4d4d4',
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                borderWidth: 3,
-                tension: 0.4,
-                fill: true,
-                pointRadius: 8,
-                pointHoverRadius: 10,
-                pointBackgroundColor: pointColors,
-                pointBorderColor: '#ffffff',
-                pointBorderWidth: 2,
-                pointHoverBorderWidth: 3
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: true,
-                    labels: {
-                        color: '#d8d8d8',
-                        font: {
-                            size: 14,
-                            weight: '600'
-                        }
-                    }
-                },
-                tooltip: {
-                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                    titleColor: '#d4d4d4',
-                    bodyColor: '#ffffff',
-                    borderColor: '#d4d4d4',
-                    borderWidth: 1,
-                    padding: 12,
-                    displayColors: false,
-                    callbacks: {
-                        label: function(context) {
-                            const index = context.dataIndex;
-                            const peso = Number(weights[index]).toFixed(1);
-                            const aderenza = adherences[index];
-                            return [
-                                'Peso: ' + peso + ' kg',
-                                'Aderenza: ' + aderenza + '/10'
-                            ];
-                        }
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: false,
-                    grid: {
-                        color: 'rgba(182, 177, 169, 0.1)'
-                    },
-                    ticks: {
-                        color: '#d8d8d8',
-                        font: {
-                            size: 12
-                        },
-                        callback: function(value) {
-                            return Number(value).toFixed(1) + ' kg';
-                        }
-                    }
-                },
-                x: {
-                    grid: {
-                        color: 'rgba(182, 177, 169, 0.1)'
-                    },
-                    ticks: {
-                        color: '#d8d8d8',
-                        font: {
-                            size: 11
-                        },
-                        maxRotation: 45,
-                        minRotation: 45
-                    }
-                }
-            }
-        }
-    });
-});
+  });
+})();
 </script>
 {% endif %}
-
 {% endblock %}

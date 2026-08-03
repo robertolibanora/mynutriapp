@@ -1,0 +1,16 @@
+{# Compact page header — avoids double hero.
+   Expects: title; optional subtitle, primary_url, primary_label, secondary_html #}
+<div class="adm-page-header">
+  <div class="adm-page-header-text">
+    <h1 class="adm-page-header-title">{{ title }}</h1>
+    {% if subtitle %}<p class="adm-page-header-sub">{{ subtitle }}</p>{% endif %}
+  </div>
+  {% if primary_url or secondary_html %}
+  <div class="adm-page-header-actions">
+    {% if secondary_html %}{{ secondary_html|safe }}{% endif %}
+    {% if primary_url and primary_label %}
+    <a href="{{ primary_url }}" class="btn btn-primary btn-small">{{ primary_label }}</a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>

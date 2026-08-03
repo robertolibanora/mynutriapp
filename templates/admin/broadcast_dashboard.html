@@ -1,111 +1,100 @@
 {% extends 'base_admin.html' %}
-{% block title %}Broadcast WhatsApp{% endblock %}
+{% block title %}Messaggi{% endblock %}
 {% block content %}
 
-<!-- GESTIONE TRIGGER -->
-<div class="triggers-section" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
-  <h3 style="color: #f0f0f0; margin-bottom: 1rem;">{{ icon('settings', 16) }} Gestione trigger automatici</h3>
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
-    
-    <!-- TRIGGER APPUNTAMENTI -->
-    <div class="trigger-card" style="background: rgba(255, 255, 255, 0.09); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 8px; padding: 1rem;">
-      <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 0.75rem;">
-        <h4 style="color: #ffffff; margin: 0;">{{ icon('calendar', 18) }} Appuntamenti</h4>
-        <form method="POST" action="{{ url_for('broadcast.toggle_trigger', trigger_name='appuntamenti') }}" style="display: inline;">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-          <button type="submit" class="btn-toggle {{ 'btn-on' if stats.trigger_stats.appuntamenti else 'btn-off' }}">
-            <span class="dot"></span>{{ 'On' if stats.trigger_stats.appuntamenti else 'Off' }}
-          </button>
-        </form>
-      </div>
-      <div style="color: #d8d8d8; font-size: 0.85rem;">Invio automatico per conferma/annullamento appuntamenti</div>
+{% set title = 'Messaggi' %}
+{% set subtitle = 'Invii WhatsApp, automazioni e template. Non è una chat bidirezionale.' %}
+{% set primary_url = url_for('broadcast.nuovo_broadcast') %}
+{% set primary_label = 'Nuovo invio' %}
+{% include 'admin/partials/_page_header.html' %}
+
+<nav class="msg-tabs" aria-label="Sezioni messaggi">
+  <a class="msg-tab is-active" href="#invii">Invii</a>
+  <a class="msg-tab" href="#automazioni">Automazioni</a>
+  <a class="msg-tab" href="#template">Template</a>
+  <a class="msg-tab" href="#storico">Storico</a>
+</nav>
+
+<section id="invii" class="ops-panel" style="margin-bottom:1rem">
+  <div class="ops-panel-head">
+    <h2 class="ops-panel-title">Invii</h2>
+  </div>
+  <p class="text-sm text-muted">Invia un messaggio personalizzato ai pazienti con telefono registrato.</p>
+  <div style="display:flex;gap:0.45rem;flex-wrap:wrap;margin-top:0.75rem">
+    <a class="btn btn-primary btn-small" href="{{ url_for('broadcast.nuovo_broadcast') }}">Componi messaggio</a>
+  </div>
+  <div class="ops-kpis" style="margin-top:1rem">
+    <div class="ops-kpi">
+      <div class="ops-kpi-num">{{ stats.totale_pazienti }}</div>
+      <div class="ops-kpi-label">Pazienti</div>
     </div>
-    
-    <!-- TRIGGER DIETE -->
-    <div class="trigger-card" style="background: rgba(255, 255, 255, 0.09); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 8px; padding: 1rem;">
-      <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 0.75rem;">
-        <h4 style="color: #ffffff; margin: 0;">Diete</h4>
-        <form method="POST" action="{{ url_for('broadcast.toggle_trigger', trigger_name='diete') }}" style="display: inline;">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-          <button type="submit" class="btn-toggle {{ 'btn-on' if stats.trigger_stats.diete else 'btn-off' }}">
-            <span class="dot"></span>{{ 'On' if stats.trigger_stats.diete else 'Off' }}
-          </button>
-        </form>
-      </div>
-      <div style="color: #d8d8d8; font-size: 0.85rem;">Invio automatico per nuove diete caricate</div>
-    </div>
-    
-    <!-- TRIGGER ALLENAMENTI -->
-    <div class="trigger-card" style="background: rgba(255, 255, 255, 0.09); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 8px; padding: 1rem;">
-      <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 0.75rem;">
-        <h4 style="color: #ffffff; margin: 0;">{{ icon('dumbbell', 18) }} Allenamenti</h4>
-        <form method="POST" action="{{ url_for('broadcast.toggle_trigger', trigger_name='allenamenti') }}" style="display: inline;">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-          <button type="submit" class="btn-toggle {{ 'btn-on' if stats.trigger_stats.allenamenti else 'btn-off' }}">
-            <span class="dot"></span>{{ 'On' if stats.trigger_stats.allenamenti else 'Off' }}
-          </button>
-        </form>
-      </div>
-      <div style="color: #d8d8d8; font-size: 0.85rem;">Invio automatico per nuovi allenamenti caricati</div>
-    </div>
-    
-    <!-- TRIGGER SCADENZE -->
-    <div class="trigger-card" style="background: rgba(255, 255, 255, 0.09); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 8px; padding: 1rem;">
-      <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 0.75rem;">
-        <h4 style="color: #ffffff; margin: 0;">{{ icon('clock', 16) }} Scadenze</h4>
-        <form method="POST" action="{{ url_for('broadcast.toggle_trigger', trigger_name='scadenze') }}" style="display: inline;">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-          <button type="submit" class="btn-toggle {{ 'btn-on' if stats.trigger_stats.scadenze else 'btn-off' }}">
-            <span class="dot"></span>{{ 'On' if stats.trigger_stats.scadenze else 'Off' }}
-          </button>
-        </form>
-      </div>
-      <div style="color: #d8d8d8; font-size: 0.85rem;">Invio automatico per scadenze (10 giorni prima)</div>
+    <div class="ops-kpi">
+      <div class="ops-kpi-num">{{ stats.con_telefono }}</div>
+      <div class="ops-kpi-label">Con telefono</div>
     </div>
   </div>
-</div>
+</section>
 
-<!-- TOOLBAR PRINCIPALE -->
-<div class="toolbar" style="display: flex; gap: 0.75rem; margin-bottom: 2rem; flex-wrap: wrap; align-items: center;">
-  <a href="{{ url_for('broadcast.nuovo_broadcast') }}" class="btn btn-primary btn-lg" style="display: inline-flex; align-items: center; gap: 0.6rem;">
-    {{ icon('message', 16) }} Invia messaggio
-  </a>
-  <a href="{{ url_for('broadcast.config_templates') }}" class="btn btn-outline btn-lg" title="Configura messaggi trigger">
-    {{ icon('settings', 16) }} Configura messaggi
-  </a>
-</div>
-
-<!-- GUIDA VARIABILI -->
-<div class="guide-section" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 12px; padding: 1.5rem;">
-  <h3 style="color: #e8e8e8; margin-bottom: 1rem;">{{ icon('edit', 16) }} Variabili per messaggi personalizzati</h3>
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
-    <div>
-      <h4 style="color: #ffffff; margin-bottom: 0.5rem;">{{ icon('user', 18) }} Dati personali</h4>
-      <ul style="color: #d8d8d8; font-size: 0.9rem; margin: 0; padding-left: 1rem;">
-        <li><code>{nome}</code> - Nome del paziente</li>
-        <li><code>{cognome}</code> - Cognome del paziente</li>
-        <li><code>{nome_completo}</code> - Nome e cognome</li>
-        <li><code>{eta}</code> - Età in anni</li>
-        <li><code>{telefono}</code> - Numero di telefono</li>
-      </ul>
-    </div>
-    <div>
-      <h4 style="color: #ffffff; margin-bottom: 0.5rem;">{{ icon('ruler', 18) }} Dati fisici</h4>
-      <ul style="color: #d8d8d8; font-size: 0.9rem; margin: 0; padding-left: 1rem;">
-        <li><code>{altezza}</code> - Altezza in cm</li>
-        <li><code>{peso_iniziale}</code> - Peso iniziale</li>
-        <li><code>{data_nascita}</code> - Data di nascita</li>
-        <li><code>{data_creazione}</code> - Data iscrizione</li>
-      </ul>
-    </div>
+<section id="automazioni" class="ops-panel" style="margin-bottom:1rem">
+  <div class="ops-panel-head">
+    <h2 class="ops-panel-title">Automazioni</h2>
+    <a class="ops-panel-link" href="{{ url_for('broadcast.config_templates') }}">Modifica testi</a>
   </div>
-  
-  <div style="margin-top: 1rem; padding: 1rem; background: rgba(255, 255, 255, 0.09); border-radius: 8px; border-left: 3px solid #e8e8e8;">
-    <div style="color: #d8d8d8; font-size: 0.85rem; margin-bottom: 0.5rem;">Esempio:</div>
-    <div style="color: #ffffff; font-family: monospace; font-size: 0.9rem;">
-      Ciao {nome}! Come stai? Continua a seguire il tuo percorso!
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:0.65rem">
+    {% for key, label, desc in [
+      ('appuntamenti', 'Appuntamenti', 'Conferma / annullamento'),
+      ('diete', 'Diete', 'Nuova dieta caricata'),
+      ('allenamenti', 'Allenamenti', 'Nuovo allenamento caricato'),
+      ('scadenze', 'Scadenze', 'Promemoria 10 giorni prima'),
+    ] %}
+    <div style="padding:0.85rem;background:rgba(255,255,255,0.03);border:1px solid var(--adm-border-soft);border-radius:var(--adm-radius-sm)">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:0.5rem;margin-bottom:0.35rem">
+        <strong style="color:#eee;font-size:0.9rem">{{ label }}</strong>
+        <form method="POST" action="{{ url_for('broadcast.toggle_trigger', trigger_name=key) }}" style="margin:0">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <button type="submit" class="btn btn-ghost btn-small" aria-pressed="{{ 'true' if stats.trigger_stats[key] else 'false' }}">
+            {{ 'On' if stats.trigger_stats[key] else 'Off' }}
+          </button>
+        </form>
+      </div>
+      <div class="text-sm text-muted">{{ desc }}</div>
     </div>
+    {% endfor %}
   </div>
-</div>
+</section>
 
+<section id="template" class="ops-panel" style="margin-bottom:1rem">
+  <div class="ops-panel-head">
+    <h2 class="ops-panel-title">Template</h2>
+    <a class="btn btn-ghost btn-small" href="{{ url_for('broadcast.config_templates') }}">Configura</a>
+  </div>
+  <p class="text-sm text-muted" style="margin-bottom:0.75rem">Testi usati dalle automazioni. Variabili disponibili nella pagina di configurazione.</p>
+  {% for key, tpl in trigger_templates.items() %}
+  <div style="padding:0.65rem 0;border-bottom:1px solid var(--adm-border-soft)">
+    <div class="text-sm" style="color:var(--adm-accent);font-weight:650;text-transform:capitalize">{{ key }}</div>
+    <div class="text-sm text-muted" style="white-space:pre-wrap;margin-top:0.25rem">{{ tpl[:180] }}{% if tpl|length > 180 %}…{% endif %}</div>
+  </div>
+  {% endfor %}
+</section>
+
+<section id="storico" class="ops-panel">
+  <div class="ops-panel-head">
+    <h2 class="ops-panel-title">Storico</h2>
+  </div>
+  {% set title = 'Storico invii non ancora persistito' %}
+  {% set description = 'Gli invii WhatsApp passano da Evolution API. Uno storico locale dedicato non è ancora disponibile: usa i log del provider e le automazioni attive.' %}
+  {% include 'admin/partials/_empty_state.html' %}
+</section>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.querySelectorAll('.msg-tab').forEach(function (tab) {
+  tab.addEventListener('click', function (e) {
+    document.querySelectorAll('.msg-tab').forEach(function (t) { t.classList.remove('is-active'); });
+    tab.classList.add('is-active');
+  });
+});
+</script>
 {% endblock %}

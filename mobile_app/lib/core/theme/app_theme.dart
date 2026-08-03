@@ -55,18 +55,39 @@ ThemeData buildAppTheme() {
       style: FilledButton.styleFrom(
         backgroundColor: AppColors.accent,
         foregroundColor: const Color(0xFF1A0F08),
-        minimumSize: const Size.fromHeight(48),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        textStyle: const TextStyle(fontWeight: FontWeight.w700),
+        minimumSize: const Size.fromHeight(52),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
         foregroundColor: AppColors.text,
-        minimumSize: const Size.fromHeight(48),
+        minimumSize: const Size.fromHeight(52),
         side: const BorderSide(color: AppColors.border),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
+    ),
+    navigationBarTheme: NavigationBarThemeData(
+      backgroundColor: AppColors.bg,
+      elevation: 0,
+      height: 68,
+      indicatorColor: AppColors.accent.withValues(alpha: 0.18),
+      labelTextStyle: WidgetStateProperty.resolveWith((states) {
+        final selected = states.contains(WidgetState.selected);
+        return TextStyle(
+          fontSize: 12,
+          fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+          color: selected ? AppColors.accent : AppColors.muted,
+        );
+      }),
+      iconTheme: WidgetStateProperty.resolveWith((states) {
+        final selected = states.contains(WidgetState.selected);
+        return IconThemeData(
+          size: 24,
+          color: selected ? AppColors.accent : AppColors.muted,
+        );
+      }),
     ),
     switchTheme: SwitchThemeData(
       thumbColor: WidgetStateProperty.resolveWith((states) {
