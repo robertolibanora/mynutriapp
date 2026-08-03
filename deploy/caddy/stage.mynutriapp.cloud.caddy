@@ -1,7 +1,18 @@
 ####################################
 # MYNUTRIAPP STAGING
+# Preferisci catena fino a ISRG Root X1 (compat client legacy / BoringSSL).
+# Dopo modifica: elimina il cert cached e reload Caddy (vedi apply-stage-tls.sh).
 ####################################
 stage.mynutriapp.cloud {
+	tls {
+		key_type rsa2048
+		issuer acme {
+			preferred_chains {
+				root_common_name "ISRG Root X1"
+			}
+		}
+	}
+
 	encode gzip zstd
 
 	@static path /static/*

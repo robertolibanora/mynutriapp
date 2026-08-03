@@ -1,40 +1,28 @@
 #!/usr/bin/env bash
-set -e
+# Avvio app paziente su simulatore iOS (Mac) contro staging.
+# Usa flutter run (non solo xcodebuild) così i --dart-define e le
+# dipendenze Dart (es. native_dio_adapter) entrano nel build.
+set -euo pipefail
 
-SIM_ID="D9C690E1-279C-42FF-B3E4-6859F104FBCE"
-BUNDLE_ID="com.mynutriapp.mynutriApp"
+SIM_ID="${SIM_ID:-D9C690E1-279C-42FF-B3E4-6859F104FBCE}"
+API_BASE_URL="${API_BASE_URL:-https://stage.mynutriapp.cloud}"
+USE_MOCK_DATA="${USE_MOCK_DATA:-false}"
 
-cd "$(dirname "$0")/ios"
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+APP_DIR="$ROOT/mobile_app"
 
-echo "▶ Avvio simulatore..."
+cd "$APP_DIR"
+
+echo "▶ Dipendenze..."
+flutter pub get
+
+echo "▶ Simulatore $SIM_ID..."
 xcrun simctl boot "$SIM_ID" 2>/dev/null || true
 open -a Simulator
 xcrun simctl bootstatus "$SIM_ID" -b
 
-echo "▶ Compilo..."
-xcodebuild \
-  -workspace Runner.xcworkspace \
-  -scheme Runner \
-  -configuration Debug \
-  -sdk iphonesimulator \
-  -destination "platform=iOS Simulator,id=$SIM_ID" \
-  CODE_SIGNING_ALLOWED=NO
-
-APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData \
-  -path "*/Build/Products/Debug-iphonesimulator/Runner.app" \
-  | head -n1)
-
-if [ -z "$APP_PATH" ]; then
-    echo "❌ Runner.app non trovato."
-    exit 1
-fi
-
-echo "▶ Installo..."
-xcrun simctl uninstall "$SIM_ID" "$BUNDLE_ID" >/dev/null 2>&1 || true
-xcrun simctl install "$SIM_ID" "$APP_PATH"
-
-echo "▶ Avvio..."
-xcrun simctl launch "$SIM_ID" "$BUNDLE_ID"
-
-echo
-echo "✅ MyNutriApp avviata."
+echo "▶ flutter run → $API_BASE_URL (mock=$USE_MOCK_DATA)"
+exec flutter run \
+  -d "$SIM_ID" \
+  --dart-define="API_BASE_URL=$API_BASE_URL" \
+  --dart-define="USE_MOCK_DATA=$USE_MOCK_DATA"

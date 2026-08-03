@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
 import 'package:flutter/foundation.dart';
+import 'package:native_dio_adapter/native_dio_adapter.dart';
 
 import '../auth/token_storage.dart';
 import '../config/env.dart';
@@ -19,6 +21,15 @@ class ApiClient {
                 headers: {'Accept': 'application/json'},
               ),
             ) {
+    // Safari/iOS validano la catena YE1; dart:io/BoringSSL spesso no.
+    _dio.httpClientAdapter = NativeAdapter(
+      createFallbackAdapter: (error, stackTrace) {
+        if (kDebugMode) {
+          debugPrint('NativeAdapter fallback: $error');
+        }
+        return IOHttpClientAdapter();
+      },
+    );
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {

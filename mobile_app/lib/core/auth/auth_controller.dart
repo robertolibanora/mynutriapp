@@ -162,9 +162,10 @@ class AuthController extends ChangeNotifier {
           e.type == DioExceptionType.receiveTimeout ||
           e.type == DioExceptionType.connectionError;
       if (noResponse) {
+        final detail = (e.message ?? e.error?.toString() ?? e.type.name).trim();
         error =
-            'Impossibile contattare il server (${Env.apiBaseUrl}). '
-            'Verifica che Flask sia in esecuzione e che API_BASE_URL sia corretto.';
+            'Impossibile contattare il server (${Env.apiBaseUrl}).'
+            '${detail.isEmpty ? '' : ' $detail'}';
         return false;
       }
       final code = e.response?.data is Map
