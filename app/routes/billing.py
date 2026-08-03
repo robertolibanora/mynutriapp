@@ -20,9 +20,12 @@ from app.services.stripe_billing_service import (
     StripeBillingError,
     complete_account_setup,
     construct_webhook_event,
+    create_billing_portal_session,
     create_checkout_session,
     finalize_checkout_session,
     handle_checkout_session_completed,
+    handle_invoice_paid,
+    handle_invoice_payment_failed,
     handle_subscription_updated,
 )
 
@@ -125,6 +128,47 @@ def checkout_success():
     return redirect(url_for("dashboard.admin_dashboard"))
 
 
+@billing_bp.route("/portal", methods=["POST"])
+def customer_portal():
+    """Apre Stripe Customer Portal per l'utente nutrizionista loggato."""
+    if session.get("role") not in ("nutrizionista", "admin"):
+        flash("Accedi come nutrizionista per gestire l'abbonamento.", "warning")
+        return redirect(url_for("auth.login"))
+
+    from app.utils.tenant import current_utente_id
+
+    uid = current_utente_id()
+    if not uid:
+        flash("Sessione non valida. Effettua di nuovo l'accesso.", "warning")
+        return redirect(url_for("auth.login"))
+
+    utente = Utente.query.get(int(uid))
+    if utente is None or not getattr(utente, "stripe_customer_id", None):
+        flash(
+            "Nessun abbonamento Stripe collegato a questo account. "
+            "Se hai appena pagato, attendi qualche minuto o contatta il supporto.",
+            "warning",
+        )
+        return redirect(url_for("dashboard.admin_dashboard"))
+
+    try:
+        from app.config.config import Config
+
+        portal = create_billing_portal_session(
+            stripe_customer_id=utente.stripe_customer_id,
+            return_url=(Config.STRIPE_PORTAL_RETURN_URL or "").strip()
+            or url_for("dashboard.admin_dashboard", _external=True),
+        )
+        return redirect(portal["url"])
+    except StripeBillingError as exc:
+        flash(str(exc), "danger")
+        return redirect(url_for("dashboard.admin_dashboard"))
+    except Exception:  # noqa: BLE001
+        logger.exception("customer portal fallito")
+        flash("Impossibile aprire il portale abbonamento. Riprova più tardi.", "danger")
+        return redirect(url_for("dashboard.admin_dashboard"))
+
+
 @billing_bp.route("/completa-account", methods=["GET", "POST"])
 def completa_account():
     """Pagina post-pagamento: conferma dati e imposta password, poi tutorial."""
@@ -204,6 +248,10 @@ def stripe_webhook():
             "customer.subscription.created",
         ):
             handle_subscription_updated(data_obj)
+        elif etype == "invoice.paid":
+            handle_invoice_paid(data_obj)
+        elif etype in ("invoice.payment_failed", "invoice.payment_action_required"):
+            handle_invoice_payment_failed(data_obj)
     except Exception:  # noqa: BLE001
         logger.exception("Errore gestione evento Stripe %s", etype)
         return jsonify({"error": "handler_failed"}), 500

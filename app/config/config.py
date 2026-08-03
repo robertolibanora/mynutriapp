@@ -234,12 +234,18 @@ class Config:
     STRIPE_PRICE_STARTER = os.getenv("STRIPE_PRICE_STARTER", "").strip()
     STRIPE_PRICE_PROFESSIONAL = os.getenv("STRIPE_PRICE_PROFESSIONAL", "").strip()
     STRIPE_PRICE_STUDIO = os.getenv("STRIPE_PRICE_STUDIO", "").strip()
+    STRIPE_PORTAL_CONFIGURATION_ID = os.getenv(
+        "STRIPE_PORTAL_CONFIGURATION_ID", ""
+    ).strip()
     STRIPE_SUCCESS_URL = os.getenv(
         "STRIPE_SUCCESS_URL", ""
     ).strip()  # es. https://host/landing?checkout=success
     STRIPE_CANCEL_URL = os.getenv(
         "STRIPE_CANCEL_URL", ""
     ).strip()  # es. https://host/landing?checkout=cancel
+    STRIPE_PORTAL_RETURN_URL = os.getenv(
+        "STRIPE_PORTAL_RETURN_URL", ""
+    ).strip()
 
     # ========================================
     # 📡 SUPER ADMIN MONITOR

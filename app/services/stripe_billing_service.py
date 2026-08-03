@@ -73,25 +73,57 @@ def create_checkout_session(
         raise StripeBillingError("STRIPE_SUCCESS_URL / STRIPE_CANCEL_URL non configurati")
 
     stripe = _stripe()
-    session = stripe.checkout.Session.create(
-        mode="subscription",
-        line_items=[{"price": price_id, "quantity": 1}],
-        success_url=success,
-        cancel_url=cancel,
-        customer_email=email,
-        client_reference_id=telefono,
-        metadata={
+    session_params: dict[str, Any] = {
+        "mode": "subscription",
+        "line_items": [{"price": price_id, "quantity": 1}],
+        "success_url": success,
+        "cancel_url": cancel,
+        "customer_email": email,
+        "client_reference_id": telefono,
+        "metadata": {
             "plan": plan_key,
             "nome": nome[:100],
             "cognome": cognome[:100],
             "telefono": telefono,
             "email": email,
         },
-        subscription_data={
+        "subscription_data": {
             "metadata": {"plan": plan_key},
         },
-    )
+        # Stripe Tax: richiede registrazione attiva in Dashboard Tax, altrimenti IVA=0.
+        "automatic_tax": {"enabled": True},
+        "tax_id_collection": {"enabled": True},
+        "billing_address_collection": "required",
+    }
+    session = stripe.checkout.Session.create(**session_params)
     return {"id": session.id, "url": session.url}
+
+
+def create_billing_portal_session(
+    *,
+    stripe_customer_id: str,
+    return_url: Optional[str] = None,
+) -> dict[str, Any]:
+    """Crea sessione Customer Portal. Ritorna {url}."""
+    customer_id = (stripe_customer_id or "").strip()
+    if not customer_id.startswith("cus_"):
+        raise StripeBillingError("Customer Stripe non valido")
+
+    ret = (return_url or Config.STRIPE_PORTAL_RETURN_URL or "").strip()
+    if not ret:
+        raise StripeBillingError("STRIPE_PORTAL_RETURN_URL non configurata")
+
+    stripe = _stripe()
+    params: dict[str, Any] = {
+        "customer": customer_id,
+        "return_url": ret,
+    }
+    config_id = (Config.STRIPE_PORTAL_CONFIGURATION_ID or "").strip()
+    if config_id:
+        params["configuration"] = config_id
+
+    portal = stripe.billing_portal.Session.create(**params)
+    return {"url": portal.url}
 
 
 def _upsert_nutrizionista_from_checkout(
@@ -304,6 +336,57 @@ def handle_subscription_updated(subscription_obj: dict[str, Any]) -> Optional[Ut
         # Non disattiviamo l'account automaticamente: solo sync status.
         pass
     db.session.commit()
+    return row
+
+
+def _utente_from_invoice(invoice_obj: dict[str, Any]) -> Optional[Utente]:
+    customer_id = invoice_obj.get("customer")
+    sub_id = invoice_obj.get("subscription")
+    row = None
+    if customer_id:
+        row = Utente.query.filter_by(stripe_customer_id=customer_id).first()
+    if row is None and sub_id:
+        row = Utente.query.filter_by(stripe_subscription_id=sub_id).first()
+    return row
+
+
+def handle_invoice_paid(invoice_obj: dict[str, Any]) -> Optional[Utente]:
+    """Rinnovo ok / recupero pagamento → status active."""
+    row = _utente_from_invoice(invoice_obj)
+    if row is None:
+        logger.warning(
+            "invoice.paid: utente non trovato customer=%s",
+            invoice_obj.get("customer"),
+        )
+        return None
+
+    sub_id = invoice_obj.get("subscription")
+    if sub_id:
+        row.stripe_subscription_id = sub_id
+    # Solo se non è in cancellazione programmata lasciamo active.
+    if row.subscription_status not in ("canceled", "incomplete_expired"):
+        row.subscription_status = "active"
+    db.session.commit()
+    logger.info("invoice.paid sync utente_id=%s", row.id)
+    return row
+
+
+def handle_invoice_payment_failed(invoice_obj: dict[str, Any]) -> Optional[Utente]:
+    """Pagamento fallito → past_due (dunning Stripe gestisce i retry)."""
+    row = _utente_from_invoice(invoice_obj)
+    if row is None:
+        logger.warning(
+            "invoice.payment_failed: utente non trovato customer=%s",
+            invoice_obj.get("customer"),
+        )
+        return None
+
+    sub_id = invoice_obj.get("subscription")
+    if sub_id:
+        row.stripe_subscription_id = sub_id
+    row.subscription_status = "past_due"
+    db.session.commit()
+    logger.warning("invoice.payment_failed sync utente_id=%s → past_due", row.id)
     return row
 
 

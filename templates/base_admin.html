@@ -75,6 +75,13 @@
                     <div class="admin-user-role">Nutrizionista</div>
                 </div>
             </div>
+            <form method="post" action="{{ url_for('billing.customer_portal') }}" style="margin:0">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="admin-logout" style="width:100%;border:0;background:transparent;cursor:pointer;font:inherit;color:inherit;text-align:left">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+                    <span>Abbonamento</span>
+                </button>
+            </form>
             <a href="{{ url_for('auth.logout') }}" class="admin-logout">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>
                 <span>Esci</span>
