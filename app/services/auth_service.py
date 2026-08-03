@@ -194,4 +194,10 @@ def patient_public_dict(patient: Patient) -> dict[str, Any]:
         "nutrizionista_id": patient.nutrizionista_id,
         "consenso_privacy": bool(getattr(patient, "consenso_privacy", False)),
         "consenso_marketing": bool(getattr(patient, "consenso_marketing", False)),
+        "privacy_policy_version": getattr(patient, "privacy_policy_version", None),
+        "erasure_requested_at": (
+            patient.erasure_requested_at.isoformat()
+            if getattr(patient, "erasure_requested_at", None)
+            else None
+        ),
     }

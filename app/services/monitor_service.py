@@ -56,10 +56,25 @@ def platform_kpis() -> dict[str, Any]:
         .scalar()
         or 0
     )
+    past_due = int(by_status.get("past_due", 0) or 0) + int(
+        by_status.get("unpaid", 0) or 0
+    )
+    setup_pending = (
+        Utente.query.filter_by(
+            ruolo=UtenteRuolo.NUTRIZIONISTA.value,
+            needs_password_setup=True,
+        ).count()
+    )
+    canceled = int(by_status.get("canceled", 0) or 0) + int(
+        by_status.get("incomplete_expired", 0) or 0
+    )
     return {
         "nutrizionisti_total": total,
         "nutrizionisti_attivi": attivi,
         "abbonati_attivi": subscribed,
+        "past_due": past_due,
+        "setup_pending": int(setup_pending),
+        "canceled": canceled,
         "by_status": by_status,
         "by_plan": by_plan,
         "pazienti_total": int(patients_total),
@@ -132,12 +147,33 @@ def list_subscribers(*, limit: int = 100) -> list[dict[str, Any]]:
                 "plan": u.plan or "—",
                 "subscription_status": u.subscription_status or "none",
                 "attivo": bool(u.attivo),
+                "needs_password_setup": bool(u.needs_password_setup),
                 "stripe_customer_id": u.stripe_customer_id,
+                "stripe_subscription_id": u.stripe_subscription_id,
                 "pazienti_attivi": active_patients,
                 "creato_il": u.creato_il,
             }
         )
     return out
+
+
+def attention_subscribers(subscribers: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Account che richiedono attenzione (pagamento / setup / disattivi)."""
+    flagged: list[dict[str, Any]] = []
+    for s in subscribers:
+        reasons: list[str] = []
+        st = s.get("subscription_status") or "none"
+        if st in ("past_due", "unpaid"):
+            reasons.append("pagamento in ritardo")
+        if st in ("canceled", "incomplete_expired"):
+            reasons.append("abbonamento cancellato")
+        if s.get("needs_password_setup"):
+            reasons.append("setup password incompleto")
+        if not s.get("attivo"):
+            reasons.append("account disattivo")
+        if reasons:
+            flagged.append({**s, "reasons": reasons})
+    return flagged
 
 
 def stripe_monitor_snapshot(*, payment_limit: int = 15) -> dict[str, Any]:

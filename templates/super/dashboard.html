@@ -1,8 +1,17 @@
 {% extends "super/base_super.html" %}
-{% block title %}Dashboard monitor{% endblock %}
-{% block subtitle %}Piattaforma{% endblock %}
+{% block title %}Panoramica{% endblock %}
+{% block subtitle %}Monitor{% endblock %}
 
 {% block content %}
+<section class="adm-panel" style="margin-bottom:24px;background:linear-gradient(120deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03) 70%,transparent);">
+  <div>
+    <h2 class="adm-panel-title" style="font-size:1.45rem;">Stato piattaforma</h2>
+    <p class="super-meta" style="margin:0.4rem 0 0;max-width:36rem;">
+      Abbonati, pagamenti e alert. I nutrizionisti si registrano via Stripe Checkout.
+    </p>
+  </div>
+</section>
+
 <section class="adm-stat-grid">
   <div class="adm-stat-card">
     <div class="adm-stat-head">
@@ -20,7 +29,16 @@
       </div>
     </div>
     <div class="adm-stat-value">{{ kpis.abbonati_attivi }}</div>
-    <div class="adm-stat-label">Abbonati Stripe attivi</div>
+    <div class="adm-stat-label">Abbonati Stripe (active / trial / past_due)</div>
+  </div>
+  <div class="adm-stat-card{% if kpis.past_due or kpis.setup_pending %} adm-stat-card--alert{% endif %}">
+    <div class="adm-stat-head">
+      <div class="adm-stat-icon adm-stat-icon--yellow">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 9v4M12 17h.01"/><path d="M10.3 4.3 2.6 18a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 4.3a2 2 0 0 0-3.4 0z"/></svg>
+      </div>
+    </div>
+    <div class="adm-stat-value">{{ attention|length }}</div>
+    <div class="adm-stat-label">Da controllare · {{ kpis.past_due }} pagamenti · {{ kpis.setup_pending }} setup</div>
   </div>
   <div class="adm-stat-card">
     <div class="adm-stat-head">
@@ -28,23 +46,54 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18"/></svg>
       </div>
     </div>
-    <div class="adm-stat-value" style="font-size:1.55rem;">{{ stripe.available_total }}</div>
+    <div class="adm-stat-value" style="font-size:1.45rem;">{{ stripe.available_total }}</div>
     <div class="adm-stat-label">Saldo · pending {{ stripe.pending_total }}</div>
-  </div>
-  <div class="adm-stat-card">
-    <div class="adm-stat-head">
-      <div class="adm-stat-icon adm-stat-icon--yellow">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="3.5"/><path d="M5.5 19a6.5 6.5 0 0 1 13 0"/></svg>
-      </div>
-    </div>
-    <div class="adm-stat-value">{{ kpis.pazienti_total }}</div>
-    <div class="adm-stat-label">Pazienti · {{ kpis.pazienti_stato_attivo }} attivi</div>
   </div>
 </section>
 
+{% if attention %}
+<section class="adm-panel" style="margin-bottom:24px;border-color:rgba(255,154,86,0.35);">
+  <div class="adm-panel-head">
+    <h2 class="adm-panel-title">Richiede attenzione</h2>
+    <a class="adm-panel-link" href="{{ url_for('super_admin.lista_utenti') }}">Vedi tutti</a>
+  </div>
+  <div class="super-table-wrap">
+    <table class="super-table">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Email</th>
+          <th>Stato Stripe</th>
+          <th>Motivo</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in attention[:8] %}
+        <tr>
+          <td>{{ s.nome }}</td>
+          <td>{{ s.email }}</td>
+          <td>
+            {% set st = s.subscription_status %}
+            {% if st in ('past_due', 'unpaid') %}
+              <span class="super-badge warn">{{ st }}</span>
+            {% elif st in ('canceled', 'incomplete_expired') %}
+              <span class="super-badge danger">{{ st }}</span>
+            {% else %}
+              <span class="super-badge off">{{ st }}</span>
+            {% endif %}
+          </td>
+          <td class="super-meta">{{ s.reasons|join(' · ') }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endif %}
+
 <section class="super-charts">
   <div class="adm-panel">
-    <div class="adm-panel-head"><h2 class="adm-panel-title">Nuovi nutrizionisti / settimana</h2></div>
+    <div class="adm-panel-head"><h2 class="adm-panel-title">Nuovi abbonati / settimana</h2></div>
     <div class="super-chart-box"><canvas id="chartSignups"></canvas></div>
   </div>
   <div class="adm-panel">
@@ -57,72 +106,79 @@
   </div>
 </section>
 
-<section class="adm-panel" style="margin-bottom:24px;">
-  <div class="adm-panel-head"><h2 class="adm-panel-title">Saldo e pagamenti Stripe</h2></div>
-  <div class="super-actions">
-    {% if stripe_dashboard_url %}
-    <a class="btn btn-secondary btn-small" href="{{ stripe_dashboard_url }}" target="_blank" rel="noopener noreferrer">Apri Dashboard Stripe</a>
-    {% endif %}
-    {% if mail_url %}
-    <a class="btn btn-secondary btn-small" href="{{ mail_url }}" target="_blank" rel="noopener noreferrer">Apri Posta Hostinger</a>
+<section class="adm-split-grid" style="margin-bottom:24px;">
+  <div class="adm-panel">
+    <div class="adm-panel-head"><h2 class="adm-panel-title">Ultimi pagamenti</h2></div>
+    {% if not stripe.ok %}
+    <p class="super-meta">Stripe non disponibile: {{ stripe.error or 'errore sconosciuto' }}</p>
+    {% elif stripe.payments %}
+    <div class="super-table-wrap">
+      <table class="super-table">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Importo</th>
+            <th>Stato</th>
+            <th>Email</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in stripe.payments[:8] %}
+          <tr>
+            <td>{{ p.created }}</td>
+            <td>{{ p.amount }}</td>
+            <td>
+              {% if p.status in ('succeeded', 'paid') %}
+                <span class="super-badge on">{{ p.status }}</span>
+              {% elif p.status in ('requires_payment_method', 'canceled', 'failed') %}
+                <span class="super-badge danger">{{ p.status }}</span>
+              {% else %}
+                <span class="super-badge warn">{{ p.status }}</span>
+              {% endif %}
+            </td>
+            <td>{{ p.email }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="super-meta">Nessun pagamento recente.</p>
     {% endif %}
   </div>
 
-  {% if not stripe.ok %}
-  <p class="super-meta">Stripe non disponibile: {{ stripe.error or 'errore sconosciuto' }}</p>
-  {% else %}
-  <div class="super-balance-row">
-    <div class="super-balance-item">
-      <div class="label">Disponibile</div>
-      <div class="value">{{ stripe.available_total }}</div>
+  <div class="adm-panel">
+    <div class="adm-panel-head"><h2 class="adm-panel-title">Saldo &amp; strumenti</h2></div>
+    <div class="super-balance-row">
+      <div class="super-balance-item">
+        <div class="label">Disponibile</div>
+        <div class="value">{{ stripe.available_total }}</div>
+      </div>
+      <div class="super-balance-item">
+        <div class="label">Pending</div>
+        <div class="value">{{ stripe.pending_total }}</div>
+      </div>
     </div>
-    <div class="super-balance-item">
-      <div class="label">In pending</div>
-      <div class="value">{{ stripe.pending_total }}</div>
+    <p class="super-meta" style="margin:0 0 1rem;">
+      Pazienti in piattaforma: <strong>{{ kpis.pazienti_total }}</strong>
+      ({{ kpis.pazienti_stato_attivo }} attivi)
+    </p>
+    <div class="super-actions" style="margin:0;">
+      {% if stripe_dashboard_url %}
+      <a class="btn btn-secondary btn-small" href="{{ stripe_dashboard_url }}" target="_blank" rel="noopener noreferrer">Apri Stripe ↗</a>
+      {% endif %}
+      {% if mail_url %}
+      <a class="btn btn-secondary btn-small" href="{{ mail_url }}" target="_blank" rel="noopener noreferrer">Apri posta ↗</a>
+      {% endif %}
     </div>
   </div>
-
-  {% if stripe.payments %}
-  <div class="super-table-wrap">
-    <table class="super-table">
-      <thead>
-        <tr>
-          <th>Data</th>
-          <th>Importo</th>
-          <th>Stato</th>
-          <th>Email</th>
-          <th>Descrizione</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for p in stripe.payments %}
-        <tr>
-          <td>{{ p.created }}</td>
-          <td>{{ p.amount }}</td>
-          <td>
-            {% if p.status in ('succeeded', 'paid') %}
-              <span class="super-badge on">{{ p.status }}</span>
-            {% elif p.status in ('requires_payment_method', 'canceled', 'failed') %}
-              <span class="super-badge danger">{{ p.status }}</span>
-            {% else %}
-              <span class="super-badge warn">{{ p.status }}</span>
-            {% endif %}
-          </td>
-          <td>{{ p.email }}</td>
-          <td>{{ p.description }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-  {% else %}
-  <p class="super-meta">Nessun pagamento recente.</p>
-  {% endif %}
-  {% endif %}
 </section>
 
-<section class="adm-panel" style="margin-bottom:24px;">
-  <div class="adm-panel-head"><h2 class="adm-panel-title">Abbonati / nutrizionisti</h2></div>
+<section class="adm-panel">
+  <div class="adm-panel-head">
+    <h2 class="adm-panel-title">Abbonati recenti</h2>
+    <a class="adm-panel-link" href="{{ url_for('super_admin.lista_utenti') }}">Gestisci</a>
+  </div>
   {% if subscribers %}
   <div class="super-table-wrap">
     <table class="super-table">
@@ -133,19 +189,19 @@
           <th>Piano</th>
           <th>Stripe</th>
           <th>Account</th>
-          <th>Pazienti attivi</th>
+          <th>Pazienti</th>
           <th>Creato</th>
         </tr>
       </thead>
       <tbody>
-        {% for s in subscribers %}
+        {% for s in subscribers[:12] %}
         <tr>
           <td>{{ s.nome }}</td>
           <td>{{ s.email }}</td>
           <td>{{ s.plan }}</td>
           <td>
             {% set st = s.subscription_status %}
-            {% if st == 'active' or st == 'trialing' %}
+            {% if st in ('active', 'trialing') %}
               <span class="super-badge on">{{ st }}</span>
             {% elif st in ('past_due', 'unpaid') %}
               <span class="super-badge warn">{{ st }}</span>
@@ -156,7 +212,9 @@
             {% endif %}
           </td>
           <td>
-            {% if s.attivo %}
+            {% if s.needs_password_setup %}
+              <span class="super-badge warn">setup</span>
+            {% elif s.attivo %}
               <span class="super-badge on">attivo</span>
             {% else %}
               <span class="super-badge off">off</span>
@@ -170,19 +228,7 @@
     </table>
   </div>
   {% else %}
-  <p class="super-meta">Nessun nutrizionista ancora.</p>
-  {% endif %}
-</section>
-
-<section class="adm-panel">
-  <div class="adm-panel-head"><h2 class="adm-panel-title">Posta</h2></div>
-  <p class="super-meta" style="margin:0 0 1rem;">
-    Controlla inbox Hostinger (supporto, Stripe, notifiche).
-  </p>
-  {% if mail_url %}
-  <a class="adm-btn-cta" href="{{ mail_url }}" target="_blank" rel="noopener noreferrer">Apri inbox Hostinger</a>
-  {% else %}
-  <p class="super-meta">MONITOR_MAIL_URL non configurata.</p>
+  <p class="super-meta">Nessun nutrizionista ancora (arrivano da Stripe Checkout).</p>
   {% endif %}
 </section>
 {% endblock %}

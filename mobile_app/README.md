@@ -41,4 +41,10 @@ flutter run --dart-define=API_BASE_URL=http://10.0.2.2:5000 --dart-define=USE_MO
 
 Bottom nav: Home · Dieta · Appuntamenti · Progressi · Profilo  
 
-Da Profilo → Altro: Allenamenti · Documenti · Diario · Logout
+Da **Profilo → Privacy e dati (GDPR)**:
+- stato consenso privacy / marketing
+- toggle marketing (`PATCH /api/v1/me/privacy`)
+- export JSON (`GET /api/v1/me/export`)
+- richiesta cancellazione (`POST /api/v1/me/erasure`)
+
+Login con telefono ambiguo: campo email opzionale (`phone_ambiguous` → 409).

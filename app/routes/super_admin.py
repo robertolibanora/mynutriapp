@@ -1,4 +1,4 @@
-"""Area super admin: monitoraggio piattaforma + gestione nutrizionisti."""
+"""Area super admin: monitoraggio piattaforma (sola lettura + gestione stato)."""
 
 from __future__ import annotations
 
@@ -18,6 +18,7 @@ from flask import (
 from app.billing.plans import VALID_PLANS
 from app.config.config import Config
 from app.services.monitor_service import (
+    attention_subscribers,
     chart_payloads,
     list_subscribers,
     platform_kpis,
@@ -25,9 +26,7 @@ from app.services.monitor_service import (
     stripe_monitor_snapshot,
 )
 from app.services.utente_admin_service import (
-    NutrizionistaCreate,
     UtenteAdminError,
-    create_nutrizionista,
     list_nutrizionisti,
     set_nutrizionista_plan,
     toggle_nutrizionista,
@@ -67,7 +66,8 @@ def dashboard():
     series = signup_series(weeks=8)
     charts = chart_payloads(kpis, series)
     stripe = stripe_monitor_snapshot(payment_limit=12)
-    subscribers = list_subscribers(limit=50)
+    subscribers = list_subscribers(limit=80)
+    attention = attention_subscribers(subscribers)
     ctx = _nav_ctx()
     ctx["active_nav"] = "dashboard"
     return render_template(
@@ -76,40 +76,42 @@ def dashboard():
         charts_json=json.dumps(charts),
         stripe=stripe,
         subscribers=subscribers,
+        attention=attention,
         **ctx,
     )
 
 
-@super_admin_bp.route("/utenti", methods=["GET", "POST"])
+@super_admin_bp.route("/utenti", methods=["GET"])
 @super_admin_required
 def lista_utenti():
-    creator_id = require_super_admin()
-
-    if request.method == "POST":
-        try:
-            create_nutrizionista(
-                NutrizionistaCreate(
-                    nome=request.form.get("nome") or "",
-                    cognome=request.form.get("cognome") or "",
-                    telefono=request.form.get("telefono") or "",
-                    email=request.form.get("email") or "",
-                    password=request.form.get("password") or "",
-                    attivo=True,
-                    plan=request.form.get("plan") or "starter",
-                ),
-                creato_da=creator_id,
-            )
-            flash("Nutrizionista creato", "success")
-        except UtenteAdminError as exc:
-            flash(str(exc), "danger")
-        return redirect(url_for("super_admin.lista_utenti"))
-
+    require_super_admin()
     utenti = list_nutrizionisti()
+    subscribers = list_subscribers(limit=200)
+    by_id = {s["id"]: s for s in subscribers}
+    rows = []
+    for u in utenti:
+        extra = by_id.get(u.id) or {}
+        rows.append(
+            {
+                "id": u.id,
+                "nome": f"{u.nome} {u.cognome}".strip(),
+                "telefono": u.telefono or "—",
+                "email": u.email,
+                "plan": u.plan,
+                "attivo": bool(u.attivo),
+                "subscription_status": extra.get("subscription_status")
+                or u.subscription_status
+                or "none",
+                "pazienti_attivi": extra.get("pazienti_attivi", 0),
+                "needs_password_setup": bool(u.needs_password_setup),
+                "creato_il": u.creato_il,
+            }
+        )
     ctx = _nav_ctx()
     ctx["active_nav"] = "utenti"
     return render_template(
         "super/utenti.html",
-        utenti=utenti,
+        utenti=rows,
         plans=sorted(VALID_PLANS),
         **ctx,
     )

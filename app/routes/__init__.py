@@ -25,7 +25,6 @@ def register_blueprints(app):
     from .diario_ui import diario_ui_bp
     from .patients_diary_api import patients_diary_api_bp
     from .super_admin import super_admin_bp
-    from .nutri_dashboard import nutri_dashboard_bp
     from .billing import billing_bp
     from .landing import landing_bp
     from app.api.v1 import api_v1_bp
@@ -51,5 +50,4 @@ def register_blueprints(app):
     app.register_blueprint(diario_ui_bp)
     app.register_blueprint(patients_diary_api_bp)
     app.register_blueprint(super_admin_bp)
-    app.register_blueprint(nutri_dashboard_bp)
     app.register_blueprint(billing_bp)

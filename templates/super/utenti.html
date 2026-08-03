@@ -1,42 +1,17 @@
 {% extends "super/base_super.html" %}
-{% block title %}Nutrizionisti{% endblock %}
-{% block subtitle %}Gestione tenant{% endblock %}
+{% block title %}Abbonati{% endblock %}
+{% block subtitle %}Monitor{% endblock %}
 
 {% block content %}
 <section class="adm-panel" style="margin-bottom:24px;">
-  <div class="adm-panel-head"><h2 class="adm-panel-title">Crea nutrizionista</h2></div>
-  <form method="POST" class="super-form" action="{{ url_for('super_admin.lista_utenti') }}">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <label>Nome
-      <input name="nome" required autocomplete="given-name">
-    </label>
-    <label>Cognome
-      <input name="cognome" required autocomplete="family-name">
-    </label>
-    <label>Telefono
-      <input name="telefono" required inputmode="tel" placeholder="3401234567" autocomplete="tel">
-    </label>
-    <label>Email
-      <input name="email" type="email" required autocomplete="email">
-    </label>
-    <label class="full">Password iniziale
-      <input name="password" type="password" required minlength="8" autocomplete="new-password">
-    </label>
-    <label>Piano
-      <select name="plan" required>
-        {% for p in plans %}
-        <option value="{{ p }}" {% if p == 'starter' %}selected{% endif %}>{{ p }}</option>
-        {% endfor %}
-      </select>
-    </label>
-    <div class="full">
-      <button type="submit" class="adm-btn-cta">Crea utente</button>
-    </div>
-  </form>
-</section>
+  <div class="adm-panel-head">
+    <h2 class="adm-panel-title">Nutrizionisti / abbonati</h2>
+  </div>
+  <p class="super-meta" style="margin:0 0 1rem;">
+    Nessuna creazione manuale: gli account arrivano da Stripe Checkout.
+    Qui puoi solo attivare/disattivare e aggiornare il piano (es. Enterprise offline).
+  </p>
 
-<section class="adm-panel">
-  <div class="adm-panel-head"><h2 class="adm-panel-title">Nutrizionisti</h2></div>
   {% if utenti %}
   <div class="super-table-wrap">
     <table class="super-table">
@@ -44,10 +19,11 @@
         <tr>
           <th>ID</th>
           <th>Nome</th>
-          <th>Telefono</th>
-          <th>Email</th>
+          <th>Contatti</th>
           <th>Piano</th>
-          <th>Stato</th>
+          <th>Stripe</th>
+          <th>Account</th>
+          <th>Pazienti</th>
           <th></th>
         </tr>
       </thead>
@@ -55,9 +31,14 @@
         {% for u in utenti %}
         <tr>
           <td>{{ u.id }}</td>
-          <td>{{ u.nome }} {{ u.cognome }}</td>
-          <td>{{ u.telefono or '—' }}</td>
-          <td>{{ u.email }}</td>
+          <td>
+            {{ u.nome }}
+            {% if u.creato_il %}<div class="super-meta">dal {{ u.creato_il.strftime('%d/%m/%Y') }}</div>{% endif %}
+          </td>
+          <td>
+            <div>{{ u.email }}</div>
+            <div class="super-meta">{{ u.telefono }}</div>
+          </td>
           <td>
             <form method="POST" action="{{ url_for('super_admin.set_utente_plan', utente_id=u.id) }}" class="super-inline-form">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -70,12 +51,27 @@
             </form>
           </td>
           <td>
-            {% if u.attivo %}
+            {% set st = u.subscription_status %}
+            {% if st in ('active', 'trialing') %}
+              <span class="super-badge on">{{ st }}</span>
+            {% elif st in ('past_due', 'unpaid') %}
+              <span class="super-badge warn">{{ st }}</span>
+            {% elif st in ('canceled', 'incomplete_expired') %}
+              <span class="super-badge danger">{{ st }}</span>
+            {% else %}
+              <span class="super-badge off">{{ st }}</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if u.needs_password_setup %}
+              <span class="super-badge warn">setup</span>
+            {% elif u.attivo %}
               <span class="super-badge on">attivo</span>
             {% else %}
               <span class="super-badge off">disattivo</span>
             {% endif %}
           </td>
+          <td>{{ u.pazienti_attivi }}</td>
           <td>
             <form method="POST" action="{{ url_for('super_admin.toggle_utente', utente_id=u.id) }}">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -90,7 +86,7 @@
     </table>
   </div>
   {% else %}
-  <p class="super-meta">Nessun nutrizionista ancora. Creane uno sopra.</p>
+  <p class="super-meta">Nessun nutrizionista ancora.</p>
   {% endif %}
 </section>
 {% endblock %}

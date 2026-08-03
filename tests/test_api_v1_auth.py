@@ -15,6 +15,8 @@ os.environ.setdefault("AUDIO_ENCRYPTION_KEY", "ab" * 32)
 os.environ.setdefault("ENCRYPTION_KEY", "x" * 44)
 
 from app.api.v1 import api_v1_bp
+from app.models.diario import Utente
+from app.models.enums import UtenteRuolo
 from app.models.models import Patient, db
 
 
@@ -38,6 +40,16 @@ class ApiV1AuthTest(unittest.TestCase):
         self.ctx.push()
         db.create_all()
 
+        nutri = Utente(
+            nome="Nutri",
+            cognome="Test",
+            email="nutri-auth@ex.com",
+            ruolo=UtenteRuolo.NUTRIZIONISTA.value,
+            attivo=True,
+        )
+        db.session.add(nutri)
+        db.session.flush()
+
         self.patient = Patient(
             nome="Giulia",
             cognome="Rossi",
@@ -46,6 +58,7 @@ class ApiV1AuthTest(unittest.TestCase):
             stato_cliente="attivo",
             altezza_cm=168,
             peso_iniziale=72.0,
+            nutrizionista_id=nutri.id,
             consenso_registrazione=False,
             consenso_ai=False,
         )
@@ -55,6 +68,7 @@ class ApiV1AuthTest(unittest.TestCase):
             telefono="3339998877",
             password_hash=generate_password_hash("secret123"),
             stato_cliente="provvisorio",
+            nutrizionista_id=nutri.id,
             consenso_registrazione=False,
             consenso_ai=False,
         )
