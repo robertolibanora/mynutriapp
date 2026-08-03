@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 
-from flask import Blueprint, flash, jsonify, redirect, request, url_for
+from flask import Blueprint, flash, jsonify, redirect, request, session, url_for
 
 from app.services.stripe_billing_service import (
     StripeBillingError,
@@ -83,7 +83,9 @@ def checkout_success():
     from app.routes.auth import establish_utente_session
 
     establish_utente_session(utente, "nutrizionista", via="stripe_checkout")
-    flash("Abbonamento attivo. Benvenuto nella tua dashboard.", "success")
+    # Mini tutorial one-shot sulla dashboard (dopo session.clear in establish)
+    session["show_onboarding"] = True
+    session.modified = True
     return redirect(url_for("dashboard.admin_dashboard"))
 
 

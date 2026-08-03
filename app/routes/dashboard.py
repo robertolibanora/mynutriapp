@@ -124,6 +124,8 @@ def admin_dashboard():
         .all()
     )
 
+    show_onboarding = bool(session.pop("show_onboarding", False))
+
     return render_template(
         'admin/dashboard.html',
         n_appuntamenti_oggi=n_appuntamenti_oggi,
@@ -139,6 +141,7 @@ def admin_dashboard():
         data_oggi=_data_italiana(oggi),
         ora_ora=oggi.strftime("%H:%M"),
         oggi=oggi,
+        show_onboarding=show_onboarding,
     )
 
 

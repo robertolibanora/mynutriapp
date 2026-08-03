@@ -221,6 +221,90 @@
     font-size: 0.9rem;
   }
   .admin-app .db-empty p { margin: 0 0 0.85rem; }
+
+  /* Mini tutorial post-abbonamento */
+  .ob-root {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    display: grid;
+    place-items: center;
+    padding: 1.25rem;
+    background: rgba(0, 0, 0, 0.62);
+    backdrop-filter: blur(6px);
+    animation: obFade .28s ease;
+  }
+  .ob-root[hidden] { display: none !important; }
+  @keyframes obFade { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes obUp {
+    from { opacity: 0; transform: translateY(12px) scale(.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .ob-card {
+    width: min(440px, 100%);
+    border-radius: 18px;
+    border: 1px solid rgba(255,255,255,0.14);
+    background: linear-gradient(165deg, #242424 0%, #171717 100%);
+    box-shadow: 0 24px 60px rgba(0,0,0,.45);
+    padding: 1.45rem 1.5rem 1.25rem;
+    animation: obUp .34s ease;
+  }
+  .ob-kicker {
+    margin: 0 0 .35rem;
+    color: var(--adm-accent, #ff9a56);
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+  .ob-card h2 {
+    margin: 0;
+    font: 600 1.35rem/1.25 var(--adm-font);
+    color: #fff;
+  }
+  .ob-card p {
+    margin: .55rem 0 0;
+    color: #bdbdbd;
+    font-size: .95rem;
+    line-height: 1.5;
+  }
+  .ob-dots {
+    display: flex;
+    gap: .4rem;
+    margin: 1.15rem 0 1.1rem;
+  }
+  .ob-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.2);
+    transition: width .2s ease, background .2s ease;
+  }
+  .ob-dot.is-on {
+    width: 22px;
+    background: var(--adm-accent, #ff9a56);
+  }
+  .ob-actions {
+    display: flex;
+    gap: .5rem;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .ob-actions-right {
+    display: flex;
+    gap: .45rem;
+    margin-left: auto;
+  }
+  .ob-skip {
+    border: 0;
+    background: transparent;
+    color: #8f8f8f;
+    font: 500 .85rem var(--adm-font);
+    cursor: pointer;
+    padding: .4rem .2rem;
+  }
+  .ob-skip:hover { color: #ddd; }
 </style>
 
 <div class="db">
@@ -397,4 +481,110 @@
   </section>
 </div>
 
+{% if show_onboarding %}
+<div class="ob-root" id="onboarding" role="dialog" aria-modal="true" aria-labelledby="ob-title">
+  <div class="ob-card">
+    <p class="ob-kicker" id="ob-kicker">Passo 1 di 4</p>
+    <h2 id="ob-title">Abbonamento attivo</h2>
+    <p id="ob-text">Il tuo spazio professionale è pronto. In due minuti vedi dove gestire pazienti, agenda e piani.</p>
+    <div class="ob-dots" id="ob-dots" aria-hidden="true"></div>
+    <div class="ob-actions">
+      <button type="button" class="ob-skip" id="ob-skip">Salta</button>
+      <div class="ob-actions-right">
+        <button type="button" class="btn btn-ghost btn-small" id="ob-prev" hidden>Indietro</button>
+        <button type="button" class="btn btn-ghost btn-small" id="ob-next" style="background:var(--adm-accent);color:#1a1a1a;border-color:transparent;">Continua</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_scripts %}
+{% if show_onboarding %}
+<script>
+(function () {
+  var root = document.getElementById('onboarding');
+  if (!root) return;
+
+  var steps = [
+    {
+      kicker: 'Passo 1 di 4',
+      title: 'Abbonamento attivo',
+      text: 'Il tuo spazio professionale è pronto. In due minuti vedi dove gestire pazienti, agenda e piani.'
+    },
+    {
+      kicker: 'Passo 2 di 4',
+      title: 'Aggiungi i pazienti',
+      text: 'Da Pazienti crei l’anagrafica, attivi l’accesso all’app e segui diete, progressi e documenti in un’unica scheda.'
+    },
+    {
+      kicker: 'Passo 3 di 4',
+      title: 'Configura l’agenda',
+      text: 'Imposta gli orari settimanali, gestisci le richieste online e conferma gli appuntamenti dalla sezione Agenda.'
+    },
+    {
+      kicker: 'Passo 4 di 4',
+      title: 'Crea dieta e allenamento',
+      text: 'Dalla dashboard puoi subito pubblicare un piano alimentare o di allenamento e condividerlo con il paziente.'
+    }
+  ];
+
+  var i = 0;
+  var kicker = document.getElementById('ob-kicker');
+  var title = document.getElementById('ob-title');
+  var text = document.getElementById('ob-text');
+  var dots = document.getElementById('ob-dots');
+  var prev = document.getElementById('ob-prev');
+  var next = document.getElementById('ob-next');
+  var skip = document.getElementById('ob-skip');
+
+  for (var d = 0; d < steps.length; d++) {
+    var el = document.createElement('span');
+    el.className = 'ob-dot' + (d === 0 ? ' is-on' : '');
+    dots.appendChild(el);
+  }
+
+  function render() {
+    var s = steps[i];
+    kicker.textContent = s.kicker;
+    title.textContent = s.title;
+    text.textContent = s.text;
+    prev.hidden = i === 0;
+    next.textContent = i === steps.length - 1 ? 'Inizia' : 'Continua';
+    Array.prototype.forEach.call(dots.children, function (dot, idx) {
+      dot.classList.toggle('is-on', idx === i);
+    });
+  }
+
+  function close() {
+    root.hidden = true;
+    root.setAttribute('aria-hidden', 'true');
+  }
+
+  prev.addEventListener('click', function () {
+    if (i > 0) { i -= 1; render(); }
+  });
+  next.addEventListener('click', function () {
+    if (i < steps.length - 1) {
+      i += 1;
+      render();
+    } else {
+      close();
+      window.location.href = {{ url_for('patients.nuovo_paziente')|tojson }};
+    }
+  });
+  skip.addEventListener('click', close);
+  root.addEventListener('click', function (e) {
+    if (e.target === root) close();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') close();
+  });
+
+  render();
+})();
+</script>
+{% endif %}
 {% endblock %}
