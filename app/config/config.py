@@ -241,11 +241,25 @@ class Config:
         "STRIPE_CANCEL_URL", ""
     ).strip()  # es. https://host/landing?checkout=cancel
 
-    
     # ========================================
-    # 🧾 AUDIT LOG
+    # 📡 SUPER ADMIN MONITOR
+    # ========================================
+    MONITOR_MAIL_URL = os.getenv(
+        "MONITOR_MAIL_URL",
+        "https://mail.hostinger.com/mailboxes/INBOX",
+    ).strip()
+    MONITOR_STRIPE_DASHBOARD_URL = os.getenv(
+        "MONITOR_STRIPE_DASHBOARD_URL",
+        "https://dashboard.stripe.com/test/dashboard",
+    ).strip()
+
+    # ========================================
+    # 🧾 AUDIT LOG / GDPR RETENTION
     # ========================================
     AUDIT_LOG_RETENTION_DAYS = int(os.getenv("AUDIT_LOG_RETENTION_DAYS", "730"))
+    PATIENT_DATA_RETENTION_DAYS = int(os.getenv("PATIENT_DATA_RETENTION_DAYS", "3650"))
+    AUDIO_RETENTION_DAYS = int(os.getenv("AUDIO_RETENTION_DAYS", "730"))
+    PRIVACY_POLICY_VERSION = os.getenv("PRIVACY_POLICY_VERSION", "1.0").strip() or "1.0"
     
     # ========================================
     # 🍎 NUTRIZIONE - PROVIDER ALIMENTI ESTERNO

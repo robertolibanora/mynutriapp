@@ -125,6 +125,7 @@ with app.app_context():
             ensure_nutrition_schema,
             ensure_finance_removed,
             ensure_patient_stato_schema,
+            ensure_gdpr_schema,
             ensure_multi_tenant_schema,
             ensure_billing_schema,
         )
@@ -133,6 +134,7 @@ with app.app_context():
         ensure_nutrition_schema()
         ensure_finance_removed()
         ensure_patient_stato_schema()
+        ensure_gdpr_schema()
         ensure_multi_tenant_schema()
         ensure_billing_schema()
         ensure_super_admin()
@@ -199,12 +201,12 @@ except Exception as e:
     logger.warning(f"⚠️  Impossibile esentare API /api/v1: {e}")
 
 try:
-    from app.routes.billing import billing_bp
-
-    csrf.exempt(billing_bp)
-    logger.info("✅ Blueprint /billing esente da CSRF")
+    # Solo endpoint machine-to-machine / JSON (il form completa-account resta protetto)
+    csrf.exempt(app.view_functions["billing.create_checkout"])
+    csrf.exempt(app.view_functions["billing.stripe_webhook"])
+    logger.info("✅ Endpoint billing checkout/webhook esenti da CSRF")
 except Exception as e:
-    logger.warning(f"⚠️  Impossibile esentare /billing da CSRF: {e}")
+    logger.warning(f"⚠️  Impossibile esentare endpoint billing da CSRF: {e}")
 
 # Rende disponibile csrf_token() in tutte le template
 @app.context_processor

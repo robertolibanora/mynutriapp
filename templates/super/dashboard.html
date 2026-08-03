@@ -1,0 +1,254 @@
+{% extends "super/base_super.html" %}
+{% block title %}Dashboard monitor{% endblock %}
+{% block subtitle %}Piattaforma{% endblock %}
+
+{% block content %}
+<section class="adm-stat-grid">
+  <div class="adm-stat-card">
+    <div class="adm-stat-head">
+      <div class="adm-stat-icon adm-stat-icon--yellow">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M16 19v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 0v1"/><circle cx="9.5" cy="7.5" r="3.2"/><path d="M21 19v-1a4 4 0 0 0-3-3.85"/></svg>
+      </div>
+    </div>
+    <div class="adm-stat-value">{{ kpis.nutrizionisti_total }}</div>
+    <div class="adm-stat-label">Nutrizionisti · {{ kpis.nutrizionisti_attivi }} attivi</div>
+  </div>
+  <div class="adm-stat-card">
+    <div class="adm-stat-head">
+      <div class="adm-stat-icon adm-stat-icon--yellow">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3v18M5 8h10a3 3 0 0 1 0 6H8a3 3 0 0 0 0 6h11"/></svg>
+      </div>
+    </div>
+    <div class="adm-stat-value">{{ kpis.abbonati_attivi }}</div>
+    <div class="adm-stat-label">Abbonati Stripe attivi</div>
+  </div>
+  <div class="adm-stat-card">
+    <div class="adm-stat-head">
+      <div class="adm-stat-icon adm-stat-icon--yellow">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18"/></svg>
+      </div>
+    </div>
+    <div class="adm-stat-value" style="font-size:1.55rem;">{{ stripe.available_total }}</div>
+    <div class="adm-stat-label">Saldo · pending {{ stripe.pending_total }}</div>
+  </div>
+  <div class="adm-stat-card">
+    <div class="adm-stat-head">
+      <div class="adm-stat-icon adm-stat-icon--yellow">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="3.5"/><path d="M5.5 19a6.5 6.5 0 0 1 13 0"/></svg>
+      </div>
+    </div>
+    <div class="adm-stat-value">{{ kpis.pazienti_total }}</div>
+    <div class="adm-stat-label">Pazienti · {{ kpis.pazienti_stato_attivo }} attivi</div>
+  </div>
+</section>
+
+<section class="super-charts">
+  <div class="adm-panel">
+    <div class="adm-panel-head"><h2 class="adm-panel-title">Nuovi nutrizionisti / settimana</h2></div>
+    <div class="super-chart-box"><canvas id="chartSignups"></canvas></div>
+  </div>
+  <div class="adm-panel">
+    <div class="adm-panel-head"><h2 class="adm-panel-title">Piani</h2></div>
+    <div class="super-chart-box"><canvas id="chartPlans"></canvas></div>
+  </div>
+  <div class="adm-panel">
+    <div class="adm-panel-head"><h2 class="adm-panel-title">Stato abbonamento</h2></div>
+    <div class="super-chart-box"><canvas id="chartStatus"></canvas></div>
+  </div>
+</section>
+
+<section class="adm-panel" style="margin-bottom:24px;">
+  <div class="adm-panel-head"><h2 class="adm-panel-title">Saldo e pagamenti Stripe</h2></div>
+  <div class="super-actions">
+    {% if stripe_dashboard_url %}
+    <a class="btn btn-secondary btn-small" href="{{ stripe_dashboard_url }}" target="_blank" rel="noopener noreferrer">Apri Dashboard Stripe</a>
+    {% endif %}
+    {% if mail_url %}
+    <a class="btn btn-secondary btn-small" href="{{ mail_url }}" target="_blank" rel="noopener noreferrer">Apri Posta Hostinger</a>
+    {% endif %}
+  </div>
+
+  {% if not stripe.ok %}
+  <p class="super-meta">Stripe non disponibile: {{ stripe.error or 'errore sconosciuto' }}</p>
+  {% else %}
+  <div class="super-balance-row">
+    <div class="super-balance-item">
+      <div class="label">Disponibile</div>
+      <div class="value">{{ stripe.available_total }}</div>
+    </div>
+    <div class="super-balance-item">
+      <div class="label">In pending</div>
+      <div class="value">{{ stripe.pending_total }}</div>
+    </div>
+  </div>
+
+  {% if stripe.payments %}
+  <div class="super-table-wrap">
+    <table class="super-table">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Importo</th>
+          <th>Stato</th>
+          <th>Email</th>
+          <th>Descrizione</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in stripe.payments %}
+        <tr>
+          <td>{{ p.created }}</td>
+          <td>{{ p.amount }}</td>
+          <td>
+            {% if p.status in ('succeeded', 'paid') %}
+              <span class="super-badge on">{{ p.status }}</span>
+            {% elif p.status in ('requires_payment_method', 'canceled', 'failed') %}
+              <span class="super-badge danger">{{ p.status }}</span>
+            {% else %}
+              <span class="super-badge warn">{{ p.status }}</span>
+            {% endif %}
+          </td>
+          <td>{{ p.email }}</td>
+          <td>{{ p.description }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="super-meta">Nessun pagamento recente.</p>
+  {% endif %}
+  {% endif %}
+</section>
+
+<section class="adm-panel" style="margin-bottom:24px;">
+  <div class="adm-panel-head"><h2 class="adm-panel-title">Abbonati / nutrizionisti</h2></div>
+  {% if subscribers %}
+  <div class="super-table-wrap">
+    <table class="super-table">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Email</th>
+          <th>Piano</th>
+          <th>Stripe</th>
+          <th>Account</th>
+          <th>Pazienti attivi</th>
+          <th>Creato</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in subscribers %}
+        <tr>
+          <td>{{ s.nome }}</td>
+          <td>{{ s.email }}</td>
+          <td>{{ s.plan }}</td>
+          <td>
+            {% set st = s.subscription_status %}
+            {% if st == 'active' or st == 'trialing' %}
+              <span class="super-badge on">{{ st }}</span>
+            {% elif st in ('past_due', 'unpaid') %}
+              <span class="super-badge warn">{{ st }}</span>
+            {% elif st in ('canceled', 'incomplete_expired') %}
+              <span class="super-badge danger">{{ st }}</span>
+            {% else %}
+              <span class="super-badge off">{{ st }}</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if s.attivo %}
+              <span class="super-badge on">attivo</span>
+            {% else %}
+              <span class="super-badge off">off</span>
+            {% endif %}
+          </td>
+          <td>{{ s.pazienti_attivi }}</td>
+          <td>{% if s.creato_il %}{{ s.creato_il.strftime('%d/%m/%Y') }}{% else %}—{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="super-meta">Nessun nutrizionista ancora.</p>
+  {% endif %}
+</section>
+
+<section class="adm-panel">
+  <div class="adm-panel-head"><h2 class="adm-panel-title">Posta</h2></div>
+  <p class="super-meta" style="margin:0 0 1rem;">
+    Controlla inbox Hostinger (supporto, Stripe, notifiche).
+  </p>
+  {% if mail_url %}
+  <a class="adm-btn-cta" href="{{ mail_url }}" target="_blank" rel="noopener noreferrer">Apri inbox Hostinger</a>
+  {% else %}
+  <p class="super-meta">MONITOR_MAIL_URL non configurata.</p>
+  {% endif %}
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/chart.umd.min.js') }}"></script>
+<script>
+(function () {
+  const data = {{ charts_json|safe }};
+  const accent = '#ff9a56';
+  const muted = '#a3a3a3';
+  const grid = 'rgba(255,255,255,0.08)';
+  Chart.defaults.color = muted;
+  Chart.defaults.borderColor = grid;
+  Chart.defaults.font.family = 'Manrope, system-ui, sans-serif';
+
+  new Chart(document.getElementById('chartSignups'), {
+    type: 'line',
+    data: {
+      labels: data.signups.labels,
+      datasets: [{
+        label: 'Iscrizioni',
+        data: data.signups.values,
+        borderColor: accent,
+        backgroundColor: 'rgba(255,154,86,0.16)',
+        fill: true,
+        tension: 0.35,
+        pointRadius: 3,
+        pointBackgroundColor: accent,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+    }
+  });
+
+  const pieColors = ['#ff9a56', '#ffb07a', '#d4d4d4', '#8f8f8f', '#e88a8a'];
+
+  new Chart(document.getElementById('chartPlans'), {
+    type: 'doughnut',
+    data: {
+      labels: data.plans.labels,
+      datasets: [{ data: data.plans.values, backgroundColor: pieColors, borderWidth: 0 }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom', labels: { boxWidth: 10 } } }
+    }
+  });
+
+  new Chart(document.getElementById('chartStatus'), {
+    type: 'doughnut',
+    data: {
+      labels: data.status.labels,
+      datasets: [{ data: data.status.values, backgroundColor: pieColors, borderWidth: 0 }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom', labels: { boxWidth: 10 } } }
+    }
+  });
+})();
+</script>
+{% endblock %}

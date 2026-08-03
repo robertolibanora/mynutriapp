@@ -21,7 +21,7 @@ def landing():
     if role == "nutrizionista":
         return redirect(url_for("dashboard.admin_dashboard"))
     if role == "super_admin":
-        return redirect(url_for("super_admin.lista_utenti"))
+        return redirect(url_for("super_admin.dashboard"))
     # Compat: vecchia success URL Stripe → login (il flusso nuovo usa /billing/success)
     from flask import request
 

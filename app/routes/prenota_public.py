@@ -10,8 +10,13 @@ from app.models.enums import UtenteRuolo
 from app.models.models import Appuntamento, Patient, RichiestaAppuntamento, db
 from app.services.agenda_service import AgendaService
 from app.services.licensing_service import PlanLimitError
+from app.services.gdpr_service import apply_consents
 from app.services.paziente_service import crea_paziente_provvisorio
-from app.utils.db_schema import ensure_patient_stato_schema, ensure_richieste_appuntamento_schema
+from app.utils.db_schema import (
+    ensure_gdpr_schema,
+    ensure_patient_stato_schema,
+    ensure_richieste_appuntamento_schema,
+)
 from app.utils.helpers import normalize_phone
 from app.utils.tenant import assert_patient_tenant, require_tenant, tenant_filter_enabled
 
@@ -27,6 +32,7 @@ TIPI_PUBBLICI = {
 @prenota_public_bp.before_request
 def _ensure_schema():
     ensure_patient_stato_schema()
+    ensure_gdpr_schema()
     ensure_richieste_appuntamento_schema()
 
 
@@ -101,6 +107,10 @@ def prenota_landing():
                 flash("Compila tutti i campi obbligatori", "warning")
                 return redirect(url_for("prenota_public.prenota_landing", n=tenant_id))
 
+            if not request.form.get("consenso_privacy"):
+                flash("Il consenso privacy è obbligatorio", "warning")
+                return redirect(url_for("prenota_public.prenota_landing", n=tenant_id))
+
             try:
                 altezza_cm = int(float(altezza_raw.replace(",", ".")))
                 peso_iniziale = float(peso_raw.replace(",", "."))
@@ -155,6 +165,14 @@ def prenota_landing():
                     paziente.altezza_cm = altezza_cm
                 if paziente.stato_cliente == "provvisorio" or paziente.peso_iniziale is None:
                     paziente.peso_iniziale = peso_iniziale
+
+            if email:
+                paziente.email = email
+            apply_consents(
+                paziente,
+                consenso_privacy=True,
+                consenso_marketing=bool(request.form.get("consenso_marketing")),
+            )
 
             nuovo = Appuntamento(
                 patient_id=paziente.id,

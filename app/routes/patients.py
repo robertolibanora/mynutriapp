@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, Response
 from werkzeug.security import generate_password_hash
 from app.models.models import db, Patient, Dieta, Allenamento, Progresso
 from app.services.paziente_service import (
@@ -7,8 +7,20 @@ from app.services.paziente_service import (
     approva_paziente,
     rifiuta_paziente,
 )
-from app.utils.db_schema import ensure_patient_stato_schema
-from app.utils.tenant import assert_patient_tenant, require_tenant, tenant_filter_enabled
+from app.services.gdpr_service import (
+    GdprError,
+    apply_consents,
+    export_as_json_bytes,
+    purge_patient,
+    request_erasure,
+)
+from app.utils.db_schema import ensure_gdpr_schema, ensure_patient_stato_schema
+from app.utils.tenant import (
+    assert_patient_tenant,
+    patients_query_for_tenant,
+    require_tenant,
+    tenant_filter_enabled,
+)
 from datetime import date, timedelta
 from sqlalchemy import case
 
@@ -21,6 +33,7 @@ patients_bp = Blueprint('patients', __name__, url_prefix='/admin/pazienti')
 @patients_bp.before_request
 def _ensure_patient_schema():
     ensure_patient_stato_schema()
+    ensure_gdpr_schema()
 
 
 # ========================
@@ -100,14 +113,15 @@ def lista_pazienti():
         else:
             paziente.eta = None
 
+    base_counts = patients_query_for_tenant()
     return render_template(
         'admin/pazienti_lista.html',
         pazienti=pazienti,
         stato_filtro=stato_filtro,
         label_stato=LABEL_STATO_CLIENTE,
-        n_provvisori=Patient.query.filter_by(stato_cliente='provvisorio').count(),
-        n_attivi=Patient.query.filter_by(stato_cliente='attivo').count(),
-        n_non_attivi=Patient.query.filter_by(stato_cliente='non_attivo').count(),
+        n_provvisori=base_counts.filter_by(stato_cliente='provvisorio').count(),
+        n_attivi=base_counts.filter_by(stato_cliente='attivo').count(),
+        n_non_attivi=base_counts.filter_by(stato_cliente='non_attivo').count(),
     )
 
 
@@ -340,6 +354,10 @@ def nuovo_paziente():
             # 🔐 Cripta password
             password_hash = generate_password_hash(password)
 
+            if not request.form.get('consenso_privacy'):
+                flash("Il consenso privacy è obbligatorio", "danger")
+                return render_template('admin/paziente_nuovo.html')
+
             nuovo = Patient(
                 nome=nome,
                 cognome=cognome,
@@ -351,6 +369,11 @@ def nuovo_paziente():
                 peso_iniziale=peso_iniziale,
                 stato_cliente='attivo',
                 nutrizionista_id=require_tenant(),
+            )
+            apply_consents(
+                nuovo,
+                consenso_privacy=True,
+                consenso_marketing=bool(request.form.get('consenso_marketing')),
             )
 
             db.session.add(nuovo)
@@ -410,6 +433,12 @@ def modifica_paziente(patient_id):
             
             # Attività fisica
             paziente.allenamenti_descr = request.form.get('allenamenti_descr', '').strip() or None
+            paziente.email = request.form.get('email', '').strip() or None
+            apply_consents(
+                paziente,
+                consenso_privacy=bool(request.form.get('consenso_privacy')),
+                consenso_marketing=bool(request.form.get('consenso_marketing')),
+            )
 
             db.session.commit()
             
@@ -434,21 +463,64 @@ def modifica_paziente(patient_id):
 
 
 # ========================
-# ELIMINA PAZIENTE
+# ELIMINA / OBLIO PAZIENTE
 # ========================
 @patients_bp.route('/elimina/<int:patient_id>', methods=['POST'])
 @admin_required
 def elimina_paziente(patient_id):
     paziente = _get_tenant_patient(patient_id)
+    nome = f"{paziente.nome} {paziente.cognome}"
 
     try:
-        db.session.delete(paziente)
-        db.session.commit()
-        flash(f"Paziente {paziente.nome} eliminato ✅", "success")
+        mode = purge_patient(paziente)
+        if mode == "anonymized":
+            flash(f"Paziente {nome}: dati anonimizzati (hold legale attivo) ✅", "success")
+        else:
+            flash(f"Paziente {nome} eliminato ✅", "success")
     except Exception as e:
         db.session.rollback()
         flash(f"Errore durante l'eliminazione: {e}", "danger")
 
+    return redirect(url_for('patients.lista_pazienti'))
+
+
+@patients_bp.route('/<int:patient_id>/export')
+@admin_required
+def export_paziente(patient_id):
+    """Download JSON portabilità dati (GDPR Art. 20)."""
+    paziente = _get_tenant_patient(patient_id)
+    from app.utils.audit import log_audit_event
+
+    payload = export_as_json_bytes(paziente)
+    log_audit_event('EXPORT', 'patient', paziente.id)
+    db.session.commit()
+    filename = f"paziente_{paziente.id}_export.json"
+    return Response(
+        payload,
+        mimetype='application/json',
+        headers={'Content-Disposition': f'attachment; filename={filename}'},
+    )
+
+
+@patients_bp.route('/<int:patient_id>/erasure', methods=['POST'])
+@admin_required
+def erasure_paziente(patient_id):
+    """Richiesta + esecuzione immediata oblio (staff)."""
+    paziente = _get_tenant_patient(patient_id)
+    try:
+        request_erasure(paziente)
+        db.session.commit()
+        mode = purge_patient(paziente)
+        flash(
+            "Oblio completato (anonimizzato)" if mode == "anonymized" else "Oblio completato (eliminato)",
+            "success",
+        )
+    except GdprError as e:
+        db.session.rollback()
+        flash(str(e), "warning")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Errore oblio: {e}", "danger")
     return redirect(url_for('patients.lista_pazienti'))
 
 
@@ -471,6 +543,47 @@ def profilo_user():
     paziente.esami_biochimici = paziente.esami_biochimici_decrypted
     
     return render_template('user/profilo.html', paziente=paziente)
+
+
+@patients_bp.route('/user/profilo/export')
+@user_required
+def export_profilo_user():
+    user_id = session.get('user_id')
+    if not user_id:
+        flash("Sessione non valida", "danger")
+        return redirect(url_for('auth.login'))
+    paziente = Patient.query.get_or_404(user_id)
+    from app.utils.audit import log_audit_event
+
+    payload = export_as_json_bytes(paziente)
+    log_audit_event('EXPORT', 'patient', paziente.id)
+    db.session.commit()
+    return Response(
+        payload,
+        mimetype='application/json',
+        headers={'Content-Disposition': f'attachment; filename=miei_dati_{paziente.id}.json'},
+    )
+
+
+@patients_bp.route('/user/profilo/erasure', methods=['POST'])
+@user_required
+def request_erasure_user():
+    user_id = session.get('user_id')
+    if not user_id:
+        flash("Sessione non valida", "danger")
+        return redirect(url_for('auth.login'))
+    paziente = Patient.query.get_or_404(user_id)
+    try:
+        request_erasure(paziente)
+        db.session.commit()
+        flash("Richiesta di cancellazione registrata. Il professionista la elaborerà a breve.", "success")
+    except GdprError as e:
+        db.session.rollback()
+        flash(str(e), "warning")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Errore: {e}", "danger")
+    return redirect(url_for('patients.profilo_user'))
 
 
 # ========================
@@ -543,14 +656,20 @@ def scadenze():
     # CHECK MANCANTI
     if tipo_filtro in ['tutti', 'check']:
         # Trova pazienti con ultimo check oltre 30 giorni
-        check_mancanti = db.session.query(Patient).outerjoin(Progresso).group_by(Patient.id).having(
+        q_check = db.session.query(Patient).outerjoin(Progresso)
+        if uid is not None:
+            q_check = q_check.filter(Patient.nutrizionista_id == uid)
+        check_mancanti = q_check.group_by(Patient.id).having(
             db.func.max(Progresso.data_check) < oggi - timedelta(days=30)
         ).all()
         
         # Trova anche pazienti senza progressi
-        pazienti_senza_progressi = db.session.query(Patient).outerjoin(Progresso).filter(
+        q_no = db.session.query(Patient).outerjoin(Progresso).filter(
             Progresso.id.is_(None)
-        ).all()
+        )
+        if uid is not None:
+            q_no = q_no.filter(Patient.nutrizionista_id == uid)
+        pazienti_senza_progressi = q_no.all()
         
         for paziente in check_mancanti + pazienti_senza_progressi:
             if paziente in pazienti_senza_progressi:

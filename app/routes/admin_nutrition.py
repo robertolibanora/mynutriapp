@@ -18,6 +18,7 @@ from app.services.nutrition import (
     ProviderTimeoutError,
     ProviderUnavailableError,
     ResourceNotFoundError,
+    TenantForbiddenError,
     UnsupportedProviderError,
     food_to_dict,
 )
@@ -49,7 +50,9 @@ def _ensure_schema():
 
 def _current_professional_id():
     """ID del professionista corrente (utente nutrizionista in sessione)."""
-    return session.get("utente_id") or session.get("professional_id")
+    from app.utils.tenant import current_professional_id
+
+    return current_professional_id()
 
 
 # ========================
@@ -65,6 +68,8 @@ def handle_service_errors(func):
             return func(*args, **kwargs)
         except UnsupportedProviderError as exc:
             return jsonify({"error": str(exc)}), 400
+        except TenantForbiddenError as exc:
+            return jsonify({"error": str(exc)}), 403
         except ResourceNotFoundError as exc:
             return jsonify({"error": str(exc)}), 404
         except FoodNotFoundError as exc:

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Crea il tuo account · MyNutriApp</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    .setup-plan {
+      margin: 0 0 1rem;
+      padding: 0.65rem 0.85rem;
+      border-radius: 12px;
+      background: rgba(255,154,86,0.12);
+      border: 1px solid rgba(255,154,86,0.28);
+      color: #ffd2b0;
+      font-size: 0.88rem;
+      line-height: 1.4;
+    }
+    .setup-plan strong { color: #fff; font-weight: 700; }
+    .login-hint {
+      margin: 0.35rem 0 0;
+      color: rgba(255,255,255,0.45);
+      font-size: 0.78rem;
+    }
+  </style>
+</head>
+<body class="login-body">
+  <main class="login-shell">
+    <section class="login-container" aria-labelledby="setup-heading">
+      <header class="login-brand">
+        <div class="login-mark">
+          <img
+            src="{{ url_for('static', filename='img/logo-256.png') }}"
+            alt="MyNutriApp"
+            width="72"
+            height="72"
+            decoding="async"
+          >
+        </div>
+        <h1 id="setup-heading" class="login-title">Crea il tuo account</h1>
+        <p class="login-subtitle">Pagamento ricevuto. Imposta i dati di accesso per entrare in dashboard.</p>
+      </header>
+
+      <p class="setup-plan">
+        Piano <strong>{{ (utente.plan or 'starter')|capitalize }}</strong>
+        · email <strong>{{ utente.email }}</strong>
+      </p>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="login-flashes" role="alert">
+          {% for category, message in messages %}
+          <div class="login-flash login-flash--{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      {% endwith %}
+
+      <form method="POST" class="login-form" autocomplete="on">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+        <div class="login-field">
+          <label class="login-label" for="nome">Nome</label>
+          <input id="nome" type="text" name="nome" class="login-input" value="{{ utente.nome or '' }}" required autocomplete="given-name">
+        </div>
+
+        <div class="login-field">
+          <label class="login-label" for="cognome">Cognome</label>
+          <input id="cognome" type="text" name="cognome" class="login-input" value="{{ utente.cognome or '' }}" required autocomplete="family-name">
+        </div>
+
+        <div class="login-field">
+          <label class="login-label" for="telefono">Telefono (per il login)</label>
+          <input id="telefono" type="tel" name="telefono" class="login-input" value="{{ utente.telefono or '' }}" required autocomplete="tel" inputmode="tel">
+          <p class="login-hint">Lo userai insieme alla password per accedere.</p>
+        </div>
+
+        <div class="login-field">
+          <label class="login-label" for="password">Password</label>
+          <input id="password" type="password" name="password" class="login-input" required minlength="8" autocomplete="new-password">
+        </div>
+
+        <div class="login-field">
+          <label class="login-label" for="password_confirm">Conferma password</label>
+          <input id="password_confirm" type="password" name="password_confirm" class="login-input" required minlength="8" autocomplete="new-password">
+        </div>
+
+        <button type="submit" class="login-submit">Entra in dashboard</button>
+      </form>
+    </section>
+  </main>
+</body>
+</html>

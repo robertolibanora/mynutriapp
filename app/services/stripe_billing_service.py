@@ -118,6 +118,7 @@ def _upsert_nutrizionista_from_checkout(
         row = find_utente_by_phone(telefono)
 
     if row is None:
+        # Password temporanea: verrà sostituita in /billing/completa-account
         temp_password = secrets.token_urlsafe(16)
         row = Utente(
             nome=(nome or "Nutrizionista")[:100],
@@ -132,6 +133,7 @@ def _upsert_nutrizionista_from_checkout(
             stripe_customer_id=stripe_customer_id,
             stripe_subscription_id=stripe_subscription_id,
             subscription_status=subscription_status or "active",
+            needs_password_setup=True,
         )
         db.session.add(row)
         logger.info("Creato nutrizionista da Stripe checkout: %s plan=%s", email, plan_key)
@@ -145,9 +147,58 @@ def _upsert_nutrizionista_from_checkout(
         if row.ruolo != UtenteRuolo.NUTRIZIONISTA.value and not row.is_super_admin:
             row.ruolo = UtenteRuolo.NUTRIZIONISTA.value
         row.attivo = True
+        # Non forzare setup se ha già completato la registrazione
+        if row.password_hash is None:
+            row.needs_password_setup = True
         logger.info("Aggiornato nutrizionista da Stripe: %s plan=%s", email, plan_key)
 
     db.session.commit()
+    return row
+
+
+def complete_account_setup(
+    utente_id: int,
+    *,
+    nome: str,
+    cognome: str,
+    telefono: str,
+    password: str,
+    password_confirm: str,
+) -> Utente:
+    """Completa registrazione post-pagamento: dati + password definitiva."""
+    row = Utente.query.get(utente_id)
+    if row is None or not row.is_nutrizionista:
+        raise StripeBillingError("Account non trovato")
+    if not row.needs_password_setup:
+        raise StripeBillingError("Account già configurato")
+
+    nome = (nome or "").strip()
+    cognome = (cognome or "").strip()
+    telefono = normalize_phone(telefono or "")
+    password = password or ""
+    password_confirm = password_confirm or ""
+
+    if not nome or not cognome:
+        raise StripeBillingError("Nome e cognome obbligatori")
+    if len(telefono) < 9:
+        raise StripeBillingError("Telefono non valido")
+    if len(password) < 8:
+        raise StripeBillingError("Password minimo 8 caratteri")
+    if password != password_confirm:
+        raise StripeBillingError("Le password non coincidono")
+
+    other = find_utente_by_phone(telefono)
+    if other and other.id != row.id:
+        raise StripeBillingError("Telefono già in uso")
+
+    row.nome = nome[:100]
+    row.cognome = cognome[:100]
+    row.telefono = telefono
+    row.password_hash = generate_password_hash(password)
+    row.needs_password_setup = False
+    row.attivo = True
+    db.session.commit()
+    logger.info("Account nutrizionista completato id=%s", row.id)
     return row
 
 

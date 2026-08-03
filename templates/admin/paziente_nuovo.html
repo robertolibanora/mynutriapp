@@ -70,6 +70,20 @@
     </div>
   </div>
 
+  <div class="form-section" style="margin-bottom: 2rem;">
+    <h3 style="color: #d4d4d4; margin-bottom: 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.12); padding-bottom: 0.5rem;">
+      Consensi GDPR
+    </h3>
+    <div class="form-group" style="display:flex;gap:0.6rem;align-items:flex-start;">
+      <input type="checkbox" id="consenso_privacy" name="consenso_privacy" value="1" required style="margin-top:0.25rem;">
+      <label for="consenso_privacy">Consenso privacy (trattamento dati per il servizio) *</label>
+    </div>
+    <div class="form-group" style="display:flex;gap:0.6rem;align-items:flex-start;">
+      <input type="checkbox" id="consenso_marketing" name="consenso_marketing" value="1" style="margin-top:0.25rem;">
+      <label for="consenso_marketing">Consenso marketing (comunicazioni promozionali)</label>
+    </div>
+  </div>
+
   <div class="form-actions">
     <button type="submit" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem; font-size: 1.1rem; padding: 1rem 2rem;">
       {{ icon('save', 16) }}

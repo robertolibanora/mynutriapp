@@ -3,6 +3,7 @@ from werkzeug.utils import secure_filename
 import os
 from app.models.models import db, Documento, Patient
 from app.config.config import get_upload_folder, get_allowed_extensions, get_full_path, Config
+from app.utils.tenant import assert_resource_patient_tenant, get_tenant_patient_or_404
 
 # ========================
 # BLUEPRINT
@@ -60,26 +61,24 @@ def serve_file(documento_id):
     """Serve un file documento con controllo accessi"""
     documento = Documento.query.get_or_404(documento_id)
     
-    # Controllo accessi
     user_id = session.get('user_id')
     user_role = session.get('role')
     
-    # Solo il proprietario o l'admin possono vedere il file
-    if user_role in ('admin', 'nutrizionista') or (user_role == 'user' and documento.patient_id == user_id):
-        file_path = get_full_path(documento.file_path)
-        if os.path.exists(file_path):
-            # Audit log per download
-            from app.utils.audit import log_audit_event
-            log_audit_event('DOWNLOAD', 'documento', documento_id)
-            db.session.commit()
-            
-            directory = os.path.dirname(file_path)
-            filename = os.path.basename(file_path)
-            return send_from_directory(directory, filename)
-        else:
-            abort(404)
-    else:
+    if user_role in ('admin', 'nutrizionista'):
+        assert_resource_patient_tenant(documento)
+    elif not (user_role == 'user' and documento.patient_id == user_id):
         abort(403)
+
+    file_path = get_full_path(documento.file_path)
+    if os.path.exists(file_path):
+        from app.utils.audit import log_audit_event
+        log_audit_event('DOWNLOAD', 'documento', documento_id)
+        db.session.commit()
+        
+        directory = os.path.dirname(file_path)
+        filename = os.path.basename(file_path)
+        return send_from_directory(directory, filename)
+    abort(404)
 
 
 # ========================
@@ -239,7 +238,7 @@ def elimina_documento_user(documento_id):
 @admin_required
 def lista_documenti_admin(patient_id):
     """L'admin può vedere tutti i documenti di un paziente specifico"""
-    paziente = Patient.query.get_or_404(patient_id)
+    paziente = get_tenant_patient_or_404(patient_id)
     documenti = Documento.query.filter_by(patient_id=patient_id).order_by(Documento.data_upload.desc()).all()
     
     return render_template('admin/documenti_paziente.html', paziente=paziente, documenti=documenti)
@@ -251,8 +250,9 @@ def lista_documenti_admin(patient_id):
 @documenti_bp.route('/admin/elimina/<int:documento_id>', methods=['POST'])
 @admin_required
 def elimina_documento_admin(documento_id):
-    """L'admin può eliminare qualsiasi documento"""
+    """L'admin può eliminare qualsiasi documento del proprio tenant"""
     documento = Documento.query.get_or_404(documento_id)
+    assert_resource_patient_tenant(documento)
     paziente_id = documento.patient_id
     
     try:

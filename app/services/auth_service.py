@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Optional
+from typing import Any, List, Optional
 
 from werkzeug.security import check_password_hash
 
@@ -22,6 +22,7 @@ class AuthStatus(str, Enum):
     OK_USER = "ok_user"
     INACTIVE = "inactive"
     INVALID = "invalid"
+    AMBIGUOUS = "ambiguous"  # stesso telefono su più tenant, serve email
 
 
 @dataclass(frozen=True)
@@ -33,24 +34,60 @@ class AuthResult:
     telefono_normalized: str = ""
 
 
-def find_patient_by_phone(telefono: str) -> Optional[Patient]:
-    """Lookup paziente con match esatto e fallback normalize_phone."""
+def _patients_matching_phone(telefono: str) -> List[Patient]:
+    """Tutti i pazienti con lo stesso telefono (normalizzato)."""
     telefono = normalize_phone(telefono)
-    user = Patient.query.filter_by(telefono=telefono).first()
-    if user:
-        return user
+    matches: List[Patient] = []
+    seen: set[int] = set()
     for candidate in Patient.query.filter(Patient.telefono.isnot(None)).all():
-        if normalize_phone(candidate.telefono) == telefono:
-            return candidate
+        if normalize_phone(candidate.telefono) != telefono:
+            continue
+        if candidate.id in seen:
+            continue
+        seen.add(candidate.id)
+        matches.append(candidate)
+    return matches
+
+
+def find_patient_by_phone(
+    telefono: str,
+    email: Optional[str] = None,
+) -> Optional[Patient]:
+    """Lookup paziente per telefono; con multi-match richiede email (fail-closed)."""
+    matches = _patients_matching_phone(telefono)
+    if not matches:
+        return None
+    if len(matches) == 1:
+        return matches[0]
+
+    email_n = (email or "").strip().lower()
+    if not email_n:
+        return None  # ambiguo senza email → fail-closed
+
+    email_matches = [
+        p for p in matches
+        if p.email and p.email.strip().lower() == email_n
+    ]
+    if len(email_matches) == 1:
+        return email_matches[0]
     return None
 
 
-def authenticate(telefono: str, password: str) -> AuthResult:
+def phone_login_is_ambiguous(telefono: str) -> bool:
+    """True se esistono più pazienti con lo stesso telefono."""
+    return len(_patients_matching_phone(telefono)) > 1
+
+
+def authenticate(
+    telefono: str,
+    password: str,
+    email: Optional[str] = None,
+) -> AuthResult:
     """
     Verifica credenziali (login da DB).
 
     1) utente attivo (super_admin / nutrizionista)
-    2) paziente attivo
+    2) paziente attivo (email obbligatoria se telefono ambiguo)
     """
     telefono_n = normalize_phone(telefono or "")
     password = password or ""
@@ -79,7 +116,19 @@ def authenticate(telefono: str, password: str) -> AuthResult:
                 telefono_normalized=telefono_n,
             )
 
-    user = find_patient_by_phone(telefono_n)
+    matches = _patients_matching_phone(telefono_n)
+    if len(matches) > 1 and not (email or "").strip():
+        # Verifica se almeno una password matcherebbe (non rivelare dettagli)
+        any_pwd = any(
+            check_password_hash(p.password_hash, password) for p in matches
+        )
+        if any_pwd:
+            return AuthResult(
+                status=AuthStatus.AMBIGUOUS,
+                telefono_normalized=telefono_n,
+            )
+
+    user = find_patient_by_phone(telefono_n, email=email)
     if user and check_password_hash(user.password_hash, password):
         stato = getattr(user, "stato_cliente", None) or "attivo"
         if stato != "attivo":
@@ -143,4 +192,6 @@ def patient_public_dict(patient: Patient) -> dict[str, Any]:
         "allenamenti_descr": patient.allenamenti_descr,
         "stato_cliente": getattr(patient, "stato_cliente", None) or "attivo",
         "nutrizionista_id": patient.nutrizionista_id,
+        "consenso_privacy": bool(getattr(patient, "consenso_privacy", False)),
+        "consenso_marketing": bool(getattr(patient, "consenso_marketing", False)),
     }

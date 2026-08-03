@@ -26,9 +26,9 @@ def _ensure_schema():
 
 
 def _current_professional_id():
-    from flask import session
+    from app.utils.tenant import current_professional_id
 
-    return session.get("professional_id")
+    return current_professional_id()
 
 
 # ========================

@@ -107,6 +107,42 @@
 </div>
 {% endif %}
 
+<div class="card-user">
+    <div class="card-header">
+        <div class="card-header-left">
+            <span class="card-icon">{{ icon('clipboard', 20, 'usr-icon') }}</span>
+            <span class="card-title">Privacy e dati</span>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="card-info-row">
+            <span class="card-label">Consenso privacy</span>
+            <span class="card-value">{{ 'Sì' if paziente.consenso_privacy else 'No' }}</span>
+        </div>
+        <div class="card-info-row">
+            <span class="card-label">Consenso marketing</span>
+            <span class="card-value">{{ 'Sì' if paziente.consenso_marketing else 'No' }}</span>
+        </div>
+        {% if paziente.erasure_requested_at %}
+        <div class="card-info-row">
+            <span class="card-label">Richiesta cancellazione</span>
+            <span class="card-value">In elaborazione</span>
+        </div>
+        {% endif %}
+        <div style="display:flex;flex-wrap:wrap;gap:0.75rem;margin-top:1rem;">
+            <a href="{{ url_for('patients.export_profilo_user') }}" class="btn-user btn-user-secondary">
+                Scarica i miei dati
+            </a>
+            {% if not paziente.erasure_requested_at %}
+            <form method="POST" action="{{ url_for('patients.request_erasure_user') }}" onsubmit="return confirm('Confermi la richiesta di cancellazione dei tuoi dati?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button type="submit" class="btn-user btn-user-secondary">Richiedi cancellazione</button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
 <div class="divider"></div>
 
 <a href="{{ url_for('auth.logout') }}" class="btn-user btn-user-secondary">

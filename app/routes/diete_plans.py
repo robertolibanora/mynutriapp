@@ -26,6 +26,14 @@ from flask import (
 from app.models.models import DietPlan, Patient, db
 from app.services.nutrition import NutritionCalculatorService
 from app.utils.db_schema import ensure_nutrition_schema
+from app.utils.tenant import (
+    assert_diet_plan_tenant,
+    assert_patient_tenant,
+    get_tenant_patient_or_404,
+    patients_query_for_tenant,
+    require_tenant,
+    tenant_filter_enabled,
+)
 
 diete_plans_bp = Blueprint("diete_plans", __name__)
 
@@ -119,9 +127,15 @@ def lista_diet_plans():
     query = DietPlan.query.options(db.joinedload(DietPlan.patient)).order_by(
         DietPlan.created_at.desc()
     )
+    if tenant_filter_enabled():
+        query = query.join(Patient).filter(
+            Patient.nutrizionista_id == require_tenant()
+        )
     if q:
         like = f"%{q}%"
-        query = query.join(Patient).filter(
+        if not tenant_filter_enabled():
+            query = query.join(Patient)
+        query = query.filter(
             db.or_(
                 DietPlan.title.ilike(like),
                 Patient.nome.ilike(like),
@@ -148,8 +162,12 @@ def lista_diet_plans():
 @admin_required
 def new_diet_plan_standalone():
     """Creazione dieta dalla sezione Dieta: richiede selezione paziente."""
-    pazienti = Patient.query.order_by(Patient.cognome.asc(), Patient.nome.asc()).all()
+    pazienti = patients_query_for_tenant().order_by(
+        Patient.cognome.asc(), Patient.nome.asc()
+    ).all()
     preselect_id = request.args.get("patient_id", type=int)
+    if preselect_id:
+        get_tenant_patient_or_404(preselect_id)
     return render_template(
         "admin/diet_plan_new.html",
         pazienti=pazienti,
@@ -175,7 +193,8 @@ def new_diet_plan(patient_id):
 def diet_plan_detail(diet_plan_id):
     """Dettaglio e builder del piano: pasti, alimenti, totali."""
     plan = DietPlan.query.get_or_404(diet_plan_id)
-    paziente = Patient.query.get_or_404(plan.patient_id)
+    assert_diet_plan_tenant(plan)
+    paziente = get_tenant_patient_or_404(plan.patient_id)
     totals = _build_totals(plan)
     return render_template(
         "admin/diet_plan_detail.html",
@@ -206,10 +225,14 @@ def user_diet_plan(diet_plan_id):
             abort(403)
         if plan.status != "published":
             abort(404)
-    elif role not in ('admin', 'nutrizionista'):
+    elif role in ('admin', 'nutrizionista'):
+        assert_diet_plan_tenant(plan)
+    else:
         abort(403)
 
     paziente = Patient.query.get_or_404(plan.patient_id)
+    if role in ('admin', 'nutrizionista'):
+        assert_patient_tenant(paziente)
     totals = _build_totals(plan)
     is_preview = role in ('admin', 'nutrizionista')
     return render_template(

@@ -2,7 +2,12 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from datetime import datetime
 from app.models.models import db, Appuntamento, Patient
 from app.services.agenda_service import AgendaService
-from app.utils.tenant import assert_patient_tenant, require_tenant, tenant_filter_enabled
+from app.utils.tenant import (
+    assert_appuntamento_tenant,
+    assert_patient_tenant,
+    require_tenant,
+    tenant_filter_enabled,
+)
 
 
 # ========================
@@ -109,6 +114,7 @@ def nuovo_admin():
 def cambia_stato_admin(id, nuovo_stato):
     """Cambia lo stato di un appuntamento (conferma, completa, annulla)"""
     app = Appuntamento.query.get_or_404(id)
+    assert_appuntamento_tenant(app)
     
     stati_validi = ['in_attesa', 'confermato', 'completato', 'annullato']
     if nuovo_stato not in stati_validi:
@@ -146,6 +152,7 @@ def cambia_stato_admin(id, nuovo_stato):
 @admin_required
 def elimina_admin(id):
     app = Appuntamento.query.get_or_404(id)
+    assert_appuntamento_tenant(app)
     
     try:
         db.session.delete(app)

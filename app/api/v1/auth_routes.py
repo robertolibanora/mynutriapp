@@ -27,6 +27,7 @@ def register_auth_routes(bp):
         data = request.get_json(silent=True) or {}
         telefono = data.get("telefono") or ""
         password = data.get("password") or ""
+        email = data.get("email") or ""
 
         if not str(telefono).strip() or not str(password):
             return api_error(
@@ -35,7 +36,7 @@ def register_auth_routes(bp):
                 status=401,
             )
 
-        result = authenticate(str(telefono), str(password))
+        result = authenticate(str(telefono), str(password), email=email or None)
 
         if result.status in (
             AuthStatus.OK_SUPER_ADMIN,
@@ -53,6 +54,13 @@ def register_auth_routes(bp):
                 "Account non ancora attivo. Attendi la conferma del nutrizionista.",
                 code="account_inactive",
                 status=403,
+            )
+
+        if result.status == AuthStatus.AMBIGUOUS:
+            return api_error(
+                "Telefono associato a più professionisti: invia anche l'email.",
+                code="phone_ambiguous",
+                status=409,
             )
 
         if result.status != AuthStatus.OK_USER or result.patient is None:

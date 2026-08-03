@@ -3,6 +3,7 @@ import os
 from datetime import date
 from app.models.models import db, Dieta, Patient
 from app.config.config import get_full_path
+from app.utils.tenant import assert_resource_patient_tenant, get_tenant_patient_or_404
 
 # ========================
 # BLUEPRINT
@@ -51,17 +52,17 @@ def serve_file(dieta_id):
     user_role = session.get('role')
     user_id = session.get('user_id')
     
-    # Admin può vedere tutto, user può vedere solo le proprie diete
-    if user_role in ('admin', 'nutrizionista') or (user_role == 'user' and dieta.patient_id == user_id):
-        file_path = get_full_path(dieta.pdf_path)
-        if os.path.exists(file_path):
-            directory = os.path.dirname(file_path)
-            filename = os.path.basename(file_path)
-            return send_from_directory(directory, filename)
-        else:
-            abort(404)
-    else:
+    if user_role in ('admin', 'nutrizionista'):
+        assert_resource_patient_tenant(dieta)
+    elif not (user_role == 'user' and dieta.patient_id == user_id):
         abort(403)
+
+    file_path = get_full_path(dieta.pdf_path)
+    if os.path.exists(file_path):
+        directory = os.path.dirname(file_path)
+        filename = os.path.basename(file_path)
+        return send_from_directory(directory, filename)
+    abort(404)
 
 
 # ========================
@@ -71,7 +72,7 @@ def serve_file(dieta_id):
 @admin_required
 def diete_paziente(patient_id):
     """Mostra solo le diete di un singolo paziente"""
-    paziente = Patient.query.get_or_404(patient_id)
+    paziente = get_tenant_patient_or_404(patient_id)
     today = date.today()
     return render_template('admin/diete_paziente.html', paziente=paziente, diete=paziente.diete, today=today)
 
@@ -83,7 +84,7 @@ def diete_paziente(patient_id):
 @admin_required
 def nuova_dieta(patient_id):
     """Endpoint legacy rimosso: reindirizza al flusso diet-plans."""
-    Patient.query.get_or_404(patient_id)
+    get_tenant_patient_or_404(patient_id)
     return redirect(
         url_for('diete_plans.new_diet_plan_standalone', patient_id=patient_id)
     )
@@ -96,6 +97,7 @@ def nuova_dieta(patient_id):
 @admin_required
 def elimina_dieta(dieta_id):
     dieta = Dieta.query.get_or_404(dieta_id)
+    assert_resource_patient_tenant(dieta)
     patient_id = dieta.patient_id
 
     try:

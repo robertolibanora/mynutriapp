@@ -1,13 +1,24 @@
-"""Billing pubblico: Checkout Session + webhook Stripe + success → dashboard."""
+"""Billing pubblico: Checkout Session + webhook Stripe + setup account."""
 
 from __future__ import annotations
 
 import logging
 
-from flask import Blueprint, flash, jsonify, redirect, request, session, url_for
+from flask import (
+    Blueprint,
+    flash,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for,
+)
 
+from app.models.diario import Utente
 from app.services.stripe_billing_service import (
     StripeBillingError,
+    complete_account_setup,
     construct_webhook_event,
     create_checkout_session,
     finalize_checkout_session,
@@ -18,6 +29,9 @@ from app.services.stripe_billing_service import (
 logger = logging.getLogger(__name__)
 
 billing_bp = Blueprint("billing", __name__, url_prefix="/billing")
+
+_SETUP_UID_KEY = "setup_utente_id"
+_SETUP_CS_KEY = "setup_checkout_session_id"
 
 
 def _default_success_url() -> str:
@@ -30,6 +44,25 @@ def _default_cancel_url() -> str:
     return url_for("landing.landing", _external=True) + "?checkout=cancel"
 
 
+def _begin_account_setup(utente: Utente, checkout_session_id: str) -> None:
+    session.clear()
+    session[_SETUP_UID_KEY] = int(utente.id)
+    session[_SETUP_CS_KEY] = checkout_session_id
+    session.permanent = True
+    session.modified = True
+
+
+def _setup_utente_from_session() -> Utente | None:
+    uid = session.get(_SETUP_UID_KEY)
+    if not uid:
+        return None
+    try:
+        uid = int(uid)
+    except (TypeError, ValueError):
+        return None
+    return Utente.query.get(uid)
+
+
 @billing_bp.route("/create-checkout-session", methods=["POST"])
 def create_checkout():
     """Body JSON: plan, email, nome, cognome, telefono (+ success/cancel opzionali)."""
@@ -40,7 +73,7 @@ def create_checkout():
             sep = "&" if "?" in success else "?"
             success = f"{success}{sep}session_id={{CHECKOUT_SESSION_ID}}"
 
-        session = create_checkout_session(
+        checkout = create_checkout_session(
             plan=data.get("plan") or "",
             email=data.get("email") or "",
             nome=data.get("nome") or "",
@@ -49,7 +82,7 @@ def create_checkout():
             success_url=success,
             cancel_url=(data.get("cancel_url") or "").strip() or _default_cancel_url(),
         )
-        return jsonify(session), 200
+        return jsonify(checkout), 200
     except StripeBillingError as exc:
         return jsonify({"error": str(exc)}), 400
     except Exception as exc:  # noqa: BLE001
@@ -59,7 +92,7 @@ def create_checkout():
 
 @billing_bp.route("/success", methods=["GET"])
 def checkout_success():
-    """Dopo Stripe Checkout: attiva account, login automatico → dashboard admin."""
+    """Dopo Stripe Checkout: crea/aggiorna utente → pagina creazione account o dashboard."""
     session_id = (request.args.get("session_id") or "").strip()
     if not session_id:
         flash("Sessione di pagamento mancante. Accedi con le tue credenziali.", "warning")
@@ -74,19 +107,66 @@ def checkout_success():
     except Exception:  # noqa: BLE001
         logger.exception("checkout success errore inatteso")
         flash(
-            "Pagamento ricevuto, ma non è stato possibile aprire la dashboard. "
-            "Accedi con email/telefono usati in fase di acquisto.",
+            "Pagamento ricevuto, ma non è stato possibile aprire l'account. "
+            "Riprova dal link di conferma Stripe o contatta il supporto.",
             "warning",
         )
         return redirect(url_for("auth.login"))
 
+    if getattr(utente, "needs_password_setup", False):
+        _begin_account_setup(utente, session_id)
+        return redirect(url_for("billing.completa_account"))
+
+    # Rinnovo / account già completo → login diretto
     from app.routes.auth import establish_utente_session
 
     establish_utente_session(utente, "nutrizionista", via="stripe_checkout")
-    # Mini tutorial one-shot sulla dashboard (dopo session.clear in establish)
-    session["show_onboarding"] = True
-    session.modified = True
+    flash("Abbonamento aggiornato. Bentornato.", "success")
     return redirect(url_for("dashboard.admin_dashboard"))
+
+
+@billing_bp.route("/completa-account", methods=["GET", "POST"])
+def completa_account():
+    """Pagina post-pagamento: conferma dati e imposta password, poi tutorial."""
+    utente = _setup_utente_from_session()
+    if utente is None:
+        flash(
+            "Sessione di registrazione scaduta. Se hai già pagato, usa di nuovo "
+            "il link di conferma Stripe oppure contatta il supporto.",
+            "warning",
+        )
+        return redirect(url_for("auth.login"))
+
+    if not utente.needs_password_setup:
+        from app.routes.auth import establish_utente_session
+
+        session.pop(_SETUP_UID_KEY, None)
+        session.pop(_SETUP_CS_KEY, None)
+        establish_utente_session(utente, "nutrizionista", via="stripe_checkout")
+        return redirect(url_for("dashboard.admin_dashboard"))
+
+    if request.method == "POST":
+        try:
+            utente = complete_account_setup(
+                int(utente.id),
+                nome=request.form.get("nome") or "",
+                cognome=request.form.get("cognome") or "",
+                telefono=request.form.get("telefono") or "",
+                password=request.form.get("password") or "",
+                password_confirm=request.form.get("password_confirm") or "",
+            )
+        except StripeBillingError as exc:
+            flash(str(exc), "danger")
+            return render_template("billing/completa_account.html", utente=utente)
+
+        from app.routes.auth import establish_utente_session
+
+        establish_utente_session(utente, "nutrizionista", via="stripe_account_setup")
+        session["show_onboarding"] = True
+        session.modified = True
+        return redirect(url_for("dashboard.admin_dashboard"))
+
+    return render_template("billing/completa_account.html", utente=utente)
 
 
 @billing_bp.route("/webhook", methods=["POST"])

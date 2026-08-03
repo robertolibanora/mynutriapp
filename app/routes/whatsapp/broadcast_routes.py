@@ -18,6 +18,7 @@ from .triggers import (
     print_trigger_status
 )
 from app.models.models import Patient
+from app.utils.tenant import patients_query_for_tenant
 
 # Blueprint per le routes broadcast
 broadcast_bp = Blueprint('broadcast', __name__, url_prefix='/admin/broadcast')
@@ -37,9 +38,10 @@ def admin_required(func):
 @admin_required
 def dashboard():
     """Dashboard semplificata per WhatsApp"""
-    # Statistiche base
-    totale_pazienti = Patient.query.count()
-    pazienti_con_telefono = Patient.query.filter(Patient.telefono.isnot(None)).count()
+    # Statistiche base (solo tenant corrente)
+    q = patients_query_for_tenant()
+    totale_pazienti = q.count()
+    pazienti_con_telefono = q.filter(Patient.telefono.isnot(None)).count()
     
     # Stato trigger
     trigger_stats = {
@@ -110,8 +112,10 @@ def anteprima_messaggio():
     try:
         messaggio = request.form['messaggio']
         
-        # Prendi il primo paziente come esempio
-        paziente_esempio = Patient.query.filter(Patient.telefono.isnot(None)).first()
+        # Prendi il primo paziente del tenant come esempio
+        paziente_esempio = patients_query_for_tenant().filter(
+            Patient.telefono.isnot(None)
+        ).first()
         
         if not paziente_esempio:
             return jsonify({'errore': 'Nessun paziente trovato per l\'anteprima'})

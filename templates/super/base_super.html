@@ -7,84 +7,93 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin-theme.css') }}?v={{ static_version }}">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
   <style>
-    :root {
-      --super-bg: #0f1412;
-      --super-panel: #1a221e;
-      --super-accent: #3dcc8c;
-      --super-text: #e8f0eb;
-      --super-muted: #8aa396;
-    }
-    body.super-body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: Manrope, system-ui, sans-serif;
-      background: radial-gradient(1200px 600px at 10% -10%, #1d3a2c 0%, transparent 55%),
-                  radial-gradient(900px 500px at 100% 0%, #243528 0%, transparent 50%),
-                  var(--super-bg);
-      color: var(--super-text);
-    }
-    .super-wrap { max-width: 960px; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; }
-    .super-top { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.75rem; }
-    .super-brand {
-      display: flex;
-      align-items: center;
-      gap: 0.65rem;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      font-size: 1.25rem;
-    }
-    .super-brand-logo {
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
-      object-fit: cover;
-      flex-shrink: 0;
-      background: #000;
-    }
-    .super-brand-accent { color: var(--super-accent); }
-    .super-meta { color: var(--super-muted); font-size: 0.9rem; }
-    .super-panel {
-      background: color-mix(in srgb, var(--super-panel) 92%, black);
-      border: 1px solid rgba(255,255,255,0.06);
-      border-radius: 16px;
-      padding: 1.25rem 1.35rem;
-      margin-bottom: 1.25rem;
-    }
-    .super-panel h1, .super-panel h2 { margin: 0 0 0.75rem; font-size: 1.15rem; }
-    .super-flash { padding: 0.75rem 1rem; border-radius: 10px; margin-bottom: 1rem; }
-    .super-flash.success { background: rgba(61,204,140,0.15); color: #9be7c2; }
-    .super-flash.danger { background: rgba(255,90,90,0.15); color: #ffb0b0; }
-    .super-form { display: grid; gap: 0.75rem; grid-template-columns: 1fr 1fr; }
+    .super-form { display: grid; gap: 0.85rem; grid-template-columns: 1fr 1fr; }
     .super-form .full { grid-column: 1 / -1; }
-    .super-form label { display: grid; gap: 0.35rem; font-size: 0.85rem; color: var(--super-muted); }
+    .super-form label {
+      display: grid; gap: 0.35rem;
+      font: 600 12px var(--adm-font);
+      color: var(--adm-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
     .super-form input,
     .super-form select,
-    table.super-table select {
-      border: 1px solid rgba(255,255,255,0.1);
-      background: rgba(0,0,0,0.25);
-      color: var(--super-text);
+    .super-inline-form select {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--adm-text);
+      border: 1px solid rgba(255, 255, 255, 0.18);
       border-radius: 10px;
-      padding: 0.65rem 0.75rem;
+      padding: 10px 12px;
       font: inherit;
+      width: 100%;
     }
-    .super-btn {
-      border: 0;
-      border-radius: 999px;
-      padding: 0.7rem 1.1rem;
-      font-weight: 700;
-      cursor: pointer;
-      background: var(--super-accent);
-      color: #062015;
+    .super-inline-form {
+      display: flex;
+      gap: 0.4rem;
+      align-items: center;
     }
-    .super-btn.secondary { background: transparent; color: var(--super-text); border: 1px solid rgba(255,255,255,0.15); }
+    .super-inline-form select { width: auto; min-width: 8rem; }
+    .super-table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--adm-border);
+      border-radius: 14px;
+      background: var(--adm-surface);
+    }
     table.super-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
-    table.super-table th, table.super-table td { text-align: left; padding: 0.65rem 0.4rem; border-bottom: 1px solid rgba(255,255,255,0.06); }
-    table.super-table th { color: var(--super-muted); font-weight: 600; }
-    .badge { display: inline-block; padding: 0.15rem 0.55rem; border-radius: 999px; font-size: 0.75rem; }
-    .badge.on { background: rgba(61,204,140,0.2); color: #9be7c2; }
-    .badge.off { background: rgba(255,255,255,0.08); color: var(--super-muted); }
+    table.super-table th,
+    table.super-table td {
+      text-align: left;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--adm-border-soft);
+    }
+    table.super-table th {
+      color: var(--adm-text-muted);
+      font: 700 11px var(--adm-font);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      background: rgba(255, 255, 255, 0.04);
+    }
+    table.super-table tr:last-child td { border-bottom: 0; }
+    table.super-table tbody tr:hover { background: rgba(255, 255, 255, 0.03); }
+    .super-badge {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      font: 700 11px var(--adm-font);
+    }
+    .super-badge.on { background: var(--adm-accent-soft); color: var(--adm-accent); }
+    .super-badge.off { background: rgba(255,255,255,0.08); color: var(--adm-text-dim); }
+    .super-badge.warn { background: rgba(255,154,86,0.22); color: #ffb07a; }
+    .super-badge.danger { background: rgba(232,138,138,0.18); color: var(--adm-danger); }
+    .super-meta { color: var(--adm-text-muted); font-size: 0.92rem; }
+    .super-charts {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 1fr;
+      gap: 18px;
+      margin-bottom: 24px;
+    }
+    .super-chart-box { position: relative; height: 220px; }
+    .super-balance-row {
+      display: flex;
+      gap: 1.75rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+    .super-balance-item .label {
+      color: var(--adm-text-muted);
+      font: 600 11px var(--adm-font);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .super-balance-item .value {
+      font: 600 1.45rem/1.2 var(--adm-font);
+      color: #fff;
+      margin-top: 0.25rem;
+    }
+    .super-actions { display: flex; gap: 0.55rem; flex-wrap: wrap; margin-bottom: 1rem; }
     .plan-usage-ratio { font-size: 1.5rem; margin: 0.5rem 0 0.85rem; }
     .plan-usage-bar {
       height: 8px;
@@ -96,51 +105,150 @@
     .plan-usage-bar-fill {
       height: 100%;
       border-radius: 999px;
-      background: var(--super-accent);
+      background: var(--adm-accent);
       transition: width 0.25s ease;
     }
-    .plan-usage-warn .plan-usage-bar-fill { background: #e6b84d; }
-    .plan-usage-danger .plan-usage-bar-fill { background: #e85d5d; }
+    .plan-usage-warn .plan-usage-bar-fill { background: #ffb07a; }
+    .plan-usage-danger .plan-usage-bar-fill { background: var(--adm-danger); }
     .plan-usage-msg { margin: 0.5rem 0 0; font-size: 0.92rem; }
-    .plan-usage-msg-warn { color: #e6b84d; }
-    .plan-usage-msg-danger { color: #ffb0b0; display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; }
-    .plan-usage-card.plan-usage-warn { border-color: rgba(230,184,77,0.35); }
-    .plan-usage-card.plan-usage-danger { border-color: rgba(232,93,93,0.4); }
-    @media (max-width: 700px) { .super-form { grid-template-columns: 1fr; } }
+    .plan-usage-msg-warn { color: #ffb07a; }
+    .plan-usage-msg-danger { color: var(--adm-danger); display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; }
+    .adm-panel.plan-usage-warn { border-color: rgba(255,154,86,0.4); }
+    .adm-panel.plan-usage-danger { border-color: rgba(232,138,138,0.45); }
+    @media (max-width: 1100px) {
+      .super-charts { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 700px) {
+      .super-form { grid-template-columns: 1fr; }
+    }
   </style>
+  {% block head_extra %}{% endblock %}
 </head>
-<body class="super-body">
-  <div class="super-wrap">
-    <header class="super-top">
-      <div>
-        <div class="super-brand">
-          <img
-            class="super-brand-logo"
-            src="{{ url_for('static', filename='img/logo-128.png') }}"
-            alt=""
-            width="36"
-            height="36"
-            decoding="async"
-          >
-          <span>MyNutri<span class="super-brand-accent">App</span></span>
-        </div>
-        <div class="super-meta">{% block subtitle %}{% endblock %}</div>
+<body class="admin-app">
+{% set name_parts = (admin_name or 'Admin').split() %}
+{% set admin_initials = ((name_parts[0][0] if name_parts else 'A') ~ (name_parts[1][0] if name_parts|length > 1 else ''))|upper %}
+{% set is_super = active_nav is defined and active_nav %}
+
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <div class="admin-brand admin-brand--anon">
+      <span class="admin-brand-icon" aria-hidden="true">
+        <img
+          src="{{ url_for('static', filename='img/logo-128.png') }}"
+          alt=""
+          width="22"
+          height="22"
+          style="border-radius:6px;display:block;object-fit:cover;"
+          decoding="async"
+        >
+      </span>
+      <div class="admin-brand-text">
+        <div class="admin-brand-title">MyNutriApp</div>
+        <div class="admin-brand-sub">{% if is_super %}Monitor{% else %}Account{% endif %}</div>
       </div>
-      <div style="display:flex;gap:0.5rem;align-items:center;">
-        <span class="super-meta">{{ admin_name }}</span>
-        <a class="super-btn secondary" href="{{ url_for('auth.logout') }}">Esci</a>
+    </div>
+
+    {% if is_super %}
+    <div class="admin-nav-label">Piattaforma</div>
+    <nav class="admin-nav">
+      <a href="{{ url_for('super_admin.dashboard') }}" class="admin-nav-link{% if active_nav == 'dashboard' %} is-active{% endif %}">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+        <span>Dashboard</span>
+      </a>
+      <a href="{{ url_for('super_admin.lista_utenti') }}" class="admin-nav-link{% if active_nav == 'utenti' %} is-active{% endif %}">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 19v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 0v1"/><circle cx="9.5" cy="7.5" r="3.2"/><path d="M21 19v-1a4 4 0 0 0-3-3.85"/></svg>
+        <span>Nutrizionisti</span>
+      </a>
+      {% if mail_url %}
+      <a href="{{ mail_url }}" class="admin-nav-link" target="_blank" rel="noopener noreferrer">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+        <span>Posta</span>
+      </a>
+      {% endif %}
+      {% if stripe_dashboard_url %}
+      <a href="{{ stripe_dashboard_url }}" class="admin-nav-link" target="_blank" rel="noopener noreferrer">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h16M4 14h16"/><rect x="3" y="6" width="18" height="12" rx="2"/></svg>
+        <span>Stripe</span>
+      </a>
+      {% endif %}
+    </nav>
+    {% else %}
+    <div class="admin-nav-label">Account</div>
+    <nav class="admin-nav">
+      <a href="{{ url_for('nutri_dashboard.home') }}" class="admin-nav-link">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+        <span>Home</span>
+      </a>
+      <a href="{{ url_for('nutri_dashboard.account') }}" class="admin-nav-link">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5.5 19a6.5 6.5 0 0 1 13 0"/></svg>
+        <span>Abbonamento</span>
+      </a>
+    </nav>
+    {% endif %}
+
+    <div class="admin-sidebar-footer">
+      <div class="admin-user-card">
+        <span class="admin-user-avatar">{{ admin_initials }}</span>
+        <div style="min-width:0;line-height:1.2">
+          <div class="admin-user-name">{{ admin_name }}</div>
+          <div class="admin-user-role">{% if is_super %}Super admin{% else %}Nutrizionista{% endif %}</div>
+        </div>
+      </div>
+      <a href="{{ url_for('auth.logout') }}" class="admin-logout">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>
+        <span>Esci</span>
+      </a>
+    </div>
+  </aside>
+
+  <div class="admin-main">
+    <header class="admin-topbar">
+      <div style="min-width:0">
+        <div class="admin-topbar-label">{% block subtitle %}Monitoraggio{% endblock %}</div>
+        <h1 class="admin-topbar-title">{{ self.title()|striptags }}</h1>
+      </div>
+      <div class="admin-topbar-meta">
+        <div class="admin-topbar-date" id="admin-date"></div>
+        <div class="admin-topbar-time" id="admin-time"></div>
       </div>
     </header>
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-          <div class="super-flash {{ category }}">{{ message }}</div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
+    <main class="admin-content">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="adm-flashes">
+            {% for category, message in messages %}
+              <div class="adm-flash adm-flash--{{ category if category in ['success', 'danger', 'warning'] else 'info' }}">{{ message }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+      {% block content %}{% endblock %}
+    </main>
 
-    {% block content %}{% endblock %}
+    <footer class="admin-footer">
+      {% if is_super %}Monitoraggio piattaforma{% else %}Area nutrizionista{% endif %}
+    </footer>
   </div>
+</div>
+
+<script>
+(function () {
+  function tick() {
+    var d = new Date();
+    var dateEl = document.getElementById('admin-date');
+    var timeEl = document.getElementById('admin-time');
+    if (dateEl) {
+      dateEl.textContent = d.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    }
+    if (timeEl) {
+      timeEl.textContent = d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+    }
+  }
+  tick();
+  setInterval(tick, 30000);
+})();
+</script>
+{% block scripts %}{% endblock %}
 </body>
 </html>

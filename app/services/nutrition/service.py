@@ -38,6 +38,42 @@ class ResourceNotFoundError(NutritionServiceError):
     """Risorsa locale (paziente, piano, pasto, alimento) inesistente."""
 
 
+class TenantForbiddenError(NutritionServiceError):
+    """Accesso a risorsa di un altro tenant."""
+
+
+def _assert_patient_tenant_access(patient: Patient) -> None:
+    """Negazione accesso se il paziente non appartiene al tenant corrente."""
+    from app.utils.tenant import (
+        current_utente_id,
+        is_staff_role,
+        tenant_filter_enabled,
+    )
+
+    if not tenant_filter_enabled() or not is_staff_role():
+        return
+    uid = current_utente_id()
+    if not uid or getattr(patient, "nutrizionista_id", None) != uid:
+        raise TenantForbiddenError("Accesso negato a paziente di altro professionista")
+
+
+def _assert_plan_tenant_access(plan: DietPlan) -> None:
+    from app.utils.tenant import current_utente_id, is_staff_role, tenant_filter_enabled
+
+    if not tenant_filter_enabled() or not is_staff_role():
+        return
+    uid = current_utente_id()
+    if not uid:
+        raise TenantForbiddenError("Accesso negato")
+    patient = getattr(plan, "patient", None) or db.session.get(Patient, plan.patient_id)
+    if patient is None:
+        raise ResourceNotFoundError(f"Paziente {plan.patient_id} inesistente")
+    _assert_patient_tenant_access(patient)
+    professional_id = getattr(plan, "professional_id", None)
+    if professional_id is not None and int(professional_id) != uid:
+        raise TenantForbiddenError("Accesso negato a piano di altro professionista")
+
+
 class NutritionService:
     """Coordina provider esterni, persistenza locale e calcolo nutrienti."""
 
@@ -93,15 +129,23 @@ class NutritionService:
 
     def _search_local_foods(self, query: str, limit: int) -> List[Dict[str, Any]]:
         """Alimenti già salvati in DB (custom o importati in precedenza)."""
+        from app.utils.tenant import current_professional_id, tenant_filter_enabled
+
         pattern = f"%{query}%"
-        foods = (
-            Food.query.filter(
-                db.or_(
-                    Food.name.ilike(pattern),
-                    Food.brand.ilike(pattern),
-                )
+        q = Food.query.filter(
+            db.or_(
+                Food.name.ilike(pattern),
+                Food.brand.ilike(pattern),
             )
-            .order_by(Food.is_custom.desc(), Food.name.asc())
+        )
+        if tenant_filter_enabled():
+            pid = current_professional_id()
+            # Catalogo globale (professional_id NULL) + custom del tenant
+            q = q.filter(
+                db.or_(Food.professional_id.is_(None), Food.professional_id == pid)
+            )
+        foods = (
+            q.order_by(Food.is_custom.desc(), Food.name.asc())
             .limit(limit)
             .all()
         )
@@ -215,6 +259,7 @@ class NutritionService:
         patient = db.session.get(Patient, patient_id)
         if patient is None:
             raise ResourceNotFoundError(f"Paziente {patient_id} inesistente")
+        _assert_patient_tenant_access(patient)
 
         status = (data.get("status") or "draft").strip()
         if status not in ("draft", "published"):
@@ -239,6 +284,7 @@ class NutritionService:
         plan = db.session.get(DietPlan, diet_plan_id)
         if plan is None:
             raise ResourceNotFoundError(f"Piano dieta {diet_plan_id} inesistente")
+        _assert_plan_tenant_access(plan)
 
         if "status" in data:
             status = (data.get("status") or "").strip()
@@ -318,6 +364,7 @@ class NutritionService:
         plan = db.session.get(DietPlan, diet_plan_id)
         if plan is None:
             raise ResourceNotFoundError(f"Piano dieta {diet_plan_id} inesistente")
+        _assert_plan_tenant_access(plan)
 
         meal_name = (data.get("meal_name") or "").strip()
         if not meal_name:
@@ -341,6 +388,9 @@ class NutritionService:
         meal = db.session.get(DietMeal, meal_id)
         if meal is None:
             raise ResourceNotFoundError(f"Pasto {meal_id} inesistente")
+        plan = db.session.get(DietPlan, meal.diet_plan_id)
+        if plan is not None:
+            _assert_plan_tenant_access(plan)
 
         food_id = data.get("food_id")
         if not food_id:
@@ -369,12 +419,16 @@ class NutritionService:
         meal = db.session.get(DietMeal, meal_id)
         if meal is None:
             raise ResourceNotFoundError(f"Pasto {meal_id} inesistente")
+        plan = db.session.get(DietPlan, meal.diet_plan_id)
+        if plan is not None:
+            _assert_plan_tenant_access(plan)
         return NutritionCalculatorService.compute_meal(meal.items)
 
     def plan_totals(self, diet_plan_id: int) -> Dict[str, Any]:
         plan = db.session.get(DietPlan, diet_plan_id)
         if plan is None:
             raise ResourceNotFoundError(f"Piano dieta {diet_plan_id} inesistente")
+        _assert_plan_tenant_access(plan)
         return NutritionCalculatorService.compute_plan(plan.meals)
 
     # ==================================================================
@@ -385,6 +439,7 @@ class NutritionService:
         plan = db.session.get(DietPlan, diet_plan_id)
         if plan is None:
             raise ResourceNotFoundError(f"Piano dieta {diet_plan_id} inesistente")
+        _assert_plan_tenant_access(plan)
         patient_id = plan.patient_id
         db.session.delete(plan)
         db.session.commit()
@@ -395,6 +450,9 @@ class NutritionService:
         meal = db.session.get(DietMeal, meal_id)
         if meal is None:
             raise ResourceNotFoundError(f"Pasto {meal_id} inesistente")
+        plan = db.session.get(DietPlan, meal.diet_plan_id)
+        if plan is not None:
+            _assert_plan_tenant_access(plan)
         plan_id = meal.diet_plan_id
         db.session.delete(meal)
         db.session.commit()
@@ -405,6 +463,11 @@ class NutritionService:
         item = db.session.get(DietMealItem, item_id)
         if item is None:
             raise ResourceNotFoundError(f"Alimento nel pasto {item_id} inesistente")
+        meal = db.session.get(DietMeal, item.diet_meal_id)
+        if meal is not None:
+            plan = db.session.get(DietPlan, meal.diet_plan_id)
+            if plan is not None:
+                _assert_plan_tenant_access(plan)
         meal_id = item.diet_meal_id
         db.session.delete(item)
         db.session.commit()

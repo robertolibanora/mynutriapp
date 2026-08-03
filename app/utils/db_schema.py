@@ -15,6 +15,7 @@ _FINANCE_REMOVED_OK = False
 _AGENDA_SCHEMA_OK = False
 _RICHIESTE_SCHEMA_OK = False
 _PATIENT_STATO_OK = False
+_GDPR_SCHEMA_OK = False
 
 
 def ensure_finance_removed() -> None:
@@ -89,6 +90,45 @@ def ensure_patient_stato_schema() -> None:
         logger.warning("Impossibile aggiornare schema patients/stato_cliente: %s", exc)
 
 
+def ensure_gdpr_schema() -> None:
+    """Aggiunge colonne GDPR (consensi, erasure, retention) su patients."""
+    global _GDPR_SCHEMA_OK
+    if _GDPR_SCHEMA_OK:
+        return
+    try:
+        insp = inspect(db.engine)
+        if "patients" not in set(insp.get_table_names()):
+            return
+        cols = {c["name"] for c in insp.get_columns("patients")}
+        stmts = []
+        bool_cols = ("consenso_privacy", "consenso_marketing")
+        for col_name in bool_cols:
+            if col_name not in cols:
+                stmts.append(
+                    f"ALTER TABLE patients ADD COLUMN {col_name} "
+                    "TINYINT(1) NOT NULL DEFAULT 0"
+                )
+        for col_name, ddl in (
+            ("privacy_policy_version", "VARCHAR(32) NULL"),
+            ("consenso_privacy_il", "DATETIME NULL"),
+            ("consenso_marketing_il", "DATETIME NULL"),
+            ("erasure_requested_at", "DATETIME NULL"),
+            ("erasure_completed_at", "DATETIME NULL"),
+            ("retention_until", "DATE NULL"),
+        ):
+            if col_name not in cols:
+                stmts.append(f"ALTER TABLE patients ADD COLUMN {col_name} {ddl}")
+        if stmts:
+            with db.engine.begin() as conn:
+                for stmt in stmts:
+                    conn.execute(text(stmt))
+            logger.info("Schema patients aggiornato (colonne GDPR)")
+        _GDPR_SCHEMA_OK = True
+    except Exception as exc:  # noqa: BLE001
+        db.session.rollback()
+        logger.warning("Impossibile aggiornare schema GDPR patients: %s", exc)
+
+
 def ensure_richieste_appuntamento_schema() -> None:
     """Crea la tabella richieste_appuntamento (landing pubblica) se mancante."""
     global _RICHIESTE_SCHEMA_OK
@@ -98,6 +138,7 @@ def ensure_richieste_appuntamento_schema() -> None:
         from app.models.models import RichiestaAppuntamento
 
         ensure_patient_stato_schema()
+        ensure_gdpr_schema()
         db.metadata.create_all(
             bind=db.engine,
             tables=[RichiestaAppuntamento.__table__],
@@ -588,6 +629,16 @@ def ensure_billing_schema() -> None:
                     text(
                         "ALTER TABLE utente ADD COLUMN subscription_status VARCHAR(32) "
                         "NOT NULL DEFAULT 'none' AFTER stripe_subscription_id"
+                    )
+                )
+            # refresh columns after possible ALTER
+            insp = inspect(db.engine)
+            u_cols = _column_names(insp, "utente")
+            if "needs_password_setup" not in u_cols:
+                conn.execute(
+                    text(
+                        "ALTER TABLE utente ADD COLUMN needs_password_setup TINYINT(1) "
+                        "NOT NULL DEFAULT 0 AFTER subscription_status"
                     )
                 )
 

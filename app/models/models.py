@@ -64,6 +64,20 @@ class Patient(db.Model):
     )
     consenso_aggiornato_il = db.Column(db.DateTime, nullable=True)
 
+    # ✅ Consensi GDPR privacy / marketing
+    consenso_privacy = db.Column(
+        db.Boolean, nullable=False, default=False, server_default=db.text("0")
+    )
+    consenso_marketing = db.Column(
+        db.Boolean, nullable=False, default=False, server_default=db.text("0")
+    )
+    privacy_policy_version = db.Column(db.String(32), nullable=True)
+    consenso_privacy_il = db.Column(db.DateTime, nullable=True)
+    consenso_marketing_il = db.Column(db.DateTime, nullable=True)
+    erasure_requested_at = db.Column(db.DateTime, nullable=True)
+    erasure_completed_at = db.Column(db.DateTime, nullable=True)
+    retention_until = db.Column(db.Date, nullable=True)
+
     # 🕒 Metadati
     data_creazione = db.Column(db.DateTime, server_default=db.func.now())
     # Alias di dominio diary: creato_il ≡ data_creazione (colonna storica)

@@ -55,7 +55,7 @@ def _login_as_utente(utente, role: str, *, via: str):
     establish_utente_session(utente, role, via=via)
 
     if role == 'super_admin':
-        return redirect(url_for('super_admin.lista_utenti'))
+        return redirect(url_for('super_admin.dashboard'))
     # Nutrizionista → UI admin tenant
     return redirect(url_for('dashboard.admin_dashboard'))
 
@@ -65,7 +65,8 @@ def login():
     if request.method == 'POST':
         telefono = request.form.get('telefono', '')
         password = request.form.get('password', '')
-        result = authenticate(telefono, password)
+        email = request.form.get('email', '')
+        result = authenticate(telefono, password, email=email)
 
         if result.status in (AuthStatus.OK_SUPER_ADMIN, AuthStatus.OK_ADMIN) and result.utente:
             flash("Accesso super admin", "success")
@@ -78,6 +79,14 @@ def login():
         if result.status == AuthStatus.INACTIVE:
             flash(
                 "Account non ancora attivo.",
+                "warning",
+            )
+            return redirect(url_for("auth.login"))
+
+        if result.status == AuthStatus.AMBIGUOUS:
+            flash(
+                "Questo telefono è associato a più professionisti. "
+                "Inserisci anche l'email per accedere.",
                 "warning",
             )
             return redirect(url_for("auth.login"))

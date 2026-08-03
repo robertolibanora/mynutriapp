@@ -4,6 +4,13 @@ import os
 from datetime import date
 from app.models.models import db, Allenamento, Patient
 from app.config.config import get_upload_folder, get_allowed_extensions, get_full_path
+from app.utils.tenant import (
+    assert_resource_patient_tenant,
+    get_tenant_patient_or_404,
+    patients_query_for_tenant,
+    require_tenant,
+    tenant_filter_enabled,
+)
 
 # ========================
 # BLUEPRINT
@@ -56,7 +63,7 @@ def _salva_allenamento(patient_id, data_inizio, data_fine, note, file):
     if not file or not allowed_file(file.filename):
         raise ValueError("Carica un file PDF valido")
 
-    paziente = Patient.query.get_or_404(patient_id)
+    paziente = get_tenant_patient_or_404(patient_id)
     filename = secure_filename(file.filename)
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
     save_path = os.path.join(UPLOAD_FOLDER, filename)
@@ -82,21 +89,20 @@ def serve_file(allenamento_id):
     """Serve un file allenamento con controllo accessi"""
     allenamento = Allenamento.query.get_or_404(allenamento_id)
     
-    # Controllo accessi
     user_role = session.get('role')
     user_id = session.get('user_id')
     
-    # Admin può vedere tutto, user può vedere solo i propri allenamenti
-    if user_role in ('admin', 'nutrizionista') or (user_role == 'user' and allenamento.patient_id == user_id):
-        file_path = get_full_path(allenamento.pdf_path)
-        if os.path.exists(file_path):
-            directory = os.path.dirname(file_path)
-            filename = os.path.basename(file_path)
-            return send_from_directory(directory, filename)
-        else:
-            abort(404)
-    else:
+    if user_role in ('admin', 'nutrizionista'):
+        assert_resource_patient_tenant(allenamento)
+    elif not (user_role == 'user' and allenamento.patient_id == user_id):
         abort(403)
+
+    file_path = get_full_path(allenamento.pdf_path)
+    if os.path.exists(file_path):
+        directory = os.path.dirname(file_path)
+        filename = os.path.basename(file_path)
+        return send_from_directory(directory, filename)
+    abort(404)
 
 
 # ========================
@@ -112,6 +118,8 @@ def lista_allenamenti():
     query = Allenamento.query.options(db.joinedload(Allenamento.patient)).order_by(
         Allenamento.created_at.desc()
     )
+    if tenant_filter_enabled():
+        query = query.join(Patient).filter(Patient.nutrizionista_id == require_tenant())
     if q:
         like = f"%{q}%"
         query = query.filter(
@@ -142,7 +150,7 @@ def lista_allenamenti():
 @admin_required
 def allenamenti_paziente(patient_id):
     """Mostra solo gli allenamenti di un singolo paziente (sola lettura / gestione)."""
-    paziente = Patient.query.get_or_404(patient_id)
+    paziente = get_tenant_patient_or_404(patient_id)
     today = date.today()
     return render_template('admin/allenamenti_paziente.html', paziente=paziente, allenamenti=paziente.allenamenti, today=today)
 
@@ -154,8 +162,12 @@ def allenamenti_paziente(patient_id):
 @admin_required
 def nuovo_allenamento_standalone():
     """Creazione allenamento dalla sezione Allenamento: richiede selezione paziente."""
-    pazienti = Patient.query.order_by(Patient.cognome.asc(), Patient.nome.asc()).all()
+    pazienti = patients_query_for_tenant().order_by(
+        Patient.cognome.asc(), Patient.nome.asc()
+    ).all()
     preselect_id = request.args.get('patient_id', type=int)
+    if preselect_id:
+        get_tenant_patient_or_404(preselect_id)
 
     if request.method == 'POST':
         try:
@@ -212,6 +224,7 @@ def nuovo_allenamento(patient_id):
 @admin_required
 def elimina_allenamento(allenamento_id):
     allenamento = Allenamento.query.get_or_404(allenamento_id)
+    assert_resource_patient_tenant(allenamento)
     next_url = request.form.get('next') or request.args.get('next')
 
     try:

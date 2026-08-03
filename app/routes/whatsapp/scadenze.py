@@ -31,7 +31,12 @@ def controlla_scadenze():
         # DIETE IN SCADENZA
         # ========================================
         logger.info("🍽️ Controllo diete in scadenza...")
-        diete = Dieta.query.filter(Dieta.data_fine == tra_10_giorni).all()
+        # Job globale: processa per paziente (tenant implicito via patient.nutrizionista_id)
+        diete = (
+            Dieta.query.join(Patient)
+            .filter(Dieta.data_fine == tra_10_giorni)
+            .all()
+        )
         
         for dieta in diete:
             try:
@@ -53,7 +58,11 @@ def controlla_scadenze():
         # ALLENAMENTI IN SCADENZA
         # ========================================
         logger.info("💪 Controllo allenamenti in scadenza...")
-        allenamenti = Allenamento.query.filter(Allenamento.data_fine == tra_10_giorni).all()
+        allenamenti = (
+            Allenamento.query.join(Patient)
+            .filter(Allenamento.data_fine == tra_10_giorni)
+            .all()
+        )
         
         for allenamento in allenamenti:
             try:

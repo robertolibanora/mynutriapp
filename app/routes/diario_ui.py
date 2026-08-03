@@ -15,6 +15,7 @@ from app.services.diario_timeline_service import (
     get_patient_diary_timeline,
     get_patient_diary_trends,
 )
+from app.utils.tenant import get_tenant_patient_or_404
 
 diario_ui_bp = Blueprint("diario_ui", __name__, url_prefix="/admin/diario")
 
@@ -46,10 +47,7 @@ def _admin_required(func):
 @_admin_required
 def nuovo_colloquio(patient_id: int):
     """UI: crea colloquio + carica audio + avvia pipeline."""
-    paziente = db.session.get(Patient, patient_id)
-    if paziente is None:
-        flash("Paziente non trovato", "danger")
-        return redirect(url_for("patients.lista_pazienti"))
+    paziente = get_tenant_patient_or_404(patient_id)
     return render_template(
         "admin/diario_pipeline.html",
         paziente=paziente,
@@ -114,10 +112,7 @@ def review_diary(consultation_id: int):
 @_admin_required
 def lista_diari_paziente(patient_id: int):
     """Redirect alla scheda paziente, tab Diario."""
-    paziente = db.session.get(Patient, patient_id)
-    if paziente is None:
-        flash("Paziente non trovato", "danger")
-        return redirect(url_for("patients.lista_pazienti"))
+    get_tenant_patient_or_404(patient_id)
     return redirect(
         url_for("patients.dettaglio_paziente", patient_id=patient_id, tab="diario")
     )

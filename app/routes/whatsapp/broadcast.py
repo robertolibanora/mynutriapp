@@ -111,8 +111,14 @@ def invia_broadcast_personalizzato(testo_template, pazienti=None, variabili_extr
         dict: Statistiche dell'invio
     """
     if pazienti is None:
-        # Ottieni tutti i pazienti con telefono
-        pazienti = Patient.query.filter(Patient.telefono.isnot(None)).all()
+        from app.utils.tenant import patients_query_for_tenant, tenant_filter_enabled
+
+        q = patients_query_for_tenant() if tenant_filter_enabled() else Patient.query
+        # Marketing: solo pazienti con consenso (se colonna presente)
+        q = q.filter(Patient.telefono.isnot(None))
+        if hasattr(Patient, "consenso_marketing"):
+            q = q.filter(Patient.consenso_marketing.is_(True))
+        pazienti = q.all()
     
     logger.info(f"📤 Avvio broadcast a {len(pazienti)} pazienti")
     
@@ -181,14 +187,22 @@ def invia_broadcast_scadenze(testo_template, giorni=10, variabili_extra=None):
     # Trova pazienti con scadenze
     pazienti_con_scadenze = set()
     
+    from app.utils.tenant import require_tenant, tenant_filter_enabled
+
+    uid = require_tenant() if tenant_filter_enabled() else None
+
     # Diete in scadenza
-    diete = Dieta.query.filter(Dieta.data_fine == data_scadenza).all()
-    for dieta in diete:
+    q_diete = Dieta.query.filter(Dieta.data_fine == data_scadenza)
+    if uid is not None:
+        q_diete = q_diete.join(Patient).filter(Patient.nutrizionista_id == uid)
+    for dieta in q_diete.all():
         pazienti_con_scadenze.add(dieta.patient)
     
     # Allenamenti in scadenza
-    allenamenti = Allenamento.query.filter(Allenamento.data_fine == data_scadenza).all()
-    for allenamento in allenamenti:
+    q_all = Allenamento.query.filter(Allenamento.data_fine == data_scadenza)
+    if uid is not None:
+        q_all = q_all.join(Patient).filter(Patient.nutrizionista_id == uid)
+    for allenamento in q_all.all():
         pazienti_con_scadenze.add(allenamento.patient)
     
     logger.info(f"📅 Trovati {len(pazienti_con_scadenze)} pazienti con scadenze tra {giorni} giorni")
@@ -214,8 +228,10 @@ def invia_broadcast_filtro(testo_template, filtro_callback, variabili_extra=None
     Returns:
         dict: Statistiche dell'invio
     """
-    # Ottieni tutti i pazienti
-    tutti_pazienti = Patient.query.filter(Patient.telefono.isnot(None)).all()
+    from app.utils.tenant import patients_query_for_tenant, tenant_filter_enabled
+
+    q = patients_query_for_tenant() if tenant_filter_enabled() else Patient.query
+    tutti_pazienti = q.filter(Patient.telefono.isnot(None)).all()
     
     # Filtra i pazienti
     pazienti_filtrati = [p for p in tutti_pazienti if filtro_callback(p)]

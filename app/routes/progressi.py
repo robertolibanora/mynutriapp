@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from app.models.models import db, Progresso, Patient
 from datetime import datetime
 import json
+from app.utils.tenant import assert_resource_patient_tenant, get_tenant_patient_or_404
 
 
 # ========================
@@ -42,7 +43,7 @@ def user_required(func):
 @progressi_bp.route('/admin/paziente/<int:patient_id>')
 @admin_required
 def progressi_paziente_admin(patient_id):
-    paziente = Patient.query.get_or_404(patient_id)
+    paziente = get_tenant_patient_or_404(patient_id)
     # Ordina progressi per data check (più recenti prima)
     progressi = Progresso.query.filter_by(patient_id=patient_id).order_by(Progresso.data_check.desc()).all()
     return render_template(
@@ -59,7 +60,7 @@ def progressi_paziente_admin(patient_id):
 @admin_required
 def check_nutrizionista_completo(patient_id):
     """Check completo del nutrizionista con tutte le misure per un paziente specifico"""
-    paziente = Patient.query.get_or_404(patient_id)
+    paziente = get_tenant_patient_or_404(patient_id)
 
     if request.method == 'POST':
         try:
@@ -194,6 +195,7 @@ def check_nutrizionista_completo(patient_id):
 def dettaglio_check(progresso_id):
     """Visualizza i dettagli completi di un check"""
     progresso = Progresso.query.get_or_404(progresso_id)
+    assert_resource_patient_tenant(progresso)
     paziente = progresso.patient
     
     # Carica le misure associate se esistono
@@ -220,6 +222,7 @@ def dettaglio_check(progresso_id):
 def modifica_check_nutrizionista(progresso_id):
     """Modifica un check nutrizionista esistente"""
     progresso = Progresso.query.get_or_404(progresso_id)
+    assert_resource_patient_tenant(progresso)
     paziente = progresso.patient
     
     # Verifica che sia un check nutrizionista

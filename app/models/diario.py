@@ -50,6 +50,10 @@ class Utente(db.Model):
         default="none",
         server_default="none",
     )
+    # True = creato da Stripe, deve impostare password su /billing/completa-account
+    needs_password_setup = db.Column(
+        db.Boolean, nullable=False, default=False, server_default=db.text("0")
+    )
     creato_il = db.Column(db.DateTime, nullable=False, server_default=db.func.now())
     aggiornato_il = db.Column(
         db.DateTime,
