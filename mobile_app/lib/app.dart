@@ -12,9 +12,14 @@ import 'core/theme/app_theme.dart';
 const _bootBg = Color(0xFF000000);
 
 class MyNutriApp extends StatefulWidget {
-  const MyNutriApp({super.key, required this.dependencies});
+  const MyNutriApp({
+    super.key,
+    required this.dependencies,
+    this.enableDeepLinks = true,
+  });
 
   final AppDependencies dependencies;
+  final bool enableDeepLinks;
 
   @override
   State<MyNutriApp> createState() => _MyNutriAppState();
@@ -22,7 +27,6 @@ class MyNutriApp extends StatefulWidget {
 
 class _MyNutriAppState extends State<MyNutriApp> {
   late final GoRouter _router;
-  final _appLinks = AppLinks();
   StreamSubscription<Uri>? _linkSub;
 
   @override
@@ -30,31 +34,33 @@ class _MyNutriAppState extends State<MyNutriApp> {
     super.initState();
     _router = createAppRouter(widget.dependencies.auth);
     widget.dependencies.auth.bootstrap();
-    _initDeepLinks();
+    if (widget.enableDeepLinks) {
+      unawaited(_initDeepLinks());
+    }
   }
 
   Future<void> _initDeepLinks() async {
     try {
-      final initial = await _appLinks.getInitialLink();
+      final appLinks = AppLinks();
+      final initial = await appLinks.getInitialLink();
       if (initial != null) {
         _handleUri(initial);
       }
+      _linkSub = appLinks.uriLinkStream.listen(
+        _handleUri,
+        onError: (Object e) {
+          if (kDebugMode) debugPrint('deep link stream error: $e');
+        },
+      );
     } catch (e) {
-      if (kDebugMode) debugPrint('deep link initial error: $e');
+      if (kDebugMode) debugPrint('deep link init error: $e');
     }
-    _linkSub = _appLinks.uriLinkStream.listen(
-      _handleUri,
-      onError: (Object e) {
-        if (kDebugMode) debugPrint('deep link stream error: $e');
-      },
-    );
   }
 
   void _handleUri(Uri uri) {
     final loc = deepLinkLocation(uri);
     if (loc == null) return;
     if (kDebugMode) debugPrint('deep link → $loc');
-    // Dopo il primo frame, così il router è pronto (app chiusa → cold start)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _router.go(loc);
     });

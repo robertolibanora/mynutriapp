@@ -9,11 +9,14 @@ void main() {
 
   setUpAll(() async {
     await Env.load();
+    Env.useMockData = true;
   });
 
   testWidgets('Mostra schermata login con accesso demo', (tester) async {
     final deps = AppDependencies.create(tokenStorage: InMemoryTokenStorage());
-    await tester.pumpWidget(MyNutriApp(dependencies: deps));
+    await tester.pumpWidget(
+      MyNutriApp(dependencies: deps, enableDeepLinks: false),
+    );
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
 
@@ -22,17 +25,21 @@ void main() {
     expect(find.text('Entra in demo'), findsOneWidget);
   });
 
-  testWidgets('Demo login apre la home', (tester) async {
+  testWidgets('Demo login autentica e mostra shell', (tester) async {
     final deps = AppDependencies.create(tokenStorage: InMemoryTokenStorage());
-    await tester.pumpWidget(MyNutriApp(dependencies: deps));
+    await tester.pumpWidget(
+      MyNutriApp(dependencies: deps, enableDeepLinks: false),
+    );
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
 
     await tester.tap(find.text('Entra in demo'));
     await tester.pump();
-    // Completa delay mock repository + navigazione.
-    await tester.pump(const Duration(seconds: 1));
+    // loginDemo ha delay 500ms
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.pump(); // rebuild post-auth / redirect
 
+    expect(deps.auth.isAuthenticated, isTrue);
     expect(find.textContaining('Ciao'), findsWidgets);
   });
 }
