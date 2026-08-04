@@ -35,7 +35,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
     if (!mounted) return;
     if (!ok && auth.error != null) {
-      final needsEmail = auth.error!.toLowerCase().contains('email');
+      final needsEmail = auth.error!.contains('email');
       if (needsEmail && !_showEmail) {
         setState(() => _showEmail = true);
       }
@@ -68,7 +68,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   'Accedi all\'area paziente',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: AppColors.muted2,
+                    color: AppColors.muted,
                     fontSize: 15,
                     height: 1.3,
                   ),

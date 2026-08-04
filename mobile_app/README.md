@@ -54,7 +54,12 @@ flutter run --dart-define=API_BASE_URL=http://10.0.2.2:5000 --dart-define=USE_MO
 
 ## Navigazione
 
-Bottom nav: Home · Progressi · Prenota · Profilo (come area paziente web).
+Bottom nav: Home · Dieta · Prenota · Progressi · Profilo  
+
+**Dieta** legge i piani pubblicati dal nutrizionista (`GET /api/v1/diets`, dettaglio pasti da `GET /api/v1/diets/:id`) — stessi `DietPlan` di `/admin/diet-plans`.  
+
+**Prenota**: lista appuntamenti + CTA disponibilità (`GET /api/v1/appointments/availability`) e richiesta slot (`POST /api/v1/appointments`) sugli orari del nutrizionista collegato.
+
 
 Da **Profilo → Privacy e dati (GDPR)**:
 - stato consenso privacy / marketing

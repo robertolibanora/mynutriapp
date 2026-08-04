@@ -6,7 +6,8 @@ import os
 from datetime import datetime
 from typing import Any, Optional
 
-from app.models.models import Appuntamento, Patient
+from app.models.models import Appuntamento, Patient, db
+from app.services.agenda_service import AgendaService
 
 TIPO_LABELS = {
     "allenamento_1to1": "Allenamento 1to1",
@@ -22,6 +23,116 @@ STATO_LABELS = {
     "completato": "Completato",
     "annullato": "Annullato",
 }
+
+# Tipi prenotabili dal paziente autenticato (allineati a /prenota pubblico).
+TIPI_PRENOTABILI = {
+    "altro": "Prima consulenza",
+    "check": "Check",
+    "allenamento_1to1": "Allenamento 1to1",
+}
+
+
+class AppointmentBookingError(Exception):
+    def __init__(self, message: str, *, code: str = "validation_error"):
+        super().__init__(message)
+        self.message = message
+        self.code = code
+
+
+def nutritionist_id_for_patient(patient: Patient) -> Optional[int]:
+    nid = getattr(patient, "nutrizionista_id", None)
+    return int(nid) if nid is not None else None
+
+
+def list_availability_for_patient(
+    patient: Patient, *, limite: int = 100
+) -> dict[str, Any]:
+    """Slot liberi del nutrizionista del paziente."""
+    nid = nutritionist_id_for_patient(patient)
+    if nid is None:
+        return {
+            "professionista": _professionista_name(patient),
+            "slots": [],
+            "tipi": [
+                {"value": k, "label": v} for k, v in TIPI_PRENOTABILI.items()
+            ],
+            "error": "no_nutritionist",
+        }
+
+    raw = AgendaService.slot_liberi_per_select(limite=limite, utente_id=nid)
+    slots = []
+    for item in raw:
+        data_str = item.get("data") or ""
+        try:
+            dt = datetime.strptime(data_str, "%Y-%m-%d %H:%M:%S")
+        except ValueError:
+            continue
+        slots.append(
+            {
+                "data_appuntamento": dt.isoformat(sep="T", timespec="seconds"),
+                "data": dt.strftime("%Y-%m-%d"),
+                "ora": dt.strftime("%H:%M"),
+                "label": item.get("label") or "",
+                "note": item.get("note") or "",
+            }
+        )
+
+    return {
+        "professionista": _professionista_name(patient),
+        "slots": slots,
+        "tipi": [{"value": k, "label": v} for k, v in TIPI_PRENOTABILI.items()],
+    }
+
+
+def book_for_patient(
+    patient: Patient,
+    *,
+    data_appuntamento: datetime,
+    tipo: str = "check",
+    note: Optional[str] = None,
+) -> Appuntamento:
+    """Crea richiesta appuntamento (stato in_attesa) su uno slot libero."""
+    nid = nutritionist_id_for_patient(patient)
+    if nid is None:
+        raise AppointmentBookingError(
+            "Nessun nutrizionista collegato al tuo account",
+            code="no_nutritionist",
+        )
+
+    if tipo not in TIPI_PRENOTABILI:
+        raise AppointmentBookingError(
+            "Tipo appuntamento non valido",
+            code="invalid_tipo",
+        )
+
+    data_appuntamento = data_appuntamento.replace(second=0, microsecond=0)
+    if data_appuntamento < datetime.now().replace(second=0, microsecond=0):
+        raise AppointmentBookingError(
+            "Non puoi prenotare uno slot passato",
+            code="slot_past",
+        )
+
+    if not AgendaService.is_slot_disponibile(
+        data_appuntamento, utente_id=nid
+    ):
+        raise AppointmentBookingError(
+            "Questo orario non è più disponibile. Scegline un altro.",
+            code="slot_unavailable",
+        )
+
+    appt = Appuntamento(
+        patient_id=patient.id,
+        utente_id=nid,
+        created_by="user",
+        data_appuntamento=data_appuntamento,
+        tipo=tipo,
+        stato="in_attesa",
+        note=(note.strip() if note else None) or None,
+    )
+    db.session.add(appt)
+    db.session.commit()
+    return appt
+
 
 
 def list_for_patient(patient_id: int) -> list[Appuntamento]:

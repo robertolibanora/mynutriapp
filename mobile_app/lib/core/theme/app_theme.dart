@@ -1,21 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// Palette allineata a `style_user.css` (area paziente).
 class AppColors {
   static const bg = Color(0xFF0F0F0F);
-  static const bg1 = Color(0xFF1A1A1A);
-  static const surface = Color(0xFF222222);
-  static const border = Color(0x26B6B1A9);
-  static const borderStrong = Color(0x2EFFFFFF);
-  static const text = Color(0xFFFFFFFF);
-  static const primary = Color(0xFFD4D4D4);
-  static const muted = Color(0xFFD8D8D8);
-  static const muted2 = Color(0xFFB0B0B0);
-  static const navIdle = Color(0xFFC4BFB6);
+  static const surface = Color(0xFF1A1A1A);
+  static const border = Color(0x33FFFFFF);
+  static const text = Color(0xFFF0F0F0);
+  static const muted = Color(0xFFA8A8A8);
   static const accent = Color(0xFFFF9A56);
-  static const accentSoft = Color(0x1FFF9A56);
-  static const danger = Color(0xFFF44336);
+  static const danger = Color(0xFFE57373);
 }
 
 ThemeData buildAppTheme() {
@@ -26,7 +19,7 @@ ThemeData buildAppTheme() {
     colorScheme: const ColorScheme.dark(
       surface: AppColors.surface,
       primary: AppColors.accent,
-      onPrimary: Color(0xFF0F0F0F),
+      onPrimary: Color(0xFF1A0F08),
       error: AppColors.danger,
     ),
   );
@@ -41,30 +34,9 @@ ThemeData buildAppTheme() {
       elevation: 0,
       centerTitle: false,
     ),
-    navigationBarTheme: NavigationBarThemeData(
-      backgroundColor: const Color(0xEB0F0F0F),
-      indicatorColor: AppColors.accentSoft,
-      elevation: 0,
-      height: 64,
-      labelTextStyle: WidgetStateProperty.resolveWith((states) {
-        final selected = states.contains(WidgetState.selected);
-        return TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-          color: selected ? AppColors.accent : AppColors.muted2,
-        );
-      }),
-      iconTheme: WidgetStateProperty.resolveWith((states) {
-        final selected = states.contains(WidgetState.selected);
-        return IconThemeData(
-          size: 24,
-          color: selected ? AppColors.accent : AppColors.navIdle,
-        );
-      }),
-    ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: AppColors.bg1,
+      fillColor: AppColors.surface,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(color: AppColors.border),
@@ -77,30 +49,50 @@ ThemeData buildAppTheme() {
         borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(color: AppColors.accent, width: 1.4),
       ),
-      labelStyle: const TextStyle(color: AppColors.muted2),
+      labelStyle: const TextStyle(color: AppColors.muted),
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
         backgroundColor: AppColors.accent,
-        foregroundColor: AppColors.bg,
-        minimumSize: const Size.fromHeight(48),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        textStyle: const TextStyle(fontWeight: FontWeight.w700),
-        elevation: 0,
+        foregroundColor: const Color(0xFF1A0F08),
+        minimumSize: const Size.fromHeight(52),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
         foregroundColor: AppColors.text,
-        minimumSize: const Size.fromHeight(48),
-        side: const BorderSide(color: AppColors.borderStrong),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        minimumSize: const Size.fromHeight(52),
+        side: const BorderSide(color: AppColors.border),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
+    ),
+    navigationBarTheme: NavigationBarThemeData(
+      backgroundColor: AppColors.bg,
+      elevation: 0,
+      height: 68,
+      indicatorColor: AppColors.accent.withValues(alpha: 0.18),
+      labelTextStyle: WidgetStateProperty.resolveWith((states) {
+        final selected = states.contains(WidgetState.selected);
+        return TextStyle(
+          fontSize: 12,
+          fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+          color: selected ? AppColors.accent : AppColors.muted,
+        );
+      }),
+      iconTheme: WidgetStateProperty.resolveWith((states) {
+        final selected = states.contains(WidgetState.selected);
+        return IconThemeData(
+          size: 24,
+          color: selected ? AppColors.accent : AppColors.muted,
+        );
+      }),
     ),
     switchTheme: SwitchThemeData(
       thumbColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.selected)) return AppColors.accent;
-        return AppColors.muted2;
+        return AppColors.muted;
       }),
       trackColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.selected)) {
