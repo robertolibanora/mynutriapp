@@ -39,3 +39,5 @@ def create_app():
         return {"static_version": version}
     
     return app
+
+#bellaciao
