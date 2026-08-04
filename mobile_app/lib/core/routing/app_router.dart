@@ -16,17 +16,24 @@ GoRouter createAppRouter(AuthController auth) {
     refreshListenable: auth,
     redirect: (context, state) {
       final loc = state.matchedLocation;
-      final loggingIn = loc == '/login' || loc == '/';
       final publicAuth = loc == '/forgot-password' ||
           loc == '/activate-account' ||
           loc == '/reset-password';
 
-      if (auth.bootstrapping) return null;
-
-      if (!auth.isAuthenticated && !loggingIn && !publicAuth) {
-        return '/login';
+      // Splash finché il bootstrap non termina.
+      if (auth.bootstrapping) {
+        return loc == '/' ? null : '/';
       }
-      if (auth.isAuthenticated && (loggingIn || loc == '/forgot-password')) {
+
+      // Dopo bootstrap: lascia sempre `/` (altrimenti GoRouter non ricostruisce
+      // la stessa location e resta lo spinner nero).
+      if (!auth.isAuthenticated) {
+        if (publicAuth) return null;
+        if (loc == '/' || loc != '/login') return '/login';
+        return null;
+      }
+
+      if (loc == '/' || loc == '/login' || loc == '/forgot-password') {
         return '/home';
       }
       return null;
@@ -34,20 +41,12 @@ GoRouter createAppRouter(AuthController auth) {
     routes: [
       GoRoute(
         path: '/',
-        builder: (context, state) {
-          if (auth.bootstrapping) {
-            return const Scaffold(
-              backgroundColor: Color(0xFF000000),
-              body: Center(
-                child: CircularProgressIndicator(color: AppColors.accent),
-              ),
-            );
-          }
-          if (auth.isAuthenticated) {
-            return const MainShell();
-          }
-          return const LoginScreen();
-        },
+        builder: (context, state) => const Scaffold(
+          backgroundColor: Color(0xFF000000),
+          body: Center(
+            child: CircularProgressIndicator(color: AppColors.accent),
+          ),
+        ),
       ),
       GoRoute(
         path: '/login',

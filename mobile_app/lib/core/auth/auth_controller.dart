@@ -91,22 +91,28 @@ class AuthController extends ChangeNotifier {
     bootstrapping = true;
     notifyListeners();
     try {
-      if (Env.useMockData) {
-        // Nessun auto-login in mock.
-        return;
-      }
-      final access = await _tokens.readAccessToken();
-      if (access == null || access.isEmpty) return;
-      final res = await _api.get<Map<String, dynamic>>('/api/v1/me');
-      user = PatientUser.fromJson(res.data ?? {});
-      isDemo = false;
+      await _bootstrapBody().timeout(const Duration(seconds: 12));
     } catch (_) {
-      await _tokens.clear();
+      try {
+        await _tokens.clear();
+      } catch (_) {}
       user = null;
     } finally {
       bootstrapping = false;
       notifyListeners();
     }
+  }
+
+  Future<void> _bootstrapBody() async {
+    if (Env.useMockData) {
+      // Nessun auto-login in mock.
+      return;
+    }
+    final access = await _tokens.readAccessToken();
+    if (access == null || access.isEmpty) return;
+    final res = await _api.get<Map<String, dynamic>>('/api/v1/me');
+    user = PatientUser.fromJson(res.data ?? {});
+    isDemo = false;
   }
 
   Future<bool> login({
