@@ -268,6 +268,7 @@ if limiter and limiter_enabled:
             if rule.endpoint in (
                 'auth.login',
                 'prenota_public.prenota_landing',
+                'prenota_public.prenota_by_slug',
                 'api_v1.login',
             ):
                 view_func = app.view_functions[rule.endpoint]

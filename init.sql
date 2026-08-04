@@ -35,11 +35,14 @@ CREATE TABLE IF NOT EXISTS utente (
     stripe_customer_id VARCHAR(255) NULL,
     stripe_subscription_id VARCHAR(255) NULL,
     subscription_status VARCHAR(32) NOT NULL DEFAULT 'none',
+    needs_password_setup TINYINT(1) NOT NULL DEFAULT 0,
+    public_slug VARCHAR(80) NULL,
     creato_il DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     aggiornato_il DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY uq_utente_email (email),
     UNIQUE KEY uq_utente_telefono (telefono),
     UNIQUE KEY uq_utente_stripe_customer_id (stripe_customer_id),
+    UNIQUE KEY uq_utente_public_slug (public_slug),
     INDEX ix_utente_creato_da (creato_da),
     CONSTRAINT fk_utente_creato_da FOREIGN KEY (creato_da) REFERENCES utente(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

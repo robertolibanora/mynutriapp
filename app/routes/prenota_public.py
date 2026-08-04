@@ -17,7 +17,7 @@ from app.utils.db_schema import (
     ensure_patient_stato_schema,
     ensure_richieste_appuntamento_schema,
 )
-from app.utils.helpers import normalize_phone
+from app.utils.helpers import normalize_phone, slugify_public_name
 from app.utils.tenant import assert_patient_tenant, require_tenant, tenant_filter_enabled
 
 prenota_public_bp = Blueprint("prenota_public", __name__)
@@ -36,8 +36,23 @@ def _ensure_schema():
     ensure_richieste_appuntamento_schema()
 
 
-def _default_tenant_id() -> int | None:
-    """Tenant per prenota pubblica: ?n=<id> oppure primo nutrizionista attivo."""
+def _utente_attivo(uid: int) -> Utente | None:
+    return Utente.query.filter_by(
+        id=uid, ruolo=UtenteRuolo.NUTRIZIONISTA.value, attivo=True
+    ).first()
+
+
+def _utente_by_slug(slug: str) -> Utente | None:
+    slug = slugify_public_name(slug)
+    if not slug:
+        return None
+    return Utente.query.filter_by(
+        public_slug=slug, ruolo=UtenteRuolo.NUTRIZIONISTA.value, attivo=True
+    ).first()
+
+
+def _default_tenant() -> Utente | None:
+    """Tenant per /prenota senza slug: ?n=<id> oppure primo nutrizionista attivo."""
     raw = request.args.get("n") or request.form.get("n")
     if raw:
         try:
@@ -45,17 +60,29 @@ def _default_tenant_id() -> int | None:
         except (TypeError, ValueError):
             uid = None
         if uid:
-            row = Utente.query.filter_by(
-                id=uid, ruolo=UtenteRuolo.NUTRIZIONISTA.value, attivo=True
-            ).first()
+            row = _utente_attivo(uid)
             if row:
-                return int(row.id)
-    row = (
+                return row
+    return (
         Utente.query.filter_by(ruolo=UtenteRuolo.NUTRIZIONISTA.value, attivo=True)
         .order_by(Utente.id.asc())
         .first()
     )
-    return int(row.id) if row else None
+
+
+def _prenota_redirect(utente: Utente | None, **kwargs):
+    """Redirect verso /prenota/<slug> se disponibile, altrimenti ?n=id."""
+    if utente is not None and utente.public_slug:
+        return redirect(
+            url_for(
+                "prenota_public.prenota_by_slug",
+                slug=utente.public_slug,
+                **kwargs,
+            )
+        )
+    if utente is not None:
+        kwargs.setdefault("n", int(utente.id))
+    return redirect(url_for("prenota_public.prenota_landing", **kwargs))
 
 
 def _trova_paziente_per_telefono(telefono: str, nutrizionista_id: int | None = None):
@@ -72,145 +99,196 @@ def _trova_paziente_per_telefono(telefono: str, nutrizionista_id: int | None = N
     return None
 
 
-# ========================
-# PUBBLICO: PRENOTA (/prenota)
-# ========================
-@prenota_public_bp.route("/prenota", methods=["GET", "POST"])
-def prenota_landing():
-    """Pagina pubblica di prenotazione appuntamento."""
-    if request.method == "GET" and session.get("role") == "user":
-        session.clear()
-
-    tenant_id = _default_tenant_id()
-    if tenant_id is None:
+def _render_prenota(utente: Utente | None, *, inviato: bool = False):
+    if utente is None:
         flash("Nessun nutrizionista disponibile per le prenotazioni.", "warning")
         return render_template(
             "public/prenota.html",
             slot_liberi=[],
             tipi=TIPI_PUBBLICI,
             inviato=False,
+            nutrizionista=None,
+            public_slug=None,
         )
 
-    if request.method == "POST":
-        try:
-            nome = (request.form.get("nome") or "").strip()
-            cognome = (request.form.get("cognome") or "").strip()
-            telefono = (request.form.get("telefono") or "").strip()
-            email = (request.form.get("email") or "").strip() or None
-            altezza_raw = (request.form.get("altezza_cm") or "").strip()
-            peso_raw = (request.form.get("peso_iniziale") or "").strip()
-            data_str = request.form.get("data_appuntamento") or ""
-            tipo = request.form.get("tipo") or "altro"
-            note = (request.form.get("note") or "").strip() or None
-
-            if not nome or not cognome or not telefono or not data_str or not altezza_raw or not peso_raw:
-                flash("Compila tutti i campi obbligatori", "warning")
-                return redirect(url_for("prenota_public.prenota_landing", n=tenant_id))
-
-            if not request.form.get("consenso_privacy"):
-                flash("Il consenso privacy è obbligatorio", "warning")
-                return redirect(url_for("prenota_public.prenota_landing", n=tenant_id))
-
-            try:
-                altezza_cm = int(float(altezza_raw.replace(",", ".")))
-                peso_iniziale = float(peso_raw.replace(",", "."))
-            except ValueError:
-                flash("Altezza e peso devono essere numerici", "warning")
-                return redirect(url_for("prenota_public.prenota_landing", n=tenant_id))
-
-            if not (100 <= altezza_cm <= 250):
-                flash("Inserisci un'altezza valida (100–250 cm)", "warning")
-                return redirect(url_for("prenota_public.prenota_landing", n=tenant_id))
-            if not (30 <= peso_iniziale <= 300):
-                flash("Inserisci un peso valido (30–300 kg)", "warning")
-                return redirect(url_for("prenota_public.prenota_landing", n=tenant_id))
-
-            if tipo not in TIPI_PUBBLICI:
-                tipo = "altro"
-
-            if len(normalize_phone(telefono)) < 9:
-                flash("Inserisci un numero di telefono valido", "warning")
-                return redirect(url_for("prenota_public.prenota_landing", n=tenant_id))
-
-            data_appuntamento = datetime.strptime(data_str, "%Y-%m-%d %H:%M:%S")
-            if not AgendaService.is_slot_disponibile(data_appuntamento, utente_id=tenant_id):
-                flash("Questo orario non è più disponibile. Scegline un altro.", "warning")
-                return redirect(url_for("prenota_public.prenota_landing", n=tenant_id))
-
-            note_finale = note
-            if email:
-                note_finale = f"Email: {email}" + (f"\n{note}" if note else "")
-
-            paziente = _trova_paziente_per_telefono(telefono, nutrizionista_id=tenant_id)
-
-            if not paziente:
-                paziente = crea_paziente_provvisorio(
-                    nome,
-                    cognome,
-                    telefono,
-                    altezza_cm=altezza_cm,
-                    peso_iniziale=peso_iniziale,
-                    nutrizionista_id=tenant_id,
-                )
-                db.session.add(paziente)
-                db.session.flush()
-            else:
-                if paziente.stato_cliente == "non_attivo":
-                    paziente.stato_cliente = "provvisorio"
-                if nome and paziente.nome != nome:
-                    paziente.nome = nome
-                if cognome and paziente.cognome != cognome:
-                    paziente.cognome = cognome
-                if paziente.stato_cliente == "provvisorio" or paziente.altezza_cm is None:
-                    paziente.altezza_cm = altezza_cm
-                if paziente.stato_cliente == "provvisorio" or paziente.peso_iniziale is None:
-                    paziente.peso_iniziale = peso_iniziale
-
-            if email:
-                paziente.email = email
-            apply_consents(
-                paziente,
-                consenso_privacy=True,
-                consenso_marketing=bool(request.form.get("consenso_marketing")),
-            )
-
-            nuovo = Appuntamento(
-                patient_id=paziente.id,
-                utente_id=tenant_id,
-                created_by="user",
-                data_appuntamento=data_appuntamento,
-                tipo=tipo,
-                stato="in_attesa",
-                note=note_finale,
-            )
-            db.session.add(nuovo)
-            db.session.commit()
-            flash(
-                "Richiesta inviata. Il nutrizionista la confermerà a breve.",
-                "success",
-            )
-
-            return redirect(url_for("prenota_public.prenota_landing", ok=1, n=tenant_id))
-
-        except PlanLimitError as exc:
-            db.session.rollback()
-            flash(exc.message, "danger")
-            return redirect(url_for("prenota_public.prenota_landing", n=tenant_id))
-        except ValueError:
-            flash("Data o orario non validi", "danger")
-            return redirect(url_for("prenota_public.prenota_landing", n=tenant_id))
-        except Exception as e:
-            db.session.rollback()
-            flash(f"Errore durante l'invio: {e}", "danger")
-            return redirect(url_for("prenota_public.prenota_landing", n=tenant_id))
-
+    tenant_id = int(utente.id)
     slot_liberi = AgendaService.slot_liberi_per_select(utente_id=tenant_id)
     return render_template(
         "public/prenota.html",
         slot_liberi=slot_liberi,
         tipi=TIPI_PUBBLICI,
-        inviato=request.args.get("ok") == "1",
+        inviato=inviato,
+        nutrizionista=utente,
+        public_slug=utente.public_slug,
     )
+
+
+def _handle_prenota_post(utente: Utente):
+    tenant_id = int(utente.id)
+    try:
+        nome = (request.form.get("nome") or "").strip()
+        cognome = (request.form.get("cognome") or "").strip()
+        telefono = (request.form.get("telefono") or "").strip()
+        email = (request.form.get("email") or "").strip() or None
+        altezza_raw = (request.form.get("altezza_cm") or "").strip()
+        peso_raw = (request.form.get("peso_iniziale") or "").strip()
+        data_str = request.form.get("data_appuntamento") or ""
+        tipo = request.form.get("tipo") or "altro"
+        note = (request.form.get("note") or "").strip() or None
+
+        if not nome or not cognome or not telefono or not data_str or not altezza_raw or not peso_raw:
+            flash("Compila tutti i campi obbligatori", "warning")
+            return _prenota_redirect(utente)
+
+        if not request.form.get("consenso_privacy"):
+            flash("Il consenso privacy è obbligatorio", "warning")
+            return _prenota_redirect(utente)
+
+        try:
+            altezza_cm = int(float(altezza_raw.replace(",", ".")))
+            peso_iniziale = float(peso_raw.replace(",", "."))
+        except ValueError:
+            flash("Altezza e peso devono essere numerici", "warning")
+            return _prenota_redirect(utente)
+
+        if not (100 <= altezza_cm <= 250):
+            flash("Inserisci un'altezza valida (100–250 cm)", "warning")
+            return _prenota_redirect(utente)
+        if not (30 <= peso_iniziale <= 300):
+            flash("Inserisci un peso valido (30–300 kg)", "warning")
+            return _prenota_redirect(utente)
+
+        if tipo not in TIPI_PUBBLICI:
+            tipo = "altro"
+
+        if len(normalize_phone(telefono)) < 9:
+            flash("Inserisci un numero di telefono valido", "warning")
+            return _prenota_redirect(utente)
+
+        data_appuntamento = datetime.strptime(data_str, "%Y-%m-%d %H:%M:%S")
+        if not AgendaService.is_slot_disponibile(data_appuntamento, utente_id=tenant_id):
+            flash("Questo orario non è più disponibile. Scegline un altro.", "warning")
+            return _prenota_redirect(utente)
+
+        note_finale = note
+        if email:
+            note_finale = f"Email: {email}" + (f"\n{note}" if note else "")
+
+        paziente = _trova_paziente_per_telefono(telefono, nutrizionista_id=tenant_id)
+
+        if not paziente:
+            paziente = crea_paziente_provvisorio(
+                nome,
+                cognome,
+                telefono,
+                altezza_cm=altezza_cm,
+                peso_iniziale=peso_iniziale,
+                nutrizionista_id=tenant_id,
+            )
+            db.session.add(paziente)
+            db.session.flush()
+        else:
+            if paziente.stato_cliente == "non_attivo":
+                paziente.stato_cliente = "provvisorio"
+            if nome and paziente.nome != nome:
+                paziente.nome = nome
+            if cognome and paziente.cognome != cognome:
+                paziente.cognome = cognome
+            if paziente.stato_cliente == "provvisorio" or paziente.altezza_cm is None:
+                paziente.altezza_cm = altezza_cm
+            if paziente.stato_cliente == "provvisorio" or paziente.peso_iniziale is None:
+                paziente.peso_iniziale = peso_iniziale
+
+        if email:
+            paziente.email = email
+        apply_consents(
+            paziente,
+            consenso_privacy=True,
+            consenso_marketing=bool(request.form.get("consenso_marketing")),
+        )
+
+        nuovo = Appuntamento(
+            patient_id=paziente.id,
+            utente_id=tenant_id,
+            created_by="user",
+            data_appuntamento=data_appuntamento,
+            tipo=tipo,
+            stato="in_attesa",
+            note=note_finale,
+        )
+        db.session.add(nuovo)
+        db.session.commit()
+        flash(
+            "Richiesta inviata. Il nutrizionista la confermerà a breve.",
+            "success",
+        )
+
+        return _prenota_redirect(utente, ok=1)
+
+    except PlanLimitError as exc:
+        db.session.rollback()
+        flash(exc.message, "danger")
+        return _prenota_redirect(utente)
+    except ValueError:
+        flash("Data o orario non validi", "danger")
+        return _prenota_redirect(utente)
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Errore durante l'invio: {e}", "danger")
+        return _prenota_redirect(utente)
+
+
+# ========================
+# PUBBLICO: PRENOTA (/prenota e /prenota/<slug>)
+# ========================
+@prenota_public_bp.route("/prenota", methods=["GET", "POST"])
+def prenota_landing():
+    """Pagina pubblica di prenotazione (legacy ?n=id o primo tenant)."""
+    if request.method == "GET" and session.get("role") == "user":
+        session.clear()
+
+    utente = _default_tenant()
+    if utente is None:
+        return _render_prenota(None)
+
+    # Se ha uno slug, preferisci l'URL canonico
+    if request.method == "GET" and utente.public_slug and not request.args.get("n"):
+        return redirect(
+            url_for(
+                "prenota_public.prenota_by_slug",
+                slug=utente.public_slug,
+                **{k: v for k, v in request.args.items() if k != "n"},
+            )
+        )
+
+    if request.method == "POST":
+        return _handle_prenota_post(utente)
+
+    return _render_prenota(utente, inviato=request.args.get("ok") == "1")
+
+
+@prenota_public_bp.route("/prenota/<slug>", methods=["GET", "POST"])
+def prenota_by_slug(slug: str):
+    """Prenotazione pubblica per nome nutrizionista/studio."""
+    if request.method == "GET" and session.get("role") == "user":
+        session.clear()
+
+    utente = _utente_by_slug(slug)
+    if utente is None:
+        flash("Link di prenotazione non valido o non più disponibile.", "warning")
+        return render_template(
+            "public/prenota.html",
+            slot_liberi=[],
+            tipi=TIPI_PUBBLICI,
+            inviato=False,
+            nutrizionista=None,
+            public_slug=None,
+        ), 404
+
+    if request.method == "POST":
+        return _handle_prenota_post(utente)
+
+    return _render_prenota(utente, inviato=request.args.get("ok") == "1")
 
 
 def admin_required(func):

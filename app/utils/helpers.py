@@ -2,9 +2,43 @@
 Funzioni helper e utility comuni
 """
 
+import re
+import unicodedata
 from datetime import datetime, date
 from flask import flash, redirect, url_for, session
 from functools import wraps
+
+# Segmenti riservati per /prenota/<slug>
+RESERVED_PUBLIC_SLUGS = frozenset(
+    {
+        "admin",
+        "api",
+        "billing",
+        "health",
+        "login",
+        "logout",
+        "static",
+        "super",
+        "webhook",
+        "prenota",
+        "appuntamenti",
+        "nuovo",
+        "ok",
+    }
+)
+
+
+def slugify_public_name(value: str, *, max_length: int = 80) -> str:
+    """Normalizza un nome studio/nutrizionista in slug URL-safe (a-z0-9-)."""
+    text = unicodedata.normalize("NFKD", (value or "").strip())
+    text = "".join(c for c in text if not unicodedata.combining(c))
+    text = text.lower()
+    text = re.sub(r"[^a-z0-9]+", "-", text)
+    text = re.sub(r"-{2,}", "-", text).strip("-")
+    if max_length > 0:
+        text = text[:max_length].rstrip("-")
+    return text
+
 
 def normalize_phone(phone: str) -> str:
     """Normalizza un numero di telefono (rimuove spazi, +39, ecc.)."""

@@ -25,6 +25,21 @@
       color: rgba(255,255,255,0.45);
       font-size: 0.78rem;
     }
+    .slug-preview {
+      margin: 0.4rem 0 0;
+      padding: 0.5rem 0.7rem;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.72);
+      font-size: 0.82rem;
+      word-break: break-all;
+    }
+    .slug-preview strong {
+      color: #fff;
+      font-weight: 700;
+    }
+    .slug-preview.is-empty strong { color: rgba(255,255,255,0.35); font-weight: 500; }
   </style>
 </head>
 <body class="login-body">
@@ -79,6 +94,26 @@
         </div>
 
         <div class="login-field">
+          <label class="login-label" for="nome_studio">Nome nutrizionista / studio</label>
+          <input
+            id="nome_studio"
+            type="text"
+            name="nome_studio"
+            class="login-input"
+            value="{{ nome_studio or '' }}"
+            required
+            minlength="3"
+            maxlength="80"
+            autocomplete="organization"
+            placeholder="Es. Studio Rossi"
+          >
+          <p class="slug-preview is-empty" id="slug-preview" aria-live="polite">
+            Link prenotazione: <strong>/prenota/…</strong>
+          </p>
+          <p class="login-hint">Questo nome diventa il tuo link pubblico di prenotazione.</p>
+        </div>
+
+        <div class="login-field">
           <label class="login-label" for="password">Password</label>
           <input id="password" type="password" name="password" class="login-input" required minlength="8" autocomplete="new-password">
         </div>
@@ -92,5 +127,40 @@
       </form>
     </section>
   </main>
+  <script>
+    (function () {
+      var input = document.getElementById("nome_studio");
+      var preview = document.getElementById("slug-preview");
+      if (!input || !preview) return;
+
+      function slugify(value) {
+        return (value || "")
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/-{2,}/g, "-")
+          .replace(/^-|-$/g, "")
+          .slice(0, 80)
+          .replace(/-$/g, "");
+      }
+
+      function update() {
+        var slug = slugify(input.value);
+        var strong = preview.querySelector("strong");
+        if (!strong) return;
+        if (slug) {
+          strong.textContent = "/prenota/" + slug;
+          preview.classList.remove("is-empty");
+        } else {
+          strong.textContent = "/prenota/…";
+          preview.classList.add("is-empty");
+        }
+      }
+
+      input.addEventListener("input", update);
+      update();
+    })();
+  </script>
 </body>
 </html>

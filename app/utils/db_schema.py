@@ -644,6 +644,16 @@ def ensure_billing_schema() -> None:
                 )
 
             insp = inspect(db.engine)
+            u_cols = _column_names(insp, "utente")
+            if "public_slug" not in u_cols:
+                conn.execute(
+                    text(
+                        "ALTER TABLE utente ADD COLUMN public_slug VARCHAR(80) "
+                        "NULL AFTER needs_password_setup"
+                    )
+                )
+
+            insp = inspect(db.engine)
             u_indexes = _index_names(insp, "utente")
             if "uq_utente_stripe_customer_id" not in u_indexes:
                 try:
@@ -651,6 +661,17 @@ def ensure_billing_schema() -> None:
                         text(
                             "ALTER TABLE utente ADD UNIQUE KEY "
                             "uq_utente_stripe_customer_id (stripe_customer_id)"
+                        )
+                    )
+                except Exception:  # noqa: BLE001
+                    pass
+
+            if "uq_utente_public_slug" not in u_indexes:
+                try:
+                    conn.execute(
+                        text(
+                            "ALTER TABLE utente ADD UNIQUE KEY "
+                            "uq_utente_public_slug (public_slug)"
                         )
                     )
                 except Exception:  # noqa: BLE001

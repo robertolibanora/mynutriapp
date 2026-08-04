@@ -15,9 +15,15 @@
 <div class="ops-panel ops-panel--block">
   <strong>Benvenuto.</strong>
   <span class="text-sm text-muted"> Imposta gli orari settimanali e aggiungi i primi pazienti per iniziare.</span>
+  {% if prenota_url %}
+  <p class="text-sm text-muted" style="margin:0.5rem 0 0;">Il tuo link di prenotazione: <a class="adm-link" href="{{ prenota_url }}" target="_blank" rel="noopener">{{ prenota_url }}</a></p>
+  {% endif %}
   <div class="ops-onboarding-actions">
     <a class="btn btn-ghost btn-small" href="{{ url_for('slot.orari_settimanali') }}">Orari</a>
     <a class="btn btn-ghost btn-small" href="{{ url_for('patients.nuovo_paziente') }}">Nuovo paziente</a>
+    {% if prenota_url %}
+    <a class="btn btn-ghost btn-small" href="{{ prenota_url }}" target="_blank" rel="noopener">Apri prenota</a>
+    {% endif %}
   </div>
 </div>
 {% endif %}

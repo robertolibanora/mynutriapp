@@ -19,7 +19,11 @@ from app.models.diario import Utente
 from app.models.enums import UtenteRuolo
 from app.models.models import db
 from app.services.utente_service import find_utente_by_phone
-from app.utils.helpers import normalize_phone
+from app.utils.helpers import (
+    RESERVED_PUBLIC_SLUGS,
+    normalize_phone,
+    slugify_public_name,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -232,8 +236,9 @@ def complete_account_setup(
     telefono: str,
     password: str,
     password_confirm: str,
+    nome_studio: str = "",
 ) -> Utente:
-    """Completa registrazione post-pagamento: dati + password definitiva."""
+    """Completa registrazione post-pagamento: dati + password + slug pubblico."""
     row = Utente.query.get(utente_id)
     if row is None or not row.is_nutrizionista:
         raise StripeBillingError("Account non trovato")
@@ -245,9 +250,16 @@ def complete_account_setup(
     telefono = normalize_phone(telefono or "")
     password = password or ""
     password_confirm = password_confirm or ""
+    public_slug = slugify_public_name(nome_studio)
 
     if not nome or not cognome:
         raise StripeBillingError("Nome e cognome obbligatori")
+    if not public_slug:
+        raise StripeBillingError("Nome nutrizionista / studio obbligatorio")
+    if len(public_slug) < 3:
+        raise StripeBillingError("Nome studio troppo corto (minimo 3 caratteri)")
+    if public_slug in RESERVED_PUBLIC_SLUGS:
+        raise StripeBillingError("Questo nome non è disponibile, scegline un altro")
     if len(telefono) < 9:
         raise StripeBillingError("Telefono non valido")
     if len(password) < 8:
@@ -259,14 +271,26 @@ def complete_account_setup(
     if other and other.id != row.id:
         raise StripeBillingError("Telefono già in uso")
 
+    slug_taken = (
+        Utente.query.filter(Utente.public_slug == public_slug, Utente.id != row.id)
+        .first()
+    )
+    if slug_taken:
+        raise StripeBillingError(
+            "Questo nome è già in uso. Scegline un altro per il link di prenotazione."
+        )
+
     row.nome = nome[:100]
     row.cognome = cognome[:100]
     row.telefono = telefono
+    row.public_slug = public_slug
     row.password_hash = generate_password_hash(password)
     row.needs_password_setup = False
     row.attivo = True
     db.session.commit()
-    logger.info("Account nutrizionista completato id=%s", row.id)
+    logger.info(
+        "Account nutrizionista completato id=%s slug=%s", row.id, public_slug
+    )
     return row
 
 

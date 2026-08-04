@@ -204,10 +204,15 @@ def completa_account():
                 telefono=request.form.get("telefono") or "",
                 password=request.form.get("password") or "",
                 password_confirm=request.form.get("password_confirm") or "",
+                nome_studio=request.form.get("nome_studio") or "",
             )
         except StripeBillingError as exc:
             flash(str(exc), "danger")
-            return render_template("billing/completa_account.html", utente=utente)
+            return render_template(
+                "billing/completa_account.html",
+                utente=utente,
+                nome_studio=request.form.get("nome_studio") or "",
+            )
 
         from app.routes.auth import establish_utente_session
 
@@ -216,7 +221,14 @@ def completa_account():
         session.modified = True
         return redirect(url_for("dashboard.admin_dashboard"))
 
-    return render_template("billing/completa_account.html", utente=utente)
+    suggested = ""
+    if utente.nome or utente.cognome:
+        suggested = f"{utente.nome or ''} {utente.cognome or ''}".strip()
+    return render_template(
+        "billing/completa_account.html",
+        utente=utente,
+        nome_studio=suggested,
+    )
 
 
 @billing_bp.route("/webhook", methods=["POST"])

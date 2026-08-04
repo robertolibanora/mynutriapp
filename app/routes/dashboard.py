@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, session, redirect, url_for, flash
 from sqlalchemy.orm import joinedload
+from app.models.diario import Utente
 from app.models.models import (
     db,
     Patient,
@@ -138,6 +139,15 @@ def admin_dashboard():
         .all()
     )
 
+    prenota_url = None
+    current_utente = Utente.query.get(int(uid)) if uid else None
+    if current_utente and getattr(current_utente, "public_slug", None):
+        prenota_url = url_for(
+            "prenota_public.prenota_by_slug",
+            slug=current_utente.public_slug,
+            _external=True,
+        )
+
     return render_template(
         'admin/dashboard.html',
         n_appuntamenti_oggi=n_appuntamenti_oggi,
@@ -156,6 +166,7 @@ def admin_dashboard():
         show_onboarding=show_onboarding,
         todo_items=todo_items,
         pazienti_recenti=pazienti_recenti,
+        prenota_url=prenota_url,
     )
 
 
