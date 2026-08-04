@@ -58,6 +58,27 @@ done
 log() { echo "→ $*"; }
 die() { echo "Errore: $*" >&2; exit 1; }
 
+# Output rumoso (flutter/pod/xcodebuild) → log; a schermo solo progresso + errori
+run_quiet() {
+  local label="$1"
+  shift
+  log "$label"
+  if ! "$@" >>"$BUILD_LOG" 2>&1; then
+    echo
+    echo "======== Fallito: $label (vedi $BUILD_LOG) ========"
+    tail -n 40 "$BUILD_LOG" || true
+    echo "===================================================="
+    die "$label fallito"
+  fi
+}
+
+show_online() {
+  local pid="${1:-?}"
+  clear 2>/dev/null || true
+  echo "App online (simulatore iOS sul Mac)"
+  echo "pid Mac: $pid"
+}
+
 # Rimuove resource fork / xattr che fanno fallire codesign
 # ("resource fork, Finder information, or similar detritus not allowed").
 strip_xattrs() {
@@ -84,6 +105,9 @@ case "$APP_DIR" in
 esac
 
 mkdir -p "$LOG_DIR" "$(dirname "$DERIVED_DATA")"
+: >"$BUILD_LOG"
+clear 2>/dev/null || true
+log "Build iOS (log completo: $BUILD_LOG)"
 
 # ── 1) Codice ───────────────────────────────────────────────────────
 if [[ "$DO_PULL" -eq 1 ]]; then
@@ -94,14 +118,14 @@ if [[ "$DO_PULL" -eq 1 ]]; then
     git checkout -- mobile_app/ios/Runner.xcodeproj/project.pbxproj 2>/dev/null || true
     git checkout -- mobile_app/ios/Podfile.lock 2>/dev/null || true
     git pull --ff-only
-  ) || log "Git pull saltato/fallito (continuo con il tree locale)"
+  ) >>"$BUILD_LOG" 2>&1 || log "Git pull saltato/fallito (continuo con il tree locale)"
 fi
 cd "$APP_DIR"
 
 # ── 2) Clean ────────────────────────────────────────────────────────
 if [[ "$DO_CLEAN" -eq 1 ]]; then
-  log "Clean Flutter + DerivedData dedicata + Pods"
-  flutter clean
+  log "Clean Flutter + DerivedData + Pods"
+  flutter clean >>"$BUILD_LOG" 2>&1 || true
   rm -rf "$DERIVED_DATA" \
          "$LOCAL_DD_LINK" \
          "$APP_DIR/build/ios" \
@@ -113,11 +137,13 @@ if [[ "$DO_CLEAN" -eq 1 ]]; then
   rm -f "$APP_DIR/ios/Flutter/Flutter.podspec" \
         "$APP_DIR/ios/Flutter/Generated.xcconfig" \
         "$APP_DIR/ios/Flutter/flutter_export_environment.sh"
+  # flutter clean cancella build/: ricrea il log
+  mkdir -p "$LOG_DIR"
+  : >"$BUILD_LOG"
 fi
 
 # ── 3) Dipendenze Flutter + CocoaPods ───────────────────────────────
-log "Flutter pub get"
-flutter pub get
+run_quiet "Flutter pub get" flutter pub get
 flutter precache --ios >/dev/null 2>&1 || true
 
 if ! grep -q 'enable-swift-package-manager: false' "$APP_DIR/pubspec.yaml"; then
@@ -125,11 +151,7 @@ if ! grep -q 'enable-swift-package-manager: false' "$APP_DIR/pubspec.yaml"; then
 fi
 [[ -f "$APP_DIR/ios/Podfile" ]] || die "ios/Podfile mancante"
 
-log "pod install (CocoaPods — unico gestore dipendenze iOS)"
-(
-  cd "$APP_DIR/ios"
-  pod install
-)
+run_quiet "pod install" bash -c "cd \"$APP_DIR/ios\" && pod install"
 
 [[ -d "$APP_DIR/ios/Pods" ]] || die "Pods/ non generato — pod install fallito"
 [[ -f "$APP_DIR/ios/Pods/Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig" ]] \
@@ -189,25 +211,20 @@ wait_until_booted() {
 
 ensure_simulator() {
   local id="$1" other
-  log "Preparo simulator $id"
+  log "Simulatore $id"
   open -a Simulator >/dev/null 2>&1 || true
 
   if ! is_booted "$id"; then
     while IFS= read -r other; do
       [[ -z "$other" || "$other" == "$id" ]] && continue
-      log "Shutdown altro sim $other"
       xcrun simctl shutdown "$other" 2>/dev/null || true
     done < <(xcrun simctl list devices booted 2>/dev/null | grep -Eo "$uuid_re" || true)
 
-    log "Boot $id"
     xcrun simctl boot "$id" 2>/dev/null || true
-  else
-    log "Simulator già Booted"
   fi
 
   wait_until_booted "$id" || die "simulatore non boota ($id)"
 
-  log "Rimuovo eventuale app precedente dal sim"
   xcrun simctl terminate "$id" "$BUNDLE_ID" 2>/dev/null || true
   xcrun simctl uninstall "$id" "$BUNDLE_ID" 2>/dev/null || true
 }
@@ -228,8 +245,7 @@ else
 fi
 
 # ── 5) Build (DerivedData dedicata) ─────────────────────────────────
-log "Preparo config Flutter (dart-define staging)"
-flutter build ios --simulator --debug --config-only --no-pub \
+run_quiet "Config Flutter (staging)" flutter build ios --simulator --debug --config-only --no-pub \
   --dart-define="API_BASE_URL=$API_BASE_URL" \
   --dart-define="USE_MOCK_DATA=$USE_MOCK_DATA" \
   ${EXTRA_ARGS[@]+"${EXTRA_ARGS[@]}"}
@@ -242,14 +258,13 @@ ln -sfn "$DERIVED_DATA" "$LOCAL_DD_LINK"
 # "Failed to codesign Flutter.framework ... resource fork ... not allowed"
 FLUTTER_BIN="$(command -v flutter)"
 FLUTTER_SDK="$(cd "$(dirname "$FLUTTER_BIN")/.." && pwd)"
-log "Rimuovo xattr (codesign-safe)"
 strip_xattrs \
   "$FLUTTER_SDK/bin/cache/artifacts/engine" \
   "$APP_DIR/ios" \
   "$APP_DIR/build" \
   "$DERIVED_DATA"
 
-log "xcodebuild → DerivedData=$DERIVED_DATA"
+log "xcodebuild…"
 set +e
 (
   cd "$APP_DIR/ios"
@@ -266,14 +281,14 @@ set +e
     CODE_SIGN_IDENTITY=- \
     CODE_SIGNING_REQUIRED=YES \
     build
-) 2>&1 | tee "$BUILD_LOG"
-BUILD_RC=${PIPESTATUS[0]}
+) >>"$BUILD_LOG" 2>&1
+BUILD_RC=$?
 set -e
 
 if [[ "$BUILD_RC" -ne 0 ]]; then
   # Retry una volta dopo strip xattr aggressivo (Desktop/iCloud)
   if grep -qiE 'resource fork|Failed to codesign|Failed to copy Flutter framework' "$BUILD_LOG"; then
-    log "Retry: strip xattr + rebuild (errore codesign/resource fork)"
+    log "Retry xcodebuild (codesign/resource fork)"
     strip_xattrs \
       "$FLUTTER_SDK/bin/cache/artifacts/engine" \
       "$APP_DIR" \
@@ -294,8 +309,8 @@ if [[ "$BUILD_RC" -ne 0 ]]; then
         CODE_SIGN_IDENTITY=- \
         CODE_SIGNING_REQUIRED=YES \
         build
-    ) 2>&1 | tee "$BUILD_LOG"
-    BUILD_RC=${PIPESTATUS[0]}
+    ) >>"$BUILD_LOG" 2>&1
+    BUILD_RC=$?
     set -e
   fi
 fi
@@ -325,8 +340,6 @@ case "$APP" in
   *) die "Rifiuto install: $APP non è sotto la DerivedData dedicata" ;;
 esac
 
-log "Build pronta: $APP"
-
 # Verifica post-build obbligatoria (piano): DK deve essere embeddato
 DK_FW="$APP/Frameworks/DKImagePickerController.framework"
 if [[ ! -d "$DK_FW" ]]; then
@@ -336,7 +349,6 @@ if [[ ! -d "$DK_FW" ]]; then
   otool -L "$APP/Runner" 2>/dev/null | grep -i DK || true
   die "Manca $DK_FW — [CP] Embed Pods Frameworks non ha incorporato DKImagePickerController"
 fi
-log "OK: trovato $DK_FW"
 
 # ── 7) Install + launch (solo questa build) ─────────────────────────
 if [[ -z "${SIM_UDID:-}" ]]; then
@@ -344,16 +356,15 @@ if [[ -z "${SIM_UDID:-}" ]]; then
   [[ -n "$SIM_UDID" ]] || die "nessun simulatore booted per install"
 fi
 
-log "Install esclusivo della build appena compilata"
+log "Install + launch"
 xcrun simctl uninstall "$SIM_UDID" "$BUNDLE_ID" 2>/dev/null || true
 xcrun simctl install "$SIM_UDID" "$APP"
 
-log "Launch $BUNDLE_ID"
 : >"$LAUNCH_LOG"
 set +e
 LAUNCH_OUT="$(xcrun simctl launch "$SIM_UDID" "$BUNDLE_ID" 2>&1)"
 LAUNCH_RC=$?
-printf '%s\n' "$LAUNCH_OUT" | tee "$LAUNCH_LOG"
+printf '%s\n' "$LAUNCH_OUT" >"$LAUNCH_LOG"
 set -e
 
 if [[ "$LAUNCH_RC" -ne 0 ]]; then
@@ -380,7 +391,4 @@ if [[ "$STILL_ALIVE" -eq 0 ]]; then
   die "App non in esecuzione dopo il launch (probabile crash dyld). Vedi $LAUNCH_LOG"
 fi
 
-log "OK — app in esecuzione (pid=${APP_PID:-?})"
-log "Installata da: $APP"
-log "DerivedData: $DERIVED_DATA"
-log "Log build: $BUILD_LOG"
+show_online "${APP_PID:-?}"
