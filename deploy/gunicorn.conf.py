@@ -14,3 +14,17 @@ preload_app = True
 accesslog = "-"
 errorlog = "-"
 capture_output = True
+
+
+def post_fork(server, worker):
+    """Dopo il fork: reset pool SQLAlchemy (connessioni MySQL non sono fork-safe)."""
+    try:
+        from wsgi import app
+        from app.models import db
+
+        with app.app_context():
+            db.session.remove()
+            db.engine.dispose()
+        server.log.info("SQLAlchemy engine disposed after fork (worker pid=%s)", worker.pid)
+    except Exception as exc:
+        server.log.warning("post_fork dispose fallito: %s", exc)

@@ -142,6 +142,14 @@ with app.app_context():
         ensure_super_admin()
     except Exception as e:
         logger.warning(f"⚠️  Impossibile verificare schema/seed multi-tenant al boot: {e}")
+    finally:
+        # Con gunicorn preload_app i worker ereditano lo stato pool del master:
+        # chiudi le connessioni aperte al boot così i worker ne creano di fresche.
+        try:
+            db.session.remove()
+            db.engine.dispose()
+        except Exception:
+            pass
 
 # ===========================================
 # 🛡️ SECURITY HEADERS (zero overhead RAM)

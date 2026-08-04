@@ -86,6 +86,15 @@ class Config:
         f"mysql+pymysql://{quote_plus(DB_USER)}:{quote_plus(DB_PASSWORD)}"
         f"@{DB_HOST}:{DB_PORT}/{DB_NAME}?charset=utf8mb4"
     )
+
+    # Evita 500 intermittenti MySQL (Command Out of Sync / Lost connection)
+    # con gunicorn preload+gthread: ping prima dell'uso e riciclo prima di wait_timeout.
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        "pool_pre_ping": True,
+        "pool_recycle": int(os.getenv("DB_POOL_RECYCLE", "280")),
+        "pool_size": int(os.getenv("DB_POOL_SIZE", "5")),
+        "max_overflow": int(os.getenv("DB_POOL_MAX_OVERFLOW", "10")),
+    }
     
     SQLALCHEMY_TRACK_MODIFICATIONS = _get_bool_env("DB_TRACK_MODIFICATIONS", False)
     
