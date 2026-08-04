@@ -147,10 +147,38 @@ python run.py          # http://127.0.0.1:9091
 - Diete, allenamenti, progressi
 - Integrazione WhatsApp
 
+### Multi-tenant e prenotazione pubblica
+- Dopo il checkout Stripe il nutrizionista sceglie il **nome studio** → viene generato uno `studio_slug` univoco (immutabile)
+- Prenotazione pubblica: `/prenota/<studio_slug>` (senza slug: pagina neutra, nessuna prenotazione)
+- Tenant risolto solo lato server dallo slug (mai da `tenant_id` inviato dal client)
+
+### Primo accesso paziente e password
+- Creazione paziente da admin: invito email SMTP (Hostinger) con token monouso (`invited` → `active`)
+- Deep link app: `/activate-account?token=...` e `/reset-password?token=...` (scheme `mynutriapp://…`)
+- Fallback web se l’app non è installata (stessi URL HTTPS)
+- API: `POST /api/v1/auth/activate-account`, `forgot-password`, `reset-password`
+- Reinvio invito dal gestionale paziente
+
 ### Per pazienti (solo app mobile)
 - Accesso esclusivo dall’app iOS/Android (`mobile_app/`)
 - API JWT su `/api/v1` (diete, allenamenti, appuntamenti, progressi, documenti, GDPR)
 - Il login web (`/login`) è riservato a nutrizionisti e super-admin
+
+### Email (SMTP Hostinger)
+Configura in `.env` (vedi `.env.example`):
+
+```env
+APP_PUBLIC_URL=https://stage.mynutriapp.cloud
+MAIL_SERVER=smtp.hostinger.com
+MAIL_PORT=465
+MAIL_USE_SSL=True
+MAIL_USE_TLS=False
+MAIL_FROM=noreply@tuodominio.it
+MAIL_USERNAME=noreply@tuodominio.it
+MAIL_PASSWORD=your-mailbox-password
+INVITE_TOKEN_EXPIRES_MINUTES=10080
+PASSWORD_RESET_TOKEN_EXPIRES_MINUTES=45
+```
 
 ---
 

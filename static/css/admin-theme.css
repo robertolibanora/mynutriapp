@@ -705,6 +705,34 @@
   font-size: 13px;
 }
 
+.admin-app .form-check {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 0.65rem;
+  margin-bottom: 0.75rem;
+  width: auto;
+  max-width: 40rem;
+}
+
+.admin-app .form-check input[type="checkbox"] {
+  flex: 0 0 auto;
+  width: 1.05rem;
+  height: 1.05rem;
+  margin: 0.15rem 0 0;
+  accent-color: var(--adm-accent, #c45c26);
+  cursor: pointer;
+}
+
+.admin-app .form-check label {
+  margin: 0;
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--adm-text-muted, #d4d4d4);
+  cursor: pointer;
+}
+
 .admin-app .form-actions {
   display: flex;
   gap: 0.5rem;

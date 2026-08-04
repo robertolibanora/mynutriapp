@@ -74,6 +74,25 @@
 </div>
 {% endif %}
 
+{% set acc = paziente.account_status or 'active' %}
+{% if acc == 'invited' and paziente.email %}
+<div class="ops-panel ops-panel--block ph-approval">
+  <span class="text-sm text-muted">Account in attesa di attivazione (invito inviato a {{ paziente.email }}).</span>
+  <form method="POST" action="{{ url_for('patients.reinvia_invito', patient_id=paziente.id) }}" class="form-zero">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <button type="submit" class="btn btn-ghost btn-small">Reinvia invito</button>
+  </form>
+</div>
+{% elif acc == 'disabled' and paziente.email %}
+<div class="ops-panel ops-panel--block ph-approval">
+  <span class="text-sm text-muted">Account non attivo sull'app.</span>
+  <form method="POST" action="{{ url_for('patients.reinvia_invito', patient_id=paziente.id) }}" class="form-zero">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <button type="submit" class="btn btn-ghost btn-small">Invia invito app</button>
+  </form>
+</div>
+{% endif %}
+
 {% if alerti %}
 <div class="ph-alerts">
   {% for alert in alerti[:4] %}

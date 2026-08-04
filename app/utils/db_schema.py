@@ -17,6 +17,7 @@ _RICHIESTE_SCHEMA_OK = False
 _PATIENT_STATO_OK = False
 _GDPR_SCHEMA_OK = False
 _ACTIVITY_NOTES_SCHEMA_OK = False
+_AUTH_TOKENS_SCHEMA_OK = False
 
 
 def ensure_finance_removed() -> None:
@@ -654,6 +655,16 @@ def ensure_billing_schema() -> None:
                 )
 
             insp = inspect(db.engine)
+            u_cols = _column_names(insp, "utente")
+            if "studio_nome" not in u_cols:
+                conn.execute(
+                    text(
+                        "ALTER TABLE utente ADD COLUMN studio_nome VARCHAR(120) "
+                        "NULL AFTER public_slug"
+                    )
+                )
+
+            insp = inspect(db.engine)
             u_indexes = _index_names(insp, "utente")
             if "uq_utente_stripe_customer_id" not in u_indexes:
                 try:
@@ -708,6 +719,70 @@ def ensure_billing_schema() -> None:
     except Exception as exc:  # noqa: BLE001
         db.session.rollback()
         logger.warning("Impossibile aggiornare schema billing: %s", exc)
+
+
+def ensure_auth_tokens_schema() -> None:
+    """Colonne account_status/token_version + tabella auth_secure_tokens."""
+    global _AUTH_TOKENS_SCHEMA_OK
+    if _AUTH_TOKENS_SCHEMA_OK:
+        return
+    try:
+        insp = inspect(db.engine)
+        tables = set(insp.get_table_names())
+        with db.engine.begin() as conn:
+            if "patients" in tables:
+                p_cols = _column_names(insp, "patients")
+                if "account_status" not in p_cols:
+                    conn.execute(
+                        text(
+                            "ALTER TABLE patients ADD COLUMN account_status "
+                            "VARCHAR(20) NOT NULL DEFAULT 'active' AFTER stato_cliente"
+                        )
+                    )
+                insp = inspect(db.engine)
+                p_cols = _column_names(insp, "patients")
+                if "token_version" not in p_cols:
+                    conn.execute(
+                        text(
+                            "ALTER TABLE patients ADD COLUMN token_version "
+                            "INT NOT NULL DEFAULT 0 AFTER account_status"
+                        )
+                    )
+
+            if "auth_secure_tokens" not in tables:
+                conn.execute(
+                    text(
+                        """
+                        CREATE TABLE auth_secure_tokens (
+                          id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                          purpose VARCHAR(32) NOT NULL,
+                          subject_id INT NOT NULL,
+                          token_hash CHAR(64) NOT NULL,
+                          expires_at DATETIME NOT NULL,
+                          used_at DATETIME NULL,
+                          created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                          UNIQUE KEY uq_auth_secure_tokens_hash (token_hash),
+                          KEY ix_auth_secure_tokens_purpose_subject (purpose, subject_id),
+                          KEY ix_auth_secure_tokens_expires (expires_at)
+                        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+                        """
+                    )
+                )
+                logger.info("Creata tabella auth_secure_tokens")
+
+            if "utente" in tables:
+                u_cols = _column_names(inspect(db.engine), "utente")
+                if "studio_nome" not in u_cols:
+                    conn.execute(
+                        text(
+                            "ALTER TABLE utente ADD COLUMN studio_nome VARCHAR(120) "
+                            "NULL AFTER public_slug"
+                        )
+                    )
+        _AUTH_TOKENS_SCHEMA_OK = True
+    except Exception as exc:  # noqa: BLE001
+        db.session.rollback()
+        logger.warning("Impossibile aggiornare schema auth tokens: %s", exc)
 
 
 def ensure_activity_notes_schema() -> None:

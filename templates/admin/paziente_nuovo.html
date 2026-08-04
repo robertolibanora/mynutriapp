@@ -30,8 +30,11 @@
       </div>
 
       <div class="form-group">
-        <label for="password">Password *</label>
-        <input type="password" id="password" name="password" class="input-text" required placeholder="Minimo 6 caratteri">
+        <label for="email">Email *</label>
+        <input type="email" id="email" name="email" class="input-text" required placeholder="paziente@email.it">
+        <p class="text-sm text-muted" style="margin-top:0.35rem;">
+          Il paziente riceverà un invito per creare la propria password (nessuna password impostata qui).
+        </p>
       </div>
 
       <div class="form-group">
@@ -74,12 +77,12 @@
     <h3 style="color: #d4d4d4; margin-bottom: 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.12); padding-bottom: 0.5rem;">
       Consensi GDPR
     </h3>
-    <div class="form-group" style="display:flex;gap:0.6rem;align-items:flex-start;">
-      <input type="checkbox" id="consenso_privacy" name="consenso_privacy" value="1" required style="margin-top:0.25rem;">
+    <div class="form-check">
+      <input type="checkbox" id="consenso_privacy" name="consenso_privacy" value="1" required>
       <label for="consenso_privacy">Consenso privacy (trattamento dati per il servizio) *</label>
     </div>
-    <div class="form-group" style="display:flex;gap:0.6rem;align-items:flex-start;">
-      <input type="checkbox" id="consenso_marketing" name="consenso_marketing" value="1" style="margin-top:0.25rem;">
+    <div class="form-check">
+      <input type="checkbox" id="consenso_marketing" name="consenso_marketing" value="1">
       <label for="consenso_marketing">Consenso marketing (comunicazioni promozionali)</label>
     </div>
   </div>

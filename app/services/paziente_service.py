@@ -64,6 +64,15 @@ def sync_stato_cliente_da_appuntamento(appuntamento: Appuntamento, nuovo_stato: 
 def approva_paziente(paziente: Patient) -> Optional[Appuntamento]:
     """Approva un cliente provvisorio: diventa attivo e conferma l'appuntamento in attesa."""
     paziente.stato_cliente = "attivo"
+    # Se ha email e non è ancora active, invia invito primo accesso
+    status = getattr(paziente, "account_status", None) or "active"
+    if paziente.email and status != "active":
+        try:
+            from app.services.patient_invite_service import send_invite_email
+
+            send_invite_email(paziente)
+        except Exception:  # noqa: BLE001
+            paziente.account_status = "invited"
     pending = (
         Appuntamento.query.filter_by(patient_id=paziente.id, stato="in_attesa")
         .order_by(Appuntamento.data_appuntamento.asc())
@@ -72,7 +81,6 @@ def approva_paziente(paziente: Patient) -> Optional[Appuntamento]:
     if pending:
         pending.stato = "confermato"
     return pending
-
 
 def rifiuta_paziente(paziente: Patient) -> List[Appuntamento]:
     """Rifiuta un cliente provvisorio: diventa non attivo e annulla gli appuntamenti in attesa."""

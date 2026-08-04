@@ -130,8 +130,9 @@ def authenticate(
 
     user = find_patient_by_phone(telefono_n, email=email)
     if user and check_password_hash(user.password_hash, password):
-        stato = getattr(user, "stato_cliente", None) or "attivo"
-        if stato != "attivo":
+        from app.services.patient_invite_service import patient_can_login
+
+        if not patient_can_login(user):
             return AuthResult(
                 status=AuthStatus.INACTIVE,
                 patient=user,
@@ -191,6 +192,7 @@ def patient_public_dict(patient: Patient) -> dict[str, Any]:
         or patient.esami_biochimici,
         "allenamenti_descr": patient.allenamenti_descr,
         "stato_cliente": getattr(patient, "stato_cliente", None) or "attivo",
+        "account_status": getattr(patient, "account_status", None) or "active",
         "nutrizionista_id": patient.nutrizionista_id,
         "consenso_privacy": bool(getattr(patient, "consenso_privacy", False)),
         "consenso_marketing": bool(getattr(patient, "consenso_marketing", False)),

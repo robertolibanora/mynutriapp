@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Attiva account · MyNutriApp</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="login-body">
+    <main class="login-shell">
+        <section class="login-container">
+            <header class="login-brand">
+                <div class="login-brand-copy">
+                    <h1 class="login-title">Crea la tua password</h1>
+                    <p class="login-subtitle">Primo accesso all'app paziente MyNutriApp</p>
+                </div>
+            </header>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+              <div class="login-flashes" role="alert">
+                {% for category, message in messages %}
+                <div class="login-flash login-flash--{{ category }}">{{ message }}</div>
+                {% endfor %}
+              </div>
+              {% endif %}
+            {% endwith %}
+
+            {% if invalid %}
+            <p class="login-subtitle">Richiedi un nuovo invito al tuo nutrizionista.</p>
+            {% else %}
+            <form method="POST" class="login-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <div class="login-field">
+                    <label class="login-label" for="password">Password</label>
+                    <input id="password" type="password" name="password" class="login-input" required minlength="8" autocomplete="new-password">
+                </div>
+                <div class="login-field">
+                    <label class="login-label" for="password_confirm">Conferma password</label>
+                    <input id="password_confirm" type="password" name="password_confirm" class="login-input" required minlength="8" autocomplete="new-password">
+                </div>
+                <button type="submit" class="login-submit">Attiva account</button>
+            </form>
+            {% endif %}
+        </section>
+    </main>
+</body>
+</html>

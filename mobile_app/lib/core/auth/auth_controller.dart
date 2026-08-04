@@ -202,6 +202,71 @@ class AuthController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Richiede reset password. Messaggio sempre generico lato server.
+  Future<String> forgotPassword({required String email}) async {
+    if (Env.useMockData) {
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+      return 'Se l\'indirizzo è registrato, riceverai a breve un\'email con le istruzioni.';
+    }
+    final res = await _api.post<Map<String, dynamic>>(
+      '/api/v1/auth/forgot-password',
+      data: {'email': email.trim()},
+    );
+    final data = res.data ?? {};
+    return (data['message'] as String?) ??
+        'Se l\'indirizzo è registrato, riceverai a breve un\'email con le istruzioni.';
+  }
+
+  Future<String> activateAccount({
+    required String token,
+    required String password,
+    required String passwordConfirm,
+  }) async {
+    if (Env.useMockData) {
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+      return 'Account attivato (demo). Accedi con le nuove credenziali.';
+    }
+    final res = await _api.post<Map<String, dynamic>>(
+      '/api/v1/auth/activate-account',
+      data: {
+        'token': token.trim(),
+        'password': password,
+        'password_confirm': passwordConfirm,
+      },
+    );
+    final data = res.data ?? {};
+    return (data['message'] as String?) ??
+        'Account attivato. Puoi accedere dall\'app.';
+  }
+
+  Future<String> resetPassword({
+    required String token,
+    required String password,
+    required String passwordConfirm,
+  }) async {
+    if (Env.useMockData) {
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+      return 'Password aggiornata (demo). Accedi con la nuova password.';
+    }
+    // Invalida subito eventuali token locali
+    await _tokens.clear();
+    user = null;
+    isDemo = false;
+    notifyListeners();
+
+    final res = await _api.post<Map<String, dynamic>>(
+      '/api/v1/auth/reset-password',
+      data: {
+        'token': token.trim(),
+        'password': password,
+        'password_confirm': passwordConfirm,
+      },
+    );
+    final data = res.data ?? {};
+    return (data['message'] as String?) ??
+        'Password aggiornata. Accedi con la nuova password.';
+  }
+
   Future<void> logout() async {
     await _tokens.clear();
     user = null;

@@ -26,6 +26,7 @@ from app.models.models import (
     Patient,
     db,
 )
+from tests._fixtures import make_nutrizionista
 from app.services.nutrition import (
     NormalizedFood,
     NutritionCalculatorService,
@@ -274,6 +275,7 @@ class MealTotalsTest(DbTestCase):
     """Totale pasto calcolato dal servizio usando dati locali."""
 
     def test_meal_totals_end_to_end(self):
+        nutri = make_nutrizionista()
         patient = Patient(
             password_hash="x",
             telefono="+390000000000",
@@ -283,6 +285,8 @@ class MealTotalsTest(DbTestCase):
             data_nascita=date(1990, 1, 1),
             altezza_cm=180,
             peso_iniziale=80,
+            account_status="active",
+            nutrizionista_id=nutri.id,
         )
         db.session.add(patient)
         db.session.commit()
@@ -303,6 +307,7 @@ class MealTotalsTest(DbTestCase):
         self.assertIn(0, plan_totals["per_day"])
 
     def test_meal_day_range(self):
+        nutri = make_nutrizionista(email="nutri-range@ex.com")
         patient = Patient(
             password_hash="x",
             telefono="+390000000001",
@@ -312,6 +317,8 @@ class MealTotalsTest(DbTestCase):
             data_nascita=date(1992, 2, 2),
             altezza_cm=165,
             peso_iniziale=60,
+            account_status="active",
+            nutrizionista_id=nutri.id,
         )
         db.session.add(patient)
         db.session.commit()
@@ -348,6 +355,7 @@ class DietPlanStatusTest(DbTestCase):
     """Aggiornamento stato bozza ↔ pubblicata."""
 
     def test_update_diet_plan_status(self):
+        nutri = make_nutrizionista(email="nutri-status@ex.com")
         patient = Patient(
             password_hash="x",
             telefono="+390000000000",
@@ -357,6 +365,8 @@ class DietPlanStatusTest(DbTestCase):
             data_nascita=date(1990, 1, 1),
             altezza_cm=180,
             peso_iniziale=80,
+            account_status="active",
+            nutrizionista_id=nutri.id,
         )
         db.session.add(patient)
         db.session.commit()

@@ -54,8 +54,10 @@ class Utente(db.Model):
     needs_password_setup = db.Column(
         db.Boolean, nullable=False, default=False, server_default=db.text("0")
     )
-    # Slug pubblico per /prenota/<public_slug>
+    # Slug pubblico per /prenota/<studio_slug> (colonna storica: public_slug)
     public_slug = db.Column(db.String(80), nullable=True, unique=True)
+    # Nome studio scelto post-Stripe (immutabile lato prodotto insieme allo slug)
+    studio_nome = db.Column(db.String(120), nullable=True)
     creato_il = db.Column(db.DateTime, nullable=False, server_default=db.func.now())
     aggiornato_il = db.Column(
         db.DateTime,
@@ -74,6 +76,15 @@ class Utente(db.Model):
     )
     creatore = db.relationship("Utente", remote_side=[id], foreign_keys=[creato_da])
 
+    # Alias canonico: studio_slug ≡ public_slug (non modificabile dopo il setup)
+    @property
+    def studio_slug(self) -> str | None:
+        return self.public_slug
+
+    @studio_slug.setter
+    def studio_slug(self, value: str | None) -> None:
+        self.public_slug = value
+
     @property
     def is_super_admin(self) -> bool:
         return self.ruolo == UtenteRuolo.SUPER_ADMIN.value
@@ -84,7 +95,6 @@ class Utente(db.Model):
 
     def __repr__(self) -> str:
         return f"<Utente {self.id} {self.ruolo} {self.email}>"
-
 
 class Consultation(db.Model):
     """Colloquio / sessione di diario collegata a un paziente."""

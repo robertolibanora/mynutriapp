@@ -8,15 +8,20 @@ from datetime import datetime, date
 from flask import flash, redirect, url_for, session
 from functools import wraps
 
-# Segmenti riservati per /prenota/<slug>
+# Segmenti riservati per /prenota/<studio_slug>
 RESERVED_PUBLIC_SLUGS = frozenset(
     {
         "admin",
         "api",
+        "activate-account",
+        "attiva",
+        "attiva-account",
         "billing",
+        "forgot-password",
         "health",
         "login",
         "logout",
+        "reset-password",
         "static",
         "super",
         "webhook",
@@ -27,8 +32,14 @@ RESERVED_PUBLIC_SLUGS = frozenset(
     }
 )
 
+# Alias legacy
+RESERVED_STUDIO_SLUGS = RESERVED_PUBLIC_SLUGS
 
-def slugify_public_name(value: str, *, max_length: int = 80) -> str:
+STUDIO_SLUG_MIN_LENGTH = 3
+STUDIO_SLUG_MAX_LENGTH = 80
+
+
+def slugify_public_name(value: str, *, max_length: int = STUDIO_SLUG_MAX_LENGTH) -> str:
     """Normalizza un nome studio/nutrizionista in slug URL-safe (a-z0-9-)."""
     text = unicodedata.normalize("NFKD", (value or "").strip())
     text = "".join(c for c in text if not unicodedata.combining(c))
@@ -38,6 +49,60 @@ def slugify_public_name(value: str, *, max_length: int = 80) -> str:
     if max_length > 0:
         text = text[:max_length].rstrip("-")
     return text
+
+
+def slugify_studio_name(value: str, *, max_length: int = STUDIO_SLUG_MAX_LENGTH) -> str:
+    """Alias di slugify_public_name (nome canonico studio_slug)."""
+    return slugify_public_name(value, max_length=max_length)
+
+
+def validate_studio_slug_base(slug: str) -> str | None:
+    """Valida lo slug base. Ritorna messaggio errore o None se ok."""
+    if not slug:
+        return "Nome nutrizionista / studio obbligatorio"
+    if len(slug) < STUDIO_SLUG_MIN_LENGTH:
+        return f"Nome studio troppo corto (minimo {STUDIO_SLUG_MIN_LENGTH} caratteri)"
+    if len(slug) > STUDIO_SLUG_MAX_LENGTH:
+        return f"Nome studio troppo lungo (massimo {STUDIO_SLUG_MAX_LENGTH} caratteri)"
+    if not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", slug):
+        return "Lo slug può contenere solo lettere, numeri e trattini"
+    if slug in RESERVED_STUDIO_SLUGS:
+        return "Questo nome non è disponibile, scegline un altro"
+    return None
+
+
+def allocate_unique_studio_slug(
+    nome_studio: str,
+    *,
+    exclude_utente_id: int | None = None,
+    max_length: int = STUDIO_SLUG_MAX_LENGTH,
+) -> str:
+    """Genera uno studio_slug univoco; in caso di collisione aggiunge -2, -3, …"""
+    from app.models.diario import Utente
+
+    base = slugify_studio_name(nome_studio, max_length=max_length)
+    err = validate_studio_slug_base(base)
+    if err:
+        raise ValueError(err)
+
+    def _taken(candidate: str) -> bool:
+        q = Utente.query.filter(Utente.public_slug == candidate)
+        if exclude_utente_id is not None:
+            q = q.filter(Utente.id != exclude_utente_id)
+        return q.first() is not None
+
+    if not _taken(base):
+        return base
+
+    n = 2
+    while n < 10000:
+        suffix = f"-{n}"
+        stem = base[: max(1, max_length - len(suffix))].rstrip("-")
+        candidate = f"{stem}{suffix}"
+        if candidate not in RESERVED_STUDIO_SLUGS and not _taken(candidate):
+            return candidate
+        n += 1
+    raise ValueError("Impossibile generare uno slug univoco, scegli un altro nome")
 
 
 def normalize_phone(phone: str) -> str:

@@ -63,6 +63,10 @@
                     <input id="password" type="password" name="password" class="login-input" autocomplete="current-password" required>
                 </div>
 
+                <p class="login-hint" style="text-align:right;margin:-0.25rem 0 0.75rem;">
+                    <a href="{{ url_for('auth.forgot_password') }}">Password dimenticata?</a>
+                </p>
+
                 <button type="submit" class="login-submit">Accedi</button>
             </form>
         </section>

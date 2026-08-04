@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prenota{% if studio_nome or public_slug %} · {{ studio_nome or public_slug|replace('-', ' ')|title }}{% endif %} · MyNutriApp</title>
+
+  <meta name="description" content="Richiedi un appuntamento{% if studio_nome or public_slug %} con {{ studio_nome or public_slug|replace('-', ' ')|title }}{% endif %}. Scegli data e orario disponibili su MyNutriApp.">
+  <meta name="theme-color" content="#0f0f0f">
+  <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f0f0f;
+      --surface: rgba(255, 255, 255, 0.07);
+      --border: rgba(255, 255, 255, 0.14);
+      --border-soft: rgba(255, 255, 255, 0.09);
+      --text: #f2f2f2;
+      --muted: #c4c4c4;
+      --dim: #a3a3a3;
+      --label: #8f8f8f;
+      --danger: #e88a8a;
+      --font: "Manrope", system-ui, sans-serif;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      min-height: 100vh;
+      min-height: 100dvh;
+      color: var(--text);
+      font-family: var(--font);
+      line-height: 1.55;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% -10%, rgba(255, 255, 255, 0.08), transparent 55%),
+        radial-gradient(ellipse 50% 40% at 100% 100%, rgba(255, 255, 255, 0.04), transparent 50%),
+        var(--bg);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      padding: 0.9rem 1.25rem;
+      background: rgba(15, 15, 15, 0.82);
+      border-bottom: 1px solid var(--border-soft);
+      backdrop-filter: blur(14px);
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.65rem;
+      text-decoration: none;
+      color: #fff;
+    }
+
+    .brand-mark {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #000;
+      border: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .brand-mark img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+    }
+
+    .brand-name {
+      font: 800 1.05rem/1 var(--font);
+      letter-spacing: -0.02em;
+    }
+
+    .nav-links { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+
+    .btn-nav {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      padding: 0.55rem 1rem;
+      border-radius: 10px;
+      text-decoration: none;
+      font: 600 0.85rem var(--font);
+      color: var(--muted);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      transition: border-color 0.2s, background 0.2s, color 0.2s;
+    }
+
+    .btn-nav:hover {
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.28);
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-nav--solid {
+      color: #0f0f0f;
+      background: #fff;
+      border-color: #fff;
+    }
+
+    .btn-nav--solid:hover {
+      color: #0f0f0f;
+      background: #eaeaea;
+      border-color: #eaeaea;
+    }
+
+    main {
+      padding: 1.75rem 1rem 2.5rem;
+      display: flex;
+      justify-content: center;
+    }
+
+    .panel {
+      width: 100%;
+      max-width: 520px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 1.85rem 1.5rem 1.5rem;
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(16px);
+    }
+
+    .panel-intro {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .panel-intro h1 {
+      margin: 0;
+      font: 800 1.55rem/1.2 var(--font);
+      letter-spacing: -0.02em;
+      color: #fff;
+    }
+
+    .lead {
+      margin: 0.5rem 0 0;
+      color: var(--dim);
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
+
+    .flash-wrap { margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
+
+    .flash {
+      padding: 0.75rem 0.9rem;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.06);
+      color: #e8e8e8;
+    }
+
+    .flash-success { border-color: rgba(255, 255, 255, 0.22); }
+    .flash-warning { border-color: rgba(255, 255, 255, 0.22); color: #d0d0d0; }
+    .flash-danger { border-color: rgba(232, 138, 138, 0.35); color: var(--danger); }
+
+    .success-box {
+      text-align: center;
+      padding: 1.25rem 0.25rem 0.5rem;
+    }
+
+    .success-box p {
+      color: var(--muted);
+      margin: 0.75rem 0 1.25rem;
+      font-size: 0.95rem;
+    }
+
+    .form-group { margin-bottom: 1rem; }
+
+    label {
+      display: block;
+      margin-bottom: 0.4rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .req { color: #fff; opacity: 0.55; }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 0.85rem 1rem;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(0, 0, 0, 0.28);
+      color: #fff;
+      font-size: 1rem;
+      font-family: inherit;
+      min-height: 48px;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: rgba(255, 255, 255, 0.35);
+      background: rgba(0, 0, 0, 0.4);
+    }
+
+    input::placeholder, textarea::placeholder { color: rgba(255, 255, 255, 0.35); }
+    textarea { min-height: 90px; resize: vertical; }
+    select option { background: #1a1a1a; color: #fff; }
+
+    .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+
+    .btn-submit {
+      width: 100%;
+      margin-top: 0.35rem;
+      padding: 0.95rem 1rem;
+      border: none;
+      border-radius: 12px;
+      background: #fff;
+      color: #0f0f0f;
+      font: 700 1rem var(--font);
+      cursor: pointer;
+      min-height: 52px;
+      transition: transform 0.2s ease, background 0.2s ease;
+    }
+
+    .btn-submit:hover {
+      transform: translateY(-1px);
+      background: #eaeaea;
+    }
+
+    .empty-slots {
+      text-align: center;
+      padding: 1.25rem 0.5rem;
+      color: var(--dim);
+      font-size: 0.95rem;
+    }
+
+    .hint {
+      margin-top: 1.35rem;
+      padding-top: 1.1rem;
+      border-top: 1px solid var(--border-soft);
+      font-size: 0.85rem;
+      color: var(--label);
+      text-align: center;
+    }
+
+    .hint a {
+      color: var(--muted);
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .hint a:hover { color: #fff; }
+
+    footer {
+      text-align: center;
+      padding: 1.1rem 1rem 1.5rem;
+      font-size: 0.82rem;
+      color: var(--label);
+    }
+
+    footer strong {
+      color: var(--dim);
+      font-weight: 700;
+    }
+
+    @media (max-width: 480px) {
+      .row-2 { grid-template-columns: 1fr; }
+      .panel { padding: 1.5rem 1.15rem 1.25rem; }
+      .panel-intro h1 { font-size: 1.35rem; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="{% if public_slug %}{{ url_for('prenota_public.prenota_by_slug', slug=public_slug) }}{% else %}{{ url_for('prenota_public.prenota_landing') }}{% endif %}" class="brand">
+      <span class="brand-mark">
+        <img src="{{ url_for('static', filename='img/logo-128.png') }}" alt="" width="36" height="36" decoding="async">
+      </span>
+      <span class="brand-name">{% if studio_nome %}{{ studio_nome }}{% elif public_slug %}{{ public_slug|replace('-', ' ')|title }}{% else %}MyNutriApp{% endif %}</span>
+    </a>
+    <div class="nav-links">
+      <a href="{{ url_for('presentazione_roberto') }}" class="btn-nav">Chi sono</a>
+      <a href="{{ url_for('auth.login') }}" class="btn-nav btn-nav--solid">Accedi</a>
+    </div>
+  </header>
+
+  <main>
+    <div class="panel">
+      <div class="panel-intro">
+        <h1>Prenota un appuntamento</h1>
+        <p class="lead">{% if studio_nome or public_slug %}Prenota con <strong>{{ studio_nome or public_slug|replace('-', ' ')|title }}</strong>. {% endif %}Scegli uno slot libero e invia la richiesta. Ti confermeremo a breve.</p>
+      </div>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-wrap">
+          {% for category, message in messages %}
+          <div class="flash flash-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      {% endwith %}
+
+      {% if inviato %}
+      <div class="success-box">
+        <p>La tua richiesta è stata registrata. Riceverai conferma sul telefono indicato.</p>
+        <a href="{% if public_slug %}{{ url_for('prenota_public.prenota_by_slug', slug=public_slug) }}{% else %}{{ url_for('prenota_public.prenota_landing') }}{% endif %}" class="btn-nav">Nuova richiesta</a>
+      </div>
+      {% elif slot_liberi %}
+      <form method="POST" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+        <div class="row-2">
+          <div class="form-group">
+            <label for="nome">Nome <span class="req">*</span></label>
+            <input type="text" id="nome" name="nome" required maxlength="100" autocomplete="given-name" placeholder="Mario">
+          </div>
+          <div class="form-group">
+            <label for="cognome">Cognome <span class="req">*</span></label>
+            <input type="text" id="cognome" name="cognome" required maxlength="100" autocomplete="family-name" placeholder="Rossi">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="telefono">Telefono <span class="req">*</span></label>
+          <input type="tel" id="telefono" name="telefono" required maxlength="20" autocomplete="tel" placeholder="3401234567">
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" maxlength="120" autocomplete="email" placeholder="opzionale">
+        </div>
+
+        <div class="row-2">
+          <div class="form-group">
+            <label for="altezza_cm">Altezza (cm) <span class="req">*</span></label>
+            <input type="number" id="altezza_cm" name="altezza_cm" required min="100" max="250" step="1" placeholder="170" inputmode="numeric">
+          </div>
+          <div class="form-group">
+            <label for="peso_iniziale">Peso (kg) <span class="req">*</span></label>
+            <input type="number" id="peso_iniziale" name="peso_iniziale" required min="30" max="300" step="0.1" placeholder="70" inputmode="decimal">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="data_appuntamento">Data e ora <span class="req">*</span></label>
+          <select id="data_appuntamento" name="data_appuntamento" required>
+            <option value="">Seleziona uno slot…</option>
+            {% for slot in slot_liberi %}
+            <option value="{{ slot.data }}">{{ slot.label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="tipo">Tipo di appuntamento <span class="req">*</span></label>
+          <select id="tipo" name="tipo" required>
+            {% for value, label in tipi.items() %}
+            <option value="{{ value }}" {% if value == 'altro' %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="note">Note</label>
+          <textarea id="note" name="note" maxlength="1000" placeholder="Obiettivo, preferenze, altre info…"></textarea>
+        </div>
+
+        <div class="form-group" style="display:flex;gap:0.6rem;align-items:flex-start;">
+          <input type="checkbox" id="consenso_privacy" name="consenso_privacy" value="1" required style="margin-top:0.25rem;">
+          <label for="consenso_privacy" style="font-weight:400;">
+            Acconsento al trattamento dei dati personali per la gestione della prenotazione e del percorso nutrizionale <span class="req">*</span>
+          </label>
+        </div>
+        <div class="form-group" style="display:flex;gap:0.6rem;align-items:flex-start;">
+          <input type="checkbox" id="consenso_marketing" name="consenso_marketing" value="1" style="margin-top:0.25rem;">
+          <label for="consenso_marketing" style="font-weight:400;">
+            Acconsento a ricevere comunicazioni informative/promozionali (opzionale)
+          </label>
+        </div>
+
+        <button type="submit" class="btn-submit">Invia richiesta</button>
+      </form>
+      {% else %}
+      <div class="empty-slots">
+        <p>Al momento non ci sono slot disponibili.</p>
+        <p style="margin-top:0.75rem;">Riprova più tardi oppure contatta direttamente lo studio.</p>
+      </div>
+      {% endif %}
+
+      <p class="hint">
+        Già paziente?
+        <a href="{{ url_for('auth.login') }}">Accedi</a>
+        per gestire i tuoi appuntamenti.
+      </p>
+    </div>
+  </main>
+
+  <footer>
+    © 2026 <strong>MyNutriApp</strong>
+  </footer>
+</body>
+</html>

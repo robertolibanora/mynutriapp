@@ -121,8 +121,6 @@ def admin_dashboard():
         .all()
     )
 
-    show_onboarding = bool(session.pop("show_onboarding", False))
-
     from app.services.activity_service import dashboard_todo_preview
     from app.utils.db_schema import ensure_activity_notes_schema
 
@@ -139,15 +137,6 @@ def admin_dashboard():
         .all()
     )
 
-    prenota_url = None
-    current_utente = Utente.query.get(int(uid)) if uid else None
-    if current_utente and getattr(current_utente, "public_slug", None):
-        prenota_url = url_for(
-            "prenota_public.prenota_by_slug",
-            slug=current_utente.public_slug,
-            _external=True,
-        )
-
     return render_template(
         'admin/dashboard.html',
         n_appuntamenti_oggi=n_appuntamenti_oggi,
@@ -163,11 +152,62 @@ def admin_dashboard():
         data_oggi=_data_italiana(oggi),
         ora_ora=oggi.strftime("%H:%M"),
         oggi=oggi,
-        show_onboarding=show_onboarding,
         todo_items=todo_items,
         pazienti_recenti=pazienti_recenti,
-        prenota_url=prenota_url,
     )
+
+
+# ============================
+# TUTORIAL POST-SETUP
+# ============================
+@dashboard_bp.route("/admin/tutorial")
+def admin_tutorial():
+    """Wizard di benvenuto dopo pagamento + setup profilo."""
+    if session.get("role") not in ("admin", "nutrizionista"):
+        flash("Accesso non autorizzato", "danger")
+        return redirect(url_for("auth.login"))
+
+    if not session.get("show_onboarding"):
+        return redirect(url_for("dashboard.admin_dashboard"))
+
+    uid = require_tenant()
+    utente = Utente.query.get(int(uid)) if uid else None
+    if utente is None:
+        flash("Account non trovato", "danger")
+        return redirect(url_for("auth.login"))
+
+    prenota_url = None
+    studio_slug = getattr(utente, "studio_slug", None) or getattr(
+        utente, "public_slug", None
+    )
+    if studio_slug:
+        prenota_url = url_for(
+            "prenota_public.prenota_by_slug",
+            slug=studio_slug,
+            _external=True,
+        )
+
+    return render_template(
+        "admin/tutorial.html",
+        utente=utente,
+        prenota_url=prenota_url,
+        public_slug=studio_slug,
+        studio_slug=studio_slug,
+        studio_nome=getattr(utente, "studio_nome", None),
+        plan=(getattr(utente, "plan", None) or "starter").capitalize(),
+    )
+
+
+@dashboard_bp.route("/admin/tutorial/done")
+def admin_tutorial_done():
+    """Chiude il tutorial e apre la dashboard."""
+    if session.get("role") not in ("admin", "nutrizionista"):
+        flash("Accesso non autorizzato", "danger")
+        return redirect(url_for("auth.login"))
+
+    session.pop("show_onboarding", None)
+    session.modified = True
+    return redirect(url_for("dashboard.admin_dashboard"))
 
 
 # ============================

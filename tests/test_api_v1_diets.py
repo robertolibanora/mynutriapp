@@ -25,6 +25,7 @@ from app.models.models import (
     Patient,
     db,
 )
+from tests._fixtures import make_nutrizionista
 
 
 class ApiV1DietsTest(unittest.TestCase):
@@ -47,14 +48,17 @@ class ApiV1DietsTest(unittest.TestCase):
         self.ctx.push()
         db.create_all()
 
+        nutri = make_nutrizionista()
         self.patient = Patient(
             nome="Giulia",
             cognome="Rossi",
             telefono="3331234567",
             password_hash=generate_password_hash("secret123"),
             stato_cliente="attivo",
+            account_status="active",
             consenso_registrazione=False,
             consenso_ai=False,
+            nutrizionista_id=nutri.id,
         )
         self.other = Patient(
             nome="Mario",
@@ -62,8 +66,10 @@ class ApiV1DietsTest(unittest.TestCase):
             telefono="3330001111",
             password_hash=generate_password_hash("secret123"),
             stato_cliente="attivo",
+            account_status="active",
             consenso_registrazione=False,
             consenso_ai=False,
+            nutrizionista_id=nutri.id,
         )
         db.session.add_all([self.patient, self.other])
         db.session.flush()
@@ -171,8 +177,10 @@ class ApiV1DietsTest(unittest.TestCase):
             telefono="3335556666",
             password_hash=generate_password_hash("secret123"),
             stato_cliente="attivo",
+            account_status="active",
             consenso_registrazione=False,
             consenso_ai=False,
+            nutrizionista_id=make_nutrizionista().id,
         )
         db.session.add(lonely)
         db.session.commit()

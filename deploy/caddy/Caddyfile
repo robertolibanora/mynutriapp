@@ -30,6 +30,13 @@ www.mynutriapp.cloud {
 stage.mynutriapp.cloud {
 	encode gzip zstd
 
+	# Universal / App Links verification
+	handle /.well-known/* {
+		root * /var/www/staging-mynutriapp/static
+		header Content-Type application/json
+		file_server
+	}
+
 	@static path /static/*
 	handle @static {
 		root * /var/www/staging-mynutriapp/static

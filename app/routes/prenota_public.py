@@ -1,4 +1,8 @@
-"""Landing pubblica: richiesta appuntamento senza login (fuori dalla root)."""
+"""Landing pubblica: richiesta appuntamento senza login (fuori dalla root).
+
+Il tenant è identificato esclusivamente da ``studio_slug`` nell'URL
+``/prenota/<studio_slug>``. ``/prenota`` senza slug è neutro e non crea prenotazioni.
+"""
 
 from datetime import datetime
 from functools import wraps
@@ -17,7 +21,7 @@ from app.utils.db_schema import (
     ensure_patient_stato_schema,
     ensure_richieste_appuntamento_schema,
 )
-from app.utils.helpers import normalize_phone, slugify_public_name
+from app.utils.helpers import normalize_phone, slugify_studio_name
 from app.utils.tenant import assert_patient_tenant, require_tenant, tenant_filter_enabled
 
 prenota_public_bp = Blueprint("prenota_public", __name__)
@@ -36,14 +40,8 @@ def _ensure_schema():
     ensure_richieste_appuntamento_schema()
 
 
-def _utente_attivo(uid: int) -> Utente | None:
-    return Utente.query.filter_by(
-        id=uid, ruolo=UtenteRuolo.NUTRIZIONISTA.value, attivo=True
-    ).first()
-
-
 def _utente_by_slug(slug: str) -> Utente | None:
-    slug = slugify_public_name(slug)
+    slug = slugify_studio_name(slug)
     if not slug:
         return None
     return Utente.query.filter_by(
@@ -51,38 +49,15 @@ def _utente_by_slug(slug: str) -> Utente | None:
     ).first()
 
 
-def _default_tenant() -> Utente | None:
-    """Tenant per /prenota senza slug: ?n=<id> oppure primo nutrizionista attivo."""
-    raw = request.args.get("n") or request.form.get("n")
-    if raw:
-        try:
-            uid = int(raw)
-        except (TypeError, ValueError):
-            uid = None
-        if uid:
-            row = _utente_attivo(uid)
-            if row:
-                return row
-    return (
-        Utente.query.filter_by(ruolo=UtenteRuolo.NUTRIZIONISTA.value, attivo=True)
-        .order_by(Utente.id.asc())
-        .first()
+def _prenota_redirect(utente: Utente, **kwargs):
+    """Redirect verso /prenota/<studio_slug> (tenant obbligatorio)."""
+    slug = utente.studio_slug or utente.public_slug
+    if not slug:
+        flash("Link di prenotazione non configurato per questo studio.", "warning")
+        return redirect(url_for("prenota_public.prenota_landing"))
+    return redirect(
+        url_for("prenota_public.prenota_by_slug", slug=slug, **kwargs)
     )
-
-
-def _prenota_redirect(utente: Utente | None, **kwargs):
-    """Redirect verso /prenota/<slug> se disponibile, altrimenti ?n=id."""
-    if utente is not None and utente.public_slug:
-        return redirect(
-            url_for(
-                "prenota_public.prenota_by_slug",
-                slug=utente.public_slug,
-                **kwargs,
-            )
-        )
-    if utente is not None:
-        kwargs.setdefault("n", int(utente.id))
-    return redirect(url_for("prenota_public.prenota_landing", **kwargs))
 
 
 def _trova_paziente_per_telefono(telefono: str, nutrizionista_id: int | None = None):
@@ -99,27 +74,36 @@ def _trova_paziente_per_telefono(telefono: str, nutrizionista_id: int | None = N
     return None
 
 
-def _render_prenota(utente: Utente | None, *, inviato: bool = False):
+def _studio_display_name(utente: Utente) -> str:
+    return (
+        (getattr(utente, "studio_nome", None) or "").strip()
+        or (utente.studio_slug or utente.public_slug or "").replace("-", " ").title()
+        or f"{utente.nome} {utente.cognome}".strip()
+    )
+
+
+def _render_prenota(utente: Utente | None, *, inviato: bool = False, status: int = 200):
     if utente is None:
-        flash("Nessun nutrizionista disponibile per le prenotazioni.", "warning")
-        return render_template(
-            "public/prenota.html",
-            slot_liberi=[],
-            tipi=TIPI_PUBBLICI,
-            inviato=False,
-            nutrizionista=None,
-            public_slug=None,
+        return (
+            render_template(
+                "public/prenota_neutra.html",
+                message="Link di prenotazione non valido o non più disponibile.",
+            ),
+            status,
         )
 
     tenant_id = int(utente.id)
     slot_liberi = AgendaService.slot_liberi_per_select(utente_id=tenant_id)
+    studio_slug = utente.studio_slug or utente.public_slug
     return render_template(
         "public/prenota.html",
         slot_liberi=slot_liberi,
         tipi=TIPI_PUBBLICI,
         inviato=inviato,
         nutrizionista=utente,
-        public_slug=utente.public_slug,
+        studio_nome=_studio_display_name(utente),
+        studio_slug=studio_slug,
+        public_slug=studio_slug,  # compat template legacy
     )
 
 
@@ -185,6 +169,8 @@ def _handle_prenota_post(utente: Utente):
                 peso_iniziale=peso_iniziale,
                 nutrizionista_id=tenant_id,
             )
+            # Pubblico: non può accedere finché non approvato / invitato
+            paziente.account_status = "disabled"
             db.session.add(paziente)
             db.session.flush()
         else:
@@ -239,51 +225,46 @@ def _handle_prenota_post(utente: Utente):
 
 
 # ========================
-# PUBBLICO: PRENOTA (/prenota e /prenota/<slug>)
+# PUBBLICO: PRENOTA (/prenota e /prenota/<studio_slug>)
 # ========================
 @prenota_public_bp.route("/prenota", methods=["GET", "POST"])
 def prenota_landing():
-    """Pagina pubblica di prenotazione (legacy ?n=id o primo tenant)."""
+    """Pagina neutra: senza studio_slug non si prenota e non si espone alcun tenant."""
     if request.method == "GET" and session.get("role") == "user":
         session.clear()
 
-    utente = _default_tenant()
-    if utente is None:
-        return _render_prenota(None)
-
-    # Se ha uno slug, preferisci l'URL canonico
-    if request.method == "GET" and utente.public_slug and not request.args.get("n"):
-        return redirect(
-            url_for(
-                "prenota_public.prenota_by_slug",
-                slug=utente.public_slug,
-                **{k: v for k, v in request.args.items() if k != "n"},
-            )
+    if request.method == "POST":
+        flash("Per prenotare usa il link completo fornito dal tuo nutrizionista.", "warning")
+        return (
+            render_template(
+                "public/prenota_neutra.html",
+                message="Prenotazione non disponibile senza link dello studio.",
+            ),
+            404,
         )
 
-    if request.method == "POST":
-        return _handle_prenota_post(utente)
-
-    return _render_prenota(utente, inviato=request.args.get("ok") == "1")
+    return (
+        render_template(
+            "public/prenota_neutra.html",
+            message=(
+                "Per prenotare un appuntamento apri il link personale "
+                "del tuo nutrizionista (/prenota/nome-studio)."
+            ),
+        ),
+        404,
+    )
 
 
 @prenota_public_bp.route("/prenota/<slug>", methods=["GET", "POST"])
 def prenota_by_slug(slug: str):
-    """Prenotazione pubblica per nome nutrizionista/studio."""
+    """Prenotazione pubblica per studio_slug (tenant risolto solo lato server)."""
     if request.method == "GET" and session.get("role") == "user":
         session.clear()
 
     utente = _utente_by_slug(slug)
-    if utente is None:
+    if utente is None or not (utente.studio_slug or utente.public_slug):
         flash("Link di prenotazione non valido o non più disponibile.", "warning")
-        return render_template(
-            "public/prenota.html",
-            slot_liberi=[],
-            tipi=TIPI_PUBBLICI,
-            inviato=False,
-            nutrizionista=None,
-            public_slug=None,
-        ), 404
+        return _render_prenota(None, status=404)
 
     if request.method == "POST":
         return _handle_prenota_post(utente)

@@ -111,12 +111,12 @@
       <label for="email">Email</label>
       <input type="email" id="email" name="email" class="input-text" value="{{ paziente.email or '' }}" placeholder="per login e portabilità">
     </div>
-    <div class="form-group" style="display:flex;gap:0.6rem;align-items:flex-start;">
-      <input type="checkbox" id="consenso_privacy" name="consenso_privacy" value="1" {% if paziente.consenso_privacy %}checked{% endif %} style="margin-top:0.25rem;">
+    <div class="form-check">
+      <input type="checkbox" id="consenso_privacy" name="consenso_privacy" value="1" {% if paziente.consenso_privacy %}checked{% endif %}>
       <label for="consenso_privacy">Consenso privacy</label>
     </div>
-    <div class="form-group" style="display:flex;gap:0.6rem;align-items:flex-start;">
-      <input type="checkbox" id="consenso_marketing" name="consenso_marketing" value="1" {% if paziente.consenso_marketing %}checked{% endif %} style="margin-top:0.25rem;">
+    <div class="form-check">
+      <input type="checkbox" id="consenso_marketing" name="consenso_marketing" value="1" {% if paziente.consenso_marketing %}checked{% endif %}>
       <label for="consenso_marketing">Consenso marketing</label>
     </div>
   </div>

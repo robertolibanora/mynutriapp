@@ -128,6 +128,7 @@ with app.app_context():
             ensure_gdpr_schema,
             ensure_multi_tenant_schema,
             ensure_billing_schema,
+            ensure_auth_tokens_schema,
         )
         from app.services.utente_service import ensure_super_admin
 
@@ -137,6 +138,7 @@ with app.app_context():
         ensure_gdpr_schema()
         ensure_multi_tenant_schema()
         ensure_billing_schema()
+        ensure_auth_tokens_schema()
         ensure_super_admin()
     except Exception as e:
         logger.warning(f"⚠️  Impossibile verificare schema/seed multi-tenant al boot: {e}")

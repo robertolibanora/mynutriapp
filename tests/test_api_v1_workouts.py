@@ -19,6 +19,7 @@ os.environ.setdefault("ENCRYPTION_KEY", "x" * 44)
 
 from app.api.v1 import api_v1_bp
 from app.models.models import Allenamento, Patient, db
+from tests._fixtures import make_nutrizionista
 
 
 class ApiV1WorkoutsTest(unittest.TestCase):
@@ -41,14 +42,17 @@ class ApiV1WorkoutsTest(unittest.TestCase):
         self.ctx.push()
         db.create_all()
 
+        nutri = make_nutrizionista()
         self.patient = Patient(
             nome="Giulia",
             cognome="Rossi",
             telefono="3331234567",
             password_hash=generate_password_hash("secret123"),
             stato_cliente="attivo",
+            account_status="active",
             consenso_registrazione=False,
             consenso_ai=False,
+            nutrizionista_id=nutri.id,
         )
         self.other = Patient(
             nome="Mario",
@@ -56,8 +60,10 @@ class ApiV1WorkoutsTest(unittest.TestCase):
             telefono="3330001111",
             password_hash=generate_password_hash("secret123"),
             stato_cliente="attivo",
+            account_status="active",
             consenso_registrazione=False,
             consenso_ai=False,
+            nutrizionista_id=nutri.id,
         )
         db.session.add_all([self.patient, self.other])
         db.session.flush()

@@ -219,7 +219,7 @@ def completa_account():
         establish_utente_session(utente, "nutrizionista", via="stripe_account_setup")
         session["show_onboarding"] = True
         session.modified = True
-        return redirect(url_for("dashboard.admin_dashboard"))
+        return redirect(url_for("dashboard.admin_tutorial"))
 
     suggested = ""
     if utente.nome or utente.cognome:

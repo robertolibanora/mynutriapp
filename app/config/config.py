@@ -297,6 +297,33 @@ class Config:
     EVOLUTION_API_KEY = os.getenv("EVOLUTION_API_KEY")
     EVOLUTION_INSTANCE = os.getenv("EVOLUTION_INSTANCE")
 
+    # ========================================
+    # 🌐 URL pubblici (link email invito / reset)
+    # ========================================
+    # Es. https://stage.mynutriapp.cloud — senza slash finale
+    APP_PUBLIC_URL = os.getenv("APP_PUBLIC_URL", "").rstrip("/")
+    # Opzionale: deep-link / web app pazienti (se diverso da APP_PUBLIC_URL)
+    FRONTEND_URL = os.getenv("FRONTEND_URL", "").rstrip("/") or None
+
+    # ========================================
+    # ✉️ EMAIL SMTP (invito paziente + reset password)
+    # ========================================
+    MAIL_SERVER = os.getenv("MAIL_SERVER", "").strip()
+    MAIL_PORT = int(os.getenv("MAIL_PORT", "587"))
+    MAIL_USE_TLS = _get_bool_env("MAIL_USE_TLS", True)
+    MAIL_USE_SSL = _get_bool_env("MAIL_USE_SSL", False)
+    MAIL_USERNAME = os.getenv("MAIL_USERNAME", "").strip()
+    MAIL_PASSWORD = os.getenv("MAIL_PASSWORD", "").strip()
+    MAIL_FROM = os.getenv("MAIL_FROM", "").strip()
+    MAIL_REPLY_TO = os.getenv("MAIL_REPLY_TO", "").strip()
+    MAIL_TIMEOUT_SEC = float(os.getenv("MAIL_TIMEOUT_SEC", "20"))
+    # Invito primo accesso (default 7 giorni)
+    INVITE_TOKEN_EXPIRES_MINUTES = int(os.getenv("INVITE_TOKEN_EXPIRES_MINUTES", "10080"))
+    # Reset password (default 45 minuti, range 30–60)
+    PASSWORD_RESET_TOKEN_EXPIRES_MINUTES = int(
+        os.getenv("PASSWORD_RESET_TOKEN_EXPIRES_MINUTES", "45")
+    )
+
 
 # ========================================
 # 📁 UPLOAD HELPER FUNCTIONS

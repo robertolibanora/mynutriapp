@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS utente (
     subscription_status VARCHAR(32) NOT NULL DEFAULT 'none',
     needs_password_setup TINYINT(1) NOT NULL DEFAULT 0,
     public_slug VARCHAR(80) NULL,
+    studio_nome VARCHAR(120) NULL,
     creato_il DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     aggiornato_il DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY uq_utente_email (email),
@@ -67,6 +68,8 @@ CREATE TABLE IF NOT EXISTS patients (
     allenamenti_descr TEXT,
     esami_biochimici TEXT,
     email VARCHAR(255) NULL,
+    account_status VARCHAR(20) NOT NULL DEFAULT 'active',
+    token_version INT NOT NULL DEFAULT 0,
     nutrizionista_id INT NOT NULL,
     consenso_registrazione TINYINT(1) NOT NULL DEFAULT 0,
     consenso_ai TINYINT(1) NOT NULL DEFAULT 0,
@@ -471,6 +474,22 @@ CREATE TABLE IF NOT EXISTS diary_entry (
     UNIQUE KEY uq_diary_entry_consultation_id (consultation_id),
     INDEX ix_diary_entry_patient_id (patient_id),
     INDEX ix_diary_entry_revisionato_da (revisionato_da)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ========================================
+-- 📋 TABELLA: auth_secure_tokens (invito / reset password)
+-- ========================================
+CREATE TABLE IF NOT EXISTS auth_secure_tokens (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    purpose VARCHAR(32) NOT NULL COMMENT 'patient_invite|patient_reset|utente_reset',
+    subject_id INT NOT NULL,
+    token_hash CHAR(64) NOT NULL,
+    expires_at DATETIME NOT NULL,
+    used_at DATETIME NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_auth_secure_tokens_hash (token_hash),
+    KEY ix_auth_secure_tokens_purpose_subject (purpose, subject_id),
+    KEY ix_auth_secure_tokens_expires (expires_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ========================================

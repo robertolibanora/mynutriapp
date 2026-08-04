@@ -30,13 +30,14 @@ def access_expires_seconds() -> int:
     return _access_expires()
 
 
-def issue_access_token(*, patient_id: int, name: str) -> str:
+def issue_access_token(*, patient_id: int, name: str, token_version: int = 0) -> str:
     now = datetime.now(timezone.utc)
     payload = {
         "sub": str(patient_id),
         "role": "user",
         "name": name,
         "typ": "access",
+        "ver": int(token_version or 0),
         "iat": now,
         "exp": now + timedelta(seconds=_access_expires()),
         "jti": uuid4().hex,
@@ -44,12 +45,13 @@ def issue_access_token(*, patient_id: int, name: str) -> str:
     return jwt.encode(payload, _secret(), algorithm="HS256")
 
 
-def issue_refresh_token(*, patient_id: int) -> str:
+def issue_refresh_token(*, patient_id: int, token_version: int = 0) -> str:
     now = datetime.now(timezone.utc)
     payload = {
         "sub": str(patient_id),
         "role": "user",
         "typ": "refresh",
+        "ver": int(token_version or 0),
         "iat": now,
         "exp": now + timedelta(seconds=_refresh_expires()),
         "jti": uuid4().hex,
@@ -57,10 +59,16 @@ def issue_refresh_token(*, patient_id: int) -> str:
     return jwt.encode(payload, _secret(), algorithm="HS256")
 
 
-def issue_token_pair(*, patient_id: int, name: str) -> dict[str, Any]:
+def issue_token_pair(
+    *, patient_id: int, name: str, token_version: int = 0
+) -> dict[str, Any]:
     return {
-        "access_token": issue_access_token(patient_id=patient_id, name=name),
-        "refresh_token": issue_refresh_token(patient_id=patient_id),
+        "access_token": issue_access_token(
+            patient_id=patient_id, name=name, token_version=token_version
+        ),
+        "refresh_token": issue_refresh_token(
+            patient_id=patient_id, token_version=token_version
+        ),
         "token_type": "Bearer",
         "expires_in": _access_expires(),
     }
@@ -96,3 +104,11 @@ def patient_id_from_payload(payload: dict[str, Any]) -> int:
         return int(payload["sub"])
     except (KeyError, TypeError, ValueError) as exc:
         raise JwtError("Subject token non valido") from exc
+
+
+def assert_token_version(payload: dict[str, Any], patient) -> None:
+    """Invalida JWT emessi prima di un reset/cambio password."""
+    expected = int(getattr(patient, "token_version", 0) or 0)
+    actual = int(payload.get("ver") or 0)
+    if actual != expected:
+        raise JwtError("Token non più valido")

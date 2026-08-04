@@ -468,56 +468,72 @@ def percorsi_paziente(patient_id):
 def nuovo_paziente():
     if request.method == 'POST':
         try:
-            nome = request.form['nome']
-            cognome = request.form['cognome']
-            sesso = request.form['sesso']
-            data_nascita = request.form['data_nascita']
-            telefono = request.form['telefono']
-            password = request.form['password']
-            altezza = request.form['altezza_cm']
-            peso_iniziale = request.form['peso_iniziale']
-
-            # 🔐 Cripta password
-            password_hash = generate_password_hash(password)
+            from app.services.patient_invite_service import (
+                PatientInviteError,
+                create_patient_with_invite,
+            )
 
             if not request.form.get('consenso_privacy'):
                 flash("Il consenso privacy è obbligatorio", "danger")
                 return render_template('admin/paziente_nuovo.html')
 
-            nuovo = Patient(
-                nome=nome,
-                cognome=cognome,
-                sesso=sesso,
-                data_nascita=data_nascita,
-                telefono=telefono,
-                password_hash=password_hash,
-                altezza_cm=altezza,
-                peso_iniziale=peso_iniziale,
-                stato_cliente='attivo',
+            email = (request.form.get('email') or '').strip()
+            if not email:
+                flash("Email obbligatoria: il paziente riceverà il link per creare la password.", "danger")
+                return render_template('admin/paziente_nuovo.html')
+
+            nuovo = create_patient_with_invite(
+                nome=request.form['nome'],
+                cognome=request.form['cognome'],
+                telefono=request.form['telefono'],
+                email=email,
+                sesso=request.form['sesso'],
+                data_nascita=request.form['data_nascita'],
+                altezza_cm=request.form['altezza_cm'],
+                peso_iniziale=request.form['peso_iniziale'],
                 nutrizionista_id=require_tenant(),
-            )
-            apply_consents(
-                nuovo,
                 consenso_privacy=True,
                 consenso_marketing=bool(request.form.get('consenso_marketing')),
             )
-
-            db.session.add(nuovo)
             db.session.commit()
-            
-            # Audit log
+
             from app.utils.audit import log_audit_event
             log_audit_event('CREATE', 'patient', nuovo.id)
             db.session.commit()
-            
-            flash("Paziente aggiunto con successo ✅", "success")
+
+            flash(
+                "Paziente creato. Inviato invito email per impostare la password ✅",
+                "success",
+            )
             return redirect(url_for('patients.lista_pazienti'))
 
+        except PatientInviteError as e:
+            db.session.rollback()
+            flash(e.message, "danger")
         except Exception as e:
             db.session.rollback()
             flash(f"Errore durante l'aggiunta del paziente: {e}", "danger")
 
     return render_template('admin/paziente_nuovo.html')
+
+
+@patients_bp.route('/<int:patient_id>/reinvia-invito', methods=['POST'])
+@admin_required
+def reinvia_invito(patient_id):
+    from app.services.patient_invite_service import PatientInviteError, resend_invite
+
+    paziente = _get_tenant_patient(patient_id)
+    try:
+        resend_invite(paziente)
+        db.session.commit()
+        flash("Invito reinviato all'email del paziente ✅", "success")
+    except PatientInviteError as e:
+        db.session.rollback()
+        flash(e.message, "warning")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Errore reinvio invito: {e}", "danger")
+    return redirect(url_for('patients.dettaglio_paziente', patient_id=paziente.id))
 
 
 # ========================

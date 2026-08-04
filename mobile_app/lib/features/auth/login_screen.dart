@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/app_scope.dart';
 import '../../core/theme/app_theme.dart';
@@ -114,6 +115,15 @@ class _LoginScreenState extends State<LoginScreen> {
                             : Icons.visibility_off_outlined,
                       ),
                     ),
+                  ),
+                ),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: auth.busy
+                        ? null
+                        : () => context.push('/forgot-password'),
+                    child: const Text('Password dimenticata?'),
                   ),
                 ),
                 if (auth.error != null) ...[

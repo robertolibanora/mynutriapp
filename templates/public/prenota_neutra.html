@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prenota · MyNutriApp</title>
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#0f0f0f">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f0f0f;
+      --text: #f2f2f2;
+      --muted: #a3a3a3;
+      --border: rgba(255, 255, 255, 0.14);
+      --font: "Manrope", system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 2rem 1.25rem;
+      color: var(--text);
+      font-family: var(--font);
+      background:
+        radial-gradient(ellipse 80% 60% at 50% -10%, rgba(255, 255, 255, 0.08), transparent 55%),
+        var(--bg);
+    }
+    .card {
+      max-width: 28rem;
+      width: 100%;
+      padding: 2rem 1.5rem;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.05);
+      text-align: center;
+    }
+    h1 { font-size: 1.35rem; margin-bottom: 0.75rem; }
+    p { color: var(--muted); line-height: 1.55; font-size: 0.98rem; }
+    a {
+      display: inline-block;
+      margin-top: 1.5rem;
+      color: #fff;
+      text-decoration: none;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.65rem 1rem;
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>MyNutriApp</h1>
+    <p>{{ message or "Per prenotare usa il link personale del tuo nutrizionista." }}</p>
+    <a href="{{ url_for('auth.login') }}">Area professionisti</a>
+  </main>
+</body>
+</html>

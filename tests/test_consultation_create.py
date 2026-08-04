@@ -55,6 +55,8 @@ class ConsultationCreateTest(unittest.TestCase):
             password_hash=generate_password_hash("x"),
             consenso_registrazione=False,
             consenso_ai=False,
+            account_status="active",
+            nutrizionista_id=self.owner.id,
         )
         db.session.add(self.patient)
         db.session.commit()

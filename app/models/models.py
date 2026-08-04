@@ -44,6 +44,19 @@ class Patient(db.Model):
         server_default="attivo",
     )
 
+    # 🔐 Stato account app: invited → active; disabled blocca login
+    account_status = db.Column(
+        db.String(20),
+        nullable=False,
+        default="active",
+        server_default="active",
+    )
+
+    # Incrementato a ogni reset/cambio password → invalida JWT precedenti
+    token_version = db.Column(
+        db.Integer, nullable=False, default=0, server_default="0"
+    )
+
     # 📧 Contatto / diario
     email = db.Column(db.String(255), nullable=True)
 
@@ -841,6 +854,31 @@ class Activity(db.Model):
 
     def __repr__(self):
         return f"<Activity {self.id} {self.title}>"
+
+
+# ========================
+#   MODEL: AuthSecureToken (invite / reset password)
+# ========================
+
+class AuthSecureToken(db.Model):
+    """Token monouso con hash SHA-256 (invito paziente o reset password)."""
+
+    __tablename__ = "auth_secure_tokens"
+
+    PURPOSE_PATIENT_INVITE = "patient_invite"
+    PURPOSE_PATIENT_RESET = "patient_reset"
+    PURPOSE_UTENTE_RESET = "utente_reset"
+
+    id = db.Column(db.Integer, primary_key=True)
+    purpose = db.Column(db.String(32), nullable=False, index=True)
+    subject_id = db.Column(db.Integer, nullable=False, index=True)
+    token_hash = db.Column(db.String(64), nullable=False, unique=True)
+    expires_at = db.Column(db.DateTime, nullable=False, index=True)
+    used_at = db.Column(db.DateTime, nullable=True)
+    created_at = db.Column(db.DateTime, nullable=False, server_default=db.func.now())
+
+    def __repr__(self):
+        return f"<AuthSecureToken {self.purpose} subject={self.subject_id}>"
 
 
 # ========================
