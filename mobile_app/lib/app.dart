@@ -5,6 +5,8 @@ import 'core/theme/app_theme.dart';
 import 'features/auth/login_screen.dart';
 import 'features/shell/main_shell.dart';
 
+const _bootBg = Color(0xFF000000);
+
 class MyNutriApp extends StatefulWidget {
   const MyNutriApp({super.key, required this.dependencies});
 
@@ -29,13 +31,17 @@ class _MyNutriAppState extends State<MyNutriApp> {
         title: 'MyNutriApp',
         debugShowCheckedModeBanner: false,
         theme: buildAppTheme(),
+        color: _bootBg,
         home: AnimatedBuilder(
           animation: widget.dependencies.auth,
           builder: (context, _) {
             final auth = widget.dependencies.auth;
             if (auth.bootstrapping) {
               return const Scaffold(
-                body: Center(child: CircularProgressIndicator()),
+                backgroundColor: _bootBg,
+                body: Center(
+                  child: CircularProgressIndicator(color: AppColors.accent),
+                ),
               );
             }
             if (auth.isAuthenticated) {
