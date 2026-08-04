@@ -25,18 +25,6 @@ def admin_required(func):
     return wrapper
 
 
-def user_required(func):
-    """Accesso solo per paziente autenticato"""
-    from functools import wraps
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        if session.get('role') != 'user':
-            flash("Effettua il login come paziente", "warning")
-            return redirect(url_for('auth.login'))
-        return func(*args, **kwargs)
-    return wrapper
-
-
 # ========================
 # ADMIN: PROGRESSI DI UN PAZIENTE
 # ========================
@@ -360,83 +348,3 @@ def modifica_check_nutrizionista(progresso_id):
                          paziente=paziente,
                          misure_antropometriche=misure_antropometriche,
                          composizione_corporea=composizione_corporea)
-
-
-# ========================
-# USER: VISUALIZZA I PROPRI PROGRESSI
-# ========================
-@progressi_bp.route('/user')
-@user_required
-def lista_progressi_user():
-    """Il paziente vede solo i propri progressi"""
-    from app.services.progress_service import list_for_patient
-
-    user_id = session.get('user_id')
-    progressi = list_for_patient(user_id)
-    return render_template('user/progressi_lista.html', progressi=progressi)
-
-
-# ========================
-# USER: DETTAGLIO CHECK
-# ========================
-@progressi_bp.route('/user/dettaglio/<int:progresso_id>')
-@user_required
-def dettaglio_check_user(progresso_id):
-    """Il paziente vede i dettagli completi di un suo check"""
-    user_id = session.get('user_id')
-    progresso = Progresso.query.get_or_404(progresso_id)
-    
-    # Verifica che il check appartenga all'utente
-    if progresso.patient_id != user_id:
-        flash("Non hai accesso a questo check", "danger")
-        return redirect(url_for('progressi.lista_progressi_user'))
-    
-    paziente = progresso.patient
-    
-    # Carica le misure associate se esistono (solo per check nutrizionista)
-    misure_antropometriche = None
-    composizione_corporea = None
-    
-    if progresso.tipo_check == 'nutrizionista':
-        # Prendi il primo elemento se esiste (dovrebbe essere sempre uno per check)
-        misure_antropometriche = progresso.misure_antropometriche_rel[0] if progresso.misure_antropometriche_rel else None
-        composizione_corporea = progresso.composizione_corporea_rel[0] if progresso.composizione_corporea_rel else None
-    
-    return render_template('user/dettaglio_check.html', 
-                         progresso=progresso, 
-                         paziente=paziente,
-                         misure_antropometriche=misure_antropometriche,
-                         composizione_corporea=composizione_corporea)
-
-
-# ========================
-# USER: INSERISCI CHECK PERSONALE (facoltativo)
-# ========================
-@progressi_bp.route('/user/nuovo', methods=['GET', 'POST'])
-@user_required
-def nuovo_progresso_user():
-    """Il paziente può inserire un proprio check (peso + note base)"""
-    user_id = session.get('user_id')
-
-    if request.method == 'POST':
-        from app.services.progress_service import (
-            ProgressValidationError,
-            create_for_patient,
-        )
-
-        try:
-            create_for_patient(
-                user_id,
-                peso_settimanale=request.form.get('peso_settimanale'),
-                frequenza_allenamenti=request.form.get('frequenza_allenamenti'),
-                aderenza=request.form.get('aderenza'),
-            )
-            flash("Check inviato ✅", "success")
-            return redirect(url_for('progressi.lista_progressi_user'))
-        except ProgressValidationError as e:
-            flash(str(e), "danger")
-        except Exception as e:
-            db.session.rollback()
-            flash(f"Errore durante l'invio: {e}", "danger")
-
-    return render_template('user/progresso_nuovo.html')

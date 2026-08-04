@@ -1,10 +1,10 @@
 # MyNutriApp — mobile (Flutter)
 
-App paziente iOS/Android. UI allineata all’identità di `style_user.css` (dark + accent `#ff9a56`, Manrope).
+App paziente iOS/Android (canale unico per i pazienti). UI dark + accent `#ff9a56`, Manrope.
 
-Logo ufficiale: `assets/branding/logo.png` — widget `AppLogo` / `AppBrandHeader` in `lib/widgets/app_logo.dart`. Icone launcher Android/iOS/web generate dallo stesso asset.
+Logo ufficiale: `assets/branding/logo.png` — widget `AppLogo` / `AppBrandHeader` in `lib/widgets/app_logo.dart`. Icone launcher Android/iOS generate dallo stesso asset.
 
-Al momento le feature usano **dati mock** locali. Il login API (`POST /api/v1/auth/login`) resta predisposto; per navigare senza backend usa **Entra in demo**.
+Login API: `POST /api/v1/auth/login`. Per navigare senza backend usa **Entra in demo** (`USE_MOCK_DATA=true`).
 
 ## Setup
 
@@ -52,24 +52,9 @@ Dev locale:
 flutter run --dart-define=API_BASE_URL=http://10.0.2.2:5000 --dart-define=USE_MOCK_DATA=true
 ```
 
-## Preview iPhone (PWA web)
-
-Build e URL:
-
-```bash
-export PATH="$HOME/development/flutter/bin:$PATH"
-cd mobile_app
-flutter build web --release --base-href=/m/ \
-  --dart-define=API_BASE_URL=https://stage.mynutriapp.cloud \
-  --dart-define=USE_MOCK_DATA=false
-```
-
-Poi apri su iPhone (QR): https://stage.mynutriapp.cloud/static/img/mobile-qr.html  
-App: https://stage.mynutriapp.cloud/m/
-
 ## Navigazione
 
-Bottom nav: Home · Dieta · Appuntamenti · Progressi · Profilo  
+Bottom nav: Home · Progressi · Prenota · Profilo (come area paziente web).
 
 Da **Profilo → Privacy e dati (GDPR)**:
 - stato consenso privacy / marketing

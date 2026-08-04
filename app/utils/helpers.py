@@ -33,16 +33,6 @@ def admin_required(func):
         return func(*args, **kwargs)
     return wrapper
 
-def user_required(func):
-    """Decorator per accesso riservato all'utente loggato"""
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        if session.get('role') != 'user':
-            flash("Effettua il login come paziente", "warning")
-            return redirect(url_for('auth.login'))
-        return func(*args, **kwargs)
-    return wrapper
-
 def format_date(date_obj, format_str='%d/%m/%Y'):
     """Formatta una data"""
     if isinstance(date_obj, str):

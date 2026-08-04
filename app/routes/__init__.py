@@ -1,6 +1,6 @@
 """
 Registrazione blueprint — staging multi-tenant.
-Paziente + API mobile + admin nutrizionista + super admin.
+API mobile paziente + admin nutrizionista + super admin.
 """
 
 def register_blueprints(app):
@@ -27,12 +27,10 @@ def register_blueprints(app):
     from .super_admin import super_admin_bp
     from .billing import billing_bp
     from .landing import landing_bp
-    from .mobile_web import mobile_web_bp
     from .attivita import attivita_bp
     from app.api.v1 import api_v1_bp
 
     app.register_blueprint(landing_bp)
-    app.register_blueprint(mobile_web_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(api_v1_bp)
     app.register_blueprint(dashboard_bp)

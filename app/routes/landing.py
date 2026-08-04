@@ -17,7 +17,9 @@ def landing():
     """Serve la landing ufficiale. Utenti già loggati → dashboard corretta."""
     role = session.get("role")
     if role == "user":
-        return redirect(url_for("dashboard.user_dashboard"))
+        # Sessione paziente legacy: non esiste più un portale web
+        session.clear()
+        return redirect(url_for("auth.login"))
     if role == "nutrizionista":
         return redirect(url_for("dashboard.admin_dashboard"))
     if role == "super_admin":

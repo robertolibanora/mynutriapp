@@ -3,10 +3,6 @@ from sqlalchemy.orm import joinedload
 from app.models.models import (
     db,
     Patient,
-    Dieta,
-    DietPlan,
-    Allenamento,
-    Progresso,
     Appuntamento,
     RichiestaAppuntamento,
 )
@@ -211,59 +207,4 @@ def admin_impostazioni():
         patient_retention_days=Config.PATIENT_DATA_RETENTION_DAYS,
         audio_retention_days=Config.AUDIO_RETENTION_DAYS,
         audit_retention_days=Config.AUDIT_LOG_RETENTION_DAYS,
-    )
-
-
-# ============================
-# PROFILO USER (alias path pubblico)
-# ============================
-@dashboard_bp.route('/user/profilo')
-def user_profilo():
-    """Alias /user/profilo (il blueprint patients ha prefix /admin/pazienti)."""
-    from app.routes.patients import profilo_user
-    return profilo_user()
-
-
-# ============================
-# DASHBOARD USER
-# ============================
-@dashboard_bp.route('/user/dashboard')
-def user_dashboard():
-    if session.get('role') != 'user':
-        flash("Effettua il login", "warning")
-        return redirect(url_for('auth.login'))
-
-    user_id = session.get('user_id')
-    if not user_id:
-        flash("Sessione non valida", "danger")
-        return redirect(url_for('auth.login'))
-
-    paziente = Patient.query.get_or_404(user_id)
-
-    ultima_dieta = Dieta.query.filter_by(patient_id=user_id).order_by(Dieta.created_at.desc()).first()
-
-    ultimo_diet_plan = (
-        DietPlan.query.filter_by(patient_id=user_id, status="published")
-        .order_by(DietPlan.created_at.desc())
-        .first()
-    )
-
-    ultimo_allenamento = Allenamento.query.filter_by(patient_id=user_id).order_by(Allenamento.created_at.desc()).first()
-
-    ultimo_progresso = Progresso.query.filter_by(patient_id=user_id).order_by(Progresso.data_check.desc()).first()
-
-    oggi = datetime.now()
-    prossimo_appuntamento = Appuntamento.query.filter(
-        Appuntamento.patient_id == user_id,
-        Appuntamento.data_appuntamento >= oggi
-    ).order_by(Appuntamento.data_appuntamento.asc()).first()
-
-    return render_template(
-        'user/dashboard.html',
-        paziente=paziente,
-        ultima_dieta=ultima_dieta,
-        ultimo_diet_plan=ultimo_diet_plan,
-        ultimo_allenamento=ultimo_allenamento,
-        ultimo_progresso=ultimo_progresso,
-        prossimo_appuntamento=prossimo_appuntamento
     )

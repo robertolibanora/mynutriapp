@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, session, send_from_directory, abort
 import os
 from datetime import date
-from app.models.models import db, Dieta, Patient
+from app.models.models import db, Dieta
 from app.config.config import get_full_path
 from app.utils.tenant import assert_resource_patient_tenant, get_tenant_patient_or_404
 
@@ -27,35 +27,17 @@ def admin_required(func):
     return wrapper
 
 
-def user_required(func):
-    """Permette l'accesso solo agli user (pazienti)"""
-    from functools import wraps
-
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        if session.get('role') != 'user':
-            flash("Effettua il login", "warning")
-            return redirect(url_for('auth.login'))
-        return func(*args, **kwargs)
-    return wrapper
-
-
 # ========================
 # SERVIRE FILE DIETA
 # ========================
 @diete_bp.route('/file/<int:dieta_id>')
 def serve_file(dieta_id):
-    """Serve un file dieta con controllo accessi"""
+    """Serve un file dieta con controllo accessi (solo staff)."""
     dieta = Dieta.query.get_or_404(dieta_id)
-    
-    # Controllo accessi
-    user_role = session.get('role')
-    user_id = session.get('user_id')
-    
-    if user_role in ('admin', 'nutrizionista'):
-        assert_resource_patient_tenant(dieta)
-    elif not (user_role == 'user' and dieta.patient_id == user_id):
+
+    if session.get('role') not in ('admin', 'nutrizionista'):
         abort(403)
+    assert_resource_patient_tenant(dieta)
 
     file_path = get_full_path(dieta.pdf_path)
     if os.path.exists(file_path):
@@ -114,30 +96,3 @@ def elimina_dieta(dieta_id):
         flash(f"Errore durante l'eliminazione: {e}", "danger")
 
     return redirect(url_for('diete.diete_paziente', patient_id=patient_id))
-
-
-# ========================
-# LISTA DIETE USER (le proprie diete)
-# ========================
-@diete_bp.route('/user/')
-@user_required
-def lista_diete_user():
-    """Mostra le diete del paziente loggato"""
-    from datetime import datetime
-    
-    user_id = session.get('user_id')
-    if not user_id:
-        flash("Sessione non valida", "danger")
-        return redirect(url_for('auth.login'))
-    
-    paziente = Patient.query.get_or_404(user_id)
-    from app.services.diet_service import list_for_patient
-
-    listed = list_for_patient(user_id)
-    return render_template(
-        'user/diete_lista.html',
-        paziente=paziente,
-        diete=listed["pdf_diete"],
-        diet_plans=listed["plans"],
-        now=datetime.now().date(),
-    )

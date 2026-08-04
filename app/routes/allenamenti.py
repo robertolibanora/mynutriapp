@@ -40,19 +40,6 @@ def admin_required(func):
     return wrapper
 
 
-def user_required(func):
-    """Permette l'accesso solo agli user (pazienti)"""
-    from functools import wraps
-
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        if session.get('role') != 'user':
-            flash("Effettua il login", "warning")
-            return redirect(url_for('auth.login'))
-        return func(*args, **kwargs)
-    return wrapper
-
-
 def allowed_file(filename):
     """Controlla estensione file"""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -86,16 +73,12 @@ def _salva_allenamento(patient_id, data_inizio, data_fine, note, file):
 # ========================
 @allenamenti_bp.route('/file/<int:allenamento_id>')
 def serve_file(allenamento_id):
-    """Serve un file allenamento con controllo accessi"""
+    """Serve un file allenamento con controllo accessi (solo staff)."""
     allenamento = Allenamento.query.get_or_404(allenamento_id)
-    
-    user_role = session.get('role')
-    user_id = session.get('user_id')
-    
-    if user_role in ('admin', 'nutrizionista'):
-        assert_resource_patient_tenant(allenamento)
-    elif not (user_role == 'user' and allenamento.patient_id == user_id):
+
+    if session.get('role') not in ('admin', 'nutrizionista'):
         abort(403)
+    assert_resource_patient_tenant(allenamento)
 
     file_path = get_full_path(allenamento.pdf_path)
     if os.path.exists(file_path):
@@ -243,30 +226,3 @@ def elimina_allenamento(allenamento_id):
     if next_url:
         return redirect(next_url)
     return redirect(url_for('allenamenti.lista_allenamenti'))
-
-
-# ========================
-# LISTA ALLENAMENTI USER (i propri allenamenti)
-# ========================
-@allenamenti_bp.route('/user/')
-@user_required
-def lista_allenamenti_user():
-    """Mostra gli allenamenti del paziente loggato"""
-    from datetime import datetime
-
-    from app.services.workout_service import list_for_patient
-
-    user_id = session.get('user_id')
-    if not user_id:
-        flash("Sessione non valida", "danger")
-        return redirect(url_for('auth.login'))
-
-    paziente = Patient.query.get_or_404(user_id)
-    allenamenti = list_for_patient(user_id)
-
-    return render_template(
-        'user/allenamenti_lista.html',
-        paziente=paziente,
-        allenamenti=allenamenti,
-        now=datetime.now().date(),
-    )

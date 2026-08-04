@@ -14,7 +14,6 @@ from functools import wraps
 
 from flask import (
     Blueprint,
-    abort,
     flash,
     redirect,
     render_template,
@@ -28,7 +27,6 @@ from app.services.nutrition import NutritionCalculatorService
 from app.utils.db_schema import ensure_nutrition_schema
 from app.utils.tenant import (
     assert_diet_plan_tenant,
-    assert_patient_tenant,
     get_tenant_patient_or_404,
     patients_query_for_tenant,
     require_tenant,
@@ -47,17 +45,6 @@ def admin_required(func):
     def wrapper(*args, **kwargs):
         if session.get("role") not in ('admin', 'nutrizionista'):
             flash("Accesso non autorizzato", "danger")
-            return redirect(url_for("auth.login"))
-        return func(*args, **kwargs)
-
-    return wrapper
-
-
-def login_required(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        if session.get("role") not in ("admin", "nutrizionista", "user"):
-            flash("Effettua il login", "warning")
             return redirect(url_for("auth.login"))
         return func(*args, **kwargs)
 
@@ -205,41 +192,3 @@ def diet_plan_detail(diet_plan_id):
     )
 
 
-# ========================
-# PAZIENTE: VISTA DIETA (read-only)
-# ========================
-
-@diete_plans_bp.route("/paziente/diet-plans/<int:diet_plan_id>")
-@login_required
-def user_diet_plan(diet_plan_id):
-    """Vista read-only del piano.
-
-    - Il paziente vede SOLO i propri piani.
-    - L'admin può aprire qualsiasi piano come anteprima.
-    """
-    plan = DietPlan.query.get_or_404(diet_plan_id)
-
-    role = session.get("role")
-    if role == "user":
-        if plan.patient_id != session.get("user_id"):
-            abort(403)
-        if plan.status != "published":
-            abort(404)
-    elif role in ('admin', 'nutrizionista'):
-        assert_diet_plan_tenant(plan)
-    else:
-        abort(403)
-
-    paziente = Patient.query.get_or_404(plan.patient_id)
-    if role in ('admin', 'nutrizionista'):
-        assert_patient_tenant(paziente)
-    totals = _build_totals(plan)
-    is_preview = role in ('admin', 'nutrizionista')
-    return render_template(
-        "user/diet_plan_detail.html",
-        plan=plan,
-        paziente=paziente,
-        totals=totals,
-        targets=_build_targets(plan),
-        is_preview=is_preview,
-    )

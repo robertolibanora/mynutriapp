@@ -17,23 +17,6 @@ if not ADMIN_PHONE:
     raise ValueError("❌ ADMIN_PHONE deve essere definita in .env (seed super_admin)")
 
 
-def _login_as_patient(user, *, via: str = "web"):
-    session.clear()
-    session['role'] = 'user'
-    session['user_id'] = user.id
-    session['name'] = f"{user.nome} {user.cognome}".strip()
-    session.permanent = True
-    session.modified = True
-
-    log_audit_event(
-        'LOGIN',
-        'system',
-        details={'user_type': 'user', 'user_id': user.id, 'via': via},
-    )
-    db.session.commit()
-    return redirect(url_for('dashboard.user_dashboard'))
-
-
 def establish_utente_session(utente, role: str, *, via: str) -> None:
     """Imposta la sessione web per super_admin / nutrizionista (senza redirect)."""
     session.clear()
@@ -92,7 +75,11 @@ def login():
             return redirect(url_for("auth.login"))
 
         if result.status == AuthStatus.OK_USER and result.patient is not None:
-            return _login_as_patient(result.patient, via="web")
+            flash(
+                "L'area paziente è disponibile solo dall'app mobile.",
+                "warning",
+            )
+            return redirect(url_for("auth.login"))
 
         telefono_n = result.telefono_normalized or normalize_phone(telefono)
         log_audit_event(

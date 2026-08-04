@@ -58,20 +58,6 @@ def admin_required(func):
     return wrapper
 
 
-def user_required(func):
-    """Permette l'accesso solo agli user (pazienti)"""
-    from functools import wraps
-
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        if session.get('role') != 'user':
-            flash("Effettua il login", "warning")
-            return redirect(url_for('auth.login'))
-        return func(*args, **kwargs)
-
-    return wrapper
-
-
 def _get_tenant_patient(patient_id: int) -> Patient:
     paziente = Patient.query.get_or_404(patient_id)
     assert_patient_tenant(paziente)
@@ -662,68 +648,6 @@ def erasure_paziente(patient_id):
         db.session.rollback()
         flash(f"Errore oblio: {e}", "danger")
     return redirect(url_for('patients.lista_pazienti'))
-
-
-# ========================
-# PROFILO USER (i propri dati)
-# ========================
-@patients_bp.route('/user/profilo')
-@user_required
-def profilo_user():
-    """Mostra il profilo del paziente loggato"""
-    user_id = session.get('user_id')
-    if not user_id:
-        flash("Sessione non valida", "danger")
-        return redirect(url_for('auth.login'))
-    
-    paziente = Patient.query.get_or_404(user_id)
-    # Decrittografa campi sensibili per visualizzazione user
-    paziente.patologie = paziente.patologie_decrypted
-    paziente.intolleranze = paziente.intolleranze_decrypted
-    paziente.esami_biochimici = paziente.esami_biochimici_decrypted
-    
-    return render_template('user/profilo.html', paziente=paziente)
-
-
-@patients_bp.route('/user/profilo/export')
-@user_required
-def export_profilo_user():
-    user_id = session.get('user_id')
-    if not user_id:
-        flash("Sessione non valida", "danger")
-        return redirect(url_for('auth.login'))
-    paziente = Patient.query.get_or_404(user_id)
-    from app.utils.audit import log_audit_event
-
-    payload = export_as_json_bytes(paziente)
-    log_audit_event('EXPORT', 'patient', paziente.id)
-    db.session.commit()
-    return Response(
-        payload,
-        mimetype='application/json',
-        headers={'Content-Disposition': f'attachment; filename=miei_dati_{paziente.id}.json'},
-    )
-
-
-@patients_bp.route('/user/profilo/erasure', methods=['POST'])
-@user_required
-def request_erasure_user():
-    user_id = session.get('user_id')
-    if not user_id:
-        flash("Sessione non valida", "danger")
-        return redirect(url_for('auth.login'))
-    paziente = Patient.query.get_or_404(user_id)
-    try:
-        request_erasure(paziente)
-        db.session.commit()
-        flash("Richiesta di cancellazione registrata. Il professionista la elaborerà a breve.", "success")
-    except GdprError as e:
-        db.session.rollback()
-        flash(str(e), "warning")
-    except Exception as e:
-        db.session.rollback()
-        flash(f"Errore: {e}", "danger")
-    return redirect(url_for('patients.profilo_user'))
 
 
 # ========================

@@ -1,6 +1,6 @@
 # 🥗 MyNutriApp
 
-Applicazione web completa per la gestione di pazienti nutrizionisti, sviluppata con Flask e progettata con approccio mobile-first.
+Piattaforma per nutrizionisti (area web Flask) e pazienti (app mobile Flutter via API `/api/v1`).
 
 ## 🚀 Quick Start - Deploy su VPS (systemd)
 
@@ -147,10 +147,10 @@ python run.py          # http://127.0.0.1:9091
 - Diete, allenamenti, progressi
 - Integrazione WhatsApp
 
-### Per pazienti
-- Dashboard personale
-- Diete, allenamenti, appuntamenti
-- Upload documenti e progressi
+### Per pazienti (solo app mobile)
+- Accesso esclusivo dall’app iOS/Android (`mobile_app/`)
+- API JWT su `/api/v1` (diete, allenamenti, appuntamenti, progressi, documenti, GDPR)
+- Il login web (`/login`) è riservato a nutrizionisti e super-admin
 
 ---
 

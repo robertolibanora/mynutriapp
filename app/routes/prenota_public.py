@@ -79,7 +79,7 @@ def _trova_paziente_per_telefono(telefono: str, nutrizionista_id: int | None = N
 def prenota_landing():
     """Pagina pubblica di prenotazione appuntamento."""
     if request.method == "GET" and session.get("role") == "user":
-        return redirect(url_for("dashboard.user_dashboard"))
+        session.clear()
 
     tenant_id = _default_tenant_id()
     if tenant_id is None:

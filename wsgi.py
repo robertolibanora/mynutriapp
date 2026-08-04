@@ -165,29 +165,15 @@ def set_security_headers(response):
     # Content-Security-Policy - Base (può essere esteso)
     # Nota: CSP può rompere app se troppo restrittivo, quindi base
     # blob: + unsafe-eval: landing Noira bundled (spacchetta template via eval)
-    # /m/ = Flutter web PWA (wasm + connect API)
-    if request.path.startswith('/m/'):
-        csp = (
-            "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob:; "
-            "style-src 'self' 'unsafe-inline' blob: https://fonts.googleapis.com; "
-            "font-src 'self' data: blob: https://fonts.gstatic.com; "
-            "img-src 'self' data: blob: https:; "
-            "media-src 'self' data: blob:; "
-            "connect-src 'self'; "
-            "worker-src 'self' blob:;"
-        )
-    else:
-        csp = (
-            "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; "
-            "style-src 'self' 'unsafe-inline' blob: https://fonts.googleapis.com; "
-            "font-src 'self' data: blob: https://fonts.gstatic.com; "
-            "img-src 'self' data: blob:; "
-            "media-src 'self' data: blob:; "
-            "worker-src 'self' blob:;"
-        )
-    response.headers['Content-Security-Policy'] = csp
+    response.headers['Content-Security-Policy'] = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; "
+        "style-src 'self' 'unsafe-inline' blob: https://fonts.googleapis.com; "
+        "font-src 'self' data: blob: https://fonts.gstatic.com; "
+        "img-src 'self' data: blob:; "
+        "media-src 'self' data: blob:; "
+        "worker-src 'self' blob:;"
+    )
     
     # Referrer-Policy
     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
@@ -195,7 +181,7 @@ def set_security_headers(response):
     # Permissions-Policy (ex Feature-Policy)
     response.headers['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=()'
 
-    # CORS per API mobile (Flutter web / debug cross-origin). Native iOS non usa CORS,
+    # CORS per API mobile (debug cross-origin). Native iOS non usa CORS,
     # ma OPTIONS preflight e Origin da localhost devono funzionare in QA.
     if request.path.startswith('/api/v1'):
         origin = request.headers.get('Origin') or '*'

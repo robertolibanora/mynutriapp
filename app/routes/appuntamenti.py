@@ -30,18 +30,6 @@ def admin_required(func):
     return wrapper
 
 
-def user_required(func):
-    """Accesso riservato all’utente loggato"""
-    from functools import wraps
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        if session.get('role') != 'user':
-            flash("Effettua il login come paziente", "warning")
-            return redirect(url_for('auth.login'))
-        return func(*args, **kwargs)
-    return wrapper
-
-
 # ========================
 # ADMIN: TUTTI GLI APPUNTAMENTI
 # ========================
@@ -176,75 +164,8 @@ def elimina_admin(id):
 
 
 # ========================
-# USER: VISUALIZZA I PROPRI APPUNTAMENTI
-# ========================
-@appuntamenti_bp.route('/user')
-@user_required
-def lista_user():
-    """Mostra gli appuntamenti del paziente loggato"""
-    from datetime import datetime
-
-    from app.services.appointment_service import list_for_patient
-
-    user_id = session.get('user_id')
-    appuntamenti = list_for_patient(user_id)
-    return render_template('user/appuntamenti_lista.html', appuntamenti=appuntamenti, now=datetime.now())
-
-
-# ========================
-# USER: PRENOTA UN APPUNTAMENTO
-# ========================
-@appuntamenti_bp.route('/user/prenota', methods=['GET', 'POST'])
-@user_required
-def prenota_user():
-    """Il paziente può prenotare scegliendo una data disponibile"""
-    from datetime import datetime
-    
-    user_id = session.get('user_id')
-
-    if request.method == 'POST':
-        try:
-            data_appuntamento_str = request.form['data_appuntamento']
-            tipo = request.form['tipo']
-            note = request.form.get('note')
-            
-            paziente = Patient.query.get(user_id)
-            uid = paziente.nutrizionista_id if paziente else None
-            data_appuntamento = datetime.strptime(data_appuntamento_str, '%Y-%m-%d %H:%M:%S')
-            if not AgendaService.is_slot_disponibile(data_appuntamento, utente_id=uid):
-                flash("Questo orario non è più disponibile", "warning")
-                return redirect(request.url)
-
-            nuovo = Appuntamento(
-                patient_id=user_id,
-                utente_id=uid,
-                created_by='user',
-                data_appuntamento=data_appuntamento,
-                tipo=tipo,
-                stato='in_attesa',
-                note=note
-            )
-
-            db.session.add(nuovo)
-            db.session.commit()
-            flash("Richiesta di appuntamento inviata", "success")
-            return redirect(url_for('appuntamenti.lista_user'))
-
-        except Exception as e:
-            db.session.rollback()
-            flash(f"Errore: {e}", "danger")
-
-    paziente = Patient.query.get(user_id)
-    uid = paziente.nutrizionista_id if paziente else None
-    slot_liberi = AgendaService.slot_liberi_per_select(utente_id=uid)
-    return render_template('user/appuntamento_prenota.html', slot_liberi=slot_liberi)
-
-# ========================
 # ADMIN: VISTA CALENDARIO MENSILE
 # ========================
-from datetime import date
-import calendar
-
 @appuntamenti_bp.route('/admin/calendario')
 @admin_required
 def calendario_admin():
