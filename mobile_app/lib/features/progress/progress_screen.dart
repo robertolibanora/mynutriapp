@@ -6,6 +6,7 @@ import '../../core/app_scope.dart';
 import '../../core/config/env.dart';
 import '../../core/theme/app_theme.dart';
 import '../../widgets/empty_placeholder.dart';
+import 'register_check_screen.dart';
 
 class ProgressScreen extends StatefulWidget {
   const ProgressScreen({super.key});
@@ -17,6 +18,7 @@ class ProgressScreen extends StatefulWidget {
 class _ProgressScreenState extends State<ProgressScreen> {
   late final ProgressApi _api;
   Future<List<ProgressPoint>>? _future;
+  List<ProgressPoint>? _demoPoints;
   int? _touchedIndex;
 
   @override
@@ -26,37 +28,40 @@ class _ProgressScreenState extends State<ProgressScreen> {
     _future ??= _load();
   }
 
+  List<ProgressPoint> _seedDemo() {
+    final now = DateTime.now();
+    return [
+      ProgressPoint(
+        id: 1,
+        date: now.subtract(const Duration(days: 21)),
+        weight: 72.5,
+        aderenza: '7',
+      ),
+      ProgressPoint(
+        id: 2,
+        date: now.subtract(const Duration(days: 14)),
+        weight: 71.9,
+        aderenza: '8',
+      ),
+      ProgressPoint(
+        id: 3,
+        date: now.subtract(const Duration(days: 7)),
+        weight: 71.3,
+        aderenza: '9',
+      ),
+      ProgressPoint(
+        id: 4,
+        date: now,
+        weight: 70.7,
+        aderenza: '10',
+      ),
+    ];
+  }
+
   Future<List<ProgressPoint>> _load() async {
     final auth = AppScope.of(context).auth;
     if (Env.useMockData || auth.isDemo) {
-      // Serie demo per anteprima grafico.
-      final now = DateTime.now();
-      return [
-        ProgressPoint(
-          id: 1,
-          date: now.subtract(const Duration(days: 21)),
-          weight: 72.5,
-          aderenza: '7',
-        ),
-        ProgressPoint(
-          id: 2,
-          date: now.subtract(const Duration(days: 14)),
-          weight: 71.9,
-          aderenza: '8',
-        ),
-        ProgressPoint(
-          id: 3,
-          date: now.subtract(const Duration(days: 7)),
-          weight: 71.3,
-          aderenza: '9',
-        ),
-        ProgressPoint(
-          id: 4,
-          date: now,
-          weight: 70.7,
-          aderenza: '10',
-        ),
-      ];
+      return List<ProgressPoint>.from(_demoPoints ??= _seedDemo());
     }
     return _api.listProgress();
   }
@@ -67,6 +72,35 @@ class _ProgressScreenState extends State<ProgressScreen> {
       _future = _load();
     });
     await _future;
+  }
+
+  Future<void> _openRegister(List<ProgressPoint> points) async {
+    final initial = points.isNotEmpty ? points.last.weight : null;
+    final created = await Navigator.of(context).push<ProgressPoint>(
+      MaterialPageRoute<ProgressPoint>(
+        builder: (_) => RegisterCheckScreen(initialWeight: initial),
+      ),
+    );
+    if (created == null || !mounted) return;
+
+    final auth = AppScope.of(context).auth;
+    if (Env.useMockData || auth.isDemo) {
+      final base = List<ProgressPoint>.from(_demoPoints ??= _seedDemo());
+      // Sostituisci check dello stesso giorno se presente.
+      final day = DateTime(created.date.year, created.date.month, created.date.day);
+      base.removeWhere((p) {
+        final d = DateTime(p.date.year, p.date.month, p.date.day);
+        return d == day;
+      });
+      base.add(created);
+      base.sort((a, b) => a.date.compareTo(b.date));
+      _demoPoints = base;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Check registrato.')),
+    );
+    await _reload();
   }
 
   @override
@@ -108,50 +142,119 @@ class _ProgressScreenState extends State<ProgressScreen> {
           }
 
           final points = snap.data ?? const <ProgressPoint>[];
-          if (points.isEmpty) {
-            return RefreshIndicator(
-              color: AppColors.accent,
-              onRefresh: _reload,
-              child: ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: const [
-                  SizedBox(
-                    height: 480,
-                    child: EmptyPlaceholder(
-                      icon: Icons.show_chart_outlined,
-                      message: 'Nessun progresso da mostrare ancora',
-                    ),
-                  ),
-                ],
+          return Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+                child: _RegisterCta(onTap: () => _openRegister(points)),
               ),
-            );
-          }
-
-          return RefreshIndicator(
-            color: AppColors.accent,
-            onRefresh: _reload,
-            child: ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
-              children: [
-                _SummaryHeader(points: points),
-                const SizedBox(height: 18),
-                _WeightChart(
-                  points: points,
-                  touchedIndex: _touchedIndex,
-                  onTouched: (i) => setState(() => _touchedIndex = i),
-                ),
-                const SizedBox(height: 20),
-                if (_touchedIndex != null &&
-                    _touchedIndex! >= 0 &&
-                    _touchedIndex! < points.length)
-                  _TouchedCard(point: points[_touchedIndex!])
-                else
-                  _TouchedCard(point: points.last, label: 'Ultimo check'),
-              ],
-            ),
+              Expanded(
+                child: points.isEmpty
+                    ? RefreshIndicator(
+                        color: AppColors.accent,
+                        onRefresh: _reload,
+                        child: ListView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          children: const [
+                            SizedBox(
+                              height: 420,
+                              child: EmptyPlaceholder(
+                                icon: Icons.show_chart_outlined,
+                                message:
+                                    'Nessun progresso ancora.\nRegistra il primo check.',
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : RefreshIndicator(
+                        color: AppColors.accent,
+                        onRefresh: _reload,
+                        child: ListView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
+                          children: [
+                            _SummaryHeader(points: points),
+                            const SizedBox(height: 18),
+                            _WeightChart(
+                              points: points,
+                              touchedIndex: _touchedIndex,
+                              onTouched: (i) =>
+                                  setState(() => _touchedIndex = i),
+                            ),
+                            const SizedBox(height: 20),
+                            if (_touchedIndex != null &&
+                                _touchedIndex! >= 0 &&
+                                _touchedIndex! < points.length)
+                              _TouchedCard(point: points[_touchedIndex!])
+                            else
+                              _TouchedCard(
+                                point: points.last,
+                                label: 'Ultimo check',
+                              ),
+                          ],
+                        ),
+                      ),
+              ),
+            ],
           );
         },
+      ),
+    );
+  }
+}
+
+class _RegisterCta extends StatelessWidget {
+  const _RegisterCta({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.accent,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+          child: Row(
+            children: [
+              Icon(Icons.add_chart_rounded, color: Color(0xFF1A0F08), size: 26),
+              SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Registra check',
+                      style: TextStyle(
+                        color: Color(0xFF1A0F08),
+                        fontWeight: FontWeight.w800,
+                        fontSize: 16,
+                      ),
+                    ),
+                    SizedBox(height: 2),
+                    Text(
+                      'Aggiorna peso e aderenza di questa settimana',
+                      style: TextStyle(
+                        color: Color(0xFF3A2416),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 16,
+                color: Color(0xFF1A0F08),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

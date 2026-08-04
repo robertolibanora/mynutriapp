@@ -52,6 +52,29 @@ class ProgressApi {
     return points;
   }
 
+  /// Registra un check paziente (peso obbligatorio).
+  Future<ProgressPoint> createCheck({
+    required double pesoSettimanale,
+    int? aderenza,
+    String? frequenzaAllenamenti,
+  }) async {
+    final body = <String, dynamic>{
+      'peso_settimanale': pesoSettimanale,
+      'aderenza': ?aderenza,
+      if (frequenzaAllenamenti != null && frequenzaAllenamenti.isNotEmpty)
+        'frequenza_allenamenti': frequenzaAllenamenti,
+    };
+    final res = await _client.post<Map<String, dynamic>>(
+      '/api/v1/progress',
+      data: body,
+    );
+    final data = res.data;
+    if (data == null) {
+      throw StateError('Risposta create progress vuota');
+    }
+    return ProgressPoint.fromJson(data);
+  }
+
   static String messageFromError(Object error) {
     if (error is DioException) {
       final data = error.response?.data;
