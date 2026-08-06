@@ -412,6 +412,207 @@ class NutritionService:
         db.session.commit()
         return item
 
+    def update_meal_item(self, item_id: int, data: Dict[str, Any]) -> DietMealItem:
+        """Aggiorna la quantità (grammi) di un alimento nel pasto."""
+        item = db.session.get(DietMealItem, item_id)
+        if item is None:
+            raise ResourceNotFoundError(f"Alimento nel pasto {item_id} inesistente")
+        meal = db.session.get(DietMeal, item.diet_meal_id)
+        if meal is not None:
+            plan = db.session.get(DietPlan, meal.diet_plan_id)
+            if plan is not None:
+                _assert_plan_tenant_access(plan)
+
+        if "quantity_g" not in data:
+            raise NutritionServiceError("quantity_g è obbligatorio")
+        quantity_g = self._num(data.get("quantity_g"))
+        if quantity_g is None or quantity_g <= 0:
+            raise NutritionServiceError("quantity_g deve essere un numero positivo")
+
+        item.quantity_g = quantity_g
+        if "notes" in data:
+            item.notes = data.get("notes") or None
+        db.session.commit()
+        return item
+
+    def ensure_day_meals(self, diet_plan_id: int, data: Dict[str, Any]) -> List[DietMeal]:
+        """Crea i pasti mancanti per un giorno (1-based in input)."""
+        plan = db.session.get(DietPlan, diet_plan_id)
+        if plan is None:
+            raise ResourceNotFoundError(f"Piano dieta {diet_plan_id} inesistente")
+        _assert_plan_tenant_access(plan)
+
+        day_1based = int(data.get("day") or 1)
+        if day_1based < 1:
+            raise NutritionServiceError("day deve essere >= 1")
+        day_idx = day_1based - 1
+
+        meal_names = data.get("meals") or [
+            "Colazione",
+            "Spuntino",
+            "Pranzo",
+            "Cena",
+        ]
+        if not isinstance(meal_names, list) or not meal_names:
+            raise NutritionServiceError("meals deve essere una lista non vuota")
+
+        existing_names = {
+            (m.meal_name or "").strip().lower()
+            for m in plan.meals
+            if self._meal_covers_day(m, day_idx)
+        }
+
+        created: List[DietMeal] = []
+        for raw_name in meal_names:
+            name = (raw_name or "").strip()
+            if not name:
+                continue
+            if name.lower() in existing_names:
+                continue
+            meal = DietMeal(
+                diet_plan_id=plan.id,
+                day_index=day_idx,
+                day_index_to=day_idx,
+                meal_name=name,
+            )
+            db.session.add(meal)
+            created.append(meal)
+            existing_names.add(name.lower())
+
+        if created:
+            db.session.commit()
+            for meal in created:
+                db.session.refresh(meal)
+        return created
+
+    def copy_day(self, diet_plan_id: int, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Copia i pasti di un giorno su altri giorni (input 1-based).
+
+        Per ogni destinazione: se esiste già un pasto con lo stesso nome che
+        copre quel giorno, viene eliminato e sostituito da un pasto single-day
+        con gli stessi alimenti.
+        """
+        plan = db.session.get(DietPlan, diet_plan_id)
+        if plan is None:
+            raise ResourceNotFoundError(f"Piano dieta {diet_plan_id} inesistente")
+        _assert_plan_tenant_access(plan)
+
+        from_day_1 = int(data.get("from_day") or 0)
+        if from_day_1 < 1:
+            raise NutritionServiceError("from_day deve essere >= 1")
+        from_idx = from_day_1 - 1
+
+        raw_to = data.get("to_days") or []
+        if not isinstance(raw_to, list) or not raw_to:
+            raise NutritionServiceError("to_days deve essere una lista non vuota")
+
+        to_indices: List[int] = []
+        for raw in raw_to:
+            day_1 = int(raw)
+            if day_1 < 1:
+                raise NutritionServiceError("ogni giorno in to_days deve essere >= 1")
+            if day_1 == from_day_1:
+                continue
+            idx = day_1 - 1
+            if idx not in to_indices:
+                to_indices.append(idx)
+
+        if not to_indices:
+            raise NutritionServiceError("Seleziona almeno un giorno destinazione diverso dalla sorgente")
+
+        source_meals = [m for m in plan.meals if self._meal_covers_day(m, from_idx)]
+        if not source_meals:
+            raise NutritionServiceError(f"Nessun pasto da copiare dal giorno {from_day_1}")
+
+        source_ids = {m.id for m in source_meals}
+        # Snapshot item sorgente prima delle delete sulle destinazioni
+        snapshots = []
+        for meal in source_meals:
+            day_from = meal.day_index or 0
+            day_to = meal.day_index_to if meal.day_index_to is not None else day_from
+            if day_to < day_from:
+                day_to = day_from
+            snapshots.append({
+                "source_id": meal.id,
+                "meal_name": meal.meal_name,
+                "meal_time": meal.meal_time,
+                "notes": meal.notes,
+                "covers_days": set(range(day_from, day_to + 1)),
+                "items": [
+                    {
+                        "food_id": item.food_id,
+                        "quantity_g": item.quantity_g,
+                        "notes": item.notes,
+                    }
+                    for item in meal.items
+                ],
+            })
+
+        created_meals: List[DietMeal] = []
+        replaced = 0
+        skipped = 0
+        for to_idx in to_indices:
+            for snap in snapshots:
+                # Pasto range già presente sulla destinazione: niente da fare
+                if to_idx in snap["covers_days"]:
+                    skipped += 1
+                    continue
+
+                name_key = (snap["meal_name"] or "").strip().lower()
+                to_replace = [
+                    m for m in list(plan.meals)
+                    if m.id not in source_ids
+                    and self._meal_covers_day(m, to_idx)
+                    and (m.meal_name or "").strip().lower() == name_key
+                ]
+                for old in to_replace:
+                    db.session.delete(old)
+                    replaced += 1
+                db.session.flush()
+
+                new_meal = DietMeal(
+                    diet_plan_id=plan.id,
+                    day_index=to_idx,
+                    day_index_to=to_idx,
+                    meal_name=snap["meal_name"],
+                    meal_time=snap["meal_time"],
+                    notes=snap["notes"],
+                )
+                db.session.add(new_meal)
+                db.session.flush()
+                for item_data in snap["items"]:
+                    db.session.add(DietMealItem(
+                        diet_meal_id=new_meal.id,
+                        food_id=item_data["food_id"],
+                        quantity_g=item_data["quantity_g"],
+                        notes=item_data["notes"],
+                    ))
+                created_meals.append(new_meal)
+
+        if not created_meals and skipped:
+            raise NutritionServiceError(
+                "I pasti del giorno sorgente coprono già le destinazioni selezionate "
+                "(intervallo condiviso). Nessuna copia necessaria."
+            )
+
+        db.session.commit()
+        return {
+            "from_day": from_day_1,
+            "to_days": [i + 1 for i in to_indices],
+            "meals_created": len(created_meals),
+            "meals_replaced": replaced,
+            "meals_skipped": skipped,
+            "meals": [diet_meal_to_dict(m) for m in created_meals],
+        }
+
+    @staticmethod
+    def _meal_covers_day(meal: DietMeal, day_idx: int) -> bool:
+        day_from = meal.day_index or 0
+        day_to = meal.day_index_to if meal.day_index_to is not None else day_from
+        if day_to < day_from:
+            day_to = day_from
+        return day_from <= day_idx <= day_to
+
     # ==================================================================
     # TOTALI (delegati al calcolatore)
     # ==================================================================

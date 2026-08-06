@@ -2516,10 +2516,24 @@
   margin-bottom: 1.25rem;
 }
 
+.admin-app .diet-goals-card--sticky {
+  position: sticky;
+  top: 4.75rem; /* sotto la topbar sticky */
+  z-index: 40;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(8px);
+}
+
 .admin-app .diet-goals-title {
   margin: 0 0 0.85rem;
   font-size: 1.05rem;
   font-weight: 800;
+}
+
+.admin-app .diet-goals-sub {
+  margin: 0.2rem 0 0;
+  font-size: 0.78rem;
+  color: var(--adm-text-dim);
 }
 
 .admin-app .diet-summary--goals {
@@ -2596,20 +2610,138 @@
   letter-spacing: 0.04em;
 }
 
+.admin-app .diet-day-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.admin-app .diet-day-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.admin-app .diet-day-tab {
+  min-width: 2.4rem;
+  height: 2.2rem;
+  padding: 0 0.7rem;
+  border-radius: 10px;
+  border: 1px solid var(--adm-border);
+  background: var(--adm-surface);
+  color: var(--adm-text-muted);
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.admin-app .diet-day-tab:hover {
+  border-color: var(--adm-accent);
+  color: var(--adm-text);
+}
+
+.admin-app .diet-day-tab.is-active {
+  background: var(--adm-accent);
+  border-color: var(--adm-accent);
+  color: #111;
+}
+
+.admin-app .diet-day-actions {
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.admin-app .diet-day-toolbar {
+  margin-bottom: 1rem;
+}
+
+.admin-app .diet-meal-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.admin-app .diet-meal-chips-label {
+  color: var(--adm-text-dim);
+  font-size: 0.8rem;
+  margin-right: 0.15rem;
+}
+
+.admin-app .diet-chip {
+  border: 1px solid var(--adm-border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--adm-text);
+  border-radius: 999px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.admin-app .diet-chip:hover {
+  border-color: var(--adm-accent);
+  color: var(--adm-accent);
+}
+
+.admin-app .diet-chip--custom {
+  border-style: dashed;
+  color: var(--adm-text-muted);
+}
+
+.admin-app .diet-day-empty {
+  text-align: center;
+  padding: 2rem 1.25rem;
+  border: 1px dashed var(--adm-border);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  margin-bottom: 1rem;
+}
+
+.admin-app .diet-day-empty-title {
+  margin: 0 0 0.35rem;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--adm-text);
+}
+
+.admin-app .diet-day-empty-text {
+  margin: 0 0 1rem;
+  color: var(--adm-text-muted);
+  font-size: 0.9rem;
+}
+
+.admin-app .diet-shared-badge {
+  display: inline-block;
+  margin-left: 0.45rem;
+  padding: 0.12rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--adm-border-soft);
+  color: var(--adm-text-muted);
+  font-size: 0.7rem;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
 .admin-app .diet-meal {
   background: var(--adm-surface);
   border: 1px solid var(--adm-border);
-  border-radius: 14px;
-  padding: 1.2rem;
-  margin-bottom: 1.2rem;
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+  margin-bottom: 0.85rem;
 }
 
 .admin-app .diet-meal-head {
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: start;
-  gap: 1rem;
-  margin-bottom: 0.85rem;
+  gap: 0.75rem;
+  margin-bottom: 0.65rem;
 }
 
 .admin-app .diet-meal-actions {
@@ -2652,8 +2784,8 @@
   display: grid;
   grid-template-columns: minmax(140px, 1fr) auto minmax(120px, auto) auto;
   align-items: center;
-  gap: 0.65rem 1rem;
-  padding: 0.55rem 0.75rem;
+  gap: 0.55rem 0.75rem;
+  padding: 0.45rem 0.65rem;
   background: rgba(0, 0, 0, 0.18);
   border-radius: 10px;
 }
@@ -2665,11 +2797,31 @@
   min-width: 0;
 }
 
-.admin-app .di-qty {
+.admin-app .di-brand {
+  color: #d8d8d8;
+  font-weight: 400;
+}
+
+.admin-app .di-qty,
+.admin-app .di-qty-edit {
   color: #d8d8d8;
   font-weight: 600;
   font-size: 0.85rem;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.admin-app .di-qty-input {
+  width: 4.4rem;
+  padding: 0.28rem 0.4rem;
+  font-size: 0.85rem;
+  text-align: right;
+}
+
+.admin-app .di-qty-input.is-saving {
+  opacity: 0.6;
 }
 
 .admin-app .di-macros {
@@ -2800,6 +2952,62 @@
   border: 1px solid var(--adm-border-soft);
 }
 
+.admin-app .diet-dialog {
+  border: 1px solid var(--adm-border);
+  border-radius: 14px;
+  padding: 0;
+  background: var(--adm-surface);
+  color: var(--adm-text);
+  max-width: min(480px, calc(100vw - 2rem));
+  width: 100%;
+}
+
+.admin-app .diet-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.admin-app .diet-dialog-inner {
+  padding: 1.25rem 1.35rem;
+}
+
+.admin-app .diet-dialog-title {
+  margin: 0 0 0.45rem;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.admin-app .diet-dialog-text {
+  margin: 0 0 1rem;
+  color: var(--adm-text-muted);
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
+.admin-app .diet-copy-days {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.45rem;
+  margin-bottom: 1.1rem;
+}
+
+.admin-app .diet-copy-day-option {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.55rem;
+  border-radius: 8px;
+  border: 1px solid var(--adm-border-soft);
+  background: rgba(0, 0, 0, 0.15);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.admin-app .diet-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
 @media (max-width: 900px) {
   .admin-app .diet-summary {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -2845,9 +3053,28 @@
   }
 
   .admin-app .di-name { grid-area: name; }
-  .admin-app .di-qty { grid-area: qty; justify-self: end; }
+  .admin-app .di-qty,
+  .admin-app .di-qty-edit { grid-area: qty; justify-self: end; }
   .admin-app .di-macros { grid-area: macros; text-align: left; white-space: normal; }
   .admin-app .diet-item .btn-icon-danger { grid-area: btn; justify-self: end; }
+
+  .admin-app .diet-goals-card--sticky {
+    position: static;
+    box-shadow: none;
+  }
+
+  .admin-app .diet-day-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-app .diet-day-actions {
+    justify-content: stretch;
+  }
+
+  .admin-app .diet-day-actions .btn {
+    flex: 1;
+  }
 }
 
 @media (max-width: 560px) {

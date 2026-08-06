@@ -65,6 +65,36 @@ def add_meal_item(meal_id):
     return jsonify({"item": diet_meal_item_to_dict(item)}), 201
 
 
+@admin_diets_bp.route("/diet-meal-items/<int:item_id>", methods=["PATCH"])
+@api_admin_required
+@handle_service_errors
+def update_meal_item(item_id):
+    """PATCH /api/admin/diet-meal-items/{id} — aggiorna grammi (e note)."""
+    data = request.get_json(silent=True) or {}
+    item = NutritionService().update_meal_item(item_id, data)
+    return jsonify({"item": diet_meal_item_to_dict(item)})
+
+
+@admin_diets_bp.route("/diet-plans/<int:diet_plan_id>/ensure-day-meals", methods=["POST"])
+@api_admin_required
+@handle_service_errors
+def ensure_day_meals(diet_plan_id):
+    """POST /api/admin/diet-plans/{id}/ensure-day-meals — crea pasti tipici mancanti."""
+    data = request.get_json(silent=True) or {}
+    meals = NutritionService().ensure_day_meals(diet_plan_id, data)
+    return jsonify({"meals": [diet_meal_to_dict(m) for m in meals], "created": len(meals)}), 201
+
+
+@admin_diets_bp.route("/diet-plans/<int:diet_plan_id>/copy-day", methods=["POST"])
+@api_admin_required
+@handle_service_errors
+def copy_day(diet_plan_id):
+    """POST /api/admin/diet-plans/{id}/copy-day — clona pasti da un giorno ad altri."""
+    data = request.get_json(silent=True) or {}
+    result = NutritionService().copy_day(diet_plan_id, data)
+    return jsonify(result), 201
+
+
 @admin_diets_bp.route("/diet-plans/<int:diet_plan_id>", methods=["PATCH"])
 @api_admin_required
 @handle_service_errors

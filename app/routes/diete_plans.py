@@ -183,12 +183,18 @@ def diet_plan_detail(diet_plan_id):
     assert_diet_plan_tenant(plan)
     paziente = get_tenant_patient_or_404(plan.patient_id)
     totals = _build_totals(plan)
+    max_day = 7
+    for meal in plan.meals:
+        end = (meal.day_index_to if meal.day_index_to is not None else meal.day_index or 0) + 1
+        if end > max_day:
+            max_day = end
     return render_template(
         "admin/diet_plan_detail.html",
         plan=plan,
         paziente=paziente,
         totals=totals,
         targets=_build_targets(plan),
+        day_count=max_day,
     )
 
 
