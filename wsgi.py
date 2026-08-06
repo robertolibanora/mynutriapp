@@ -237,6 +237,25 @@ except Exception as e:
 def inject_csrf_token():
     return dict(csrf_token=generate_csrf)
 
+
+@app.context_processor
+def inject_static_version():
+    """Cache-busting per CSS/JS admin (mtime dei file statici)."""
+    static_root = os.path.join(app.root_path, "static")
+    watched = [
+        os.path.join(static_root, "css", "admin-theme.css"),
+        os.path.join(static_root, "js", "diet_builder.js"),
+        os.path.join(static_root, "js", "global_patient_search.js"),
+    ]
+    mtimes = []
+    for path in watched:
+        try:
+            mtimes.append(int(os.path.getmtime(path)))
+        except OSError:
+            pass
+    return {"static_version": str(max(mtimes) if mtimes else 1)}
+
+
 # Rende disponibile timezone-aware datetime in tutte le template
 @app.template_filter('localize')
 def localize_datetime(dt):

@@ -130,7 +130,7 @@
 <div id="diet-builder"
      data-plan-id="{{ plan.id }}"
      data-initial-day="1"
-     data-day-count="{{ day_count|default(7) }}"
+     data-day-count="7"
      data-search-url="{{ url_for('admin_nutrition.search_foods') }}"
      data-import-url="{{ url_for('admin_nutrition.import_food') }}"
      data-meals-url="{{ url_for('admin_diets.add_meal', diet_plan_id=plan.id) }}"
@@ -146,16 +146,35 @@
      data-custom-food-url="{{ url_for('admin_nutrition.create_custom_food') }}">
 
   <div class="diet-day-bar">
-    <div class="diet-day-tabs" id="day-tabs" role="tablist" aria-label="Giorni della dieta"></div>
+    <div class="diet-day-tabs" id="day-tabs" role="tablist" aria-label="Giorni della dieta">
+      {% for d in range(1, 8) %}
+      <button type="button" class="diet-day-tab{% if d == 1 %} is-active{% endif %}"
+              role="tab" data-day="{{ d }}" aria-selected="{{ 'true' if d == 1 else 'false' }}"
+              title="Giorno {{ d }}">G{{ d }}</button>
+      {% endfor %}
+    </div>
     <div class="diet-day-actions">
-      <button type="button" class="btn btn-secondary btn-small" id="add-day-btn" title="Aggiungi un giorno">+ Giorno</button>
       <button type="button" class="btn btn-secondary btn-small" id="copy-day-btn">Copia giorno</button>
     </div>
   </div>
 
+  {% set day1_has_meals = namespace(v=false) %}
+  {% for meal in plan.meals %}
+    {% set df = (meal.day_index or 0) + 1 %}
+    {% set dt = (meal.day_index_to if meal.day_index_to is not none else meal.day_index or 0) + 1 %}
+    {% if df <= 1 and 1 <= dt %}{% set day1_has_meals.v = true %}{% endif %}
+  {% endfor %}
+  <div id="day-empty" class="diet-day-empty"{% if day1_has_meals.v %} hidden{% endif %}>
+    <p class="diet-day-empty-title">Nessun pasto in questo giorno</p>
+    <p class="diet-day-empty-text">Crea una giornata tipo in un click, oppure aggiungi i pasti uno alla volta con i pulsanti sotto.</p>
+    <button type="button" class="btn btn-primary" id="create-day-template-btn">
+      {{ icon('plus', 16) }} Crea giornata tipo
+    </button>
+  </div>
+
   <div class="diet-day-toolbar">
     <div class="diet-meal-chips" id="meal-chips">
-      <span class="diet-meal-chips-label">Aggiungi:</span>
+      <span class="diet-meal-chips-label">Aggiungi pasto:</span>
       <button type="button" class="diet-chip" data-add-meal-name="Colazione">Colazione</button>
       <button type="button" class="diet-chip" data-add-meal-name="Spuntino">Spuntino</button>
       <button type="button" class="diet-chip" data-add-meal-name="Pranzo">Pranzo</button>
@@ -163,14 +182,6 @@
       <button type="button" class="diet-chip" data-add-meal-name="Cena">Cena</button>
       <button type="button" class="diet-chip diet-chip--custom" id="add-custom-meal-btn">Altro…</button>
     </div>
-  </div>
-
-  <div id="day-empty" class="diet-day-empty" hidden>
-    <p class="diet-day-empty-title">Nessun pasto in questo giorno</p>
-    <p class="diet-day-empty-text">Crea una giornata tipo in un click, oppure aggiungi i pasti uno alla volta.</p>
-    <button type="button" class="btn btn-primary" id="create-day-template-btn">
-      {{ icon('plus', 16) }} Crea giornata tipo
-    </button>
   </div>
 
   <div id="meals-container">
@@ -183,7 +194,8 @@
          data-meal-id="{{ meal.id }}"
          data-day-from="{{ day_from }}"
          data-day-to="{{ day_to }}"
-         data-meal-name="{{ meal.meal_name }}">
+         data-meal-name="{{ meal.meal_name }}"
+         {% if day_from > 1 or 1 > day_to %}hidden{% endif %}>
       <div class="diet-meal-head">
         <div>
           <div class="diet-meal-title">
@@ -270,15 +282,15 @@
 </div>
 
 <dialog id="copy-day-dialog" class="diet-dialog">
-  <form method="dialog" id="copy-day-form" class="diet-dialog-inner">
+  <div class="diet-dialog-inner">
     <h3 class="diet-dialog-title">Copia giorno <span id="copy-from-label">1</span></h3>
     <p class="diet-dialog-text">Seleziona i giorni su cui copiare pasti e alimenti. I pasti con lo stesso nome sulla destinazione verranno sostituiti.</p>
     <div class="diet-copy-days" id="copy-day-checkboxes"></div>
     <div class="diet-dialog-actions">
       <button type="button" class="btn btn-secondary btn-small" id="copy-day-cancel">Annulla</button>
-      <button type="submit" class="btn btn-primary btn-small" id="copy-day-confirm">Copia</button>
+      <button type="button" class="btn btn-primary btn-small" id="copy-day-confirm">Copia</button>
     </div>
-  </form>
+  </div>
 </dialog>
 
 <template id="meal-tpl">

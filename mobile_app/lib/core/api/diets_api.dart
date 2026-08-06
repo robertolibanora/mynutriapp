@@ -133,6 +133,7 @@ class DietMeal {
   const DietMeal({
     required this.id,
     this.dayIndex,
+    this.dayIndexTo,
     this.dayLabel,
     this.mealName,
     this.mealTime,
@@ -150,9 +151,12 @@ class DietMeal {
             .toList()
         : <DietMealItem>[];
     final totals = json['totals'];
+    final dayFrom = (json['day_index'] as num?)?.toInt();
+    final dayToRaw = (json['day_index_to'] as num?)?.toInt();
     return DietMeal(
       id: json['id'] as int? ?? 0,
-      dayIndex: json['day_index'] as int?,
+      dayIndex: dayFrom,
+      dayIndexTo: dayToRaw ?? dayFrom,
       dayLabel: json['day_label'] as String?,
       mealName: json['meal_name'] as String?,
       mealTime: json['meal_time'] as String?,
@@ -164,12 +168,19 @@ class DietMeal {
 
   final int id;
   final int? dayIndex;
+  /// Inclusivo; se assente vale [dayIndex].
+  final int? dayIndexTo;
   final String? dayLabel;
   final String? mealName;
   final String? mealTime;
   final String? notes;
   final List<DietMealItem> items;
   final double? kcal;
+
+  int get dayFrom => dayIndex ?? 0;
+  int get dayTo => dayIndexTo ?? dayFrom;
+
+  bool coversDay(int dayIdx) => dayIdx >= dayFrom && dayIdx <= dayTo;
 
   String get heading {
     final name = (mealName?.trim().isNotEmpty == true) ? mealName!.trim() : 'Pasto';
@@ -224,14 +235,38 @@ class DietDetail {
   final double? targetCarbsPct;
   final double? targetFatPct;
 
-  /// Pasti raggruppati per giorno (day_label / day_index).
-  Map<String, List<DietMeal>> get mealsByDay {
-    final map = <String, List<DietMeal>>{};
-    for (final meal in meals) {
-      final key = (meal.dayLabel?.trim().isNotEmpty == true)
-          ? meal.dayLabel!.trim()
-          : (meal.dayIndex != null ? 'Giorno ${meal.dayIndex}' : 'Piano');
-      map.putIfAbsent(key, () => []).add(meal);
+  /// Indici giorno 0-based presenti nel piano (espande gli intervalli).
+  List<int> get dayIndexes {
+    if (meals.isEmpty) return const [];
+    var minD = meals.first.dayFrom;
+    var maxD = meals.first.dayTo;
+    for (final m in meals) {
+      if (m.dayFrom < minD) minD = m.dayFrom;
+      if (m.dayTo > maxD) maxD = m.dayTo;
+    }
+    // Piano tipico a 7 giorni (builder admin).
+    if (maxD < 6) maxD = 6;
+    if (minD > 0) minD = 0;
+    return [for (var i = minD; i <= maxD; i++) i];
+  }
+
+  List<DietMeal> mealsForDay(int dayIdx) {
+    final list = meals.where((m) => m.coversDay(dayIdx)).toList()
+      ..sort((a, b) {
+        final ta = a.mealTime ?? '';
+        final tb = b.mealTime ?? '';
+        final c = ta.compareTo(tb);
+        if (c != 0) return c;
+        return a.id.compareTo(b.id);
+      });
+    return list;
+  }
+
+  /// Pasti raggruppati per giorno 0-based (intervalli espansi).
+  Map<int, List<DietMeal>> get mealsByDayIndex {
+    final map = <int, List<DietMeal>>{};
+    for (final day in dayIndexes) {
+      map[day] = mealsForDay(day);
     }
     return map;
   }

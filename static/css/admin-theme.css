@@ -2519,9 +2519,8 @@
 .admin-app .diet-goals-card--sticky {
   position: sticky;
   top: 4.75rem; /* sotto la topbar sticky */
-  z-index: 40;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
-  backdrop-filter: blur(8px);
+  z-index: 20;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.22);
 }
 
 .admin-app .diet-goals-title {
@@ -2626,16 +2625,17 @@
 }
 
 .admin-app .diet-day-tab {
-  min-width: 2.4rem;
-  height: 2.2rem;
-  padding: 0 0.7rem;
+  min-width: 2.6rem;
+  height: 2.35rem;
+  padding: 0 0.75rem;
   border-radius: 10px;
-  border: 1px solid var(--adm-border);
-  background: var(--adm-surface);
-  color: var(--adm-text-muted);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--adm-text);
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   cursor: pointer;
+  font-family: var(--adm-font);
 }
 
 .admin-app .diet-day-tab:hover {

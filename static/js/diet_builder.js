@@ -29,8 +29,10 @@
   var msgBox = document.getElementById("diet-msg");
   var selected = {};
   var perDayTotals = {};
+  var DAY_COUNT = 7;
   var currentDay = parseInt(root.dataset.initialDay || "1", 10) || 1;
-  var dayCount = Math.max(7, parseInt(root.dataset.dayCount || "7", 10) || 7);
+  if (currentDay < 1) currentDay = 1;
+  if (currentDay > DAY_COUNT) currentDay = DAY_COUNT;
   var DEFAULT_DAY_MEALS = ["Colazione", "Spuntino", "Pranzo", "Cena"];
 
   function fmt0(v) { return (Math.round(v || 0)).toString(); }
@@ -142,7 +144,7 @@
   function renderDayTabs() {
     if (!dayTabs) return;
     dayTabs.innerHTML = "";
-    for (var d = 1; d <= dayCount; d++) {
+    for (var d = 1; d <= DAY_COUNT; d++) {
       var btn = document.createElement("button");
       btn.type = "button";
       btn.className = "diet-day-tab" + (d === currentDay ? " is-active" : "");
@@ -153,11 +155,6 @@
       btn.title = "Giorno " + d;
       dayTabs.appendChild(btn);
     }
-  }
-
-  function expandDayCountTo(n) {
-    dayCount = Math.max(dayCount, n, 7);
-    root.dataset.dayCount = String(dayCount);
   }
 
   function refreshMealTotals(mealId) {
@@ -173,9 +170,8 @@
     var raw = (totals && totals.per_day) || {};
     Object.keys(raw).forEach(function (k) {
       var day1 = parseInt(k, 10) + 1;
-      if (!isNaN(day1)) {
+      if (!isNaN(day1) && day1 >= 1 && day1 <= DAY_COUNT) {
         perDayTotals[day1] = raw[k];
-        if (day1 > dayCount) expandDayCountTo(day1);
       }
     });
     writeTotals(dayTotalEl(), perDayTotals[currentDay] || emptyTotals());
@@ -245,11 +241,16 @@
         selected[mealId] = food;
         var sel = root.querySelector('[data-selected="' + mealId + '"]');
         if (sel) {
-          sel.textContent = "Selezionato: " + food.name + (food.brand ? " (" + food.brand + ")" : "");
+          sel.textContent = "Selezionato: " + food.name + (food.brand ? " (" + food.brand + ")" : "") + " — inserisci i grammi e premi Aggiungi";
         }
         var input = root.querySelector('.food-search[data-meal="' + mealId + '"]');
         if (input) input.value = food.name;
         box.classList.remove("open");
+        var gramsInput = root.querySelector('[data-grams="' + mealId + '"]');
+        if (gramsInput) {
+          gramsInput.focus();
+          gramsInput.select();
+        }
       });
       box.appendChild(div);
     });
@@ -297,6 +298,15 @@
         updateItemQty(qtyInput.dataset.qtyItem, qtyInput);
       }, 500);
     }
+  });
+
+  root.addEventListener("keydown", function (e) {
+    if (e.key !== "Enter") return;
+    var gramsInput = e.target.closest(".food-grams");
+    if (!gramsInput) return;
+    e.preventDefault();
+    var mealId = gramsInput.getAttribute("data-grams");
+    if (mealId) addItem(mealId);
   });
 
   document.addEventListener("click", function (e) {
@@ -528,19 +538,31 @@
   }
 
   function appendMealCard(meal) {
-    if (!mealsContainer) return;
+    if (!mealsContainer || !meal) return null;
     var from = ((meal && meal.day_index) || 0) + 1;
     var to = meal && meal.day_index_to != null ? meal.day_index_to + 1 : from;
     if (to < from) to = from;
-    expandDayCountTo(to);
+    if (from > DAY_COUNT && to > DAY_COUNT) return null;
+
+    // Evita duplicati se la card esiste già
+    var existing = root.querySelector('[data-meal-id="' + meal.id + '"]');
+    if (existing) {
+      syncDayView();
+      return existing;
+    }
 
     var sharedBadge = from !== to
       ? ' <span class="diet-shared-badge" title="Pasto condiviso su più giorni">Giorni ' + from + "–" + to + "</span>"
       : "";
 
-    var tpl = document.getElementById("meal-tpl").innerHTML;
-    var html = tpl
-      .replace(/__MEAL_ID__/g, meal.id)
+    var tplEl = document.getElementById("meal-tpl");
+    if (!tplEl) {
+      showMsg("Template pasto mancante. Ricarica la pagina.");
+      return null;
+    }
+
+    var html = tplEl.innerHTML
+      .replace(/__MEAL_ID__/g, String(meal.id))
       .replace(/__DAY_FROM__/g, String(from))
       .replace(/__DAY_TO__/g, String(to))
       .replace(/__MEAL_NAME_HTML__/g, escapeHtml(meal.meal_name || "") + sharedBadge)
@@ -548,16 +570,24 @@
 
     var wrap = document.createElement("div");
     wrap.innerHTML = html.trim();
-    var node = wrap.firstChild;
+    var node = wrap.firstElementChild || wrap.firstChild;
+    if (!node || !node.setAttribute) {
+      showMsg("Errore rendering pasto. Ricarico…");
+      setTimeout(function () { window.location.reload(); }, 600);
+      return null;
+    }
     node.setAttribute("data-meal-name", meal.meal_name || "");
-    // title text already in HTML; ensure plain name in title node text if needed
     mealsContainer.appendChild(node);
     syncDayView();
+    try {
+      node.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    } catch (err) { /* ignore */ }
     return node;
   }
 
   function createMeal(name, day1) {
     day1 = day1 || currentDay;
+    day1 = Math.min(DAY_COUNT, Math.max(1, parseInt(day1, 10) || 1));
     if (!MEALS_URL) {
       showMsg("URL pasti non configurato. Ricarica la pagina.");
       return Promise.reject(new Error("missing meals url"));
@@ -573,8 +603,11 @@
       })
     }).then(function (res) {
       if (!res.ok) throw new Error((res.data && res.data.error) || "Errore creazione pasto.");
-      if (res.data && res.data.meal) appendMealCard(res.data.meal);
-      return res.data.meal;
+      var meal = res.data && res.data.meal;
+      if (!meal) throw new Error("Risposta senza pasto.");
+      var card = appendMealCard(meal);
+      if (!card) throw new Error("Pasto salvato ma non visualizzato. Ricarica la pagina.");
+      return meal;
     });
   }
 
@@ -615,7 +648,7 @@
     }
     if (copyFromLabel) copyFromLabel.textContent = String(currentDay);
     copyCheckboxes.innerHTML = "";
-    for (var d = 1; d <= dayCount; d++) {
+    for (var d = 1; d <= DAY_COUNT; d++) {
       if (d === currentDay) continue;
       var label = document.createElement("label");
       label.className = "diet-copy-day-option";
@@ -633,8 +666,14 @@
   }
 
   function submitCopyDay(e) {
-    if (e) e.preventDefault();
-    if (!COPY_DAY_URL || !copyCheckboxes) return;
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (!COPY_DAY_URL || !copyCheckboxes) {
+      showMsg("URL copia giorno non disponibile. Ricarica la pagina.");
+      return false;
+    }
     var toDays = Array.prototype.map.call(
       copyCheckboxes.querySelectorAll('input[name="to_day"]:checked'),
       function (el) { return parseInt(el.value, 10); }
@@ -642,7 +681,7 @@
 
     if (!toDays.length) {
       showMsg("Seleziona almeno un giorno destinazione.");
-      return;
+      return false;
     }
 
     var confirmBtn = document.getElementById("copy-day-confirm");
@@ -660,13 +699,12 @@
           " (" + (res.data.meals_created || 0) + " pasti).",
         true
       );
-      // Ricarica per mostrare i pasti clonati con gli item
       window.location.reload();
     }).catch(function (err) {
       showMsg(err.message || "Errore copia giorno.");
-    }).finally(function () {
       if (confirmBtn) confirmBtn.disabled = false;
     });
+    return false;
   }
 
   // -------------------- eventi UI --------------------
@@ -674,18 +712,10 @@
     dayTabs.addEventListener("click", function (e) {
       var tab = e.target.closest("[data-day]");
       if (!tab) return;
-      currentDay = parseInt(tab.dataset.day, 10) || 1;
+      var next = parseInt(tab.dataset.day, 10) || 1;
+      if (next < 1 || next > DAY_COUNT) return;
+      currentDay = next;
       syncDayView();
-    });
-  }
-
-  var addDayBtn = document.getElementById("add-day-btn");
-  if (addDayBtn) {
-    addDayBtn.addEventListener("click", function () {
-      expandDayCountTo(dayCount + 1);
-      currentDay = dayCount;
-      syncDayView();
-      showMsg("Aggiunto Giorno " + currentDay + ". Usa i chip per creare i pasti.", true);
     });
   }
 
@@ -707,8 +737,8 @@
   var copyCancel = document.getElementById("copy-day-cancel");
   if (copyCancel) copyCancel.addEventListener("click", closeCopyDayDialog);
 
-  var copyForm = document.getElementById("copy-day-form");
-  if (copyForm) copyForm.addEventListener("submit", submitCopyDay);
+  var copyConfirm = document.getElementById("copy-day-confirm");
+  if (copyConfirm) copyConfirm.addEventListener("click", submitCopyDay);
 
   root.addEventListener("click", function (e) {
     var chip = e.target.closest("[data-add-meal-name]");
@@ -819,12 +849,6 @@
       if (btn) btn.disabled = false;
     });
   }
-
-  // Init: espandi dayCount dai pasti già in pagina
-  root.querySelectorAll(".diet-meal[data-day-to]").forEach(function (card) {
-    var to = parseInt(card.getAttribute("data-day-to"), 10) || 1;
-    expandDayCountTo(to);
-  });
 
   syncDayView();
   refreshAllTotals();

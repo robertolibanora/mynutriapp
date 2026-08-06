@@ -71,20 +71,23 @@ ThemeData buildAppTheme() {
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: AppColors.bg,
       elevation: 0,
-      height: 68,
-      indicatorColor: AppColors.accent.withValues(alpha: 0.18),
+      height: 72,
+      indicatorColor: AppColors.accent.withValues(alpha: 0.14),
+      indicatorShape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+      ),
       labelTextStyle: WidgetStateProperty.resolveWith((states) {
         final selected = states.contains(WidgetState.selected);
         return TextStyle(
-          fontSize: 12,
-          fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+          fontSize: 11,
+          fontWeight: selected ? FontWeight.w800 : FontWeight.w500,
           color: selected ? AppColors.accent : AppColors.muted,
         );
       }),
       iconTheme: WidgetStateProperty.resolveWith((states) {
         final selected = states.contains(WidgetState.selected);
         return IconThemeData(
-          size: 24,
+          size: 22,
           color: selected ? AppColors.accent : AppColors.muted,
         );
       }),
