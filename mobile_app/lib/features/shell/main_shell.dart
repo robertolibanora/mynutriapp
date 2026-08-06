@@ -16,21 +16,26 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   int _index = 0;
 
-  static const _pages = <Widget>[
-    HomeScreen(),
-    DietScreen(),
-    AppointmentsScreen(),
-    ProgressScreen(),
-    ProfileScreen(),
-  ];
+  void _openTab(int index) {
+    if (index < 0 || index > 4 || index == _index) return;
+    setState(() => _index = index);
+  }
 
   @override
   Widget build(BuildContext context) {
+    final pages = <Widget>[
+      HomeScreen(onOpenTab: _openTab),
+      const DietScreen(),
+      const AppointmentsScreen(),
+      const ProgressScreen(),
+      const ProfileScreen(),
+    ];
+
     return Scaffold(
-      body: IndexedStack(index: _index, children: _pages),
+      body: IndexedStack(index: _index, children: pages),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
-        onDestinationSelected: (i) => setState(() => _index = i),
+        onDestinationSelected: _openTab,
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.home_outlined),
