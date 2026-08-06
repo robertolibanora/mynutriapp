@@ -7,6 +7,7 @@ import '../../core/api/gdpr_api.dart';
 import '../../core/app_scope.dart';
 import '../../core/config/env.dart';
 import '../../core/theme/app_theme.dart';
+import '../../widgets/app_ui.dart';
 
 class PrivacyScreen extends StatefulWidget {
   const PrivacyScreen({super.key});
@@ -141,10 +142,16 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Cancellare i tuoi dati?'),
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          'Cancellare i tuoi dati?',
+          style: TextStyle(fontWeight: FontWeight.w800),
+        ),
         content: const Text(
           'Verrà inviata una richiesta di cancellazione (diritto all’oblio). '
           'Il professionista elaborerà la richiesta. L’accesso all’app potrà essere limitato.',
+          style: TextStyle(color: AppColors.muted, height: 1.4),
         ),
         actions: [
           TextButton(
@@ -153,6 +160,12 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.danger,
+              foregroundColor: Colors.white,
+              minimumSize: const Size(0, 40),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+            ),
             child: const Text('Conferma'),
           ),
         ],
@@ -202,36 +215,41 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Privacy e dati')),
+      appBar: AppBar(
+        title: const Text(
+          'Privacy e dati',
+          style: TextStyle(fontWeight: FontWeight.w700),
+        ),
+      ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(_error!, style: const TextStyle(color: AppColors.muted)),
-                      const SizedBox(height: 12),
-                      FilledButton(onPressed: _load, child: const Text('Riprova')),
-                    ],
-                  ),
-                )
+              ? AppErrorView(message: _error!, onRetry: _load)
               : ListView(
-                  padding: const EdgeInsets.all(20),
+                  padding: kAppPagePadding,
                   children: [
-                    const Text(
-                      'Gestisci i tuoi consensi e i diritti GDPR (portabilità e oblio).',
-                      style: TextStyle(color: AppColors.muted, height: 1.4),
+                    const AppInfoBanner(
+                      message:
+                          'Gestisci i tuoi consensi e i diritti GDPR (portabilità e oblio).',
                     ),
                     const SizedBox(height: 20),
-                    _Card(
+                    const AppSectionLabel('Consensi'),
+                    const SizedBox(height: 10),
+                    AppSurfaceCard(
                       child: Column(
                         children: [
                           SwitchListTile(
                             contentPadding: EdgeInsets.zero,
-                            title: const Text('Consenso privacy'),
+                            title: const Text(
+                              'Consenso privacy',
+                              style: TextStyle(fontWeight: FontWeight.w700),
+                            ),
                             subtitle: const Text(
                               'Necessario per il servizio. Per revocarlo richiedi la cancellazione.',
+                              style: TextStyle(
+                                color: AppColors.muted,
+                                fontSize: 13,
+                              ),
                             ),
                             value: _privacy?.consensoPrivacy ?? false,
                             onChanged: null,
@@ -239,9 +257,16 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
                           const Divider(color: AppColors.border),
                           SwitchListTile(
                             contentPadding: EdgeInsets.zero,
-                            title: const Text('Consenso marketing'),
+                            title: const Text(
+                              'Consenso marketing',
+                              style: TextStyle(fontWeight: FontWeight.w700),
+                            ),
                             subtitle: const Text(
                               'Comunicazioni informative o promozionali (WhatsApp/email).',
+                              style: TextStyle(
+                                color: AppColors.muted,
+                                fontSize: 13,
+                              ),
                             ),
                             value: _privacy?.consensoMarketing ?? false,
                             onChanged: _saving ? null : _toggleMarketing,
@@ -262,25 +287,24 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    _Card(
+                    const SizedBox(height: 22),
+                    const AppSectionLabel('I tuoi diritti'),
+                    const SizedBox(height: 10),
+                    AppSurfaceCard(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          const Text(
-                            'I tuoi diritti',
-                            style: TextStyle(fontWeight: FontWeight.w700),
-                          ),
-                          const SizedBox(height: 12),
                           FilledButton.tonal(
                             onPressed: _saving ? null : _export,
                             child: const Text('Scarica i miei dati (JSON)'),
                           ),
                           const SizedBox(height: 10),
                           if (_privacy?.erasurePending == true)
-                            const Text(
-                              'Richiesta di cancellazione già inviata. In attesa di elaborazione.',
-                              style: TextStyle(color: AppColors.accent, height: 1.35),
+                            const AppInfoBanner(
+                              icon: Icons.hourglass_top_rounded,
+                              tone: AppBannerTone.accent,
+                              message:
+                                  'Richiesta di cancellazione già inviata. In attesa di elaborazione.',
                             )
                           else
                             OutlinedButton(
@@ -296,24 +320,6 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
                     ),
                   ],
                 ),
-    );
-  }
-}
-
-class _Card extends StatelessWidget {
-  const _Card({required this.child});
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: child,
     );
   }
 }

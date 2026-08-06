@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../../core/api/appointments_api.dart';
 import '../../core/app_scope.dart';
 import '../../core/theme/app_theme.dart';
+import '../../widgets/app_ui.dart';
+import '../../widgets/empty_placeholder.dart';
 
 /// Selezione disponibilità del nutrizionista + conferma prenotazione.
 class BookAppointmentScreen extends StatefulWidget {
@@ -75,25 +77,9 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           if (snap.hasError) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      AppointmentsApi.messageFromError(snap.error!),
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: AppColors.muted),
-                    ),
-                    const SizedBox(height: 16),
-                    FilledButton(
-                      onPressed: _reload,
-                      child: const Text('Riprova'),
-                    ),
-                  ],
-                ),
-              ),
+            return AppErrorView(
+              message: AppointmentsApi.messageFromError(snap.error!),
+              onRetry: _reload,
             );
           }
 
@@ -104,14 +90,12 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
           }
 
           if (result.error == 'no_nutritionist') {
-            return const Center(
-              child: Padding(
-                padding: EdgeInsets.all(24),
-                child: Text(
-                  'Nessun nutrizionista collegato al tuo account.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: AppColors.muted),
-                ),
+            return const Padding(
+              padding: EdgeInsets.all(24),
+              child: EmptyPlaceholder(
+                icon: Icons.person_off_outlined,
+                message: 'Nessun nutrizionista collegato',
+                hint: 'Chiedi al professionista di collegare il tuo account',
               ),
             );
           }
@@ -122,21 +106,17 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
               onRefresh: _reload,
               child: ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(24),
+                padding: kAppPagePadding,
                 children: [
-                  const SizedBox(height: 80),
-                  const Icon(
-                    Icons.event_busy_outlined,
-                    size: 48,
-                    color: AppColors.muted,
-                  ),
-                  const SizedBox(height: 14),
-                  Text(
-                    result.professionista != null
-                        ? 'Nessuno slot libero con ${result.professionista} nei prossimi giorni.'
-                        : 'Nessuno slot libero nei prossimi giorni.',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: AppColors.muted, height: 1.4),
+                  SizedBox(
+                    height: 360,
+                    child: EmptyPlaceholder(
+                      icon: Icons.event_busy_outlined,
+                      message: 'Nessuno slot libero',
+                      hint: result.professionista != null
+                          ? 'Nessuna disponibilità con ${result.professionista} nei prossimi giorni'
+                          : 'Riprova più tardi o contatta il nutrizionista',
+                    ),
                   ),
                 ],
               ),
@@ -155,25 +135,17 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                   color: AppColors.accent,
                   onRefresh: _reload,
                   child: ListView(
-                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+                    padding: kAppPagePadding,
                     children: [
                       if (result.professionista != null) ...[
-                        Text(
-                          'Slot di ${result.professionista}',
-                          style: const TextStyle(
-                            color: AppColors.muted,
-                            fontWeight: FontWeight.w600,
-                          ),
+                        AppInfoBanner(
+                          icon: Icons.person_outline_rounded,
+                          tone: AppBannerTone.accent,
+                          message: 'Slot di ${result.professionista}',
                         ),
-                        const SizedBox(height: 14),
+                        const SizedBox(height: 18),
                       ],
-                      const Text(
-                        'Tipo di appuntamento',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 15,
-                        ),
-                      ),
+                      const AppSectionLabel('Tipo di appuntamento'),
                       const SizedBox(height: 10),
                       Wrap(
                         spacing: 8,
@@ -183,7 +155,8 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                             ChoiceChip(
                               label: Text(t.label),
                               selected: _tipo == t.value,
-                              onSelected: (_) => setState(() => _tipo = t.value),
+                              onSelected: (_) =>
+                                  setState(() => _tipo = t.value),
                               selectedColor:
                                   AppColors.accent.withValues(alpha: 0.22),
                               labelStyle: TextStyle(
@@ -198,17 +171,14 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                                     : AppColors.border,
                               ),
                               backgroundColor: AppColors.surface,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
                             ),
                         ],
                       ),
                       const SizedBox(height: 22),
-                      const Text(
-                        'Scegli uno slot',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 15,
-                        ),
-                      ),
+                      const AppSectionLabel('Scegli uno slot'),
                       const SizedBox(height: 10),
                       for (final entry in byDay.entries) ...[
                         Padding(
@@ -241,9 +211,10 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                       ],
                       if (_submitError != null) ...[
                         const SizedBox(height: 16),
-                        Text(
-                          _submitError!,
-                          style: const TextStyle(color: AppColors.danger),
+                        AppInfoBanner(
+                          message: _submitError!,
+                          icon: Icons.error_outline_rounded,
+                          tone: AppBannerTone.danger,
                         ),
                       ],
                       const SizedBox(height: 24),

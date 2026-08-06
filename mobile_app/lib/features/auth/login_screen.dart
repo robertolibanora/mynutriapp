@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/app_scope.dart';
+import '../../core/branding.dart';
 import '../../core/theme/app_theme.dart';
 import '../../widgets/app_logo.dart';
+import '../../widgets/app_ui.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -57,7 +59,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const Center(child: AppLogo(size: 72, borderRadius: 16)),
                 const SizedBox(height: 20),
                 Text(
-                  'MyNutriApp',
+                  kAppName,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                         fontWeight: FontWeight.w800,
@@ -74,7 +76,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     height: 1.3,
                   ),
                 ),
-                const SizedBox(height: 40),
+                const SizedBox(height: 36),
                 TextField(
                   controller: _telefono,
                   keyboardType: TextInputType.phone,
@@ -128,7 +130,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 if (auth.error != null) ...[
                   const SizedBox(height: 16),
-                  _LoginErrorBanner(message: auth.error!),
+                  AppInfoBanner(
+                    message: auth.error!,
+                    icon: Icons.error_outline_rounded,
+                    tone: AppBannerTone.danger,
+                  ),
                 ],
                 const SizedBox(height: 20),
                 FilledButton(
@@ -148,33 +154,6 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         );
       },
-    );
-  }
-}
-
-class _LoginErrorBanner extends StatelessWidget {
-  const _LoginErrorBanner({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFF3A1515),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.danger.withValues(alpha: 0.55)),
-      ),
-      child: Text(
-        message,
-        style: const TextStyle(
-          color: Color(0xFFFFC9C9),
-          fontSize: 13.5,
-          height: 1.35,
-        ),
-      ),
     );
   }
 }

@@ -5,6 +5,7 @@ import '../../core/api/progress_api.dart';
 import '../../core/app_scope.dart';
 import '../../core/config/env.dart';
 import '../../core/theme/app_theme.dart';
+import '../../widgets/app_ui.dart';
 import '../../widgets/empty_placeholder.dart';
 import 'register_check_screen.dart';
 
@@ -86,8 +87,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
     final auth = AppScope.of(context).auth;
     if (Env.useMockData || auth.isDemo) {
       final base = List<ProgressPoint>.from(_demoPoints ??= _seedDemo());
-      // Sostituisci check dello stesso giorno se presente.
-      final day = DateTime(created.date.year, created.date.month, created.date.day);
+      final day =
+          DateTime(created.date.year, created.date.month, created.date.day);
       base.removeWhere((p) {
         final d = DateTime(p.date.year, p.date.month, p.date.day);
         return d == day;
@@ -106,154 +107,75 @@ class _ProgressScreenState extends State<ProgressScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Progressi',
-          style: TextStyle(fontWeight: FontWeight.w700),
-        ),
-      ),
-      body: FutureBuilder<List<ProgressPoint>>(
-        future: _future,
-        builder: (context, snap) {
-          if (snap.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snap.hasError) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      ProgressApi.messageFromError(snap.error!),
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: AppColors.muted),
+      body: SafeArea(
+        child: FutureBuilder<List<ProgressPoint>>(
+          future: _future,
+          builder: (context, snap) {
+            if (snap.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (snap.hasError) {
+              return AppErrorView(
+                message: ProgressApi.messageFromError(snap.error!),
+                onRetry: _reload,
+              );
+            }
+
+            final points = snap.data ?? const <ProgressPoint>[];
+
+            return RefreshIndicator(
+              color: AppColors.accent,
+              onRefresh: _reload,
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: kAppPagePadding,
+                children: [
+                  const AppPageHeader(
+                    title: 'Progressi',
+                    subtitle: 'Andamento peso e misurazioni',
+                  ),
+                  const SizedBox(height: 20),
+                  AppAccentCta(
+                    icon: Icons.add_chart_rounded,
+                    title: 'Registra check',
+                    subtitle: 'Aggiorna peso e aderenza di questa settimana',
+                    onTap: () => _openRegister(points),
+                  ),
+                  const SizedBox(height: 22),
+                  if (points.isEmpty)
+                    const SizedBox(
+                      height: 320,
+                      child: EmptyPlaceholder(
+                        icon: Icons.show_chart_outlined,
+                        message: 'Nessun progresso ancora',
+                        hint: 'Registra il primo check per vedere il grafico',
+                      ),
+                    )
+                  else ...[
+                    const AppSectionLabel('Panoramica'),
+                    const SizedBox(height: 10),
+                    _SummaryHeader(points: points),
+                    const SizedBox(height: 18),
+                    _WeightChart(
+                      points: points,
+                      touchedIndex: _touchedIndex,
+                      onTouched: (i) => setState(() => _touchedIndex = i),
                     ),
                     const SizedBox(height: 16),
-                    FilledButton(
-                      onPressed: _reload,
-                      child: const Text('Riprova'),
-                    ),
+                    if (_touchedIndex != null &&
+                        _touchedIndex! >= 0 &&
+                        _touchedIndex! < points.length)
+                      _TouchedCard(point: points[_touchedIndex!])
+                    else
+                      _TouchedCard(
+                        point: points.last,
+                        label: 'Ultimo check',
+                      ),
                   ],
-                ),
+                ],
               ),
             );
-          }
-
-          final points = snap.data ?? const <ProgressPoint>[];
-          return Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
-                child: _RegisterCta(onTap: () => _openRegister(points)),
-              ),
-              Expanded(
-                child: points.isEmpty
-                    ? RefreshIndicator(
-                        color: AppColors.accent,
-                        onRefresh: _reload,
-                        child: ListView(
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          children: const [
-                            SizedBox(
-                              height: 420,
-                              child: EmptyPlaceholder(
-                                icon: Icons.show_chart_outlined,
-                                message:
-                                    'Nessun progresso ancora.\nRegistra il primo check.',
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                    : RefreshIndicator(
-                        color: AppColors.accent,
-                        onRefresh: _reload,
-                        child: ListView(
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
-                          children: [
-                            _SummaryHeader(points: points),
-                            const SizedBox(height: 18),
-                            _WeightChart(
-                              points: points,
-                              touchedIndex: _touchedIndex,
-                              onTouched: (i) =>
-                                  setState(() => _touchedIndex = i),
-                            ),
-                            const SizedBox(height: 20),
-                            if (_touchedIndex != null &&
-                                _touchedIndex! >= 0 &&
-                                _touchedIndex! < points.length)
-                              _TouchedCard(point: points[_touchedIndex!])
-                            else
-                              _TouchedCard(
-                                point: points.last,
-                                label: 'Ultimo check',
-                              ),
-                          ],
-                        ),
-                      ),
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _RegisterCta extends StatelessWidget {
-  const _RegisterCta({required this.onTap});
-
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.accent,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-          child: Row(
-            children: [
-              Icon(Icons.add_chart_rounded, color: Color(0xFF1A0F08), size: 26),
-              SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Registra check',
-                      style: TextStyle(
-                        color: Color(0xFF1A0F08),
-                        fontWeight: FontWeight.w800,
-                        fontSize: 16,
-                      ),
-                    ),
-                    SizedBox(height: 2),
-                    Text(
-                      'Aggiorna peso e aderenza di questa settimana',
-                      style: TextStyle(
-                        color: Color(0xFF3A2416),
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(
-                Icons.arrow_forward_ios_rounded,
-                size: 16,
-                color: Color(0xFF1A0F08),
-              ),
-            ],
-          ),
+          },
         ),
       ),
     );
@@ -272,14 +194,9 @@ class _SummaryHeader extends StatelessWidget {
     final delta = last - first;
     final deltaLabel = '${delta >= 0 ? '+' : ''}${delta.toStringAsFixed(1)} kg';
 
-    return Container(
-      width: double.infinity,
+    return AppSurfaceCard(
+      highlighted: true,
       padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-      ),
       child: Row(
         children: [
           Expanded(
@@ -346,14 +263,7 @@ class _TouchedCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-      ),
+    return AppSurfaceCard(
       child: Row(
         children: [
           Expanded(
@@ -379,8 +289,11 @@ class _TouchedCard extends StatelessWidget {
                 if (point.aderenza != null && point.aderenza!.isNotEmpty) ...[
                   const SizedBox(height: 4),
                   Text(
-                    'Aderenza: ${point.aderenza}',
-                    style: const TextStyle(color: AppColors.muted, fontSize: 13.5),
+                    'Aderenza: ${point.aderenza}/10',
+                    style: const TextStyle(
+                      color: AppColors.muted,
+                      fontSize: 13.5,
+                    ),
                   ),
                 ],
               ],
@@ -426,176 +339,171 @@ class _WeightChart extends StatelessWidget {
         FlSpot(i.toDouble(), points[i].weight!),
     ];
 
-    return Container(
-      height: 280,
-      width: double.infinity,
+    return AppSurfaceCard(
       padding: const EdgeInsets.fromLTRB(8, 20, 16, 12),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: LineChart(
-        LineChartData(
-          minX: 0,
-          maxX: (points.length - 1).toDouble(),
-          minY: minY,
-          maxY: maxY,
-          gridData: FlGridData(
-            show: true,
-            drawVerticalLine: false,
-            horizontalInterval: _niceInterval(minY, maxY),
-            getDrawingHorizontalLine: (value) => FlLine(
-              color: AppColors.border,
-              strokeWidth: 1,
-            ),
-          ),
-          borderData: FlBorderData(show: false),
-          titlesData: FlTitlesData(
-            topTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false),
-            ),
-            rightTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false),
-            ),
-            leftTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                reservedSize: 44,
-                interval: _niceInterval(minY, maxY),
-                getTitlesWidget: (value, meta) {
-                  if (value < minY || value > maxY) {
-                    return const SizedBox.shrink();
-                  }
-                  return Text(
-                    value.toStringAsFixed(1),
-                    style: const TextStyle(
-                      color: AppColors.muted,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  );
-                },
+      child: SizedBox(
+        height: 260,
+        width: double.infinity,
+        child: LineChart(
+          LineChartData(
+            minX: 0,
+            maxX: (points.length - 1).toDouble(),
+            minY: minY,
+            maxY: maxY,
+            gridData: FlGridData(
+              show: true,
+              drawVerticalLine: false,
+              horizontalInterval: _niceInterval(minY, maxY),
+              getDrawingHorizontalLine: (value) => FlLine(
+                color: AppColors.border,
+                strokeWidth: 1,
               ),
             ),
-            bottomTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                reservedSize: 28,
-                interval: 1,
-                getTitlesWidget: (value, meta) {
-                  final i = value.round();
-                  if (i < 0 || i >= points.length) {
-                    return const SizedBox.shrink();
-                  }
-                  // Mostra prima, ultima e qualche intermedia.
-                  final show = points.length <= 5 ||
-                      i == 0 ||
-                      i == points.length - 1 ||
-                      i == (points.length / 2).floor();
-                  if (!show) return const SizedBox.shrink();
-                  final d = points[i].date;
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Text(
-                      '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}',
+            borderData: FlBorderData(show: false),
+            titlesData: FlTitlesData(
+              topTitles: const AxisTitles(
+                sideTitles: SideTitles(showTitles: false),
+              ),
+              rightTitles: const AxisTitles(
+                sideTitles: SideTitles(showTitles: false),
+              ),
+              leftTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  reservedSize: 44,
+                  interval: _niceInterval(minY, maxY),
+                  getTitlesWidget: (value, meta) {
+                    if (value < minY || value > maxY) {
+                      return const SizedBox.shrink();
+                    }
+                    return Text(
+                      value.toStringAsFixed(1),
                       style: const TextStyle(
                         color: AppColors.muted,
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
+              ),
+              bottomTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  reservedSize: 28,
+                  interval: 1,
+                  getTitlesWidget: (value, meta) {
+                    final i = value.round();
+                    if (i < 0 || i >= points.length) {
+                      return const SizedBox.shrink();
+                    }
+                    final show = points.length <= 5 ||
+                        i == 0 ||
+                        i == points.length - 1 ||
+                        i == (points.length / 2).floor();
+                    if (!show) return const SizedBox.shrink();
+                    final d = points[i].date;
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Text(
+                        '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}',
+                        style: const TextStyle(
+                          color: AppColors.muted,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ),
             ),
-          ),
-          lineTouchData: LineTouchData(
-            handleBuiltInTouches: true,
-            touchCallback: (event, response) {
-              if (!event.isInterestedForInteractions ||
-                  response?.lineBarSpots == null ||
-                  response!.lineBarSpots!.isEmpty) {
-                // tieni ultimo tocco finché non ne arriva un altro
-                return;
-              }
-              onTouched(response.lineBarSpots!.first.x.round());
-            },
-            touchTooltipData: LineTouchTooltipData(
-              getTooltipColor: (_) => const Color(0xFF2A2A2A),
-              getTooltipItems: (spots) {
-                return spots.map((s) {
-                  final i = s.x.round();
-                  final p = points[i];
-                  return LineTooltipItem(
-                    '${_fmtDate(p.date)}\n${p.weight!.toStringAsFixed(1)} kg',
-                    const TextStyle(
-                      color: AppColors.text,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 13,
-                      height: 1.35,
+            lineTouchData: LineTouchData(
+              handleBuiltInTouches: true,
+              touchCallback: (event, response) {
+                if (!event.isInterestedForInteractions ||
+                    response?.lineBarSpots == null ||
+                    response!.lineBarSpots!.isEmpty) {
+                  return;
+                }
+                onTouched(response.lineBarSpots!.first.x.round());
+              },
+              touchTooltipData: LineTouchTooltipData(
+                getTooltipColor: (_) => const Color(0xFF2A2A2A),
+                getTooltipItems: (spots) {
+                  return spots.map((s) {
+                    final i = s.x.round();
+                    final p = points[i];
+                    return LineTooltipItem(
+                      '${_fmtDate(p.date)}\n${p.weight!.toStringAsFixed(1)} kg',
+                      const TextStyle(
+                        color: AppColors.text,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
+                        height: 1.35,
+                      ),
+                    );
+                  }).toList();
+                },
+              ),
+              getTouchedSpotIndicator: (bar, indexes) {
+                return indexes.map((i) {
+                  return TouchedSpotIndicatorData(
+                    FlLine(
+                      color: AppColors.accent.withValues(alpha: 0.45),
+                      strokeWidth: 1.5,
+                    ),
+                    FlDotData(
+                      show: true,
+                      getDotPainter: (spot, percent, barData, index) {
+                        return FlDotCirclePainter(
+                          radius: 6,
+                          color: AppColors.accent,
+                          strokeWidth: 2,
+                          strokeColor: AppColors.bg,
+                        );
+                      },
                     ),
                   );
                 }).toList();
               },
             ),
-            getTouchedSpotIndicator: (bar, indexes) {
-              return indexes.map((i) {
-                return TouchedSpotIndicatorData(
-                  FlLine(
-                    color: AppColors.accent.withValues(alpha: 0.45),
-                    strokeWidth: 1.5,
+            lineBarsData: [
+              LineChartBarData(
+                spots: spots,
+                isCurved: true,
+                curveSmoothness: 0.28,
+                color: AppColors.accent,
+                barWidth: 3,
+                isStrokeCapRound: true,
+                dotData: FlDotData(
+                  show: true,
+                  getDotPainter: (spot, percent, bar, index) {
+                    final selected = touchedIndex == index;
+                    return FlDotCirclePainter(
+                      radius: selected ? 5.5 : 3.5,
+                      color: AppColors.accent,
+                      strokeWidth: selected ? 2 : 0,
+                      strokeColor: AppColors.bg,
+                    );
+                  },
+                ),
+                belowBarData: BarAreaData(
+                  show: true,
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      AppColors.accent.withValues(alpha: 0.28),
+                      AppColors.accent.withValues(alpha: 0.02),
+                    ],
                   ),
-                  FlDotData(
-                    show: true,
-                    getDotPainter: (spot, percent, barData, index) {
-                      return FlDotCirclePainter(
-                        radius: 6,
-                        color: AppColors.accent,
-                        strokeWidth: 2,
-                        strokeColor: AppColors.bg,
-                      );
-                    },
-                  ),
-                );
-              }).toList();
-            },
-          ),
-          lineBarsData: [
-            LineChartBarData(
-              spots: spots,
-              isCurved: true,
-              curveSmoothness: 0.28,
-              color: AppColors.accent,
-              barWidth: 3,
-              isStrokeCapRound: true,
-              dotData: FlDotData(
-                show: true,
-                getDotPainter: (spot, percent, bar, index) {
-                  final selected = touchedIndex == index;
-                  return FlDotCirclePainter(
-                    radius: selected ? 5.5 : 3.5,
-                    color: AppColors.accent,
-                    strokeWidth: selected ? 2 : 0,
-                    strokeColor: AppColors.bg,
-                  );
-                },
-              ),
-              belowBarData: BarAreaData(
-                show: true,
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    AppColors.accent.withValues(alpha: 0.28),
-                    AppColors.accent.withValues(alpha: 0.02),
-                  ],
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
+          duration: const Duration(milliseconds: 250),
         ),
-        duration: const Duration(milliseconds: 250),
       ),
     );
   }

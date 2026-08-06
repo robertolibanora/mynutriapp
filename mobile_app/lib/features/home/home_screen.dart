@@ -7,6 +7,7 @@ import '../../core/app_scope.dart';
 import '../../core/config/env.dart';
 import '../../core/theme/app_theme.dart';
 import '../../widgets/app_logo.dart';
+import '../../widgets/app_ui.dart';
 import '../progress/register_check_screen.dart';
 
 /// Snapshot aggregato per la dashboard Home.
@@ -250,7 +251,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Center(child: CircularProgressIndicator()),
                         )
                       else if (snap.hasError)
-                        _ErrorCard(
+                        AppErrorView(
                           message: 'Non riesco a caricare la panoramica.',
                           onRetry: _reload,
                         )
@@ -284,24 +285,16 @@ class _HomeScreenState extends State<HomeScreen> {
                           ],
                         ),
                         const SizedBox(height: 22),
-                        const Text(
-                          'Azioni rapide',
-                          style: TextStyle(
-                            color: AppColors.muted,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13,
-                          ),
-                        ),
+                        const AppSectionLabel('Azioni rapide'),
                         const SizedBox(height: 10),
-                        _QuickAction(
+                        AppAccentCta(
                           icon: Icons.add_chart_rounded,
                           title: 'Registra check',
                           subtitle: 'Aggiorna peso e aderenza',
-                          emphasized: true,
                           onTap: () => _openRegisterCheck(data.progress),
                         ),
                         const SizedBox(height: 10),
-                        _QuickAction(
+                        AppSurfaceCta(
                           icon: Icons.event_available_outlined,
                           title: 'Prenota visita',
                           subtitle: 'Scegli uno slot disponibile',
@@ -567,113 +560,3 @@ class _WeightMetricCard extends StatelessWidget {
   }
 }
 
-class _QuickAction extends StatelessWidget {
-  const _QuickAction({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-    this.emphasized = false,
-  });
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
-  final bool emphasized;
-
-  @override
-  Widget build(BuildContext context) {
-    final bg = emphasized ? AppColors.accent : AppColors.surface;
-    final titleColor = emphasized ? const Color(0xFF1A0F08) : AppColors.text;
-    final subColor =
-        emphasized ? const Color(0xFF3A2416) : AppColors.muted;
-    final iconColor = emphasized ? const Color(0xFF1A0F08) : AppColors.accent;
-
-    return Material(
-      color: bg,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: emphasized ? null : Border.all(color: AppColors.border),
-          ),
-          child: Row(
-            children: [
-              Icon(icon, color: iconColor, size: 24),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: TextStyle(
-                        color: titleColor,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 15.5,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle,
-                      style: TextStyle(
-                        color: subColor,
-                        fontSize: 12.5,
-                        fontWeight:
-                            emphasized ? FontWeight.w600 : FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(
-                Icons.arrow_forward_ios_rounded,
-                size: 14,
-                color: titleColor.withValues(alpha: 0.7),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ErrorCard extends StatelessWidget {
-  const _ErrorCard({required this.message, required this.onRetry});
-
-  final String message;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        children: [
-          Text(
-            message,
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: AppColors.muted),
-          ),
-          const SizedBox(height: 14),
-          FilledButton(
-            onPressed: onRetry,
-            child: const Text('Riprova'),
-          ),
-        ],
-      ),
-    );
-  }
-}

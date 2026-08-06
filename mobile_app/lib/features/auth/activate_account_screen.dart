@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/app_scope.dart';
 import '../../core/theme/app_theme.dart';
 import '../../widgets/app_logo.dart';
+import '../../widgets/app_ui.dart';
 
 class ActivateAccountScreen extends StatefulWidget {
   const ActivateAccountScreen({super.key, required this.token});
@@ -97,7 +98,10 @@ class _ActivateAccountScreenState extends State<ActivateAccountScreen> {
     final missingToken = widget.token.trim().isEmpty;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Attiva account'),
+        title: const Text(
+          'Attiva account',
+          style: TextStyle(fontWeight: FontWeight.w700),
+        ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/login'),
@@ -124,12 +128,18 @@ class _ActivateAccountScreenState extends State<ActivateAccountScreen> {
             ),
             const SizedBox(height: 28),
             if (missingToken)
-              const Text(
-                'Link non valido. Apri il link ricevuto via email oppure chiedi un nuovo invito.',
-                style: TextStyle(color: AppColors.muted),
+              const AppInfoBanner(
+                tone: AppBannerTone.danger,
+                icon: Icons.link_off_rounded,
+                message:
+                    'Link non valido. Apri il link ricevuto via email oppure chiedi un nuovo invito.',
               )
             else if (_success != null) ...[
-              Text(_success!, style: const TextStyle(color: AppColors.muted)),
+              AppInfoBanner(
+                message: _success!,
+                tone: AppBannerTone.accent,
+                icon: Icons.check_circle_outline_rounded,
+              ),
               const SizedBox(height: 20),
               FilledButton(
                 onPressed: () => context.go('/login'),
@@ -169,9 +179,10 @@ class _ActivateAccountScreenState extends State<ActivateAccountScreen> {
               ),
               if (_error != null) ...[
                 const SizedBox(height: 16),
-                Text(
-                  _error!,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                AppInfoBanner(
+                  message: _error!,
+                  tone: AppBannerTone.danger,
+                  icon: Icons.error_outline_rounded,
                 ),
               ],
               const SizedBox(height: 24),

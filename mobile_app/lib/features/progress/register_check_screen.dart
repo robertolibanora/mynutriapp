@@ -5,6 +5,7 @@ import '../../core/api/progress_api.dart';
 import '../../core/app_scope.dart';
 import '../../core/config/env.dart';
 import '../../core/theme/app_theme.dart';
+import '../../widgets/app_ui.dart';
 
 /// Form per registrare un check settimanale (peso + aderenza).
 class RegisterCheckScreen extends StatefulWidget {
@@ -97,20 +98,19 @@ class _RegisterCheckScreenState extends State<RegisterCheckScreen> {
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+          padding: kAppPagePadding,
           children: [
-            const Text(
-              'Inserisci il peso di oggi. Il nutrizionista riceverà il check.',
-              style: TextStyle(
-                color: AppColors.muted,
-                fontSize: 14.5,
-                height: 1.35,
-              ),
+            const AppInfoBanner(
+              icon: Icons.add_chart_rounded,
+              tone: AppBannerTone.accent,
+              message:
+                  'Inserisci il peso di oggi. Il nutrizionista riceverà il check.',
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             TextFormField(
               controller: _peso,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
               textInputAction: TextInputAction.next,
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
@@ -130,7 +130,7 @@ class _RegisterCheckScreenState extends State<RegisterCheckScreen> {
                 return null;
               },
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
             TextFormField(
               controller: _freq,
               keyboardType: TextInputType.number,
@@ -143,13 +143,7 @@ class _RegisterCheckScreenState extends State<RegisterCheckScreen> {
               ),
             ),
             const SizedBox(height: 22),
-            const Text(
-              'Aderenza alla dieta',
-              style: TextStyle(
-                fontWeight: FontWeight.w700,
-                fontSize: 15,
-              ),
-            ),
+            const AppSectionLabel('Aderenza alla dieta'),
             const SizedBox(height: 6),
             const Text(
               'Da 1 (bassa) a 10 (ottima) — opzionale',
@@ -170,9 +164,8 @@ class _RegisterCheckScreenState extends State<RegisterCheckScreen> {
                     selectedColor: AppColors.accent.withValues(alpha: 0.35),
                     labelStyle: TextStyle(
                       fontWeight: FontWeight.w700,
-                      color: _aderenza == i
-                          ? AppColors.text
-                          : AppColors.muted,
+                      color:
+                          _aderenza == i ? AppColors.text : AppColors.muted,
                     ),
                     side: BorderSide(
                       color: _aderenza == i
@@ -180,14 +173,18 @@ class _RegisterCheckScreenState extends State<RegisterCheckScreen> {
                           : AppColors.border,
                     ),
                     backgroundColor: AppColors.surface,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
               ],
             ),
             if (_error != null) ...[
               const SizedBox(height: 18),
-              Text(
-                _error!,
-                style: const TextStyle(color: AppColors.danger, fontSize: 14),
+              AppInfoBanner(
+                message: _error!,
+                icon: Icons.error_outline_rounded,
+                tone: AppBannerTone.danger,
               ),
             ],
             const SizedBox(height: 28),

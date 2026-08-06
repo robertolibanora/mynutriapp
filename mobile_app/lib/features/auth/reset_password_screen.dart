@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/app_scope.dart';
 import '../../core/theme/app_theme.dart';
 import '../../widgets/app_logo.dart';
+import '../../widgets/app_ui.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
   const ResetPasswordScreen({super.key, required this.token});
@@ -97,7 +98,10 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     final missingToken = widget.token.trim().isEmpty;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Nuova password'),
+        title: const Text(
+          'Nuova password',
+          style: TextStyle(fontWeight: FontWeight.w700),
+        ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/login'),
@@ -124,12 +128,18 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             ),
             const SizedBox(height: 28),
             if (missingToken)
-              const Text(
-                'Link non valido. Usa “Password dimenticata?” dal login.',
-                style: TextStyle(color: AppColors.muted),
+              const AppInfoBanner(
+                tone: AppBannerTone.danger,
+                icon: Icons.link_off_rounded,
+                message:
+                    'Link non valido. Usa “Password dimenticata?” dal login.',
               )
             else if (_success != null) ...[
-              Text(_success!, style: const TextStyle(color: AppColors.muted)),
+              AppInfoBanner(
+                message: _success!,
+                tone: AppBannerTone.accent,
+                icon: Icons.check_circle_outline_rounded,
+              ),
               const SizedBox(height: 20),
               FilledButton(
                 onPressed: () => context.go('/login'),
@@ -168,9 +178,10 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
               ),
               if (_error != null) ...[
                 const SizedBox(height: 16),
-                Text(
-                  _error!,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                AppInfoBanner(
+                  message: _error!,
+                  tone: AppBannerTone.danger,
+                  icon: Icons.error_outline_rounded,
                 ),
               ],
               const SizedBox(height: 24),

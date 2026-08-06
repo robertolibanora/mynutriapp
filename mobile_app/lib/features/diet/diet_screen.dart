@@ -4,10 +4,11 @@ import '../../core/api/diets_api.dart';
 import '../../core/app_scope.dart';
 import '../../core/config/env.dart';
 import '../../core/theme/app_theme.dart';
+import '../../widgets/app_ui.dart';
 import '../../widgets/empty_placeholder.dart';
 import 'diet_detail_screen.dart';
 
-/// Tab Dieta: piani pubblicati dal nutrizionista (`/admin/diet-plans`).
+/// Tab Dieta: piani pubblicati dal nutrizionista.
 class DietScreen extends StatefulWidget {
   const DietScreen({super.key});
 
@@ -29,7 +30,30 @@ class _DietScreenState extends State<DietScreen> {
   Future<DietsListResult> _load() async {
     final auth = AppScope.of(context).auth;
     if (Env.useMockData || auth.isDemo) {
-      return const DietsListResult();
+      return DietsListResult(
+        activeKind: 'diet_plan',
+        activeId: 1,
+        diets: [
+          DietSummary(
+            kind: 'diet_plan',
+            id: 1,
+            title: 'Piano equilibrato',
+            goal: 'Ricompposizione',
+            attiva: true,
+            targetKcal: 1800,
+            mealsCount: 5,
+          ),
+          DietSummary(
+            kind: 'diet_plan',
+            id: 2,
+            title: 'Piano mantenimento',
+            goal: 'Stabilità peso',
+            attiva: false,
+            targetKcal: 2000,
+            mealsCount: 4,
+          ),
+        ],
+      );
     }
     return _api.listDiets();
   }
@@ -53,84 +77,67 @@ class _DietScreenState extends State<DietScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Le mie diete',
-          style: TextStyle(fontWeight: FontWeight.w700),
-        ),
-      ),
-      body: FutureBuilder<DietsListResult>(
-        future: _future,
-        builder: (context, snap) {
-          if (snap.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snap.hasError) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      DietsApi.messageFromError(snap.error!),
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: AppColors.muted),
-                    ),
-                    const SizedBox(height: 16),
-                    FilledButton(
-                      onPressed: _reload,
-                      child: const Text('Riprova'),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }
+      body: SafeArea(
+        child: FutureBuilder<DietsListResult>(
+          future: _future,
+          builder: (context, snap) {
+            if (snap.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (snap.hasError) {
+              return AppErrorView(
+                message: DietsApi.messageFromError(snap.error!),
+                onRetry: _reload,
+              );
+            }
 
-          final diets = snap.data?.diets ?? const <DietSummary>[];
-          if (diets.isEmpty) {
+            final diets = snap.data?.diets ?? const <DietSummary>[];
+            final sorted = [...diets]..sort((a, b) {
+                if (a.attiva != b.attiva) return a.attiva ? -1 : 1;
+                return b.id.compareTo(a.id);
+              });
+
             return RefreshIndicator(
               color: AppColors.accent,
               onRefresh: _reload,
               child: ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                children: const [
-                  SizedBox(
-                    height: 480,
-                    child: EmptyPlaceholder(
-                      icon: Icons.restaurant_outlined,
-                      message: 'Nessuna dieta assegnata ancora',
-                    ),
+                padding: kAppPagePadding,
+                children: [
+                  const AppPageHeader(
+                    title: 'Dieta',
+                    subtitle: 'Piani alimentari assegnati dal nutrizionista',
                   ),
+                  const SizedBox(height: 20),
+                  if (diets.isEmpty)
+                    const SizedBox(
+                      height: 360,
+                      child: EmptyPlaceholder(
+                        icon: Icons.restaurant_outlined,
+                        message: 'Nessuna dieta assegnata ancora',
+                        hint: 'Quando il nutrizionista pubblicherà un piano lo vedrai qui',
+                      ),
+                    )
+                  else ...[
+                    AppSectionLabel(
+                      diets.length == 1
+                          ? '1 piano'
+                          : '${diets.length} piani',
+                    ),
+                    const SizedBox(height: 10),
+                    for (var i = 0; i < sorted.length; i++) ...[
+                      if (i > 0) const SizedBox(height: 10),
+                      _DietCard(
+                        diet: sorted[i],
+                        onTap: () => _open(sorted[i]),
+                      ),
+                    ],
+                  ],
                 ],
               ),
             );
-          }
-
-          // Attive prima, poi le altre.
-          final sorted = [...diets]..sort((a, b) {
-              if (a.attiva != b.attiva) return a.attiva ? -1 : 1;
-              return b.id.compareTo(a.id);
-            });
-
-          return RefreshIndicator(
-            color: AppColors.accent,
-            onRefresh: _reload,
-            child: ListView.separated(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
-              itemCount: sorted.length,
-              separatorBuilder: (_, _) => const SizedBox(height: 10),
-              itemBuilder: (context, i) {
-                final diet = sorted[i];
-                return _DietCard(
-                  diet: diet,
-                  onTap: () => _open(diet),
-                );
-              },
-            ),
-          );
-        },
+          },
+        ),
       ),
     );
   }
@@ -144,93 +151,53 @@ class _DietCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.surface,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: diet.attiva
-                  ? AppColors.accent.withValues(alpha: 0.45)
-                  : AppColors.border,
-            ),
+    return AppSurfaceCard(
+      highlighted: diet.attiva,
+      onTap: onTap,
+      child: Row(
+        children: [
+          AppIconBox(
+            icon: diet.isPlan
+                ? Icons.restaurant_outlined
+                : Icons.picture_as_pdf_outlined,
           ),
-          child: Row(
-            children: [
-              Container(
-                width: 46,
-                height: 46,
-                decoration: BoxDecoration(
-                  color: AppColors.accent.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  diet.isPlan
-                      ? Icons.restaurant_outlined
-                      : Icons.picture_as_pdf_outlined,
-                  color: AppColors.accent,
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            diet.title,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 16,
-                            ),
-                          ),
+                    Expanded(
+                      child: Text(
+                        diet.title,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 16,
                         ),
-                        if (diet.attiva)
-                          Container(
-                            margin: const EdgeInsets.only(left: 8),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 3,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppColors.accent.withValues(alpha: 0.16),
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            child: const Text(
-                              'Attiva',
-                              style: TextStyle(
-                                color: AppColors.accent,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 11,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      diet.subtitle,
-                      style: const TextStyle(
-                        color: AppColors.muted,
-                        fontSize: 13,
-                        height: 1.3,
                       ),
                     ),
+                    if (diet.attiva) ...[
+                      const SizedBox(width: 8),
+                      const AppStatusChip(label: 'Attiva'),
+                    ],
                   ],
                 ),
-              ),
-              const SizedBox(width: 4),
-              const Icon(Icons.chevron_right, color: AppColors.muted),
-            ],
+                const SizedBox(height: 4),
+                Text(
+                  diet.subtitle,
+                  style: const TextStyle(
+                    color: AppColors.muted,
+                    fontSize: 13,
+                    height: 1.3,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
+          const SizedBox(width: 4),
+          const Icon(Icons.chevron_right_rounded, color: AppColors.muted),
+        ],
       ),
     );
   }
